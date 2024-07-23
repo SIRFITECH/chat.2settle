@@ -9,7 +9,15 @@ import { useAccount } from "wagmi";
 import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
-import { fetchRate } from "../helpers/api_calls";
+import {
+  checkUserExists,
+  createUser,
+  fetchRate,
+  generateBTCWalletAddress,
+  generateERCWalletAddress,
+  generateTronWalletAddress,
+  updateUser,
+} from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import { generateChatId, getChatId, saveChatId } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
@@ -75,6 +83,8 @@ const ChatBot = () => {
     setSharedTicker,
     sharedNetwork,
     setSharedNetwork,
+    sharedWallet,
+    setSharedWallet,
   } = useSharedState();
 
   // STATE HOOKS
@@ -715,11 +725,11 @@ const ChatBot = () => {
   };
 
   // HANDLE ESTIMATE PAYMENT IN ASSET MENU
-  const handleEstimateAsset = (input: string) => {
-    if (greetings.includes(input.trim().toLowerCase())) {
+  const handleEstimateAsset = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
-    } else if (input === "0") {
+    } else if (chatInput === "0") {
       (() => {
         prevStep();
         // displayTransactCrypto(addChatMessages, nextStep);
@@ -746,11 +756,11 @@ const ChatBot = () => {
         // nextStep("estimateAsset");
         addChatMessages(newMessages);
       })();
-    } else if (input === "00") {
+    } else if (chatInput === "00") {
       console.log("Going back from handleHowToEstimate");
       goToStep("chooseAction");
       helloMenu("hi");
-    } else if (input === "1") {
+    } else if (chatInput === "1") {
       // console.log("How to display estimation, NOW PAY OPTIONS");
       // displayHowToEstimation(addChatMessages, "Bitcoin (BTC)");
       const parsedInput = "Bitcoin (BTC)";
@@ -780,13 +790,61 @@ const ChatBot = () => {
       ];
 
       console.log("Next is estimationAmount");
-
       addChatMessages(newMessages);
+
+      const addressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
+
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+      let hasWallet = addressPattern.test(userData.user?.bitcoin_wallet || "");
+
+      const btcWallet = await generateBTCWalletAddress();
+      const ercWallet = await generateERCWalletAddress();
+      const tronWallet = await generateTronWalletAddress();
+
+      // console.log("BTC wallet:", btcWallet.bitcoin_wallet);
+      // console.log("ERC wallet:", ercWallet);
+      // console.log("TRON wallet:", tronWallet);
+      // console.log("Shared ChatId:", sharedChatId);
+
+      if (userExists) {
+        if (hasWallet) {
+          console.log("His wallet address is:", userData.user?.bitcoin_wallet);
+          // fetch the wallet and set it to the sharedWallet
+          setSharedWallet(userData.user?.bitcoin_wallet || "");
+        } else {
+          const btcWallet = await generateBTCWalletAddress();
+          console.log("BTC wallet:", btcWallet.bitcoin_wallet);
+          setSharedWallet(btcWallet.bitcoin_wallet);
+          // await updateUser("497506", {
+          //   bitcoin_wallet: btcWallet.bitcoin_wallet,
+          //   bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+          // });
+        }
+      } else {
+        // eth_bnb_wallet,
+        // eth_bnb_privateKey,
+        // tron_wallet,
+        // tron_privateKey,
+        const btcWallet = await generateBTCWalletAddress();
+        console.log("BTC wallet:", btcWallet.bitcoin_wallet);
+        setSharedWallet(btcWallet.bitcoin_wallet);
+        await createUser({
+          agent_id: sharedChatId,
+          bitcoin_wallet: btcWallet.bitcoin_wallet,
+          bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+        });
+        console.log(
+          "User doesn't exists and does he have wallet address?",
+          hasWallet
+        );
+      }
+
       setSharedTicker("BTCUSDT");
       setSharedCrypto("BTC");
       setSharedNetwork("BTC");
       nextStep("payOptions");
-    } else if (input === "2") {
+    } else if (chatInput === "2") {
       // displayHowToEstimation(addChatMessages, "Ethereum (ETH)");
       const parsedInput = "Ethereum (ETH)";
 
@@ -817,11 +875,20 @@ const ChatBot = () => {
       console.log("Next is estimationAmount");
 
       addChatMessages(newMessages);
+
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+
+      if (userExists) {
+        console.log("User exists", chatId);
+      } else {
+        console.log("User doesn't exists", chatId);
+      }
       setSharedTicker("ETHUSDT");
       setSharedCrypto("ETH");
       setSharedNetwork("ERC20");
       nextStep("payOptions");
-    } else if (input === "3") {
+    } else if (chatInput === "3") {
       // displayHowToEstimation(addChatMessages, "BINANCE (BNB)");
       const parsedInput = "BINANCE (BNB)";
 
@@ -852,11 +919,20 @@ const ChatBot = () => {
       console.log("Next is estimationAmount");
 
       addChatMessages(newMessages);
+
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+
+      if (userExists) {
+        console.log("User exists", chatId);
+      } else {
+        console.log("User doesn't exists", chatId);
+      }
       setSharedTicker("BNBUSDT");
       setSharedCrypto("BNB");
       setSharedNetwork("BEP20");
       nextStep("payOptions");
-    } else if (input === "4") {
+    } else if (chatInput === "4") {
       // displayHowToEstimation(addChatMessages, "TRON (TRX)");
       const parsedInput = "TRON (TRX)";
 
@@ -888,11 +964,19 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+
+      if (userExists) {
+        console.log("User exists", chatId);
+      } else {
+        console.log("User doesn't exists", chatId);
+      }
       setSharedTicker("TRXUSDT");
       setSharedCrypto("TRX");
       setSharedNetwork("TRC20");
       nextStep("payOptions");
-    } else if (input === "5") {
+    } else if (chatInput === "5") {
       // displayNetwork(addChatMessages, nextStep, "USDT");
       const newMessages: MessageType[] = [
         {
@@ -928,7 +1012,7 @@ const ChatBot = () => {
   };
 
   // HANDLE NETWORK FOR DOLLAR TRANSFER
-  const handleNetwork = (chatInput: string) => {
+  const handleNetwork = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -989,6 +1073,15 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+
+      if (userExists) {
+        console.log("User exists", chatId);
+      } else {
+        console.log("User doesn't exists", chatId);
+      }
+
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("ERC20");
@@ -1015,6 +1108,15 @@ const ChatBot = () => {
 
       console.log("Next is payOptions");
       addChatMessages(newMessages);
+
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+
+      if (userExists) {
+        console.log("User exists", chatId);
+      } else {
+        console.log("User doesn't exists", chatId);
+      }
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("TRC20");
@@ -1041,6 +1143,15 @@ const ChatBot = () => {
 
       console.log("Next is payOptions");
       addChatMessages(newMessages);
+
+      const userData = await checkUserExists(sharedChatId);
+      let userExists = userData.exists;
+
+      if (userExists) {
+        console.log("User exists", chatId);
+      } else {
+        console.log("User doesn't exists", chatId);
+      }
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");

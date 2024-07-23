@@ -56,7 +56,7 @@ const PageBody: React.FC = () => {
         <h2 className="font-Poppins text-black ">Loading Exchange rate...</h2>
       ) : (
         <h2 className="font-bold font-Poppins text-black ">
-          Today Rate:{" "}
+          Today Rate:
           <span className="animate-pulse text-blue-500">
             <b>{formattedRate}/$1</b>
           </span>

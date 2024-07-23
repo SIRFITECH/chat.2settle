@@ -30,6 +30,7 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
   const [sharedCrypto, setSharedCrypto] = useState<string>("");
   const [sharedTicker, setSharedTicker] = useState<string>("");
   const [sharedNetwork, setSharedNetwork] = useState<string>("");
+  const [sharedWallet, setSharedWallet] = useState<string>("");
 
   useEffect(() => {
     const chatId = getChatId();
@@ -71,6 +72,8 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
         setSharedTicker,
         sharedNetwork,
         setSharedNetwork,
+        sharedWallet,
+        setSharedWallet,
       }}
     >
       {children}
