@@ -1,0 +1,79 @@
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
+import { getChatId } from "../utils/utilities";
+import { SharedStateContextProps } from "../types/types";
+
+const SharedStateContext = createContext<SharedStateContextProps | undefined>(
+  undefined
+);
+
+export const useSharedState = () => {
+  const context = useContext(SharedStateContext);
+  if (!context) {
+    throw new Error("useSharedState must be used within a SharedStateProvider");
+  }
+  return context;
+};
+
+export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [sharedState, setSharedState] = useState<string>("");
+  const [sharedRate, setSharedRate] = useState<string>("");
+  const [sharedChatId, setSharedChatId] = useState<string>("");
+  const [sharedPaymentMode, setSharedPaymentMode] = useState<string>("");
+  const [sharedCrypto, setSharedCrypto] = useState<string>("");
+  const [sharedTicker, setSharedTicker] = useState<string>("");
+  const [sharedNetwork, setSharedNetwork] = useState<string>("");
+
+  useEffect(() => {
+    const chatId = getChatId();
+    if (chatId) {
+      const storedData = localStorage.getItem(`sharedState-${chatId}`);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        setSharedState(parsedData.sharedState);
+        setSharedRate(parsedData.sharedRate);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const chatId = getChatId();
+    if (chatId) {
+      const chatData = {
+        sharedState,
+        sharedRate,
+      };
+      localStorage.setItem(`sharedState-${chatId}`, JSON.stringify(chatData));
+    }
+  }, [sharedState, sharedRate]);
+
+  return (
+    <SharedStateContext.Provider
+      value={{
+        sharedState,
+        setSharedState,
+        sharedRate,
+        setSharedRate,
+        sharedChatId,
+        setSharedChatId,
+        sharedPaymentMode,
+        setSharedPaymentMode,
+        sharedCrypto,
+        setSharedCrypto,
+        sharedTicker,
+        setSharedTicker,
+        sharedNetwork,
+        setSharedNetwork,
+      }}
+    >
+      {children}
+    </SharedStateContext.Provider>
+  );
+};
