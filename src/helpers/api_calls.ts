@@ -28,6 +28,44 @@ export const fetchRate = async (): Promise<number> => {
   }
 };
 
+// FETCH MERCHANT RATE FROM DB
+export const fetchMerchantRate = async (): Promise<number> => {
+  try {
+    const response = await axios.get<ServerData>(`${apiURL}/api/merchant_rate`);
+    const rawRate = response.data.merchantRate.replace(/,/g, "");
+    const merchant_rate = parseFloat(rawRate);
+
+    if (isNaN(merchant_rate)) {
+      throw new Error("Invalid rate received");
+    }
+
+    return merchant_rate;
+  } catch (error) {
+    console.error("Error fetching merchant rate:", error);
+    throw error;
+  }
+};
+
+// FETCH PROFIT RATE FROM DB
+export const fetchProfitRate = async (): Promise<number> => {
+  try {
+    const response = await axios.get<ServerData>(
+      `${apiURL}/api/merchant_profit`
+    );
+    const rawRate = response.data.profitRate.replace(/,/g, "");
+    const profitRate = parseFloat(rawRate);
+
+    if (isNaN(profitRate)) {
+      throw new Error("Invalid profit rate received");
+    }
+
+    return profitRate;
+  } catch (error) {
+    console.error("Error fetching profit rate:", error);
+    throw error;
+  }
+};
+
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
 export const checkUserExists = async (
   agentId: string
@@ -131,7 +169,7 @@ export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
   }
 };
 
-// FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
+// // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
 // export const fetchCoinPrice = async (
 //   symbol: string
 // ): Promise<number | null> => {
@@ -145,7 +183,6 @@ export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
 //     return null;
 //   }
 // };
-
 export const fetchCoinPrice = async (
   ticker: string
 ): Promise<number | null> => {
@@ -158,6 +195,7 @@ export const fetchCoinPrice = async (
   }
 };
 
+// COLLECT BANK NAMES FROM DB
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {
   try {
     const response = await axios.post<BankName>(`${apiURL}/api/bank_names/`, {
@@ -169,3 +207,24 @@ export const fetchBankNames = async (extracted: string): Promise<BankName> => {
     throw new Error("Failed to fetch bank names");
   }
 };
+
+// QUERY BANK DETAILS FROM NUBAN
+export const fetchBankDetails = async (
+  bank_code: string,
+  acc_no: string
+): Promise<any | null> => {
+  try {
+    const response = await axios.get(
+      `https://app.nuban.com.ng/api/NUBAN-WBODZCTK1831?bank_code=${bank_code}&acc_no=${acc_no}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching bank details for bank code ${bank_code} and account number ${acc_no}:`,
+      error
+    );
+    return null;
+  }
+};
+
+

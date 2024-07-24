@@ -506,7 +506,7 @@ export const displayCharge = async (
             : 0;
 
         setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
+        const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
         const nairaPaymentEstimate =
           parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
@@ -604,14 +604,6 @@ export const displayCharge = async (
           )}`
         );
 
-        // console.log(
-        //   "The value you are paying in your selected asset is :",
-        //   cryptoPaymentEstimate
-        // );
-        // console.log("The charge in naira is :", charge);
-        // console.log("The amount recieved in naira is :", parsedInput);
-        // console.log("The amount sent in asset is :", cryptoPaymentEstimate);
-
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -682,7 +674,7 @@ export const displayCharge = async (
             : 0;
 
         setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
+        const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
         const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
@@ -915,5 +907,259 @@ export const displaySelectBank = (
   ];
   console.log("Next is enterAccountNumber");
   nextStep("enterAccountNumber");
+  addChatMessages(newMessages);
+};
+
+// ALLOW USER TO ENTER BANK NUMBER
+export const displayEnterAccountNumber = (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void,
+  input: string,
+  sharedBankCode: string[],
+  setSharedSelectedBankCode: React.Dispatch<React.SetStateAction<string>>,
+  sharedBankName: string[],
+  setSharedSelectedBankName: React.Dispatch<React.SetStateAction<string>>
+) => {
+  if (input.trim() !== "0") {
+    console.log("The length of sharedBankCode is: ", sharedBankCode.length);
+    var parsedInput = parseInt(input.trim());
+
+    // Check if the parsed input is within the valid range
+    if (parsedInput > 0 && parsedInput <= sharedBankCode.length) {
+      console.log("Bank code is: ", sharedBankCode[parsedInput - 1]);
+      console.log("Bank name is: ", sharedBankName[parsedInput - 1]);
+      setSharedSelectedBankName(sharedBankName[parsedInput - 1]);
+      setSharedSelectedBankCode(sharedBankCode[parsedInput - 1]);
+    } else {
+      // The selected bank is not in the list
+      const newMessages: MessageType[] = [
+        {
+          type: "incoming",
+          content: <span>Please make sure you choose from the list</span>,
+        },
+      ];
+      addChatMessages(newMessages);
+      return;
+    }
+  } else {
+    // The selected bank is not in the list
+    const newMessages: MessageType[] = [
+      {
+        type: "incoming",
+        content: <span>Please make sure you choose from the list</span>,
+      },
+    ];
+    addChatMessages(newMessages);
+    return;
+  }
+
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Enter the account number you'd like to receive the payment
+          <br />
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+    },
+  ];
+  console.log("Next is continueToPay");
+  nextStep("continueToPay");
+  addChatMessages(newMessages);
+};
+
+// CHECK FOR ACCOUNT DETAILS AND ALLOW USER TO CONTINUE TO PAY
+export const displayContinueToPay = (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void,
+  name: string,
+  bank_name: string,
+  account_number: string
+) => {
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Name: {name}
+          <br />
+          Bank name: {bank_name}
+          <br />
+          Account number: {account_number}
+        </span>
+      ),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Here is your menu:
+          <br />
+          <br />
+          1. Continue
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+    },
+  ];
+  console.log("Next is enterPhone");
+  nextStep("enterPhone");
+  addChatMessages(newMessages);
+};
+
+// DISPLAY PHONE NUMBER
+
+export const displayEnterPhone = (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
+): void => {
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Please enter Phone Number.
+          <br />
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+    },
+  ];
+
+  console.log("Next is sendPayment");
+  nextStep("sendPayment");
+  addChatMessages(newMessages);
+};
+
+// FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
+export const displaySendPayment = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void,
+  wallet: string,
+  sharedCrypto: string,
+  sharedPaymentAssetEstimate: string,
+  sharedPaymentNairaEstimate: string,
+  transactionID: number
+): Promise<void> => {
+  // transaction id
+  const assetPayment = parseFloat(sharedPaymentAssetEstimate); // naira/$ exchange rate
+  const paymentAsset = ` ${assetPayment
+    .toFixed(8)
+    .toString()} ${sharedCrypto} `;
+
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: "Phone Number confirmed",
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          You are receiving
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+          <br />
+          Tap to copy Transaction ID 👉 : {transactionID}
+        </span>
+      ),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Send <b>{paymentAsset}</b>
+          to our wallet address. <br /> <br />
+          Note: The amount estimated
+          <b>{paymentAsset}</b>
+          does not include the BTC transaction fee. <br />
+          <b>So we expect to receive not less than {paymentAsset}.</b>
+          <br />
+          Tap to copy or Scan the wallet address below 👇🏾
+        </span>
+      ),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Tap to copy 👉: <br />
+          <br />
+          {wallet}
+        </span>
+      ),
+    },
+
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Your transaction is processing, you'll get your credit soon.
+        </span>
+      ),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Thank you for transaction with me, <br />
+          Wait a little while and check if you have received your recieved your
+          funds.
+          <br />
+          <br />
+          1. Start another transaction
+          <br />
+          2. No, I want to complain
+        </span>
+      ),
+    },
+  ];
+  nextStep("paymentProcessing");
+  addChatMessages(newMessages);
+};
+
+// DISPLAY HOW TO PROCESS THE TRANSACTION
+export const displayTransactionProcessing = (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
+): void => {
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Your transaction is processing, you'll get your credit soon.
+        </span>
+      ),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Thank you for transaction with me, <br />
+          Wait a little while and check if you have received your recieved your
+          funds.
+          <br />
+          <br />
+          1. Start another transaction
+          <br />
+          2. No, I want to complain
+        </span>
+      ),
+    },
+  ];
+
+  console.log("Next is start");
+  nextStep("start");
   addChatMessages(newMessages);
 };

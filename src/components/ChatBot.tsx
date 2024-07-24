@@ -11,22 +11,39 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
 import {
   checkUserExists,
+  createTransaction,
+  fetchBankDetails,
   fetchBankNames,
   fetchCoinPrice,
+  fetchMerchantRate,
+  fetchProfitRate,
   fetchRate,
+  updateUser,
 } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
-import { generateChatId, getChatId, saveChatId } from "../utils/utilities";
+import {
+  formatPhoneNumber,
+  generateChatId,
+  generateTransactionId,
+  getChatId,
+  saveChatId,
+} from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
 import {
   displayCharge,
+  displayContinueToPay,
+  displayEnterAccountNumber,
+  displayEnterPhone,
   displayHowToEstimation,
   displayPayIn,
   displaySearchBank,
   displaySelectBank,
+  displaySendPayment,
   displayTransactCrypto,
+  displayTransactionProcessing,
   displayTransferMoney,
 } from "../menus/transact_crypto";
+import { getFormattedDateTime } from "../helpers/format_date";
 
 const initialMessages = [
   {
@@ -111,6 +128,14 @@ const ChatBot = () => {
     setSharedBankCodes,
     sharedBankNames,
     setSharedBankNames,
+    sharedSelectedBankCode,
+    setSharedSelectedBankCode,
+    sharedSelectedBankName,
+    setSharedSelectedBankName,
+    bankData,
+    updateBankData,
+    sharedPhone,
+    setSharedPhone,
   } = useSharedState();
 
   // STATE HOOKS
@@ -121,7 +146,8 @@ const ChatBot = () => {
   const [rate, setRate] = useState("");
   const [formattedRate, setFormattedRate] = useState<string>("");
   const [chatId, setChatId] = useState("");
-
+  const [merchantRate, setMerchantRate] = useState("");
+  const [profitRate, setProfitRate] = useState("");
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -281,28 +307,28 @@ const ChatBot = () => {
   const fetchData = async () => {
     try {
       const fetchedRate = await fetchRate();
-      // const fetchedMerchantRate = await fetchMerchantRate();
-      // const fetchedProfitRate = await fetchProfitRate();
+      const fetchedMerchantRate = await fetchMerchantRate();
+      const fetchedProfitRate = await fetchProfitRate();
       setRate(fetchedRate.toString());
       const formattedRate = formatCurrency(
         fetchedRate.toString(),
         "NGN",
         "en-NG"
       );
-      // const formattedMerchantRate = formatCurrency(
-      //   fetchedMerchantRate.toString(),
-      //   "NGN",
-      //   "en-NG"
-      // );
-      // const formattedProfitRate = formatCurrency(
-      //   fetchedProfitRate.toString(),
-      //   "NGN",
-      //   "en-NG"
-      // );
+      const formattedMerchantRate = formatCurrency(
+        fetchedMerchantRate.toString(),
+        "NGN",
+        "en-NG"
+      );
+      const formattedProfitRate = formatCurrency(
+        fetchedProfitRate.toString(),
+        "NGN",
+        "en-NG"
+      );
       // console.log("formattedRate is :", formattedRate);
       setFormattedRate(formattedRate);
-      // setMerchantRate(formattedMerchantRate);
-      // setProfitRate(formattedProfitRate);
+      setMerchantRate(formattedMerchantRate);
+      setProfitRate(formattedProfitRate);
       setSharedRate(fetchedRate.toString());
     } catch (error) {
       console.error("Failed to fetch rate:", error);
@@ -488,11 +514,7 @@ const ChatBot = () => {
           addChatMessages([
             {
               type: "incoming",
-              content: <ConnectButton /> ?? (
-                <span>
-                  You can disconnect your wallet from the nav bar above
-                </span>
-              ),
+              content: <ConnectButton />,
             },
             {
               type: "incoming",
@@ -661,32 +683,6 @@ const ChatBot = () => {
       console.log("The choice is ONE, TRANSFER MONEY ");
       setSharedPaymentMode("transferMoney");
       displayTransferMoney(addChatMessages);
-      // console.log("Let's start with selecting an actions");
-      // const newMessages: MessageType[] = [
-      //   {
-      //     type: "incoming",
-      //     content: (
-      //       <span>
-      //         Pay with:
-      //         <br />
-      //         <br />
-      //         1. Bitcoin (BTC)
-      //         <br />
-      //         2. Ethereum (ETH)
-      //         <br />
-      //         3. BINANCE (BNB)
-      //         <br />
-      //         4. TRON (TRX)
-      //         <br />
-      //         5. USDT
-      //         <br />
-      //         0. Go back
-      //         <br />
-      //         00. Exit
-      //       </span>
-      //     ),
-      //   },
-      // ];
       console.log("Next is howToEstimate");
       nextStep("estimateAsset");
       // addChatMessages(newMessages);
@@ -1248,42 +1244,413 @@ const ChatBot = () => {
     console.log("I want to search for bankNames of", chatInput.trim());
   };
 
-  // //GET USER BANK DATA AFTER COLLECTING ACCOUNT NUMBER
-  // const handleBankAccountNumber = (chatInput: string) => {
-  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
-  //     goToStep("start");
-  //     helloMenu(chatInput);
-  //   } else if (chatInput === "00") {
-  //     (() => {
-  //       console.log("Going back from handlePayOptions");
-  //       goToStep("start");
-  //       helloMenu("hi");
-  //     })();
-  //   } else if (chatInput === "0") {
-  //     (() => {
-  //       console.log("THIS IS WHERE WE ARE");
-  //       prevStep();
-  //       displaySelectBank(
-  //         addChatMessages,
-  //         nextStep,
-  //         sharedBankNames,
-  //         setSharedBankCodes
-  //       );
-  //     })();
-  //   } else if (chatInput != "0") {
-  //     console.log(chatInput.trim());
+  //GET USER BANK DATA AFTER COLLECTING ACCOUNT NUMBER
+  const handleBankAccountNumber = (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput === "00") {
+      (() => {
+        console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput === "0") {
+      (() => {
+        console.log("THIS IS WHERE WE ARE");
+        prevStep();
+        displaySelectBank(
+          addChatMessages,
+          nextStep,
+          sharedBankNames,
+          setSharedBankCodes
+        );
+      })();
+    } else if (chatInput != "0") {
+      console.log(chatInput.trim());
 
-  //     displayEnterAccountNumber(
-  //       addChatMessages,
-  //       nextStep,
-  //       chatInput,
-  //       sharedBankCodes,
-  //       setSharedSelectedBankCode,
-  //       sharedBankNames,
-  //       setSharedSelectedBankName
-  //     );
-  //   }
-  // };
+      displayEnterAccountNumber(
+        addChatMessages,
+        nextStep,
+        chatInput,
+        sharedBankCodes,
+        setSharedSelectedBankCode,
+        sharedBankNames,
+        setSharedSelectedBankName
+      );
+    }
+  };
+
+  // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
+  const handleContinueToPay = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput === "00") {
+      (() => {
+        console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput === "0") {
+      (() => {
+        console.log("THIS IS WHERE WE ARE");
+        prevStep();
+        displaySearchBank(
+          addChatMessages,
+          nextStep,
+          chatInput,
+          sharedEstimateAsset,
+          sharedRate,
+          sharedAssetPrice,
+          sharedCrypto
+        );
+      })();
+    } else if (chatInput !== "0") {
+      console.log(chatInput.trim());
+
+      let bank_name = "";
+      let account_name = "";
+      let account_number = "";
+
+      setLoading(true);
+
+      try {
+        const bankData = await fetchBankDetails(
+          sharedSelectedBankCode,
+          chatInput.trim()
+        );
+        console.log(
+          "Bank data: account number is  ",
+          bankData[0].account_number
+        );
+
+        bank_name = bankData[0].bank_name;
+        account_name = bankData[0].account_name;
+        account_number = bankData[0].account_number;
+
+        if (!account_number) {
+          const newMessages: MessageType[] = [
+            {
+              type: "incoming",
+              content: <span>Invalid account number. Please try again.</span>,
+            },
+          ];
+          addChatMessages(newMessages);
+          setLoading(false);
+          return; // Exit the function to let the user try again
+        }
+
+        setLoading(false);
+        updateBankData({
+          acct_number: account_number,
+          bank_name: sharedSelectedBankName,
+          receiver_name: account_name,
+        });
+        displayContinueToPay(
+          addChatMessages,
+          nextStep,
+          account_name,
+          sharedSelectedBankName,
+          account_number
+        );
+      } catch (error) {
+        console.error("Failed to fetch bank data:", error);
+        const errorMessage: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Failed to fetch bank data. Please check your accouunt number and
+                try again.
+              </span>
+            ),
+          },
+        ];
+        addChatMessages(errorMessage);
+        setLoading(false);
+      }
+    }
+  };
+
+  // MISSING HANDLE FUNCTION< HANDLE PHONE NUMBER
+  const handlePhoneNumber = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput === "00") {
+      (() => {
+        console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput === "0") {
+      (() => {
+        console.log("THIS IS WHERE WE ARE");
+        prevStep();
+        displaySearchBank(
+          addChatMessages,
+          nextStep,
+          chatInput,
+          sharedEstimateAsset,
+          sharedRate,
+          sharedAssetPrice,
+          sharedCrypto
+        );
+      })();
+    } else if (chatInput !== "0") {
+      displayEnterPhone(addChatMessages, nextStep);
+      // const user = {
+      //   agent_id: chatId,
+      //   vendor_phoneNumber: formatPhoneNumber(phoneNumber),
+      //   bitcoin_wallet: sharedWallet,
+      //   bitcoin_privateKey: "sharedPKey",
+      //   eth_bnb_wallet: sharedWallet,
+      //   eth_bnb_privateKey: "sharedPKey",
+      //   tron_wallet: sharedWallet,
+      //   tron_privateKey: "sharedPKey",
+      // };
+
+      // await createUser(user);
+      // const isUserAvailable = await checkUserExists(chatId);
+      // console.log("Status of the user", user.exists);
+
+      // updateUser("497506", {
+      //   agent_id: "497506",
+      //   vendor_phoneNumber: "+2348063862295",
+      //   bitcoin_wallet: null,
+      //   bitcoin_privateKey: null,
+      //   eth_bnb_wallet: null,
+      //   eth_bnb_privateKey: null,
+      //   tron_wallet: "12p4KeZrxhsXVynsJfCrN7iyPkYV8hf4y4",
+      //   tron_privateKey: "L1tgdRy6dRJCexGQSPZdhKutNVz31ZQ5nLKYuDEAxR5mnRBjD4ui",
+      // });
+
+      // const getERC = await getERCWalletAddress();
+      // console.log("Get ERC :", getERC);
+      // const getTRX = await getTronWalletAddress();
+      // console.log("Get TRX:", getTRX);
+
+      // if (sharedNetwork.toLowerCase() === "btc") {
+      //   // network is BTC
+      //   if (isUserAvailable.exists) {
+      //     // user already exists
+      //     if (isUserAvailable.user?.bitcoin_wallet === null) {
+      //       // user exists but no BTC wallet
+      //       const getBTC = await getBTCWalletAddress();
+      //       setSharedWallet(getBTC.bitcoin_wallet);
+      //       await updateUser(chatId, {
+      //         bitcoin_wallet: getBTC.bitcoin_wallet,
+      //         bitcoin_privateKey: getBTC.bitcoin_privateKey,
+      //       });
+      //       console.log("Get BTC:", getBTC);
+      //     } else {
+      //       const btcWallet = await fetchBitcoinWallet(chatId);
+      //       setSharedWallet(btcWallet);
+      //     }
+      //   } else {
+      //     const getBTC = await getBTCWalletAddress();
+      //     await createUser({
+      //       agent_id: chatId,
+      //       bitcoin_wallet: getBTC.bitcoin_wallet,
+      //       bitcoin_privateKey: getBTC.bitcoin_privateKey,
+      //     });
+      //   }
+      // } else if (
+      //   sharedNetwork.toLowerCase() === "erc20" ||
+      //   sharedNetwork.toLowerCase() === "bep20"
+      // ) {
+      //   // network is ERC
+      //   if (isUserAvailable.exists) {
+      //     // user already exists
+      //     if (isUserAvailable.user?.eth_bnb_wallet === null) {
+      //       // user exists but no BTC wallet
+      //       const getERC = await getERCWalletAddress();
+      //       setSharedWallet(getERC.eth_bnb_wallet);
+      //       await updateUser(chatId, {
+      //         bitcoin_wallet: getERC.eth_bnb_wallet,
+      //         bitcoin_privateKey: getERC.eth_bnb_privateKey,
+      //       });
+      //       console.log("Get ERC:", getERC);
+      //     } else {
+      //       const ercWallet = await fetchERCPrivateKey(chatId);
+      //       setSharedWallet(ercWallet);
+      //     }
+      //   } else {
+      //     const getERC = await getERCWalletAddress();
+      //     await createUser({
+      //       agent_id: chatId,
+      //       eth_bnb_wallet: getERC.eth_bnb_wallet,
+      //       eth_bnb_privateKey: getERC.eth_bnb_privateKey,
+      //     });
+      //   }
+      // } else if (sharedNetwork.toLowerCase() === "trc20") {
+      //   // network is TRC
+      //   if (isUserAvailable.exists) {
+      //     // user already exists
+      //     if (isUserAvailable.user?.tron_wallet === null) {
+      //       // user exists but no BTC wallet
+      //       const getTRC = await getTronWalletAddress();
+      //       setSharedWallet(getTRC.tron_wallet);
+      //       await updateUser(chatId, {
+      //         tron_wallet: getTRC.tron_wallet,
+      //         tron_privateKey: getTRC.tron_privateKey,
+      //       });
+      //       console.log("Get TRC:", getTRC);
+      //     } else {
+      //       const trcWallet = await fetchTronPrivateKey(chatId);
+      //       setSharedWallet(trcWallet);
+      //     }
+      //   } else {
+      //     const getTRC = await getTronWalletAddress();
+      //     await createUser({
+      //       agent_id: chatId,
+      //       tron_wallet: getTRC.tron_wallet,
+      //       tron_privateKey: getTRC.tron_privateKey,
+      //     });
+      //   }
+      // }
+    }
+  };
+
+  // CREATE USER, UPDATE TRANSACTION
+  const handleCryptoPayment = async (chatInput: string) => {
+    const phoneNumber = chatInput.trim();
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput === "00") {
+      (() => {
+        console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput != "0") {
+      const phoneNumberPattern = /^[0-9]{11}$/;
+
+      if (!phoneNumberPattern.test(phoneNumber)) {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Please enter a valid phone number, <b>{phoneNumber}</b> is not a
+                valid phone number.
+              </span>
+            ),
+          },
+        ];
+        setLoading(false);
+        addChatMessages(newMessages);
+        return;
+      }
+
+      setSharedPhone(phoneNumber);
+
+      const transactionID = generateTransactionId();
+      const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
+        .toFixed(8)
+        .toString()} ${sharedCrypto} `;
+      const date = getFormattedDateTime();
+
+      displaySendPayment(
+        addChatMessages,
+        nextStep,
+        sharedWallet,
+        sharedCrypto,
+        sharedPaymentAssetEstimate,
+        sharedPaymentNairaEstimate,
+        transactionID
+      );
+      // const user = {
+      //   agent_id: chatId,
+      //   vendor_phoneNumber: formatPhoneNumber(phoneNumber),
+      //   bitcoin_wallet: sharedWallet,
+      //   bitcoin_privateKey: sharedWallet,
+      //   eth_bnb_wallet: sharedWallet,
+      //   eth_bnb_privateKey: "sharedPKey",
+      //   tron_wallet: sharedWallet,
+      //   tron_privateKey: "sharedPKey",
+      // };
+      // await createUser(user);
+
+      const isUserAvailable = await checkUserExists(chatId);
+      if (isUserAvailable.user?.vendor_phoneNumber === null) {
+        updateUser(chatId, {
+          vendor_phoneNumber: formatPhoneNumber(phoneNumber),
+        });
+      }
+
+      // let's save the transaction details to db
+      const userDate = {
+        crypto: sharedCrypto,
+        network: sharedNetwork,
+        estimation: sharedEstimateAsset,
+        Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
+        charges: sharedChargeForDB,
+        mode_of_payment: sharedPaymentMode,
+        acct_number: bankData.acct_number,
+        bank_name: bankData.bank_name,
+        receiver_name: bankData.receiver_name,
+        receiver_amount: formatCurrency(
+          sharedPaymentNairaEstimate,
+          "NGN",
+          "en-NG"
+        ),
+        crypto_sent: paymentAsset,
+        wallet_address: sharedWallet,
+        Date: date,
+        status: "Processing",
+        customer_phoneNumber: formatPhoneNumber(phoneNumber),
+        transac_id: transactionID.toString(),
+        settle_walletLink: "",
+        chat_id: chatId,
+        current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+        merchant_rate: merchantRate,
+        profit_rate: profitRate,
+        name: "",
+      };
+      // await createTransaction(userDate);
+      setLoading(false);
+
+      console.log("User data created", userDate);
+    } else {
+      setLoading(false);
+      console.log("User input not recognized");
+    }
+  };
+
+  // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
+  const handleTransactionProcessing = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        prevStep();
+        displaySearchBank(
+          addChatMessages,
+          nextStep,
+          chatInput,
+          sharedEstimateAsset,
+          sharedRate,
+          sharedAssetPrice,
+          sharedCrypto
+        );
+      })();
+    } else if (chatInput.trim() === "1") {
+      console.log("Do another transaction", chatInput.trim());
+      helloMenu("hi");
+    } else if (chatInput.trim() === "2") {
+      console.log("Contact support", chatInput.trim());
+    }
+  };
 
   // REQUEST PAYCARD SEQUENCE FUNCTIONS
 
@@ -1370,23 +1737,36 @@ const ChatBot = () => {
         setChatInput("");
         break;
 
-      // case "enterAccountNumber":
-      //   console.log("Current step is enterAccountNumber ");
-      //   handleBankAccountNumber(chatInput);
-      //   setChatInput("");
-      //   break;
+      case "enterAccountNumber":
+        console.log("Current step is enterAccountNumber ");
+        handleBankAccountNumber(chatInput);
+        setChatInput("");
+        break;
 
-      // case "enterPhone":
-      //   console.log("Current step is enterPhone ");
-      //   handlePhoneNumber(chatInput);
-      //   setChatInput("");
-      //   break;
+      case "continueToPay":
+        console.log("Current step is continueToPay ");
+        handleContinueToPay(chatInput);
+        setChatInput("");
+        break;
 
-      // case "paymentProcessing":
-      //   console.log("Current step is paymentProcessing ");
-      //   handleTransactionProcessing(chatInput);
-      //   setChatInput("");
-      //   break;
+      case "enterPhone":
+        console.log("Current step is enterPhone ");
+        handlePhoneNumber(chatInput);
+        setChatInput("");
+        break;
+
+      case "sendPayment":
+        console.log("Current step is sendPayment ");
+        await handleCryptoPayment(chatInput);
+
+        setChatInput("");
+        break;
+
+      case "paymentProcessing":
+        console.log("Current step is paymentProcessing ");
+        handleTransactionProcessing(chatInput);
+        setChatInput("");
+        break;
 
       default:
         addChatMessages([

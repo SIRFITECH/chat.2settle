@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { getChatId } from "../utils/utilities";
-import { SharedStateContextProps } from "../types/types";
+import { SharedStateContextProps, UserBankData } from "../types/types";
 
 const SharedStateContext = createContext<SharedStateContextProps | undefined>(
   undefined
@@ -43,6 +43,17 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
   const [sharedChargeForDB, setSharedChargeForDB] = useState<string>("");
   const [sharedBankCodes, setSharedBankCodes] = useState<string[]>([]);
   const [sharedBankNames, setSharedBankNames] = useState<string[]>([]);
+  const [sharedSelectedBankCode, setSharedSelectedBankCode] =
+    useState<string>("");
+  const [sharedSelectedBankName, setSharedSelectedBankName] =
+    useState<string>("");
+  const [bankData, setBankData] = useState<UserBankData>({});
+  const [sharedPhone, setSharedPhone] = useState<string>("");
+
+  // Function to update the user object
+  const updateBankData = (newData: Partial<UserBankData>) => {
+    setBankData((prevBankData) => ({ ...prevBankData, ...newData }));
+  };
 
   useEffect(() => {
     const chatId = getChatId();
@@ -106,6 +117,14 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
         setSharedBankCodes,
         sharedBankNames,
         setSharedBankNames,
+        sharedSelectedBankCode,
+        setSharedSelectedBankCode,
+        sharedSelectedBankName,
+        setSharedSelectedBankName,
+        bankData,
+        updateBankData,
+        sharedPhone,
+        setSharedPhone,
       }}
     >
       {children}

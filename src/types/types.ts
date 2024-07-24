@@ -77,6 +77,13 @@ export interface Result {
   code: string;
 }
 
+// USER BANK DATA TO BE PUSHED TO TRANSACTION DB
+export interface UserBankData {
+  acct_number?: string;
+  bank_name?: string;
+  receiver_name?: string;
+}
+
 // SHARED STATE VARIABLE FROM SHARED CONTEXT
 export interface SharedStateContextProps {
   sharedState: string;
@@ -115,4 +122,12 @@ export interface SharedStateContextProps {
   setSharedBankCodes: React.Dispatch<React.SetStateAction<string[]>>;
   sharedBankNames: string[];
   setSharedBankNames: React.Dispatch<React.SetStateAction<string[]>>;
+  sharedSelectedBankCode: string;
+  setSharedSelectedBankCode: React.Dispatch<React.SetStateAction<string>>;
+  sharedSelectedBankName: string;
+  setSharedSelectedBankName: React.Dispatch<React.SetStateAction<string>>;
+  bankData: UserBankData;
+  updateBankData: (newData: Partial<UserBankData>) => void;
+  sharedPhone: string;
+  setSharedPhone: React.Dispatch<React.SetStateAction<string>>;
 }
