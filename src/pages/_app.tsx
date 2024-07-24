@@ -16,7 +16,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
         <RainbowKitProvider>
-          <Component {...pageProps} />
           <SharedStateProvider>
             <Component {...pageProps} />
           </SharedStateProvider>
