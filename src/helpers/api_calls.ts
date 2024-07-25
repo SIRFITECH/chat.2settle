@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  BankName,
   btcWalletData,
   ercWalletData,
   ServerData,
@@ -9,6 +10,7 @@ import {
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
+// FETCH CURRENT EXCHANGE RATE FROM DB
 export const fetchRate = async (): Promise<number> => {
   try {
     const response = await axios.get<ServerData>(`${apiURL}/api/rate`);
@@ -26,6 +28,45 @@ export const fetchRate = async (): Promise<number> => {
   }
 };
 
+// FETCH MERCHANT RATE FROM DB
+export const fetchMerchantRate = async (): Promise<number> => {
+  try {
+    const response = await axios.get<ServerData>(`${apiURL}/api/merchant_rate`);
+    const rawRate = response.data.merchantRate.replace(/,/g, "");
+    const merchant_rate = parseFloat(rawRate);
+
+    if (isNaN(merchant_rate)) {
+      throw new Error("Invalid rate received");
+    }
+
+    return merchant_rate;
+  } catch (error) {
+    console.error("Error fetching merchant rate:", error);
+    throw error;
+  }
+};
+
+// FETCH PROFIT RATE FROM DB
+export const fetchProfitRate = async (): Promise<number> => {
+  try {
+    const response = await axios.get<ServerData>(
+      `${apiURL}/api/merchant_profit`
+    );
+    const rawRate = response.data.profitRate.replace(/,/g, "");
+    const profitRate = parseFloat(rawRate);
+
+    if (isNaN(profitRate)) {
+      throw new Error("Invalid profit rate received");
+    }
+
+    return profitRate;
+  } catch (error) {
+    console.error("Error fetching profit rate:", error);
+    throw error;
+  }
+};
+
+// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
 export const checkUserExists = async (
   agentId: string
 ): Promise<{ exists: boolean; user?: vendorData }> => {
@@ -40,22 +81,59 @@ export const checkUserExists = async (
   }
 };
 
+// // UPDATE USER DATA USING CHATID
+// export const updateUser = async (
+//   chatId: string,
+//   updatedData: Partial<vendorData>
+// ) => {
+//   try {
+//     const response = await axios.put("/api/update_user", {
+//       chatId,
+//       ...updatedData,
+//     });
+//     console.log("User updated successfully:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error updating user:", error);
+//     throw error;
+//   }
+// };
+
+// import axios from "axios";
+
+// interface UpdatedUserData {
+//   agent_id: string;
+//   vendor_phoneNumber?: string;
+//   bitcoin_wallet?: string;
+//   bitcoin_privateKey?: string;
+//   eth_bnb_wallet?: string;
+//   eth_bnb_privateKey?: string;
+//   tron_wallet?: string;
+//   tron_privateKey?: string;
+// }
+
 export const updateUser = async (
-  chatId: string,
+  agent_id: string,
   updatedData: Partial<vendorData>
-) => {
+): Promise<void> => {
   try {
     const response = await axios.put("/api/update_user", {
-      chatId,
+      agent_id,
       ...updatedData,
     });
-    console.log("User updated successfully:", response.data);
-    return response.data;
+
+    if (response.status === 200) {
+      console.log("User updated successfully:", response.data);
+    } else {
+      console.error("Failed to update user:", response.data);
+    }
   } catch (error) {
-    console.error("Error updating user:", error);
-    throw error;
+    console.error("Error updating user data:", error);
+    throw new Error("Failed to update user data");
   }
 };
+
+// CREATE A NEW USER USING CHATID
 export const createUser = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(`${apiURL}/api/create_user`, user);
@@ -66,6 +144,8 @@ export const createUser = async (user: any): Promise<any> => {
     throw new Error("Failed to store user data");
   }
 };
+
+// CREATE TRANSACTION IN THE TRANSACTION TABLE
 export const createTransaction = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(
@@ -80,6 +160,7 @@ export const createTransaction = async (user: any): Promise<any> => {
   }
 };
 
+// GENERATE BTC WALLET FROM OUR HD WALLET
 export const generateBTCWalletAddress = async (): Promise<btcWalletData> => {
   try {
     const response = await axios.get(`${apiURL}/api/generate_btc_wallet`);
@@ -93,6 +174,7 @@ export const generateBTCWalletAddress = async (): Promise<btcWalletData> => {
   }
 };
 
+// GENERATE ERC20 WALLET FROM OUR HD WALLET
 export const generateERCWalletAddress = async (): Promise<ercWalletData> => {
   try {
     const response = await axios.get(`${apiURL}/api/generate_erc_wallet`);
@@ -107,6 +189,7 @@ export const generateERCWalletAddress = async (): Promise<ercWalletData> => {
   }
 };
 
+// GENERATE TRC20 WALLET FROM OUR HD WALLET
 export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
   try {
     const response = await axios.get(`${apiURL}/api/generate_tron_wallet`);
@@ -117,5 +200,63 @@ export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
   } catch (error) {
     console.error("Error generating BTC wallet:", error);
     throw error;
+  }
+};
+
+// // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
+// export const fetchCoinPrice = async (
+//   symbol: string
+// ): Promise<number | null> => {
+//   try {
+//     const response = await axios.get(
+//       `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`
+//     );
+//     return parseFloat(response.data.price);
+//   } catch (error) {
+//     console.error(`Error fetching price for ${symbol}:`, error);
+//     return null;
+//   }
+// };
+export const fetchCoinPrice = async (
+  ticker: string
+): Promise<number | null> => {
+  try {
+    const response = await axios.post("/api/get_coin_price", { ticker });
+    return parseFloat(response.data);
+  } catch (error) {
+    console.error(`Error fetching price for ${ticker}:`, error);
+    return null;
+  }
+};
+
+// COLLECT BANK NAMES FROM DB
+export const fetchBankNames = async (extracted: string): Promise<BankName> => {
+  try {
+    const response = await axios.post<BankName>(`${apiURL}/api/bank_names/`, {
+      message: extracted,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching bank names:", error);
+    throw new Error("Failed to fetch bank names");
+  }
+};
+
+// QUERY BANK DETAILS FROM NUBAN
+export const fetchBankDetails = async (
+  bank_code: string,
+  acc_no: string
+): Promise<any | null> => {
+  try {
+    const response = await axios.get(
+      `https://app.nuban.com.ng/api/NUBAN-WBODZCTK1831?bank_code=${bank_code}&acc_no=${acc_no}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching bank details for bank code ${bank_code} and account number ${acc_no}:`,
+      error
+    );
+    return null;
   }
 };
