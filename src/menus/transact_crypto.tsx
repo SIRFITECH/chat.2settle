@@ -1,10 +1,8 @@
 import React from "react";
 import { MessageType, Result } from "../types/types";
 import { formatCurrency } from "../helpers/format_currency";
-import { asignWallet } from "../helpers/user_functions";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
-
 export const displayTransactCrypto = (
   addChatMessages: (messages: MessageType[]) => void
 ) => {
@@ -33,8 +31,33 @@ export const displayTransactCrypto = (
   }
 };
 
-// IF USER CHOOSE TRANSFER MONEY THEY SEE THIS NEXT
+// IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
+export const displayPayAVendor = (
+  addChatMessages: (messages: MessageType[]) => void
+) => {
+  {
+    const newMessages: MessageType[] = [
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Here is your menu:
+            <br />
+            1. Pay To A Bank
+            <br />
+            2. Pay A Vendor
+            <br />
+            0. Go back
+          </span>
+        ),
+      },
+    ];
+    console.log("Next is howToEstimate");
 
+    addChatMessages(newMessages);
+  }
+};
+// IF USER CHOOSE TRANSFER MONEY THEY SEE THIS NEXT
 export const displayTransferMoney = (
   addChatMessages: (messages: MessageType[]) => void
 ) => {
@@ -70,13 +93,9 @@ export const displayTransferMoney = (
 };
 
 // USE CHOOSE WHICH WAY THEY WANT TO ESTIMATE THE PAY
-
 export const displayHowToEstimation = async (
   addChatMessages: (messages: MessageType[]) => void,
-  input: string,
-  sharedChatId: string,
-  sharedNetwork: string,
-  setSharedWallet: React.Dispatch<React.SetStateAction<string>>
+  input: string
 ) => {
   const parsedInput = input.trim();
 
@@ -110,7 +129,6 @@ export const displayHowToEstimation = async (
 };
 
 // IF THE USER WANT TO PAYE WITH USDT THEY USE
-
 export const displayNetwork = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
@@ -309,7 +327,8 @@ export const displayCharge = async (
   const upperDollar = 2000000 / rate;
   const lowerDollar = 20000 / rate;
   const assetPrice = parseFloat(sharedAssetPrice);
-  const parsedInput = input.trim();
+  const parsedInput = input.replace(/[^\d.]/g, "");
+  // input.trim();
   const dollarValue = parseFloat(parsedInput) * rate;
   const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
   let charge = 0;
@@ -829,11 +848,6 @@ export const displayCharge = async (
 export const displaySearchBank = async (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
-  input: string,
-  sharedEstimateAsset: string,
-  sharedRate: string,
-  sharedTicker: string,
-  sharedAssetPrice: string
 ) => {
   const newMessages: MessageType[] = [
     {
@@ -1020,7 +1034,6 @@ export const displayContinueToPay = (
 };
 
 // DISPLAY PHONE NUMBER
-
 export const displayEnterPhone = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void

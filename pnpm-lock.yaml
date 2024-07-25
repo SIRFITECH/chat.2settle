@@ -29,6 +29,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.28.4
         version: 5.51.11(react@18.3.1)
+      '@types/react-qr-reader':
+        specifier: ^2.1.7
+        version: 2.1.7
       axios:
         specifier: ^1.7.2
         version: 1.7.2
@@ -1630,6 +1633,9 @@ packages:
 
   '@types/prop-types@15.7.12':
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
+
+  '@types/react-qr-reader@2.1.7':
+    resolution: {integrity: sha512-6K6DQeqP7c2oohcfvBpExlOawVsB2/C+7ZZL/fkCkNzYYAKDJnNHnuP3F5ChMl0mpoYEdqkqkllxqfM0VslEiw==}
 
   '@types/react-transition-group@4.4.10':
     resolution: {integrity: sha512-hT/+s0VQs2ojCX823m60m5f0sL5idt9SO6Tj6Dg+rdphGPIeJbJ6CxvBYkgkGKrYeDjvIpKTR38UzmtHJOGW3Q==}
@@ -6849,6 +6855,10 @@ snapshots:
   '@types/parse-json@4.0.2': {}
 
   '@types/prop-types@15.7.12': {}
+
+  '@types/react-qr-reader@2.1.7':
+    dependencies:
+      '@types/react': 18.3.3
 
   '@types/react-transition-group@4.4.10':
     dependencies:
