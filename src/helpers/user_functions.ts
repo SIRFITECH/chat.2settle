@@ -4,6 +4,7 @@ import {
   generateBTCWalletAddress,
   generateERCWalletAddress,
   generateTronWalletAddress,
+  updateUser,
 } from "./api_calls";
 
 export async function asignWallet(
@@ -40,6 +41,10 @@ export async function asignWallet(
         const btcWallet = await generateBTCWalletAddress();
         setSharedWallet(btcWallet.bitcoin_wallet);
         // update the db
+        updateUser(sharedChatId, {
+          bitcoin_wallet: btcWallet.bitcoin_wallet,
+          bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+        });
         console.log("User exist, new BTC wallet is:", btcWallet.bitcoin_wallet);
       }
     } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
@@ -49,6 +54,10 @@ export async function asignWallet(
         const ercWallet = await generateERCWalletAddress();
         setSharedWallet(ercWallet.eth_bnb_wallet);
         // update the db
+        updateUser(sharedChatId, {
+          eth_bnb_wallet: ercWallet.eth_bnb_wallet,
+          bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
+        });
         console.log("User exist, new ERC wallet is:", ercWallet.eth_bnb_wallet);
       }
     } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
@@ -56,7 +65,10 @@ export async function asignWallet(
         setSharedWallet(tronWallet.tron_wallet);
       } else {
         setSharedWallet(tronWallet.tron_wallet);
-        // update db
+        updateUser(sharedChatId, {
+          tron_wallet: tronWallet.tron_wallet,
+          tron_privateKey: tronWallet.tron_privateKey,
+        });
         console.log(
           "User exist and new tron wallet is:",
           tronWallet.tron_wallet

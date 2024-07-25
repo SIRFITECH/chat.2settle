@@ -1659,7 +1659,7 @@ const ChatBot = () => {
         profit_rate: profitRate,
         name: "",
       };
-      // await createTransaction(userDate);
+      await createTransaction(userDate);
       setLoading(false);
 
       console.log("User data created", userDate);

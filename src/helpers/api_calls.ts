@@ -81,21 +81,55 @@ export const checkUserExists = async (
   }
 };
 
-// UPDATE USER DATA USING CHATID
+// // UPDATE USER DATA USING CHATID
+// export const updateUser = async (
+//   chatId: string,
+//   updatedData: Partial<vendorData>
+// ) => {
+//   try {
+//     const response = await axios.put("/api/update_user", {
+//       chatId,
+//       ...updatedData,
+//     });
+//     console.log("User updated successfully:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error updating user:", error);
+//     throw error;
+//   }
+// };
+
+// import axios from "axios";
+
+// interface UpdatedUserData {
+//   agent_id: string;
+//   vendor_phoneNumber?: string;
+//   bitcoin_wallet?: string;
+//   bitcoin_privateKey?: string;
+//   eth_bnb_wallet?: string;
+//   eth_bnb_privateKey?: string;
+//   tron_wallet?: string;
+//   tron_privateKey?: string;
+// }
+
 export const updateUser = async (
-  chatId: string,
+  agent_id: string,
   updatedData: Partial<vendorData>
-) => {
+): Promise<void> => {
   try {
     const response = await axios.put("/api/update_user", {
-      chatId,
+      agent_id,
       ...updatedData,
     });
-    console.log("User updated successfully:", response.data);
-    return response.data;
+
+    if (response.status === 200) {
+      console.log("User updated successfully:", response.data);
+    } else {
+      console.error("Failed to update user:", response.data);
+    }
   } catch (error) {
-    console.error("Error updating user:", error);
-    throw error;
+    console.error("Error updating user data:", error);
+    throw new Error("Failed to update user data");
   }
 };
 
@@ -226,5 +260,3 @@ export const fetchBankDetails = async (
     return null;
   }
 };
-
-
