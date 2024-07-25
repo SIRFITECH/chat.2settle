@@ -44,6 +44,7 @@ import {
   displayTransferMoney,
 } from "../menus/transact_crypto";
 import { getFormattedDateTime } from "../helpers/format_date";
+import { asignWallet } from "../helpers/user_functions";
 
 const initialMessages = [
   {
@@ -246,15 +247,15 @@ const ChatBot = () => {
       return newHistory;
     });
     setCurrentStep(nextStep);
-    console.log("stepHistory from INSIDE nextStep:", stepHistory);
-    console.log("currentStep from INSIDE prevStep:", currentStep);
+    // console.log("stepHistory from INSIDE nextStep:", stepHistory);
+    // console.log("currentStep from INSIDE prevStep:", currentStep);
   };
 
   const prevStep = () => {
     setStepHistory((prevHistory) => prevHistory.slice(0, -1));
     setCurrentStep(stepHistory[stepHistory.length - 1] || "start");
-    console.log("stepHistory from INSIDE prevStep:", stepHistory);
-    console.log("currentStep from INSIDE prevStep:", currentStep);
+    // console.log("stepHistory from INSIDE prevStep:", stepHistory);
+    // console.log("currentStep from INSIDE prevStep:", currentStep);
   };
 
   const goToStep = (step: string) => {
@@ -338,6 +339,19 @@ const ChatBot = () => {
   useEffect(() => {
     fetchData();
   });
+
+  // // SET STATE TO THE START ON WALLET CONNECT
+  // useEffect(() => {
+  //   if (chatInput.trim()) {
+  //     const newMessage: MessageType = {
+  //       type: "outgoing",
+  //       content: <span>{chatInput}</span>,
+  //     };
+  //     addChatMessages([newMessage]);
+  //     setChatInput("");
+  //   }
+  //   helloMenu("hi");
+  // }, [walletIsConnected]);
   // OPERATINAL FUNCTIONS
   // ON HI | HELLO | HOWDY | HEY PROMPT
   const helloMenu = (chatInput: string) => {
@@ -673,14 +687,12 @@ const ChatBot = () => {
   // HANDLE TRANSFER MONEY MENU
   const handleTransferMoney = (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("THIS IS TO SEE IF IT GOES BACK");
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput === "0") {
       prevStep();
       welcomeMenu();
     } else if (chatInput === "1") {
-      console.log("The choice is ONE, TRANSFER MONEY ");
       setSharedPaymentMode("transferMoney");
       displayTransferMoney(addChatMessages);
       console.log("Next is howToEstimate");
@@ -691,7 +703,6 @@ const ChatBot = () => {
       displayTransferMoney(addChatMessages);
       setSharedPaymentMode("gift");
     } else if (chatInput === "3") {
-      console.log("The choice is THREE, REQUEST FOR PAYMENT ");
       displayTransferMoney(addChatMessages);
       setSharedPaymentMode("request");
     } else {
@@ -742,7 +753,13 @@ const ChatBot = () => {
       helloMenu("hi");
     } else if (chatInput === "1") {
       // console.log("How to display estimation, NOW PAY OPTIONS");
-      displayHowToEstimation(addChatMessages, "Bitcoin (BTC)");
+      displayHowToEstimation(
+        addChatMessages,
+        "Bitcoin (BTC)",
+        sharedChatId,
+        sharedNetwork,
+        setSharedWallet
+      );
       setSharedTicker("BTCUSDT");
       setSharedCrypto("BTC");
       setSharedNetwork("BTC");
@@ -932,45 +949,63 @@ const ChatBot = () => {
         displayTransferMoney(addChatMessages);
       })();
     } else if (chatInput === "1") {
-      displayHowToEstimation(addChatMessages, "USDT (ERC20)");
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (ERC20)",
+        sharedChatId,
+        sharedNetwork,
+        setSharedWallet
+      );
 
-      const userData = await checkUserExists(sharedChatId);
-      let userExists = userData.exists;
+      // const userData = await checkUserExists(sharedChatId);
+      // let userExists = userData.exists;
 
-      if (userExists) {
-        console.log("User exists", chatId);
-      } else {
-        console.log("User doesn't exists", chatId);
-      }
+      // if (userExists) {
+      //   console.log("User exists", chatId);
+      // } else {
+      //   console.log("User doesn't exists", chatId);
+      // }
 
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("ERC20");
       nextStep("payOptions");
     } else if (chatInput === "2") {
-      displayHowToEstimation(addChatMessages, "USDT (TRC20)");
-      const userData = await checkUserExists(sharedChatId);
-      let userExists = userData.exists;
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (TRC20)",
+        sharedChatId,
+        sharedNetwork,
+        setSharedWallet
+      );
+      // const userData = await checkUserExists(sharedChatId);
+      // let userExists = userData.exists;
 
-      if (userExists) {
-        console.log("User exists", chatId);
-      } else {
-        console.log("User doesn't exists", chatId);
-      }
+      // if (userExists) {
+      //   console.log("User exists", chatId);
+      // } else {
+      //   console.log("User doesn't exists", chatId);
+      // }
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
-      displayHowToEstimation(addChatMessages, "USDT (BEP20)");
-      const userData = await checkUserExists(sharedChatId);
-      let userExists = userData.exists;
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (BEP20)",
+        sharedChatId,
+        sharedNetwork,
+        setSharedWallet
+      );
+      // const userData = await checkUserExists(sharedChatId);
+      // let userExists = userData.exists;
 
-      if (userExists) {
-        console.log("User exists", chatId);
-      } else {
-        console.log("User doesn't exists", chatId);
-      }
+      // if (userExists) {
+      //   console.log("User exists", chatId);
+      // } else {
+      //   console.log("User doesn't exists", chatId);
+      // }
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
@@ -1015,6 +1050,13 @@ const ChatBot = () => {
         //   setSharedNairaCharge,
         //   setSharedChargeForDB
         // );
+        displayHowToEstimation(
+          addChatMessages,
+          `${sharedCrypto} (${sharedNetwork})`,
+          sharedChatId,
+          sharedNetwork,
+          setSharedWallet
+        );
       })();
     } else if (chatInput === "1") {
       displayPayIn(
@@ -1074,7 +1116,13 @@ const ChatBot = () => {
       (() => {
         // console.log("Going back from handlePayOptions");
         prevStep();
-        displayHowToEstimation(addChatMessages, sharedCrypto);
+        displayHowToEstimation(
+          addChatMessages,
+          `${sharedCrypto} (${sharedNetwork})`,
+          sharedChatId,
+          sharedNetwork,
+          setSharedWallet
+        );
       })();
     } else if (chatInput != "0") {
       setSharedAmount(chatInput.trim());
@@ -1231,6 +1279,7 @@ const ChatBot = () => {
         }
         setLoading(false);
       } catch (error) {
+        setLoading(false);
         console.error("Failed to fetch bank names:", error);
       }
 
@@ -1715,12 +1764,16 @@ const ChatBot = () => {
         break;
 
       case "payOptions":
+        console.log("Current step is payOptions ");
+        console.log("Let's see the sharedNetwork", sharedNetwork);
         handlePayOptions(chatInput);
+        await asignWallet(sharedChatId, sharedNetwork, setSharedWallet);
         setChatInput("");
         break;
 
       case "charge":
         console.log("Current step is charge ");
+        console.log("Let's see the sharedNetwork too", sharedNetwork);
         handleCharge(chatInput);
         setChatInput("");
         break;

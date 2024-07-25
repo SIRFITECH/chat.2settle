@@ -1,6 +1,7 @@
 import React from "react";
 import { MessageType, Result } from "../types/types";
 import { formatCurrency } from "../helpers/format_currency";
+import { asignWallet } from "../helpers/user_functions";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 
@@ -70,9 +71,12 @@ export const displayTransferMoney = (
 
 // USE CHOOSE WHICH WAY THEY WANT TO ESTIMATE THE PAY
 
-export const displayHowToEstimation = (
+export const displayHowToEstimation = async (
   addChatMessages: (messages: MessageType[]) => void,
-  input: string
+  input: string,
+  sharedChatId: string,
+  sharedNetwork: string,
+  setSharedWallet: React.Dispatch<React.SetStateAction<string>>
 ) => {
   const parsedInput = input.trim();
 

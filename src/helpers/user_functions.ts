@@ -8,6 +8,7 @@ import {
 
 export async function asignWallet(
   sharedChatId: string,
+  sharedNetwork: string,
   setSharedWallet: React.Dispatch<React.SetStateAction<string>>
 ) {
   const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
@@ -15,6 +16,8 @@ export async function asignWallet(
   const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
 
   const trc20AddressPattern = /^T[a-zA-Z0-9]{33}$/;
+
+  const erc20 = ["erc20", "bep20"];
 
   const userData = await checkUserExists(sharedChatId);
   let userExists = userData.exists;
@@ -26,53 +29,71 @@ export async function asignWallet(
   );
   let hasTRCWallet = trc20AddressPattern.test(userData.user?.tron_wallet || "");
 
-  const btcWallet = await generateBTCWalletAddress();
-  const ercWallet = await generateERCWalletAddress();
   const tronWallet = await generateTronWalletAddress();
 
-  // console.log("BTC wallet:", btcWallet.bitcoin_wallet);
-  // console.log("ERC wallet:", ercWallet);
-  // console.log("TRON wallet:", tronWallet);
-  // console.log("Shared ChatId:", sharedChatId);
-
   if (userExists) {
-    if (hasBTCWallet) {
-      console.log("His wallet address is:", userData.user?.bitcoin_wallet);
-      // fetch the wallet and set it to the sharedWallet
-      setSharedWallet(userData.user?.bitcoin_wallet || "");
-    } else {
-      const btcWallet = await generateBTCWalletAddress();
-      console.log("BTC wallet:", btcWallet.bitcoin_wallet);
-      setSharedWallet(btcWallet.bitcoin_wallet);
-      // await updateUser("497506", {
-      //   bitcoin_wallet: btcWallet.bitcoin_wallet,
-      //   bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-      // });
-    }
-
-    if (hasERCWallet) {
-    } else {
-    }
-
-    if (hasTRCWallet) {
-    } else {
+    console.log("This user exists");
+    if (sharedNetwork.toLocaleLowerCase() === "btc") {
+      if (hasBTCWallet) {
+        setSharedWallet(userData.user?.bitcoin_wallet || "");
+      } else {
+        const btcWallet = await generateBTCWalletAddress();
+        setSharedWallet(btcWallet.bitcoin_wallet);
+        // update the db
+        console.log("User exist, new BTC wallet is:", btcWallet.bitcoin_wallet);
+      }
+    } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
+      if (hasERCWallet) {
+        setSharedWallet(userData.user?.eth_bnb_wallet || "");
+      } else {
+        const ercWallet = await generateERCWalletAddress();
+        setSharedWallet(ercWallet.eth_bnb_wallet);
+        // update the db
+        console.log("User exist, new ERC wallet is:", ercWallet.eth_bnb_wallet);
+      }
+    } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
+      if (hasTRCWallet) {
+        setSharedWallet(tronWallet.tron_wallet);
+      } else {
+        setSharedWallet(tronWallet.tron_wallet);
+        // update db
+        console.log(
+          "User exist and new tron wallet is:",
+          tronWallet.tron_wallet
+        );
+      }
     }
   } else {
-    // eth_bnb_wallet,
-    // eth_bnb_privateKey,
-    // tron_wallet,
-    // tron_privateKey,
-    const btcWallet = await generateBTCWalletAddress();
-    console.log("BTC wallet:", btcWallet.bitcoin_wallet);
-    setSharedWallet(btcWallet.bitcoin_wallet);
-    await createUser({
-      agent_id: sharedChatId,
-      bitcoin_wallet: btcWallet.bitcoin_wallet,
-      bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-    });
-    console.log(
-      "User doesn't exists and does he have wallet address?",
-      hasBTCWallet
-    );
+    if (sharedNetwork.toLocaleLowerCase() === "btc") {
+      const btcWallet = await generateBTCWalletAddress();
+      setSharedWallet(btcWallet.bitcoin_wallet);
+      await createUser({
+        agent_id: sharedChatId,
+        bitcoin_wallet: btcWallet.bitcoin_wallet,
+        bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+      });
+      console.log("BTC wallet is:", btcWallet.bitcoin_wallet);
+    } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
+      const ercWallet = await generateERCWalletAddress();
+      setSharedWallet(ercWallet.eth_bnb_wallet);
+      await createUser({
+        agent_id: sharedChatId,
+        eth_bnb_wallet: ercWallet.eth_bnb_wallet,
+        eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
+      });
+      console.log("ERC wallet is:", ercWallet.eth_bnb_wallet);
+    } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
+      setSharedWallet(tronWallet.tron_wallet);
+      await createUser({
+        agent_id: sharedChatId,
+        tron_wallet: tronWallet.tron_wallet,
+        tron_privateKey: tronWallet.tron_privateKey,
+      });
+      console.log("Tron wallet is:", tronWallet.tron_wallet);
+    }
   }
+}
+
+export async function createTransaction() {
+  // create a transaction in the db
 }
