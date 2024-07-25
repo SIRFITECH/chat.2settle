@@ -23,7 +23,8 @@ export default async function handler(
   try {
     console.log(`Fetching data for symbol: ${ticker}`);
     const response = await axios.get(
-      `https://api.binance.com/api/v3/ticker/price?symbol=${ticker}`
+      `https://www.binance.com/fapi/v2/ticker/price?symbol=${ticker}`
+      // `https://api.binance.com/api/v3/ticker/price?symbol=${ticker}`
     );
     console.log("Data fetched successfully:", response.data);
     const { price } = response.data;
