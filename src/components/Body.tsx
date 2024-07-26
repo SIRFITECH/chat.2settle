@@ -6,6 +6,8 @@ import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
 import Junk from "../junks/junk";
 import { fetchRate } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
+import SpendMoney from "./SpendMoney";
+import SendMoney from "./SendMoney";
 // import { formatCurrency } from "utils/formatCurrency";
 // import { fetchRate } from "utils/ApiCalls";
 // import { useSharedState } from "context/SharedStateContext";
@@ -55,12 +57,28 @@ const PageBody: React.FC = () => {
       {loading ? (
         <h2 className="font-Poppins text-black ">Loading Exchange rate...</h2>
       ) : (
-        <h2 className="font-bold font-Poppins text-black ">
-          Today Rate:
-          <span className="animate-pulse text-blue-500">
-            <b>{formattedRate}/$1</b>
-          </span>
-        </h2>
+        <div className="text-center">
+          <h2 className="font-bold font-Poppins text-black text-2xl">
+            Today Rate: <br />
+            <span className="animate-pulse text-blue-500 text-5xl">
+              <b>{formattedRate}/$1</b>
+            </span>
+          </h2>
+          <div className="flex justify-center mt-4 space-x-4">
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+              onClick={() => setIsOpen(true)}
+            >
+              <SpendMoney />
+            </button>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+              onClick={() => setIsOpen(true)}
+            >
+              <SendMoney />
+            </button>
+          </div>
+        </div>
       )}
       <button
         className={`fixed bottom-8 right-8 h-12 w-12 flex items-center justify-center rounded-full bg-blue-500 transition-transform transform ${

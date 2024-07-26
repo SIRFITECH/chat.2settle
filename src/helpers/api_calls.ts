@@ -197,22 +197,9 @@ export async function fetchCoinPrice(ticker: string): Promise<number> {
     return data.price;
   } catch (error) {
     console.error("Error fetching coin price:", error);
-    throw error; // Re-throw the error to be handled by the caller
+    throw error;
   }
 }
-
-// export const fetchCoinPrice = async (
-//   ticker: string
-// ): Promise<number | null> => {
-//   try {
-//     const response = await axios.post("/api/get_coin_price", { ticker });
-//     return parseFloat(response.data);
-//   } catch (error) {
-//     console.error(`Error fetching price for ${ticker}:`, error);
-//     return null;
-//   }
-// };
-
 // COLLECT BANK NAMES FROM DB
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {
   try {

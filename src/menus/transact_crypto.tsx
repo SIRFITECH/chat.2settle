@@ -187,18 +187,14 @@ export const displayPayIn = (
 
   const rangeMessage =
     sharedEstimateAsset.toLowerCase() === "naira"
-      ? `minimum amount = ${formatCurrency("20000", "NGN", "en-NG")},
-         maximum amount = ${formatCurrency("2000000", "NGN", "en-NG")}`
+      ? `Min. = ${formatCurrency("20000", "NGN", "en-NG")},
+         Max. = ${formatCurrency("2000000", "NGN", "en-NG")}`
       : sharedEstimateAsset.toLowerCase() === "dollar" || isDollar
-      ? `minimum amount = ${formatCurrency(
-          min.toFixed(2).toString(),
-          "USD",
-          "en-NG"
-        )},  
-        maximum amount = ${formatCurrency(max.toFixed(2).toString(), "USD")}.`
+      ? `Min. = ${formatCurrency(min.toFixed(2).toString(), "USD", "en-NG")},  
+        Max. = ${formatCurrency(max.toFixed(2).toString(), "USD")}.`
       : isCrypto
-      ? `minimum amount = ${min.toFixed(5)} ${sharedTicker},  
-        maximum amount = ${max.toFixed(5)} ${sharedTicker}.`
+      ? `Min. = ${min.toFixed(5)} ${sharedTicker}, 
+        Max. = ${max.toFixed(5)} ${sharedTicker}.`
       : "";
 
   const newMessages: MessageType[] = [
@@ -210,7 +206,7 @@ export const displayPayIn = (
           <br />
           <br />
           NOTE:
-          <b> Note: {rangeMessage}.</b>
+          <b> {rangeMessage}.</b>
           <br />
           <br />
           0. Go back
@@ -222,86 +218,6 @@ export const displayPayIn = (
   ];
 
   addChatMessages(newMessages);
-
-  //   if (sharedCrypto.toLowerCase() === "usdt") {
-  //     console.log("Estimate is in $$", sharedCrypto.toLowerCase());
-  //     const rangeMessage =
-  //       sharedEstimateAsset.toLowerCase() === "naira"
-  //         ? `minimum amount = ${formatCurrency("20000", "NGN", "en-NG")},
-  //          maximum amount = ${formatCurrency("2000000", "NGN", "en-NG")}`
-  //         : sharedEstimateAsset.toLowerCase() === "dollar" || isDollar
-  //         ? `minimum amount = ${formatCurrency(
-  //             min.toFixed(2).toString(),
-  //             "USD",
-  //             "en-NG"
-  //           )},
-  //         maximum amount = ${formatCurrency(max.toFixed(2).toString(), "USD")}.`
-  //         : isCrypto
-  //         ? `minimum amount = ${min.toFixed(5)} ${sharedTicker},
-  //         maximum amount = ${max.toFixed(5)} ${sharedTicker}.`
-  //         : "";
-
-  //     const newMessages: MessageType[] = [
-  //       {
-  //         type: "incoming",
-  //         content: (
-  //           <span>
-  //             Enter the amount you want to send in {sharedEstimateAsset} value
-  //             <br />
-  //             <br />
-  //             NOTE:
-  //             <b> Note: {rangeMessage}.</b>
-  //             <br />
-  //             <br />
-  //             0. Go back
-  //             <br />
-  //             00. Exit
-  //           </span>
-  //         ),
-  //       },
-  //     ];
-
-  //     addChatMessages(newMessages);
-  //   } else {
-  //     console.log("Estimate is NOT in $$", sharedCrypto.toLowerCase());
-  //     const rangeMessage =
-  //       sharedEstimateAsset.toLowerCase() === "naira"
-  //         ? `minimum amount = ${formatCurrency("20000", "NGN", "en-NG")},
-  //          maximum amount = ${formatCurrency("2000000", "NGN", "en-NG")}`
-  //         : sharedEstimateAsset.toLowerCase() === "dollar" || isDollar
-  //         ? `minimum amount = ${formatCurrency(
-  //             min.toFixed(2).toString(),
-  //             "USD",
-  //             "en-NG"
-  //           )},
-  //         maximum amount = ${formatCurrency(max.toFixed(2).toString(), "USD")}.`
-  //         : isCrypto
-  //         ? `minimum amount = ${min.toFixed(5)} ${sharedTicker},
-  //         maximum amount = ${max.toFixed(5)} ${sharedTicker}.`
-  //         : "";
-
-  //     const newMessages: MessageType[] = [
-  //       {
-  //         type: "incoming",
-  //         content: (
-  //           <span>
-  //             Enter the amount you want to send in {sharedEstimateAsset} value
-  //             <br />
-  //             <br />
-  //             NOTE:
-  //             <b> Note: {rangeMessage}.</b>
-  //             <br />
-  //             <br />
-  //             0. Go back
-  //             <br />
-  //             00. Exit
-  //           </span>
-  //         ),
-  //       },
-  //     ];
-
-  //     addChatMessages(newMessages);
-  //   }
 };
 
 // DISPLAY USSER CHARGE
@@ -847,7 +763,7 @@ export const displayCharge = async (
 // ALLOW USER ENTER BANK SEARCH CRITERIAL
 export const displaySearchBank = async (
   addChatMessages: (messages: MessageType[]) => void,
-  nextStep: (step: string) => void,
+  nextStep: (step: string) => void
 ) => {
   const newMessages: MessageType[] = [
     {

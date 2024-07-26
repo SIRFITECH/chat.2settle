@@ -23,7 +23,7 @@ const Navbar = () => {
             Settings
           </a>
         </div>
-        <div className=" w-3/12 text-xs md:text-md lg:text-lg ">
+        <div className=" w-4/12 text-xs md:text-md lg:text-lg ">
           <ConnectButton />
         </div>
       </nav>

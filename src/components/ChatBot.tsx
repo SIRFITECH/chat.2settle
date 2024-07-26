@@ -1849,9 +1849,9 @@ const ChatBot = () => {
     }
   };
 
-  // CHATBOT
+  // CHATBOT h-2/4 md:h-4/6 lg:h-5/6
   return (
-    <div className="fixed right-8 bottom-24 w-80 md:w-96 bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform scale-100 opacity-100 pointer-events-auto">
+    <div className="fixed right-8 bottom-24 w-7/12 md:w-7/12 lg:w-5/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform scale-100 opacity-100 pointer-events-auto">
       <header className="py-4 text-center text-white bg-blue-500 shadow">
         <div className="flex items-center justify-between">
           <span className="flex-shrink-0 w-8 h-8 ml-8 bg-white rounded justify-start">
@@ -1863,7 +1863,9 @@ const ChatBot = () => {
               className="w-full h-full rounded"
             />
           </span>
-          <h2 className="text-lg font-bold justify-start pr-36">2SettleHQ</h2>
+          <h2 className="text-lg font-bold justify-start items-center pr-36">
+            2SettleHQ
+          </h2>
         </div>
       </header>
       {isOpen && (
@@ -1923,7 +1925,7 @@ const ChatBot = () => {
       )}
 
       {isOpen && (
-        <div className="flex items-center p-3 border-t border-gray-200 bg-white">
+        <div className="flex items-center p-3 border-t border-gray-200 bg-white mr-8 pr-8">
           <textarea
             ref={textareaRef}
             className="flex-1 pl-2 border-none outline-none resize-none h-5"
@@ -1934,6 +1936,11 @@ const ChatBot = () => {
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={handleKeyPress}
           />
+
+          <span
+            className="ml-4 text-blue-500 cursor-pointer material-symbols-rounded"
+            onClick={() => handleConversation(chatInput)}
+          ></span>
           <span
             className="ml-4 text-blue-500 cursor-pointer material-symbols-rounded"
             onClick={() => handleConversation(chatInput)}
