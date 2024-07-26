@@ -64,7 +64,7 @@ const PageBody: React.FC = () => {
               <b>{formattedRate}/$1</b>
             </span>
           </h2>
-          <div className="flex justify-center mt-4 space-x-4">
+          {/* <div className="flex justify-center mt-4 space-x-4">
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded-lg"
               onClick={() => setIsOpen(true)}
@@ -77,7 +77,7 @@ const PageBody: React.FC = () => {
             >
               <SendMoney />
             </button>
-          </div>
+          </div> */}
         </div>
       )}
       <button
