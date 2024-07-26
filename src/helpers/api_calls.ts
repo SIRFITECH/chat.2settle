@@ -172,31 +172,46 @@ export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
   }
 };
 
-// // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
+// FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
+export async function fetchCoinPrice(ticker: string): Promise<number> {
+  try {
+    const response = await fetch("/api/get_coin_price", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ticker }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (typeof data.price !== "number") {
+      throw new Error("Invalid response structure");
+    }
+
+    console.log("Coin price:", data.price);
+    return data.price;
+  } catch (error) {
+    console.error("Error fetching coin price:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+}
+
 // export const fetchCoinPrice = async (
-//   symbol: string
+//   ticker: string
 // ): Promise<number | null> => {
 //   try {
-//     const response = await axios.get(
-//       `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`
-//     );
-//     return parseFloat(response.data.price);
+//     const response = await axios.post("/api/get_coin_price", { ticker });
+//     return parseFloat(response.data);
 //   } catch (error) {
-//     console.error(`Error fetching price for ${symbol}:`, error);
+//     console.error(`Error fetching price for ${ticker}:`, error);
 //     return null;
 //   }
 // };
-export const fetchCoinPrice = async (
-  ticker: string
-): Promise<number | null> => {
-  try {
-    const response = await axios.post("/api/get_coin_price", { ticker });
-    return parseFloat(response.data);
-  } catch (error) {
-    console.error(`Error fetching price for ${ticker}:`, error);
-    return null;
-  }
-};
 
 // COLLECT BANK NAMES FROM DB
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {

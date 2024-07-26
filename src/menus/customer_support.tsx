@@ -53,7 +53,7 @@ export const displayEnterTransactionId = async (
     },
   ];
   console.log("Next is entreTrxId");
-  nextStep("entreTrxId");
+  nextStep("makeComplain");
   addChatMessages(newMessages);
 };
 export const displayMakeComplain = async (
