@@ -1,6 +1,6 @@
 // import React, { useState } from "react";
 // import dynamic from "next/dynamic";
-
+ 
 // // Load the scanner component dynamically to avoid SSR issues
 // const BarcodeScannerComponent = dynamic(
 //   () => import("react-qr-barcode-scanner").then((mod) => mod.default),
@@ -50,3 +50,4 @@
 // }
 
 // export default App;
+

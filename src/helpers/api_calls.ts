@@ -81,37 +81,6 @@ export const checkUserExists = async (
   }
 };
 
-// // UPDATE USER DATA USING CHATID
-// export const updateUser = async (
-//   chatId: string,
-//   updatedData: Partial<vendorData>
-// ) => {
-//   try {
-//     const response = await axios.put("/api/update_user", {
-//       chatId,
-//       ...updatedData,
-//     });
-//     console.log("User updated successfully:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error updating user:", error);
-//     throw error;
-//   }
-// };
-
-// import axios from "axios";
-
-// interface UpdatedUserData {
-//   agent_id: string;
-//   vendor_phoneNumber?: string;
-//   bitcoin_wallet?: string;
-//   bitcoin_privateKey?: string;
-//   eth_bnb_wallet?: string;
-//   eth_bnb_privateKey?: string;
-//   tron_wallet?: string;
-//   tron_privateKey?: string;
-// }
-
 export const updateUser = async (
   agent_id: string,
   updatedData: Partial<vendorData>
@@ -203,31 +172,46 @@ export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
   }
 };
 
-// // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
+// FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
+export async function fetchCoinPrice(ticker: string): Promise<number> {
+  try {
+    const response = await fetch("/api/get_coin_price", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ticker }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (typeof data.price !== "number") {
+      throw new Error("Invalid response structure");
+    }
+
+    console.log("Coin price:", data.price);
+    return data.price;
+  } catch (error) {
+    console.error("Error fetching coin price:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+}
+
 // export const fetchCoinPrice = async (
-//   symbol: string
+//   ticker: string
 // ): Promise<number | null> => {
 //   try {
-//     const response = await axios.get(
-//       `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`
-//     );
-//     return parseFloat(response.data.price);
+//     const response = await axios.post("/api/get_coin_price", { ticker });
+//     return parseFloat(response.data);
 //   } catch (error) {
-//     console.error(`Error fetching price for ${symbol}:`, error);
+//     console.error(`Error fetching price for ${ticker}:`, error);
 //     return null;
 //   }
 // };
-export const fetchCoinPrice = async (
-  ticker: string
-): Promise<number | null> => {
-  try {
-    const response = await axios.post("/api/get_coin_price", { ticker });
-    return parseFloat(response.data);
-  } catch (error) {
-    console.error(`Error fetching price for ${ticker}:`, error);
-    return null;
-  }
-};
 
 // COLLECT BANK NAMES FROM DB
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {
