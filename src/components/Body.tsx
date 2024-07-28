@@ -28,6 +28,11 @@ const PageBody: React.FC = () => {
     }
   }, [isOpen]);
   //   const { sharedRate, setSharedRate } = useSharedState();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -64,20 +69,20 @@ const PageBody: React.FC = () => {
               <b>{formattedRate}/$1</b>
             </span>
           </h2>
-          {/* <div className="flex justify-center mt-4 space-x-4">
+          <div className="flex justify-center mt-4 space-x-4">
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded-lg"
               onClick={() => setIsOpen(true)}
             >
-              <SpendMoney />
+              {isClient ? <SpendMoney /> : null}
             </button>
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded-lg"
               onClick={() => setIsOpen(true)}
             >
-              <SendMoney />
+              {isClient ? <SendMoney /> : null}
             </button>
-          </div> */}
+          </div>
         </div>
       )}
       <button
