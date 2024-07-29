@@ -12,12 +12,16 @@ import { MessageType } from "../types/types";
 import {
   checkUserExists,
   createTransaction,
+  createUser,
   fetchBankDetails,
   fetchBankNames,
   fetchCoinPrice,
   fetchMerchantRate,
   fetchProfitRate,
   fetchRate,
+  generateBTCWalletAddress,
+  generateERCWalletAddress,
+  generateTronWalletAddress,
   updateUser,
 } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
@@ -213,20 +217,20 @@ const ChatBot = () => {
   }, [serializedMessages, currentStep, stepHistory]);
 
   useEffect(() => {
-    console.log("Crypto ticker", sharedTicker);
+    // console.log("Crypto ticker", sharedTicker);
     if (sharedCrypto != "") {
       if (sharedCrypto.toLowerCase() === "usdt") {
         setSharedAssetPrice(`${rate}`);
-        console.log(
-          `form fetchCoinPrice The price of ${sharedTicker} in USDT is: ${sharedAssetPrice}`
-        );
+        // console.log(
+        //   `form fetchCoinPrice The price of ${sharedTicker} in USDT is: ${sharedAssetPrice}`
+        // );
       } else {
         fetchCoinPrice(`${sharedCrypto}`).then((price) => {
           if (price !== null) {
             setSharedAssetPrice(`${price}`);
-            console.log(
-              `form fetchCoinPrice The price of ${sharedCrypto} in USDT is: ${price}`
-            );
+            // console.log(
+            //   `form fetchCoinPrice The price of ${sharedCrypto} in USDT is: ${price}`
+            // );
           } else {
             console.log("form fetchCoinPrice Failed to fetch the price.");
           }
@@ -728,7 +732,6 @@ const ChatBot = () => {
     } else if (chatInput === "1") {
       setSharedPaymentMode("transferMoney");
       displayTransferMoney(addChatMessages);
-      console.log("Next is howToEstimate");
       nextStep("estimateAsset");
     } else if (chatInput === "2") {
       console.log("The choice is TWO, SEND GIFT ");
@@ -779,11 +782,9 @@ const ChatBot = () => {
           },
         ];
         console.log("Next is howToEstimate");
-        // nextStep("estimateAsset");
         addChatMessages(newMessages);
       })();
     } else if (chatInput === "00") {
-      console.log("Going back from handleHowToEstimate");
       goToStep("chooseAction");
       helloMenu("hi");
     } else if (chatInput === "1") {
@@ -821,18 +822,16 @@ const ChatBot = () => {
         },
       ];
 
-      console.log("Next is estimationAmount");
-
       addChatMessages(newMessages);
 
-      const userData = await checkUserExists(sharedChatId);
-      let userExists = userData.exists;
+      // const userData = await checkUserExists(sharedChatId);
+      // let userExists = userData.exists;
 
-      if (userExists) {
-        console.log("User exists", chatId);
-      } else {
-        console.log("User doesn't exists", chatId);
-      }
+      // if (userExists) {
+      //   console.log("User exists", chatId);
+      // } else {
+      //   console.log("User doesn't exists", chatId);
+      // }
       setSharedTicker("ETHUSDT");
       setSharedCrypto("ETH");
       setSharedNetwork("ERC20");
@@ -865,18 +864,16 @@ const ChatBot = () => {
         },
       ];
 
-      console.log("Next is estimationAmount");
-
       addChatMessages(newMessages);
 
-      const userData = await checkUserExists(sharedChatId);
-      let userExists = userData.exists;
+      // const userData = await checkUserExists(sharedChatId);
+      // let userExists = userData.exists;
 
-      if (userExists) {
-        console.log("User exists", chatId);
-      } else {
-        console.log("User doesn't exists", chatId);
-      }
+      // if (userExists) {
+      //   console.log("User exists", chatId);
+      // } else {
+      //   console.log("User doesn't exists", chatId);
+      // }
       setSharedTicker("BNBUSDT");
       setSharedCrypto("BNB");
       setSharedNetwork("BEP20");
@@ -913,14 +910,14 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
-      const userData = await checkUserExists(sharedChatId);
-      let userExists = userData.exists;
+      // const userData = await checkUserExists(sharedChatId);
+      // let userExists = userData.exists;
 
-      if (userExists) {
-        console.log("User exists", chatId);
-      } else {
-        console.log("User doesn't exists", chatId);
-      }
+      // if (userExists) {
+      //   console.log("User exists", chatId);
+      // } else {
+      //   console.log("User doesn't exists", chatId);
+      // }
       setSharedTicker("TRXUSDT");
       setSharedCrypto("TRX");
       setSharedNetwork("TRC20");
@@ -945,7 +942,6 @@ const ChatBot = () => {
         },
       ];
 
-      console.log("Next is payOptions");
       addChatMessages(newMessages);
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
@@ -967,13 +963,11 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
     } else if (chatInput === "0") {
       (() => {
-        console.log("Going back from handlePayOptions");
         prevStep();
         displayTransferMoney(addChatMessages);
       })();
@@ -1180,7 +1174,6 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
@@ -1203,7 +1196,7 @@ const ChatBot = () => {
         );
       })();
     } else if (chatInput != "0") {
-      console.log(chatInput.trim());
+      // console.log(chatInput.trim());
       let bankList: [] = [];
       setLoading(true);
 
@@ -1240,7 +1233,7 @@ const ChatBot = () => {
         setSharedBankCodes
       );
     }
-    console.log("I want to search for bankNames of", chatInput.trim());
+    // console.log("I want to search for bankNames of", chatInput.trim());
   };
 
   //GET USER BANK DATA AFTER COLLECTING ACCOUNT NUMBER
@@ -1250,13 +1243,13 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
+        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
     } else if (chatInput === "0") {
       (() => {
-        console.log("THIS IS WHERE WE ARE");
+        // console.log("THIS IS WHERE WE ARE");
         prevStep();
         displaySelectBank(
           addChatMessages,
@@ -1287,18 +1280,18 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
+        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
     } else if (chatInput === "0") {
       (() => {
-        console.log("THIS IS WHERE WE ARE");
+        // console.log("THIS IS WHERE WE ARE");
         prevStep();
         displaySearchBank(addChatMessages, nextStep);
       })();
     } else if (chatInput !== "0") {
-      console.log(chatInput.trim());
+      // console.log(chatInput.trim());
 
       let bank_name = "";
       let account_name = "";
@@ -1311,10 +1304,10 @@ const ChatBot = () => {
           sharedSelectedBankCode,
           chatInput.trim()
         );
-        console.log(
-          "Bank data: account number is  ",
-          bankData[0].account_number
-        );
+        // console.log(
+        //   "Bank data: account number is  ",
+        //   bankData[0].account_number
+        // );
 
         bank_name = bankData[0].bank_name;
         account_name = bankData[0].account_name;
@@ -1371,13 +1364,13 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
+        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
     } else if (chatInput === "0") {
       (() => {
-        console.log("THIS IS WHERE WE ARE");
+        // console.log("THIS IS WHERE WE ARE");
         prevStep();
         displaySearchBank(addChatMessages, nextStep);
       })();
@@ -1394,11 +1387,12 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
+        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
     } else if (chatInput != "0") {
+      setLoading(true);
       const phoneNumberPattern = /^[0-9]{11}$/;
 
       if (!phoneNumberPattern.test(phoneNumber)) {
@@ -1419,22 +1413,13 @@ const ChatBot = () => {
       }
 
       setSharedPhone(phoneNumber);
+      console.log("LETS SEE THE PHONE NUMBER", chatInput);
 
       const transactionID = generateTransactionId();
       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
         .toFixed(8)
         .toString()} ${sharedCrypto} `;
       const date = getFormattedDateTime();
-
-      displaySendPayment(
-        addChatMessages,
-        nextStep,
-        sharedWallet,
-        sharedCrypto,
-        sharedPaymentAssetEstimate,
-        sharedPaymentNairaEstimate,
-        transactionID
-      );
 
       const isUserAvailable = await checkUserExists(chatId);
       if (isUserAvailable.user?.vendor_phoneNumber === null) {
@@ -1443,6 +1428,136 @@ const ChatBot = () => {
         });
       }
 
+      // await asignWallet(
+      //   sharedChatId,
+      //   formatPhoneNumber(phoneNumber),
+      //   sharedNetwork,
+      //   setSharedWallet
+      // );
+
+      const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
+
+      const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
+
+      const trc20AddressPattern = /^T[a-zA-Z0-9]{33}$/;
+
+      const erc20 = ["erc20", "bep20"];
+
+      let userWallet = "";
+
+      const userData = await checkUserExists(phoneNumber);
+      let userExists = userData.exists;
+      let hasBTCWallet = btcAddressPattern.test(
+        userData.user?.bitcoin_wallet || ""
+      );
+      let hasERCWallet = erc20AddressPattern.test(
+        userData.user?.eth_bnb_wallet || ""
+      );
+      let hasTRCWallet = trc20AddressPattern.test(
+        userData.user?.tron_wallet || ""
+      );
+
+      // const tronWallet = await generateTronWalletAddress();
+
+      if (userExists) {
+        console.log("This user exists");
+        if (sharedNetwork.toLocaleLowerCase() === "btc") {
+          if (hasBTCWallet) {
+            setSharedWallet(userData.user?.bitcoin_wallet || "");
+            userWallet = userData.user?.bitcoin_wallet || "";
+          } else {
+            const btcWallet = await generateBTCWalletAddress();
+            setSharedWallet(btcWallet.bitcoin_wallet);
+            userWallet = btcWallet.bitcoin_wallet;
+            // update the db
+            updateUser(phoneNumber, {
+              bitcoin_wallet: btcWallet.bitcoin_wallet,
+              bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+            });
+            console.log(
+              "User exist, new BTC wallet is:",
+              btcWallet.bitcoin_wallet
+            );
+          }
+        } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
+          if (hasERCWallet) {
+            setSharedWallet(userData.user?.eth_bnb_wallet || "");
+            userWallet = userData.user?.eth_bnb_wallet || "";
+          } else {
+            const ercWallet = await generateERCWalletAddress();
+            setSharedWallet(ercWallet.eth_bnb_wallet);
+            userWallet = ercWallet.eth_bnb_wallet;
+            // update the db
+            updateUser(phoneNumber, {
+              eth_bnb_wallet: ercWallet.eth_bnb_wallet,
+              bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
+            });
+            console.log(
+              "User exist, new ERC wallet is:",
+              ercWallet.eth_bnb_wallet
+            );
+          }
+        } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
+          const tronWallet = await generateTronWalletAddress();
+          if (hasTRCWallet) {
+            setSharedWallet(userData.user?.tron_wallet || "");
+            userWallet = userData.user?.tron_wallet || "";
+          } else {
+            setSharedWallet(tronWallet.tron_wallet);
+            userWallet = tronWallet.tron_wallet;
+            updateUser(phoneNumber, {
+              tron_wallet: tronWallet.tron_wallet,
+              tron_privateKey: tronWallet.tron_privateKey,
+            });
+            console.log(
+              "User exist and new tron wallet is:",
+              tronWallet.tron_wallet
+            );
+          }
+        }
+      } else {
+        if (sharedNetwork.toLocaleLowerCase() === "btc") {
+          const btcWallet = await generateBTCWalletAddress();
+          setSharedWallet(btcWallet.bitcoin_wallet);
+          userWallet = btcWallet.bitcoin_wallet;
+          await createUser({
+            agent_id: sharedChatId,
+            bitcoin_wallet: btcWallet.bitcoin_wallet,
+            bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+          });
+          console.log("BTC wallet is:", btcWallet.bitcoin_wallet);
+        } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
+          const ercWallet = await generateERCWalletAddress();
+          setSharedWallet(ercWallet.eth_bnb_wallet);
+          userWallet = ercWallet.eth_bnb_wallet;
+          await createUser({
+            agent_id: sharedChatId,
+            eth_bnb_wallet: ercWallet.eth_bnb_wallet,
+            eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
+          });
+          console.log("ERC wallet is:", ercWallet.eth_bnb_wallet);
+        } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
+          const tronWallet = await generateTronWalletAddress();
+          setSharedWallet(tronWallet.tron_wallet);
+          userWallet = tronWallet.tron_wallet;
+          await createUser({
+            agent_id: sharedChatId,
+            tron_wallet: tronWallet.tron_wallet,
+            tron_privateKey: tronWallet.tron_privateKey,
+          });
+          console.log("Tron wallet is:", tronWallet.tron_wallet);
+        }
+      }
+
+      displaySendPayment(
+        addChatMessages,
+        nextStep,
+        userWallet,
+        sharedCrypto,
+        sharedPaymentAssetEstimate,
+        sharedPaymentNairaEstimate,
+        transactionID
+      );
       // let's save the transaction details to db
       const userDate = {
         crypto: sharedCrypto,
@@ -1460,7 +1575,8 @@ const ChatBot = () => {
           "en-NG"
         ),
         crypto_sent: paymentAsset,
-        wallet_address: sharedWallet,
+        wallet_address: userWallet,
+        // sharedWallet,
         Date: date,
         status: "Processing",
         customer_phoneNumber: formatPhoneNumber(phoneNumber),
@@ -1489,7 +1605,7 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput.trim() === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
+        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
@@ -1499,12 +1615,12 @@ const ChatBot = () => {
         displaySearchBank(addChatMessages, nextStep);
       })();
     } else if (chatInput.trim() === "1") {
-      console.log("Do another transaction", chatInput.trim());
+      // console.log("Do another transaction", chatInput.trim());
       helloMenu("hi");
     } else if (chatInput.trim() === "2") {
       goToStep("supportWelcome");
       displayCustomerSupportWelcome(addChatMessages, nextStep);
-      console.log("Contact support", chatInput.trim());
+      // console.log("Contact support", chatInput.trim());
     }
   };
 
@@ -1636,7 +1752,7 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput.trim() === "00") {
       (() => {
-        console.log("Going back from handlePayOptions");
+        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
@@ -1736,7 +1852,7 @@ const ChatBot = () => {
       case "payOptions":
         console.log("Current step is payOptions ");
         handlePayOptions(chatInput);
-        await asignWallet(sharedChatId, sharedNetwork, setSharedWallet);
+
         setChatInput("");
         break;
 

@@ -68,11 +68,11 @@ export const fetchProfitRate = async (): Promise<number> => {
 
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
 export const checkUserExists = async (
-  agentId: string
+  phone: string
 ): Promise<{ exists: boolean; user?: vendorData }> => {
   try {
     const response = await axios.get("/api/check_user", {
-      params: { agent_id: agentId },
+      params: { vendor_phoneNumber: phone },
     });
     return response.data;
   } catch (error) {
@@ -82,12 +82,12 @@ export const checkUserExists = async (
 };
 
 export const updateUser = async (
-  agent_id: string,
+  phone: string,
   updatedData: Partial<vendorData>
 ): Promise<void> => {
   try {
     const response = await axios.put("/api/update_user", {
-      agent_id,
+      phone,
       ...updatedData,
     });
 

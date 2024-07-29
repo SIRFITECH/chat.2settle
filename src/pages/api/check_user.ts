@@ -14,10 +14,10 @@ export default async function handler(
   const dbUser = process.env.user;
   const dbPassword = process.env.password;
   const dbName = process.env.database;
-  const { agent_id } = req.query;
+  const { vendor_phoneNumber } = req.query;
 
-  if (!agent_id) {
-    return res.status(400).json({ message: "agent_id is required" });
+  if (!vendor_phoneNumber) {
+    return res.status(400).json({ message: "vendor_phoneNumber is required" });
   }
 
   try {
@@ -29,8 +29,8 @@ export default async function handler(
     });
 
     const [rows] = await connection.query<RowDataPacket[]>(
-      "SELECT * FROM `Telegram_Database`.`2settle_vendor` WHERE `agent_id` = ?",
-      [agent_id]
+      "SELECT * FROM `Telegram_Database`.`2settle_vendor` WHERE `vendor_phoneNumber` = ?",
+      [vendor_phoneNumber]
     );
 
     await connection.end();

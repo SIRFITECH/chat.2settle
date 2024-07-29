@@ -1,7 +1,6 @@
 import mysql from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -27,8 +26,8 @@ export default async function handler(
     tron_privateKey,
   } = req.body;
 
-  if (!agent_id) {
-    return res.status(400).json({ error: "Agent ID is required" });
+  if (!vendor_phoneNumber) {
+    return res.status(400).json({ error: "User phone is required" });
   }
 
   const updatedUserData: Partial<{
@@ -67,8 +66,8 @@ export default async function handler(
     });
 
     const [result] = await connection.query<mysql.ResultSetHeader>(
-      "UPDATE 2settle_vendor SET ? WHERE agent_id = ?",
-      [updatedUserData, agent_id]
+      "UPDATE 2settle_vendor SET ? WHERE vendor_phoneNumber = ?",
+      [updatedUserData, vendor_phoneNumber]
     );
 
     await connection.end();

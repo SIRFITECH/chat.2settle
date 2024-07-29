@@ -8,9 +8,6 @@ import { fetchRate } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
-// import { formatCurrency } from "utils/formatCurrency";
-// import { fetchRate } from "utils/ApiCalls";
-// import { useSharedState } from "context/SharedStateContext";
 
 const PageBody: React.FC = () => {
   // my state hooks
