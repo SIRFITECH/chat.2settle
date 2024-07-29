@@ -9,6 +9,7 @@ import {
 
 export async function asignWallet(
   sharedChatId: string,
+  phone: string,
   sharedNetwork: string,
   setSharedWallet: React.Dispatch<React.SetStateAction<string>>
 ) {
@@ -20,7 +21,7 @@ export async function asignWallet(
 
   const erc20 = ["erc20", "bep20"];
 
-  const userData = await checkUserExists(sharedChatId);
+  const userData = await checkUserExists(phone);
   let userExists = userData.exists;
   let hasBTCWallet = btcAddressPattern.test(
     userData.user?.bitcoin_wallet || ""
@@ -41,7 +42,7 @@ export async function asignWallet(
         const btcWallet = await generateBTCWalletAddress();
         setSharedWallet(btcWallet.bitcoin_wallet);
         // update the db
-        updateUser(sharedChatId, {
+        updateUser(phone, {
           bitcoin_wallet: btcWallet.bitcoin_wallet,
           bitcoin_privateKey: btcWallet.bitcoin_privateKey,
         });
@@ -54,7 +55,7 @@ export async function asignWallet(
         const ercWallet = await generateERCWalletAddress();
         setSharedWallet(ercWallet.eth_bnb_wallet);
         // update the db
-        updateUser(sharedChatId, {
+        updateUser(phone, {
           eth_bnb_wallet: ercWallet.eth_bnb_wallet,
           bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
         });
@@ -65,7 +66,7 @@ export async function asignWallet(
         setSharedWallet(tronWallet.tron_wallet);
       } else {
         setSharedWallet(tronWallet.tron_wallet);
-        updateUser(sharedChatId, {
+        updateUser(phone, {
           tron_wallet: tronWallet.tron_wallet,
           tron_privateKey: tronWallet.tron_privateKey,
         });
