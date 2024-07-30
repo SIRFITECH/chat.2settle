@@ -37,6 +37,32 @@ export interface vendorData {
   tron_wallet?: string | null;
   tron_privateKey?: string | null;
 }
+export interface userData {
+  crypto?: string | null;
+  network?: string | null;
+  estimation?: string | null;
+  Amount?: string | null;
+  charges?: string | null;
+  mode_of_payment?: string | null;
+  acct_number?: string | null;
+  bank_name?: string | null;
+  receiver_name?: string | null;
+  receiver_amount?: string | null;
+  crypto_sent?: string | null;
+  wallet_address?: string | null;
+  Date?: string | null;
+  status?: string | null;
+  customer_phoneNumber?: string | null;
+  transac_id?: string | null;
+  settle_walletLink?: string | null;
+  chat_id?: string | null;
+  current_rate?: string | null;
+  merchant_rate?: string | null;
+  profit_rat?: string | null;
+  name?: string | null;
+}
+
+const userDate = {};
 
 // BTC WALLET FORM VENDOR TABLE WALLET DATA
 export interface btcWalletData {
@@ -130,4 +156,6 @@ export interface SharedStateContextProps {
   updateBankData: (newData: Partial<UserBankData>) => void;
   sharedPhone: string;
   setSharedPhone: React.Dispatch<React.SetStateAction<string>>;
+  sharedTransactionId: string;
+  setSharedTransactionId: React.Dispatch<React.SetStateAction<string>>;
 }

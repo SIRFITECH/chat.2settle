@@ -5,6 +5,7 @@ import {
   ercWalletData,
   ServerData,
   trcWalletData,
+  userData,
   vendorData,
 } from "../types/types";
 
@@ -80,6 +81,20 @@ export const checkUserExists = async (
     throw error;
   }
 };
+// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
+export const checkTranscationExists = async (
+  transac_id: string
+): Promise<{ exists: boolean; user?: userData }> => {
+  try {
+    const response = await axios.get("/api/check_transaction", {
+      params: { transac_id: transac_id },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    throw error;
+  }
+};
 
 export const updateUser = async (
   phone: string,
@@ -122,6 +137,20 @@ export const createTransaction = async (user: any): Promise<any> => {
       user
     );
     console.log("Use transaction created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing user data:", error);
+    throw new Error("Failed to store user data");
+  }
+};
+// CREATE TRANSACTION IN THE TRANSACTION TABLE
+export const createComplain = async (complainData: any): Promise<any> => {
+  try {
+    const response = await axios.post<any>(
+      `${apiURL}/api/create_complain`,
+      complainData
+    );
+    console.log("Use complain created successfully");
     return response.data;
   } catch (error) {
     console.error("Error storing user data:", error);

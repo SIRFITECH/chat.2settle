@@ -43,6 +43,8 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
   const [sharedChargeForDB, setSharedChargeForDB] = useState<string>("");
   const [sharedBankCodes, setSharedBankCodes] = useState<string[]>([]);
   const [sharedBankNames, setSharedBankNames] = useState<string[]>([]);
+  const [sharedTransactionId, setSharedTransactionId] = useState<string>("");
+
   const [sharedSelectedBankCode, setSharedSelectedBankCode] =
     useState<string>("");
   const [sharedSelectedBankName, setSharedSelectedBankName] =
@@ -125,6 +127,8 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
         updateBankData,
         sharedPhone,
         setSharedPhone,
+        sharedTransactionId,
+        setSharedTransactionId,
       }}
     >
       {children}

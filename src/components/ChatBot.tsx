@@ -10,7 +10,9 @@ import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
 import {
+  checkTranscationExists,
   checkUserExists,
+  createComplain,
   createTransaction,
   createUser,
   fetchBankDetails,
@@ -28,6 +30,7 @@ import { formatCurrency } from "../helpers/format_currency";
 import {
   formatPhoneNumber,
   generateChatId,
+  generateComplainId,
   generateTransactionId,
   getChatId,
   saveChatId,
@@ -153,6 +156,8 @@ const ChatBot = () => {
     updateBankData,
     sharedPhone,
     setSharedPhone,
+    sharedTransactionId,
+    setSharedTransactionId,
   } = useSharedState();
 
   // STATE HOOKS
@@ -1413,7 +1418,6 @@ const ChatBot = () => {
       }
 
       setSharedPhone(phoneNumber);
-      console.log("LETS SEE THE PHONE NUMBER", chatInput);
 
       const transactionID = generateTransactionId();
       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
@@ -1421,9 +1425,11 @@ const ChatBot = () => {
         .toString()} ${sharedCrypto} `;
       const date = getFormattedDateTime();
 
-      const isUserAvailable = await checkUserExists(chatId);
+      const isUserAvailable = await checkUserExists(
+        formatPhoneNumber(phoneNumber)
+      );
       if (isUserAvailable.user?.vendor_phoneNumber === null) {
-        updateUser(chatId, {
+        updateUser(formatPhoneNumber(phoneNumber), {
           vendor_phoneNumber: formatPhoneNumber(phoneNumber),
         });
       }
@@ -1445,7 +1451,7 @@ const ChatBot = () => {
 
       let userWallet = "";
 
-      const userData = await checkUserExists(phoneNumber);
+      const userData = await checkUserExists(formatPhoneNumber(phoneNumber));
       let userExists = userData.exists;
       let hasBTCWallet = btcAddressPattern.test(
         userData.user?.bitcoin_wallet || ""
@@ -1470,7 +1476,7 @@ const ChatBot = () => {
             setSharedWallet(btcWallet.bitcoin_wallet);
             userWallet = btcWallet.bitcoin_wallet;
             // update the db
-            updateUser(phoneNumber, {
+            updateUser(formatPhoneNumber(phoneNumber), {
               bitcoin_wallet: btcWallet.bitcoin_wallet,
               bitcoin_privateKey: btcWallet.bitcoin_privateKey,
             });
@@ -1488,7 +1494,7 @@ const ChatBot = () => {
             setSharedWallet(ercWallet.eth_bnb_wallet);
             userWallet = ercWallet.eth_bnb_wallet;
             // update the db
-            updateUser(phoneNumber, {
+            updateUser(formatPhoneNumber(phoneNumber), {
               eth_bnb_wallet: ercWallet.eth_bnb_wallet,
               bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
             });
@@ -1505,7 +1511,7 @@ const ChatBot = () => {
           } else {
             setSharedWallet(tronWallet.tron_wallet);
             userWallet = tronWallet.tron_wallet;
-            updateUser(phoneNumber, {
+            updateUser(formatPhoneNumber(phoneNumber), {
               tron_wallet: tronWallet.tron_wallet,
               tron_privateKey: tronWallet.tron_privateKey,
             });
@@ -1522,6 +1528,7 @@ const ChatBot = () => {
           userWallet = btcWallet.bitcoin_wallet;
           await createUser({
             agent_id: sharedChatId,
+            vendor_phoneNumber: formatPhoneNumber(phoneNumber),
             bitcoin_wallet: btcWallet.bitcoin_wallet,
             bitcoin_privateKey: btcWallet.bitcoin_privateKey,
           });
@@ -1532,6 +1539,7 @@ const ChatBot = () => {
           userWallet = ercWallet.eth_bnb_wallet;
           await createUser({
             agent_id: sharedChatId,
+            vendor_phoneNumber: formatPhoneNumber(phoneNumber),
             eth_bnb_wallet: ercWallet.eth_bnb_wallet,
             eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
           });
@@ -1542,6 +1550,7 @@ const ChatBot = () => {
           userWallet = tronWallet.tron_wallet;
           await createUser({
             agent_id: sharedChatId,
+            vendor_phoneNumber: formatPhoneNumber(phoneNumber),
             tron_wallet: tronWallet.tron_wallet,
             tron_privateKey: tronWallet.tron_privateKey,
           });
@@ -1558,6 +1567,7 @@ const ChatBot = () => {
         sharedPaymentNairaEstimate,
         transactionID
       );
+      setLoading(false);
       // let's save the transaction details to db
       const userDate = {
         crypto: sharedCrypto,
@@ -1589,7 +1599,6 @@ const ChatBot = () => {
         name: "",
       };
       await createTransaction(userDate);
-      setLoading(false);
 
       console.log("User data created", userDate);
     } else {
@@ -1615,12 +1624,10 @@ const ChatBot = () => {
         displaySearchBank(addChatMessages, nextStep);
       })();
     } else if (chatInput.trim() === "1") {
-      // console.log("Do another transaction", chatInput.trim());
       helloMenu("hi");
     } else if (chatInput.trim() === "2") {
       goToStep("supportWelcome");
       displayCustomerSupportWelcome(addChatMessages, nextStep);
-      // console.log("Contact support", chatInput.trim());
     }
   };
 
@@ -1716,16 +1723,27 @@ const ChatBot = () => {
       ]);
     }
   };
+
   // GIVE USERS LINK TO REG
-  const handleTransactionId = (chatInput: string) => {
+  const handleTransactionId = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput !== "0") {
       const transaction_id = chatInput.trim();
-      let transactionExists = true;
-      // IF TRANSACTION_ID EXIST IN DB,
+      setLoading(true);
+      setSharedTransactionId(transaction_id);
+      let transactionExists = (await checkTranscationExists(transaction_id))
+        .exists;
 
+      console.log(
+        "User phone:",
+        (await checkTranscationExists(transaction_id)).user
+          ?.customer_phoneNumber
+      );
+
+      setLoading(false);
+      // IF TRANSACTION_ID EXIST IN DB,
       if (transactionExists) {
         displayMakeComplain(addChatMessages, nextStep);
       } else {
@@ -1746,7 +1764,8 @@ const ChatBot = () => {
       ]);
     }
   };
-  const handleMakeComplain = (chatInput: string) => {
+
+  const handleMakeComplain = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -1768,9 +1787,31 @@ const ChatBot = () => {
       // IF TRANSACTION_ID EXIST IN DB,
 
       if (validMessage) {
-        goToStep("start");
+        setLoading(true);
+        const complainId = generateComplainId();
+        const phone = (await checkTranscationExists(sharedTransactionId)).user
+          ?.customer_phoneNumber;
+        console.log("User phone number is:", phone);
+
+        await createComplain({
+          transaction_id: sharedTransactionId,
+          complain: message,
+          status: "pending",
+          Customer_phoneNumber: phone,
+          complain_id: complainId,
+        });
+        setLoading(false);
+        addChatMessages([
+          {
+            type: "incoming",
+            content:
+              "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
+          },
+        ]);
         helloMenu("hi");
+        goToStep("start");
       } else {
+        console.log("Invalid message length");
         addChatMessages([
           {
             type: "incoming",
@@ -1941,8 +1982,9 @@ const ChatBot = () => {
         break;
 
       case "makeComplain":
-        console.log("Current step is paymentProcessing ");
+        console.log("Current step is makeComplain ");
         handleMakeComplain(chatInput);
+
         setChatInput("");
         break;
 
