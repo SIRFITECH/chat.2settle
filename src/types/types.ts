@@ -28,8 +28,8 @@ export interface ServerData {
 
 // USER FROM THE VENDOR TABLE
 export interface vendorData {
-  agent_id?: string | null;
-  vendor_phoneNumber?: string | null;
+  // agent_id?: string | null;
+  phone_number?: string | null;
   bitcoin_wallet?: string | null;
   bitcoin_privateKey?: string | null;
   eth_bnb_wallet?: string | null;

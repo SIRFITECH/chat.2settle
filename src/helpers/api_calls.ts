@@ -73,7 +73,7 @@ export const checkUserExists = async (
 ): Promise<{ exists: boolean; user?: vendorData }> => {
   try {
     const response = await axios.get("/api/check_user", {
-      params: { vendor_phoneNumber: phone },
+      params: { phone_number: phone },
     });
     return response.data;
   } catch (error) {
@@ -96,6 +96,28 @@ export const checkTranscationExists = async (
   }
 };
 
+// export const updateUser = async (
+//   phone: string,
+//   updatedData: Partial<vendorData>
+// ): Promise<void> => {
+//   try {
+//     const response = await axios.put("/api/update_user", {
+//       phone,
+//       ...updatedData,
+//     });
+
+//     if (response.status === 200) {
+//       console.log("User updated successfully:", response.data);
+//     } else {
+//       console.error("Failed to update user:", response.data);
+//     }
+//   } catch (error) {
+//     console.error("Error updating user data:", error);
+//     throw new Error("Failed to update user data");
+//   }
+// };
+
+
 export const updateUser = async (
   phone: string,
   updatedData: Partial<vendorData>
@@ -109,10 +131,15 @@ export const updateUser = async (
     if (response.status === 200) {
       console.log("User updated successfully:", response.data);
     } else {
+      console.error("Unexpected status code:", response.status);
       console.error("Failed to update user:", response.data);
     }
   } catch (error) {
-    console.error("Error updating user data:", error);
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error:", error.response?.data || error.message);
+    } else {
+      console.error("Error updating user data:", error);
+    }
     throw new Error("Failed to update user data");
   }
 };
