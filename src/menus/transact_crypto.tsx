@@ -57,6 +57,7 @@ export const displayPayAVendor = (
     addChatMessages(newMessages);
   }
 };
+
 // IF USER CHOOSE TRANSFER MONEY THEY SEE THIS NEXT
 export const displayTransferMoney = (
   addChatMessages: (messages: MessageType[]) => void
@@ -251,6 +252,7 @@ export const displayCharge = async (
 
   let max: number;
   let min: number;
+     console.log("LET'S SEE THE RATE FROM HERE", rate);
 
   /**
    * Remember charges include
@@ -589,6 +591,7 @@ export const displayCharge = async (
         return;
       }
     } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
+   
       max = upperDollar;
       min = lowerDollar;
       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
@@ -1059,6 +1062,32 @@ export const displaySendPayment = async (
   ];
   nextStep("paymentProcessing");
   addChatMessages(newMessages);
+};
+// IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
+export const displayConfirmPayment = (
+  addChatMessages: (messages: MessageType[]) => void
+) => {
+  {
+    const newMessages: MessageType[] = [
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Here is your menu:
+            <br />
+            1. Pay To A Bank
+            <br />
+            2. Pay A Vendor
+            <br />
+            0. Go back
+          </span>
+        ),
+      },
+    ];
+    console.log("Next is howToEstimate");
+
+    addChatMessages(newMessages);
+  }
 };
 
 // DISPLAY HOW TO PROCESS THE TRANSACTION

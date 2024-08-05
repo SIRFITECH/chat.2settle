@@ -52,7 +52,11 @@ import {
   displayTransferMoney,
 } from "../menus/transact_crypto";
 import { getFormattedDateTime } from "../helpers/format_date";
-import { asignWallet } from "../helpers/user_functions";
+import {
+  asignWallet,
+  checkBEP20Transaction,
+  checkERC20Transaction,
+} from "../helpers/user_functions";
 import {
   displayKYCInfo,
   displayRegKYC,
@@ -352,7 +356,7 @@ const ChatBot = () => {
         "NGN",
         "en-NG"
       );
-      // console.log("formattedRate is :", formattedRate);
+      console.log("formattedRate is :", formattedRate);
       setFormattedRate(formattedRate);
       setMerchantRate(formattedMerchantRate);
       setProfitRate(formattedProfitRate);
@@ -364,7 +368,13 @@ const ChatBot = () => {
 
   useEffect(() => {
     fetchData();
-  });
+  },[]);
+
+  useEffect(() => {
+    console.log("We want to check for the wallet");
+    checkERC20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
+    checkBEP20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
+  }, [chatMessages]);
 
   // // SET STATE TO THE START ON WALLET CONNECT
   // useEffect(() => {
@@ -1589,9 +1599,8 @@ const ChatBot = () => {
         ),
         crypto_sent: paymentAsset,
         wallet_address: userWallet,
-        // sharedWallet,
         Date: date,
-        status: "Processing",
+        status: "Uncompleted",
         customer_phoneNumber: formatPhoneNumber(phoneNumber),
         transac_id: transactionID.toString(),
         settle_walletLink: "",

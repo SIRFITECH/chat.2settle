@@ -62,7 +62,66 @@ export interface userData {
   name?: string | null;
 }
 
-const userDate = {};
+export interface erc20TrxData {
+  blockHash: string;
+  blockNumber: string;
+  confirmations: string;
+  contractAddress: string;
+  cumulativeGasUsed: string;
+  from: string;
+  functionName: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  hash: string;
+  input: string;
+  isError: string;
+  methodId: string;
+  nonce: string;
+  timeStamp: string;
+  to: string;
+  transactionIndex: string;
+  txreceipt_status: string;
+  value: string;
+  
+}
+
+//ETHERSCAN RESPONSE
+export interface EtherscanResponse {
+  status: string;
+  message: string;
+  result: erc20TrxData[];
+}
+
+export interface BscTransaction {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  nonce: string;
+  blockHash: string;
+  from: string;
+  contractAddress: string;
+  to: string;
+  value: string;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenDecimal: string;
+  transactionIndex: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  cumulativeGasUsed: string;
+  input: string;
+  confirmations: string;
+}
+
+export interface BscScanResponse {
+  status: string;
+  message: string;
+  result: BscTransaction[];
+}
+
+
 
 // BTC WALLET FORM VENDOR TABLE WALLET DATA
 export interface btcWalletData {

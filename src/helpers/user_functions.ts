@@ -1,3 +1,11 @@
+import { ethers } from "ethers";
+import { formatEther } from "@ethersproject/units";
+import {
+  BscScanResponse,
+  BscTransaction,
+  erc20TrxData,
+  EtherscanResponse,
+} from "../types/types";
 import {
   checkUserExists,
   createUser,
@@ -6,6 +14,7 @@ import {
   generateTronWalletAddress,
   updateUser,
 } from "./api_calls";
+import axios from "axios";
 
 export async function asignWallet(
   sharedChatId: string,
@@ -110,3 +119,96 @@ export async function asignWallet(
 export async function createTransaction() {
   // create a transaction in the db
 }
+
+const gweiToEth = (gwei: string): string => {
+  const gweiInNumber = parseFloat(gwei);
+
+  const eth = gweiInNumber / 1000000000;
+  return eth.toString();
+};
+
+// CHECK A SUPPLIED WALLET ADDRESS FOR INCOMING TRANSACTION
+export const checkERC20Transaction = async (walletAddress: string) => {
+  const apiKey = "7Y7G56Q5K1ARWM9FF4CTKKD5MB42YTIT6Z";
+  console.log("Our ETHERSCAN API KEY is:", process.env.ETHERSCAN_API_KEY);
+  // process.env.ETHERSCAN_API_KEY;
+  const url = `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
+  // const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
+  //https://api.etherscan.io/api?module=account&action=tokentx&contractaddress=0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2&address=0x4e83362442b8d1bec281594cea3050c8eb01311c&page=1&offset=100&startblock=0&endblock=27025780&sort=asc&apikey=YourApiKeyToken
+
+  try {
+    const response = await axios.get<EtherscanResponse>(url);
+    const transactions: erc20TrxData[] = response.data.result;
+
+    if (transactions.length > 0) {
+      const lastTransaction = transactions[transactions.length - 1];
+      const valueInWei = lastTransaction.value;
+      const ethValue = formatEther(valueInWei);
+
+      // console.log("The last transaction index is:", transactions.length - 1);
+      // console.log("The last transaction is:", lastTransaction);
+      // console.log("Transaction value:", lastTransaction.value);
+      console.log("Transaction value in ETH:", ethValue);
+    } else {
+      console.log("No transactions found.");
+    }
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+  }
+};
+
+export const checkBEP20Transaction = async (walletAddress: string) => {
+  const apiKey = "VDRM3F5F51KDCREB1F25QGAQUK3I3ERRSP";
+  //  process.env.BSCSCAN_API_KEY;
+  const url = `https://api-testnet.bscscan.com/api?module=account&action=tokentx&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
+  // const url = `https://api.bscscan.com/api?module=account&action=tokentx&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
+
+  try {
+    const response = await axios.get<BscScanResponse>(url);
+    const transactions: BscTransaction[] = response.data.result;
+
+    if (transactions.length > 0) {
+      const lastTransaction = transactions[transactions.length - 1];
+      console.log(
+        "The last BRC20 transaction index is:",
+        transactions.length - 1
+      );
+      console.log("The last BRC20 transaction is:", lastTransaction);
+
+      // Convert from Wei to Ether equivalent (or BEP20 token's equivalent)
+      const valueInWei = lastTransaction.value;
+      const valueInToken = formatEther(valueInWei);
+      console.log("Transaction value in BNB Token:", valueInToken);
+    } else {
+      console.log("No transactions found.");
+    }
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+  }
+};
+
+// export const checkERC20Transaction = async (walletAddress: string) => {
+//   const apiKey = "7Y7G56Q5K1ARWM9FF4CTKKD5MB42YTIT6Z";
+//   const url = `https://api-sepolia.etherscan.io/api?module=account&action=tokentx&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
+
+//   try {
+//     const response = await axios.get(url);
+//     const transactions = response.data.result;
+
+//     const incomingTransactions = transactions.filter(
+//       (tx: erc20TrxData) => tx.to.toLowerCase() === walletAddress.toLowerCase()
+//     );
+
+//     incomingTransactions.forEach((tx: erc20TrxData) => {
+//       console.log(`Transaction Hash: ${tx.hash}`);
+//       console.log(`From: ${tx.from}`);
+//       console.log(`To: ${tx.to}`);
+//       // console.log(`Token Symbol: ${tx.tokenSymbol}`);
+//       // console.log(`Token Name: ${tx.tokenName}`);
+//       console.log(`Value: ${tx.value}`);
+//       console.log(`----------------------------------------------------`);
+//     });
+//   } catch (error) {
+//     console.error("Error fetching transactions:", error);
+//   }
+// };
