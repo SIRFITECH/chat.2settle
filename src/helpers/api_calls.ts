@@ -96,35 +96,12 @@ export const checkTranscationExists = async (
   }
 };
 
-// export const updateUser = async (
-//   phone: string,
-//   updatedData: Partial<vendorData>
-// ): Promise<void> => {
-//   try {
-//     const response = await axios.put("/api/update_user", {
-//       phone,
-//       ...updatedData,
-//     });
-
-//     if (response.status === 200) {
-//       console.log("User updated successfully:", response.data);
-//     } else {
-//       console.error("Failed to update user:", response.data);
-//     }
-//   } catch (error) {
-//     console.error("Error updating user data:", error);
-//     throw new Error("Failed to update user data");
-//   }
-// };
-
 
 export const updateUser = async (
-  phone: string,
   updatedData: Partial<vendorData>
 ): Promise<void> => {
   try {
-    const response = await axios.put("/api/update_user", {
-      phone,
+    const response = await axios.post("/api/update_user", {
       ...updatedData,
     });
 
@@ -143,6 +120,24 @@ export const updateUser = async (
     throw new Error("Failed to update user data");
   }
 };
+
+// UPDATE THE TRANSACTION STATUS
+export const updateTransaction = async (transac_id: string) => {
+  try {
+    const response = await axios.post("/api/update_transaction", {
+      transac_id,
+    });
+
+    if (response.status === 200) {
+      console.log("Status updated successfully:", response.data.message);
+    } else {
+      console.error("Failed to update status:", response.data.message);
+    }
+  } catch (error) {
+    console.error("Error occurred while updating status:", error);
+  }
+};
+
 
 // CREATE A NEW USER USING CHATID
 export const createUser = async (user: any): Promise<any> => {

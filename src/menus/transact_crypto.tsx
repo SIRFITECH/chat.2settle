@@ -252,7 +252,7 @@ export const displayCharge = async (
 
   let max: number;
   let min: number;
-     console.log("LET'S SEE THE RATE FROM HERE", rate);
+  console.log("LET'S SEE THE RATE FROM HERE", rate);
 
   /**
    * Remember charges include
@@ -591,7 +591,6 @@ export const displayCharge = async (
         return;
       }
     } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
-   
       max = upperDollar;
       min = lowerDollar;
       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
@@ -1040,32 +1039,24 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          Your transaction is processing, you'll get your credit soon.
-        </span>
-      ),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Thank you for transaction with me, <br />
-          Wait a little while and check if you have received your recieved your
-          funds.
+          Make A choice:
           <br />
+          1.Confirm Transaction
           <br />
-          1. Start another transaction
-          <br />
-          2. No, I want to complain
+          2.Cancel Transaction
         </span>
       ),
     },
   ];
-  nextStep("paymentProcessing");
+
+  // confirmTransaction
+  nextStep("confirmTransaction");
   addChatMessages(newMessages);
 };
-// IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
+// USER CONFIRM TO SHOW THEY HAVE SENT THE CRYPTO
 export const displayConfirmPayment = (
-  addChatMessages: (messages: MessageType[]) => void
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
 ) => {
   {
     const newMessages: MessageType[] = [
@@ -1073,19 +1064,28 @@ export const displayConfirmPayment = (
         type: "incoming",
         content: (
           <span>
-            Here is your menu:
+            Your transaction is processing, you'll get your credit soon.
+          </span>
+        ),
+      },
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Thank you for transaction with me, <br />
+            Wait a little while and check if you have received your funds.
             <br />
-            1. Pay To A Bank
             <br />
-            2. Pay A Vendor
+            1. Start another transaction
             <br />
-            0. Go back
+            2. No, I want to complain
           </span>
         ),
       },
     ];
-    console.log("Next is howToEstimate");
+    console.log("Next is paymentProcessing");
 
+    nextStep("paymentProcessing");
     addChatMessages(newMessages);
   }
 };

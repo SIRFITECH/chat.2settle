@@ -24,6 +24,7 @@ import {
   generateBTCWalletAddress,
   generateERCWalletAddress,
   generateTronWalletAddress,
+  updateTransaction,
   updateUser,
 } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
@@ -38,6 +39,7 @@ import {
 import { useSharedState } from "../context/SharedStateContext";
 import {
   displayCharge,
+  displayConfirmPayment,
   displayContinueToPay,
   displayEnterAccountNumber,
   displayEnterPhone,
@@ -368,13 +370,13 @@ const ChatBot = () => {
 
   useEffect(() => {
     fetchData();
-  },[]);
+  }, []);
 
-  useEffect(() => {
-    console.log("We want to check for the wallet");
-    checkERC20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
-    checkBEP20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
-  }, [chatMessages]);
+  // useEffect(() => {
+  //   console.log("We want to check for the wallet");
+  //   checkERC20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
+  //   checkBEP20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
+  // }, [chatMessages]);
 
   // // SET STATE TO THE START ON WALLET CONNECT
   // useEffect(() => {
@@ -1433,6 +1435,7 @@ const ChatBot = () => {
       setSharedPhone(phoneNumber);
 
       const transactionID = generateTransactionId();
+      setSharedTransactionId(transactionID.toString());
       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
         .toFixed(8)
         .toString()} ${sharedCrypto} `;
@@ -1442,7 +1445,7 @@ const ChatBot = () => {
         formatPhoneNumber(phoneNumber)
       );
       if (isUserAvailable.user?.phone_number === null) {
-        updateUser(formatPhoneNumber(phoneNumber), {
+        updateUser({
           phone_number: formatPhoneNumber(phoneNumber),
         });
       }
@@ -1489,7 +1492,8 @@ const ChatBot = () => {
             setSharedWallet(btcWallet.bitcoin_wallet);
             userWallet = btcWallet.bitcoin_wallet;
             // update the db
-            updateUser(formatPhoneNumber(phoneNumber), {
+            updateUser({
+              phone_number: formatPhoneNumber(phoneNumber),
               bitcoin_wallet: btcWallet.bitcoin_wallet,
               bitcoin_privateKey: btcWallet.bitcoin_privateKey,
             });
@@ -1507,9 +1511,10 @@ const ChatBot = () => {
             setSharedWallet(ercWallet.eth_bnb_wallet);
             userWallet = ercWallet.eth_bnb_wallet;
             // update the db
-            updateUser(formatPhoneNumber(phoneNumber), {
+            updateUser({
+              phone_number: formatPhoneNumber(phoneNumber),
               eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-              bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
+              eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
             });
             console.log(
               "User exist, new ERC wallet is:",
@@ -1524,7 +1529,8 @@ const ChatBot = () => {
           } else {
             setSharedWallet(tronWallet.tron_wallet);
             userWallet = tronWallet.tron_wallet;
-            updateUser(formatPhoneNumber(phoneNumber), {
+            updateUser({
+              phone_number: formatPhoneNumber(phoneNumber),
               tron_wallet: tronWallet.tron_wallet,
               tron_privateKey: tronWallet.tron_privateKey,
             });
@@ -1619,6 +1625,21 @@ const ChatBot = () => {
     }
   };
 
+  // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
+  const handleConfirmTransaction = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "1") {
+      console.log("Payment made, transac_id is:", sharedTransactionId);
+      updateTransaction(sharedTransactionId);
+      displayConfirmPayment(addChatMessages, nextStep);
+    } else if (chatInput.trim() === "2") {
+      console.log("Payment cancelled");
+      // goToStep("supportWelcome");
+      // displayCustomerSupportWelcome(addChatMessages, nextStep);
+    }
+  };
   // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
   const handleTransactionProcessing = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -2020,6 +2041,12 @@ const ChatBot = () => {
         setChatInput("");
         break;
 
+      case "confirmTransaction":
+        console.log("Current step is confirmTransaction ");
+        handleConfirmTransaction(chatInput);
+        setChatInput("");
+
+        break;
       case "paymentProcessing":
         console.log("Current step is paymentProcessing ");
         handleTransactionProcessing(chatInput);

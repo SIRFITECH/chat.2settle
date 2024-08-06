@@ -130,7 +130,7 @@ const gweiToEth = (gwei: string): string => {
 // CHECK A SUPPLIED WALLET ADDRESS FOR INCOMING TRANSACTION
 export const checkERC20Transaction = async (walletAddress: string) => {
   const apiKey = "7Y7G56Q5K1ARWM9FF4CTKKD5MB42YTIT6Z";
-  console.log("Our ETHERSCAN API KEY is:", process.env.ETHERSCAN_API_KEY);
+
   // process.env.ETHERSCAN_API_KEY;
   const url = `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
   // const url = `https://api.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
@@ -169,11 +169,11 @@ export const checkBEP20Transaction = async (walletAddress: string) => {
 
     if (transactions.length > 0) {
       const lastTransaction = transactions[transactions.length - 1];
-      console.log(
-        "The last BRC20 transaction index is:",
-        transactions.length - 1
-      );
-      console.log("The last BRC20 transaction is:", lastTransaction);
+      // console.log(
+      //   "The last BRC20 transaction index is:",
+      //   transactions.length - 1
+      // );
+      // console.log("The last BRC20 transaction is:", lastTransaction);
 
       // Convert from Wei to Ether equivalent (or BEP20 token's equivalent)
       const valueInWei = lastTransaction.value;
@@ -186,29 +186,3 @@ export const checkBEP20Transaction = async (walletAddress: string) => {
     console.error("Error fetching transactions:", error);
   }
 };
-
-// export const checkERC20Transaction = async (walletAddress: string) => {
-//   const apiKey = "7Y7G56Q5K1ARWM9FF4CTKKD5MB42YTIT6Z";
-//   const url = `https://api-sepolia.etherscan.io/api?module=account&action=tokentx&address=${walletAddress}&sort=desc&apikey=${apiKey}`;
-
-//   try {
-//     const response = await axios.get(url);
-//     const transactions = response.data.result;
-
-//     const incomingTransactions = transactions.filter(
-//       (tx: erc20TrxData) => tx.to.toLowerCase() === walletAddress.toLowerCase()
-//     );
-
-//     incomingTransactions.forEach((tx: erc20TrxData) => {
-//       console.log(`Transaction Hash: ${tx.hash}`);
-//       console.log(`From: ${tx.from}`);
-//       console.log(`To: ${tx.to}`);
-//       // console.log(`Token Symbol: ${tx.tokenSymbol}`);
-//       // console.log(`Token Name: ${tx.tokenName}`);
-//       console.log(`Value: ${tx.value}`);
-//       console.log(`----------------------------------------------------`);
-//     });
-//   } catch (error) {
-//     console.error("Error fetching transactions:", error);
-//   }
-// };
