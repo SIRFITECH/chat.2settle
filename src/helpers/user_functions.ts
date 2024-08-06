@@ -15,6 +15,7 @@ import {
   updateUser,
 } from "./api_calls";
 import axios from "axios";
+import { formatPhoneNumber } from "../utils/utilities";
 
 export async function asignWallet(
   sharedChatId: string,
@@ -51,7 +52,8 @@ export async function asignWallet(
         const btcWallet = await generateBTCWalletAddress();
         setSharedWallet(btcWallet.bitcoin_wallet);
         // update the db
-        updateUser(phone, {
+        updateUser({
+          phone_number: formatPhoneNumber(phone),
           bitcoin_wallet: btcWallet.bitcoin_wallet,
           bitcoin_privateKey: btcWallet.bitcoin_privateKey,
         });
@@ -64,7 +66,8 @@ export async function asignWallet(
         const ercWallet = await generateERCWalletAddress();
         setSharedWallet(ercWallet.eth_bnb_wallet);
         // update the db
-        updateUser(phone, {
+        updateUser({
+          phone_number: formatPhoneNumber(phone),
           eth_bnb_wallet: ercWallet.eth_bnb_wallet,
           bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
         });
@@ -75,7 +78,8 @@ export async function asignWallet(
         setSharedWallet(tronWallet.tron_wallet);
       } else {
         setSharedWallet(tronWallet.tron_wallet);
-        updateUser(phone, {
+        updateUser({
+          phone_number: formatPhoneNumber(phone),
           tron_wallet: tronWallet.tron_wallet,
           tron_privateKey: tronWallet.tron_privateKey,
         });
