@@ -10,7 +10,9 @@ import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
 import {
+  checkTranscationExists,
   checkUserExists,
+  createComplain,
   createTransaction,
   createUser,
   fetchBankDetails,
@@ -22,12 +24,14 @@ import {
   generateBTCWalletAddress,
   generateERCWalletAddress,
   generateTronWalletAddress,
+  updateTransaction,
   updateUser,
 } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import {
   formatPhoneNumber,
   generateChatId,
+  generateComplainId,
   generateTransactionId,
   getChatId,
   saveChatId,
@@ -35,6 +39,7 @@ import {
 import { useSharedState } from "../context/SharedStateContext";
 import {
   displayCharge,
+  displayConfirmPayment,
   displayContinueToPay,
   displayEnterAccountNumber,
   displayEnterPhone,
@@ -49,7 +54,11 @@ import {
   displayTransferMoney,
 } from "../menus/transact_crypto";
 import { getFormattedDateTime } from "../helpers/format_date";
-import { asignWallet } from "../helpers/user_functions";
+import {
+  asignWallet,
+  checkBEP20Transaction,
+  checkERC20Transaction,
+} from "../helpers/user_functions";
 import {
   displayKYCInfo,
   displayRegKYC,
@@ -61,6 +70,11 @@ import {
   displayEnterTransactionId,
   displayMakeComplain,
 } from "../menus/customer_support";
+import {
+  displayCompleteTransaction,
+  displayEnterCompleteTransactionId,
+  displayTransactIDWelcome,
+} from "../menus/transaction_id";
 
 const initialMessages = [
   {
@@ -109,6 +123,8 @@ const ChatBot = () => {
   const wallet = account.address;
   const greetings = ["hi", "hello", "hey", "howdy"];
   let walletIsConnected = account.isConnected;
+  const procesingStatus = "Processing";
+  const cancelledStatus = "Cancel";
 
   const {
     sharedRate,
@@ -153,6 +169,8 @@ const ChatBot = () => {
     updateBankData,
     sharedPhone,
     setSharedPhone,
+    sharedTransactionId,
+    setSharedTransactionId,
   } = useSharedState();
 
   // STATE HOOKS
@@ -342,7 +360,7 @@ const ChatBot = () => {
         "NGN",
         "en-NG"
       );
-      // console.log("formattedRate is :", formattedRate);
+      console.log("formattedRate is :", formattedRate);
       setFormattedRate(formattedRate);
       setMerchantRate(formattedMerchantRate);
       setProfitRate(formattedProfitRate);
@@ -354,7 +372,13 @@ const ChatBot = () => {
 
   useEffect(() => {
     fetchData();
-  });
+  }, []);
+
+  // useEffect(() => {
+  //   console.log("We want to check for the wallet");
+  //   checkERC20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
+  //   checkBEP20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
+  // }, [chatMessages]);
 
   // // SET STATE TO THE START ON WALLET CONNECT
   // useEffect(() => {
@@ -701,11 +725,9 @@ const ChatBot = () => {
       displayKYCInfo(addChatMessages, nextStep);
     } else if (chatInput === "3") {
       displayCustomerSupportWelcome(addChatMessages, nextStep);
-      // nextStep("transferMoney");
     } else if (chatInput === "4") {
       // console.log("The choice is FOUR, TRANSACTION ID");
-      // displayTransferMoney(addChatMessages, nextStep);
-      // nextStep("transferMoney");
+      displayTransactIDWelcome(addChatMessages, nextStep);
     } else if (chatInput === "5") {
       // console.log("The choice is FIVE, REPORTLY");
       // displayTransferMoney(addChatMessages, nextStep);
@@ -1413,18 +1435,20 @@ const ChatBot = () => {
       }
 
       setSharedPhone(phoneNumber);
-      console.log("LETS SEE THE PHONE NUMBER", chatInput);
 
       const transactionID = generateTransactionId();
+      setSharedTransactionId(transactionID.toString());
       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
         .toFixed(8)
         .toString()} ${sharedCrypto} `;
       const date = getFormattedDateTime();
 
-      const isUserAvailable = await checkUserExists(chatId);
-      if (isUserAvailable.user?.vendor_phoneNumber === null) {
-        updateUser(chatId, {
-          vendor_phoneNumber: formatPhoneNumber(phoneNumber),
+      const isUserAvailable = await checkUserExists(
+        formatPhoneNumber(phoneNumber)
+      );
+      if (isUserAvailable.user?.phone_number === null) {
+        updateUser({
+          phone_number: formatPhoneNumber(phoneNumber),
         });
       }
 
@@ -1445,7 +1469,7 @@ const ChatBot = () => {
 
       let userWallet = "";
 
-      const userData = await checkUserExists(phoneNumber);
+      const userData = await checkUserExists(formatPhoneNumber(phoneNumber));
       let userExists = userData.exists;
       let hasBTCWallet = btcAddressPattern.test(
         userData.user?.bitcoin_wallet || ""
@@ -1470,7 +1494,8 @@ const ChatBot = () => {
             setSharedWallet(btcWallet.bitcoin_wallet);
             userWallet = btcWallet.bitcoin_wallet;
             // update the db
-            updateUser(phoneNumber, {
+            updateUser({
+              phone_number: formatPhoneNumber(phoneNumber),
               bitcoin_wallet: btcWallet.bitcoin_wallet,
               bitcoin_privateKey: btcWallet.bitcoin_privateKey,
             });
@@ -1488,9 +1513,10 @@ const ChatBot = () => {
             setSharedWallet(ercWallet.eth_bnb_wallet);
             userWallet = ercWallet.eth_bnb_wallet;
             // update the db
-            updateUser(phoneNumber, {
+            updateUser({
+              phone_number: formatPhoneNumber(phoneNumber),
               eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-              bitcoin_privateKey: ercWallet.eth_bnb_privateKey,
+              eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
             });
             console.log(
               "User exist, new ERC wallet is:",
@@ -1505,7 +1531,8 @@ const ChatBot = () => {
           } else {
             setSharedWallet(tronWallet.tron_wallet);
             userWallet = tronWallet.tron_wallet;
-            updateUser(phoneNumber, {
+            updateUser({
+              phone_number: formatPhoneNumber(phoneNumber),
               tron_wallet: tronWallet.tron_wallet,
               tron_privateKey: tronWallet.tron_privateKey,
             });
@@ -1522,6 +1549,7 @@ const ChatBot = () => {
           userWallet = btcWallet.bitcoin_wallet;
           await createUser({
             agent_id: sharedChatId,
+            phone_number: formatPhoneNumber(phoneNumber),
             bitcoin_wallet: btcWallet.bitcoin_wallet,
             bitcoin_privateKey: btcWallet.bitcoin_privateKey,
           });
@@ -1532,6 +1560,7 @@ const ChatBot = () => {
           userWallet = ercWallet.eth_bnb_wallet;
           await createUser({
             agent_id: sharedChatId,
+            phone_number: formatPhoneNumber(phoneNumber),
             eth_bnb_wallet: ercWallet.eth_bnb_wallet,
             eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
           });
@@ -1542,6 +1571,7 @@ const ChatBot = () => {
           userWallet = tronWallet.tron_wallet;
           await createUser({
             agent_id: sharedChatId,
+            phone_number: formatPhoneNumber(phoneNumber),
             tron_wallet: tronWallet.tron_wallet,
             tron_privateKey: tronWallet.tron_privateKey,
           });
@@ -1558,6 +1588,7 @@ const ChatBot = () => {
         sharedPaymentNairaEstimate,
         transactionID
       );
+      setLoading(false);
       // let's save the transaction details to db
       const userDate = {
         crypto: sharedCrypto,
@@ -1576,9 +1607,8 @@ const ChatBot = () => {
         ),
         crypto_sent: paymentAsset,
         wallet_address: userWallet,
-        // sharedWallet,
         Date: date,
-        status: "Processing",
+        status: "Uncompleted",
         customer_phoneNumber: formatPhoneNumber(phoneNumber),
         transac_id: transactionID.toString(),
         settle_walletLink: "",
@@ -1589,7 +1619,6 @@ const ChatBot = () => {
         name: "",
       };
       await createTransaction(userDate);
-      setLoading(false);
 
       console.log("User data created", userDate);
     } else {
@@ -1598,6 +1627,23 @@ const ChatBot = () => {
     }
   };
 
+  // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
+  const handleConfirmTransaction = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "1") {
+      console.log("Payment made, transac_id is:", sharedTransactionId);
+      // updateTransaction(sharedTransactionId, procesingStatus);
+      updateTransaction(sharedTransactionId, "Processing");
+      displayConfirmPayment(addChatMessages, nextStep);
+    } else if (chatInput.trim() === "2") {
+      console.log("Payment cancelled");
+      // updateTransaction(sharedTransactionId, cancelledStatus);
+      updateTransaction(sharedTransactionId, "Cancel");
+      displayConfirmPayment(addChatMessages, nextStep);
+    }
+  };
   // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
   const handleTransactionProcessing = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -1615,12 +1661,10 @@ const ChatBot = () => {
         displaySearchBank(addChatMessages, nextStep);
       })();
     } else if (chatInput.trim() === "1") {
-      // console.log("Do another transaction", chatInput.trim());
       helloMenu("hi");
     } else if (chatInput.trim() === "2") {
       goToStep("supportWelcome");
       displayCustomerSupportWelcome(addChatMessages, nextStep);
-      // console.log("Contact support", chatInput.trim());
     }
   };
 
@@ -1716,16 +1760,27 @@ const ChatBot = () => {
       ]);
     }
   };
+
   // GIVE USERS LINK TO REG
-  const handleTransactionId = (chatInput: string) => {
+  const handleTransactionId = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput !== "0") {
       const transaction_id = chatInput.trim();
-      let transactionExists = true;
-      // IF TRANSACTION_ID EXIST IN DB,
+      setLoading(true);
+      setSharedTransactionId(transaction_id);
+      let transactionExists = (await checkTranscationExists(transaction_id))
+        .exists;
 
+      console.log(
+        "User phone:",
+        (await checkTranscationExists(transaction_id)).user
+          ?.customer_phoneNumber
+      );
+
+      setLoading(false);
+      // IF TRANSACTION_ID EXIST IN DB,
       if (transactionExists) {
         displayMakeComplain(addChatMessages, nextStep);
       } else {
@@ -1746,7 +1801,9 @@ const ChatBot = () => {
       ]);
     }
   };
-  const handleMakeComplain = (chatInput: string) => {
+
+  // MAKE COMPLAIN
+  const handleMakeComplain = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -1768,9 +1825,31 @@ const ChatBot = () => {
       // IF TRANSACTION_ID EXIST IN DB,
 
       if (validMessage) {
-        goToStep("start");
+        setLoading(true);
+        const complainId = generateComplainId();
+        const phone = (await checkTranscationExists(sharedTransactionId)).user
+          ?.customer_phoneNumber;
+        console.log("User phone number is:", phone);
+
+        await createComplain({
+          transaction_id: sharedTransactionId,
+          complain: message,
+          status: "pending",
+          Customer_phoneNumber: phone,
+          complain_id: complainId,
+        });
+        setLoading(false);
+        addChatMessages([
+          {
+            type: "incoming",
+            content:
+              "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
+          },
+        ]);
         helloMenu("hi");
+        goToStep("start");
       } else {
+        console.log("Invalid message length");
         addChatMessages([
           {
             type: "incoming",
@@ -1788,6 +1867,74 @@ const ChatBot = () => {
             "Invalid choice. You need to choose an action from the options",
         },
       ]);
+    }
+  };
+  // ENTER TRANSACTION ID TO COMPLETE TRANSACTION
+  const handleCompleteTransactionId = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        // console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        prevStep();
+        displayEnterTransactionId(addChatMessages, nextStep);
+      })();
+    } else if (chatInput === "1") {
+      //   const message = chatInput.trim();
+      //   const words = message.trim().split(/\s+/);
+      //   let validMessage = words.length < 100 ? true : false;
+      //   // IF TRANSACTION_ID EXIST IN DB,
+
+      //   if (validMessage) {
+      //     setLoading(true);
+      //     const complainId = generateComplainId();
+      //     const phone = (await checkTranscationExists(sharedTransactionId)).user
+      //       ?.customer_phoneNumber;
+      //     console.log("User phone number is:", phone);
+
+      //     await createComplain({
+      //       transaction_id: sharedTransactionId,
+      //       complain: message,
+      //       status: "pending",
+      //       Customer_phoneNumber: phone,
+      //       complain_id: complainId,
+      //     });
+      //     setLoading(false);
+      //     addChatMessages([
+      //       {
+      //         type: "incoming",
+      //         content:
+      //           "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
+      //       },
+      //     ]);
+      //     helloMenu("hi");
+      //     goToStep("start");
+      //   } else {
+      //     console.log("Invalid message length");
+      //     addChatMessages([
+      //       {
+      //         type: "incoming",
+      //         content:
+      //           "Invalid entry, Please enter your message in not more that 100 words",
+      //       },
+      //     ]);
+      //     return;
+      //   }
+      // } else {
+      //   addChatMessages([
+      //     {
+      //       type: "incoming",
+      //       content:
+      //         "Invalid choice. You need to choose an action from the options",
+      //     },
+      //   ]);
+      displayEnterCompleteTransactionId(addChatMessages, nextStep);
     }
   };
 
@@ -1898,6 +2045,12 @@ const ChatBot = () => {
         setChatInput("");
         break;
 
+      case "confirmTransaction":
+        console.log("Current step is confirmTransaction ");
+        handleConfirmTransaction(chatInput);
+        setChatInput("");
+
+        break;
       case "paymentProcessing":
         console.log("Current step is paymentProcessing ");
         handleTransactionProcessing(chatInput);
@@ -1941,8 +2094,16 @@ const ChatBot = () => {
         break;
 
       case "makeComplain":
-        console.log("Current step is paymentProcessing ");
+        console.log("Current step is makeComplain ");
         handleMakeComplain(chatInput);
+
+        setChatInput("");
+        break;
+
+      case "completeTransactionId":
+        console.log("Current step is makeComplain ");
+        handleCompleteTransactionId(chatInput);
+
         setChatInput("");
         break;
 

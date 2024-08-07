@@ -57,6 +57,7 @@ export const displayPayAVendor = (
     addChatMessages(newMessages);
   }
 };
+
 // IF USER CHOOSE TRANSFER MONEY THEY SEE THIS NEXT
 export const displayTransferMoney = (
   addChatMessages: (messages: MessageType[]) => void
@@ -251,6 +252,7 @@ export const displayCharge = async (
 
   let max: number;
   let min: number;
+  console.log("LET'S SEE THE RATE FROM HERE", rate);
 
   /**
    * Remember charges include
@@ -1037,28 +1039,55 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          Your transaction is processing, you'll get your credit soon.
-        </span>
-      ),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Thank you for transaction with me, <br />
-          Wait a little while and check if you have received your recieved your
-          funds.
+          Make A choice:
           <br />
+          1.Confirm Transaction
           <br />
-          1. Start another transaction
-          <br />
-          2. No, I want to complain
+          2.Cancel Transaction
         </span>
       ),
     },
   ];
-  nextStep("paymentProcessing");
+
+  // confirmTransaction
+  nextStep("confirmTransaction");
   addChatMessages(newMessages);
+};
+// USER CONFIRM TO SHOW THEY HAVE SENT THE CRYPTO
+export const displayConfirmPayment = (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
+) => {
+  {
+    const newMessages: MessageType[] = [
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Your transaction is processing, you'll get your credit soon.
+          </span>
+        ),
+      },
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Thank you for transaction with me, <br />
+            Wait a little while and check if you have received your funds.
+            <br />
+            <br />
+            1. Start another transaction
+            <br />
+            2. No, I want to complain
+          </span>
+        ),
+      },
+    ];
+    console.log("Next is paymentProcessing");
+
+    nextStep("paymentProcessing");
+    addChatMessages(newMessages);
+  }
 };
 
 // DISPLAY HOW TO PROCESS THE TRANSACTION

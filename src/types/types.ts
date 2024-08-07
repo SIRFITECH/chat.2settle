@@ -28,8 +28,8 @@ export interface ServerData {
 
 // USER FROM THE VENDOR TABLE
 export interface vendorData {
-  agent_id?: string | null;
-  vendor_phoneNumber?: string | null;
+  // agent_id?: string | null;
+  phone_number?: string | null;
   bitcoin_wallet?: string | null;
   bitcoin_privateKey?: string | null;
   eth_bnb_wallet?: string | null;
@@ -37,6 +37,91 @@ export interface vendorData {
   tron_wallet?: string | null;
   tron_privateKey?: string | null;
 }
+export interface userData {
+  crypto?: string | null;
+  network?: string | null;
+  estimation?: string | null;
+  Amount?: string | null;
+  charges?: string | null;
+  mode_of_payment?: string | null;
+  acct_number?: string | null;
+  bank_name?: string | null;
+  receiver_name?: string | null;
+  receiver_amount?: string | null;
+  crypto_sent?: string | null;
+  wallet_address?: string | null;
+  Date?: string | null;
+  status?: string | null;
+  customer_phoneNumber?: string | null;
+  transac_id?: string | null;
+  settle_walletLink?: string | null;
+  chat_id?: string | null;
+  current_rate?: string | null;
+  merchant_rate?: string | null;
+  profit_rat?: string | null;
+  name?: string | null;
+}
+
+export interface erc20TrxData {
+  blockHash: string;
+  blockNumber: string;
+  confirmations: string;
+  contractAddress: string;
+  cumulativeGasUsed: string;
+  from: string;
+  functionName: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  hash: string;
+  input: string;
+  isError: string;
+  methodId: string;
+  nonce: string;
+  timeStamp: string;
+  to: string;
+  transactionIndex: string;
+  txreceipt_status: string;
+  value: string;
+  
+}
+
+//ETHERSCAN RESPONSE
+export interface EtherscanResponse {
+  status: string;
+  message: string;
+  result: erc20TrxData[];
+}
+
+export interface BscTransaction {
+  blockNumber: string;
+  timeStamp: string;
+  hash: string;
+  nonce: string;
+  blockHash: string;
+  from: string;
+  contractAddress: string;
+  to: string;
+  value: string;
+  tokenName: string;
+  tokenSymbol: string;
+  tokenDecimal: string;
+  transactionIndex: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  cumulativeGasUsed: string;
+  input: string;
+  confirmations: string;
+}
+
+export interface BscScanResponse {
+  status: string;
+  message: string;
+  result: BscTransaction[];
+}
+
+
 
 // BTC WALLET FORM VENDOR TABLE WALLET DATA
 export interface btcWalletData {
@@ -130,4 +215,6 @@ export interface SharedStateContextProps {
   updateBankData: (newData: Partial<UserBankData>) => void;
   sharedPhone: string;
   setSharedPhone: React.Dispatch<React.SetStateAction<string>>;
+  sharedTransactionId: string;
+  setSharedTransactionId: React.Dispatch<React.SetStateAction<string>>;
 }

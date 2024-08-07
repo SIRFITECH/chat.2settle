@@ -5,6 +5,7 @@ import {
   ercWalletData,
   ServerData,
   trcWalletData,
+  userData,
   vendorData,
 } from "../types/types";
 
@@ -72,7 +73,21 @@ export const checkUserExists = async (
 ): Promise<{ exists: boolean; user?: vendorData }> => {
   try {
     const response = await axios.get("/api/check_user", {
-      params: { vendor_phoneNumber: phone },
+      params: { phone_number: phone },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    throw error;
+  }
+};
+// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
+export const checkTranscationExists = async (
+  transac_id: string
+): Promise<{ exists: boolean; user?: userData }> => {
+  try {
+    const response = await axios.get("/api/check_transaction", {
+      params: { transac_id: transac_id },
     });
     return response.data;
   } catch (error) {
@@ -82,27 +97,48 @@ export const checkUserExists = async (
 };
 
 export const updateUser = async (
-  phone: string,
   updatedData: Partial<vendorData>
 ): Promise<void> => {
   try {
-    const response = await axios.put("/api/update_user", {
-      phone,
+    const response = await axios.post("/api/update_user", {
       ...updatedData,
     });
 
     if (response.status === 200) {
       console.log("User updated successfully:", response.data);
     } else {
+      console.error("Unexpected status code:", response.status);
       console.error("Failed to update user:", response.data);
     }
   } catch (error) {
-    console.error("Error updating user data:", error);
+    if (axios.isAxiosError(error)) {
+      console.error("Axios error:", error.response?.data || error.message);
+    } else {
+      console.error("Error updating user data:", error);
+    }
     throw new Error("Failed to update user data");
   }
 };
 
-// CREATE A NEW USER USING CHATID
+// UPDATE THE TRANSACTION STATUS
+export const updateTransaction = async (transac_id: string, status: string) => {
+  try {
+    const response = await axios.post("/api/update_transaction", {
+      transac_id,
+      status,
+    });
+
+    if (response.status === 200) {
+      console.log("Status updated successfully:", response.data.message);
+    } else {
+      console.error("Failed to update status:", response.data.message);
+    }
+  } catch (error) {
+    console.error("Error occurred while updating status:", error);
+  }
+};
+
+// WRITE A USER TO THE WALLET TABLE
 export const createUser = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(`${apiURL}/api/create_user`, user);
@@ -122,6 +158,20 @@ export const createTransaction = async (user: any): Promise<any> => {
       user
     );
     console.log("Use transaction created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing user data:", error);
+    throw new Error("Failed to store user data");
+  }
+};
+// CREATE TRANSACTION IN THE TRANSACTION TABLE
+export const createComplain = async (complainData: any): Promise<any> => {
+  try {
+    const response = await axios.post<any>(
+      `${apiURL}/api/create_complain`,
+      complainData
+    );
+    console.log("Use complain created successfully");
     return response.data;
   } catch (error) {
     console.error("Error storing user data:", error);

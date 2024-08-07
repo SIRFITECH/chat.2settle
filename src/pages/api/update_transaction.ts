@@ -1,5 +1,6 @@
-// import mysql from "mysql2/promise";
+
 // import { NextApiRequest, NextApiResponse } from "next";
+// import mysql from "mysql2/promise";
 
 // export default async function handler(
 //   req: NextApiRequest,
@@ -10,32 +11,16 @@
 //     return res.status(405).end(`Method ${req.method} Not Allowed`);
 //   }
 
+//   const { transac_id } = req.body;
+
+//   if (!transac_id) {
+//     return res.status(400).json({ message: "Transaction ID is required" });
+//   }
+
 //   const dbHost = process.env.host;
 //   const dbUser = process.env.user;
 //   const dbPassword = process.env.password;
 //   const dbName = process.env.database;
-
-//   const {
-//     agent_id,
-//     vendor_phoneNumber,
-//     bitcoin_wallet,
-//     bitcoin_privateKey,
-//     eth_bnb_wallet,
-//     eth_bnb_privateKey,
-//     tron_wallet,
-//     tron_privateKey,
-//   } = req.body;
-
-//   const userData = {
-//     agent_id,
-//     vendor_phoneNumber,
-//     bitcoin_wallet,
-//     bitcoin_privateKey,
-//     eth_bnb_wallet,
-//     eth_bnb_privateKey,
-//     tron_wallet,
-//     tron_privateKey,
-//   };
 
 //   try {
 //     const connection = await mysql.createConnection({
@@ -45,21 +30,27 @@
 //       database: dbName,
 //     });
 
-//     const query = "INSERT INTO 2settle_vendor SET ?";
-//     const [result] = await connection.query(query, userData);
+//     const [result] = await connection.execute<mysql.ResultSetHeader>(
+//       "UPDATE `Telegram_Database`.`2settle_transaction_table` SET `status` = 'Processing' WHERE `transac_id` = ?",
+//       [transac_id]
+//     );
 
 //     await connection.end();
 
-//     res.status(200).json({ message: "User data stored successfully", result });
+//     if (result.affectedRows > 0) {
+//       res.status(200).json({ message: "Status updated successfully" });
+//     } else {
+//       res.status(404).json({ message: "Transaction not found" });
+//     }
 //   } catch (err) {
-//     console.error("Error storing user data:", err);
+//     console.error("Error updating the database:", err);
 //     res.status(500).send("Server error");
 //   }
 // }
 
 
-import mysql from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
+import mysql from "mysql2/promise";
 
 export default async function handler(
   req: NextApiRequest,
@@ -70,32 +61,18 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
+  const { transac_id, status } = req.body;
+
+  if (!transac_id || !status) {
+    return res
+      .status(400)
+      .json({ message: "Transaction ID and status are required" });
+  }
+
   const dbHost = process.env.host;
   const dbUser = process.env.user;
   const dbPassword = process.env.password;
   const dbName = process.env.database;
-
-  const {
-    // agent_id,
-    phone_number,
-    bitcoin_wallet,
-    bitcoin_privateKey,
-    eth_bnb_wallet,
-    eth_bnb_privateKey,
-    tron_wallet,
-    tron_privateKey,
-  } = req.body;
-
-  const userData = {
-    // agent_id,
-    phone_number,
-    bitcoin_wallet,
-    bitcoin_privateKey,
-    eth_bnb_wallet,
-    eth_bnb_privateKey,
-    tron_wallet,
-    tron_privateKey,
-  };
 
   try {
     const connection = await mysql.createConnection({
@@ -105,14 +82,20 @@ export default async function handler(
       database: dbName,
     });
 
-    const query = "INSERT INTO 2Settle_walletAddress SET ?";
-    const [result] = await connection.query(query, userData);
+    const [result] = await connection.execute<mysql.ResultSetHeader>(
+      "UPDATE `Telegram_Database`.`2settle_transaction_table` SET `status` = ? WHERE `transac_id` = ?",
+      [status, transac_id]
+    );
 
     await connection.end();
 
-    res.status(200).json({ message: "User data stored successfully", result });
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: "Status updated successfully" });
+    } else {
+      res.status(404).json({ message: "Transaction not found" });
+    }
   } catch (err) {
-    console.error("Error storing user data:", err);
+    console.error("Error updating the database:", err);
     res.status(500).send("Server error");
   }
 }

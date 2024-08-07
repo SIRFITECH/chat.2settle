@@ -22,6 +22,12 @@ export const generateChatId = () => {
 export const generateTransactionId = () => {
   return Math.floor(100000 + Math.random() * 900000);
 };
+export const generateComplainId = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
+export const generateGiftId = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+};
 
 export const formatPhoneNumber = (phoneNumber: string): string => {
   if (phoneNumber.startsWith("0")) {

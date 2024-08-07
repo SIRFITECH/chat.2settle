@@ -38,7 +38,7 @@ export const displayCustomerSupportAssurance = async (
     },
   ];
   console.log("Next is thankForKYCReg");
-  nextStep("start");
+  nextStep("entreTrxId");
   addChatMessages(newMessages);
 };
 
@@ -53,7 +53,7 @@ export const displayEnterTransactionId = async (
     },
   ];
   console.log("Next is entreTrxId");
-  nextStep("makeComplain");
+  nextStep("entreTrxId");
   addChatMessages(newMessages);
 };
 export const displayMakeComplain = async (
@@ -75,7 +75,7 @@ export const displayMakeComplain = async (
       ),
     },
   ];
-  console.log("Next is thankForKYCReg");
-  nextStep("start");
+  console.log("Next is start");
+  nextStep("makeComplain");
   addChatMessages(newMessages);
 };
