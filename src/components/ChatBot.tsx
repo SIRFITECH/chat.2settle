@@ -123,6 +123,8 @@ const ChatBot = () => {
   const wallet = account.address;
   const greetings = ["hi", "hello", "hey", "howdy"];
   let walletIsConnected = account.isConnected;
+  const procesingStatus = "Processing";
+  const cancelledStatus = "Cancel";
 
   const {
     sharedRate,
@@ -1632,12 +1634,14 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput.trim() === "1") {
       console.log("Payment made, transac_id is:", sharedTransactionId);
-      updateTransaction(sharedTransactionId);
+      // updateTransaction(sharedTransactionId, procesingStatus);
+      updateTransaction(sharedTransactionId, "Processing");
       displayConfirmPayment(addChatMessages, nextStep);
     } else if (chatInput.trim() === "2") {
       console.log("Payment cancelled");
-      // goToStep("supportWelcome");
-      // displayCustomerSupportWelcome(addChatMessages, nextStep);
+      // updateTransaction(sharedTransactionId, cancelledStatus);
+      updateTransaction(sharedTransactionId, "Cancel");
+      displayConfirmPayment(addChatMessages, nextStep);
     }
   };
   // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME

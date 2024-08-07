@@ -96,7 +96,6 @@ export const checkTranscationExists = async (
   }
 };
 
-
 export const updateUser = async (
   updatedData: Partial<vendorData>
 ): Promise<void> => {
@@ -122,10 +121,11 @@ export const updateUser = async (
 };
 
 // UPDATE THE TRANSACTION STATUS
-export const updateTransaction = async (transac_id: string) => {
+export const updateTransaction = async (transac_id: string, status: string) => {
   try {
     const response = await axios.post("/api/update_transaction", {
       transac_id,
+      status,
     });
 
     if (response.status === 200) {
@@ -138,8 +138,7 @@ export const updateTransaction = async (transac_id: string) => {
   }
 };
 
-
-// CREATE A NEW USER USING CHATID
+// WRITE A USER TO THE WALLET TABLE
 export const createUser = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(`${apiURL}/api/create_user`, user);
