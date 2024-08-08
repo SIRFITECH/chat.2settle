@@ -257,6 +257,15 @@ const ChatBot = () => {
     }
   }, [sharedCrypto]);
 
+  React.useEffect(() => {
+    console.log(
+      "Transaction ID is",
+      window.localStorage.getItem("transactionID")
+    );
+    let trxID = window.localStorage.getItem("transactionID");
+    trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
+  });
+
   const addChatMessages = (messages: MessageType[]) => {
     const serializedMessages = messages.map(serializeMessage);
     setChatMessages((prevMessages) => [...prevMessages, ...messages]);
@@ -396,6 +405,7 @@ const ChatBot = () => {
   // ON HI | HELLO | HOWDY | HEY PROMPT
   const helloMenu = (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
+      window.localStorage.setItem("transactionID", "");
       if (walletIsConnected) {
         addChatMessages([
           {
@@ -1108,6 +1118,7 @@ const ChatBot = () => {
       })();
     } else if (chatInput != "0") {
       setSharedAmount(chatInput.trim());
+      console.log("Lets see what comes in", chatInput.trim());
       displayCharge(
         addChatMessages,
         nextStep,
@@ -1438,6 +1449,7 @@ const ChatBot = () => {
 
       const transactionID = generateTransactionId();
       setSharedTransactionId(transactionID.toString());
+      window.localStorage.setItem("transactionID", transactionID.toString());
       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
         .toFixed(8)
         .toString()} ${sharedCrypto} `;
