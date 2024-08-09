@@ -2140,7 +2140,7 @@ const ChatBot = () => {
 
   // CHATBOT h-2/4 md:h-4/6 lg:h-5/6
   return (
-    <div className="fixed right-8 bottom-24 w-7/12 md:w-7/12 lg:w-5/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform scale-100 opacity-100 pointer-events-auto">
+    <div className="fixed right-8 bottom-24 w-10/12 md:w-7/12 lg:w-5/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform scale-100 opacity-100 pointer-events-auto">
       <header className="py-4 text-center text-white bg-blue-500 shadow">
         <div className="flex items-center justify-between">
           <span className="flex-shrink-0 w-8 h-8 ml-8 bg-white rounded justify-start">

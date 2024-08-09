@@ -70,7 +70,8 @@ export default async function handler(
     const { NGN } = response.data.data;
 
     if (NGN) {
-      const rawRate = NGN.value;
+      const nairaRate = NGN.value;
+      const rawRate = nairaRate - 10;
       const percentage = 0.8;
       const increase = (percentage / 100) * rawRate;
       const adjustedRate = rawRate - increase;
