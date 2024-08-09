@@ -2214,7 +2214,7 @@ const ChatBot = () => {
       )}
 
       {isOpen && (
-        <div className="flex items-center p-3 border-t border-gray-200 bg-white mr-8 pr-8">
+        <div className="flex items-center p-3 border-t border-gray-200 bg-white pr-4">
           <textarea
             ref={textareaRef}
             className="flex-1 pl-2 border-none outline-none resize-none h-5"
@@ -2226,12 +2226,12 @@ const ChatBot = () => {
             onKeyDown={handleKeyPress}
           />
 
-          <span
+          {/* <span
             className="ml-4 text-blue-500 cursor-pointer material-symbols-rounded"
             onClick={() => handleConversation(chatInput)}
-          ></span>
+          ></span> */}
           <span
-            className="ml-4 text-blue-500 cursor-pointer material-symbols-rounded"
+            className="ml-2 text-blue-500 cursor-pointer material-symbols-rounded"
             onClick={() => handleConversation(chatInput)}
           >
             <SendIcon />
