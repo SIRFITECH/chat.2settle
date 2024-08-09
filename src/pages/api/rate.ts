@@ -52,6 +52,7 @@
 
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+import { fetchProfitRate } from "../../helpers/api_calls";
 
 export default async function handler(
   req: NextApiRequest,
@@ -61,7 +62,7 @@ export default async function handler(
     res.setHeader("Allow", ["GET"]);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
-
+  const marchentProfit = await fetchProfitRate();
   const apiKey = process.env.NAIRA_API_KEY;
   const apiUrl = `https://api.currencyapi.com/v3/latest?apikey=${apiKey}&currencies=NGN`;
 
@@ -71,7 +72,7 @@ export default async function handler(
 
     if (NGN) {
       const nairaRate = NGN.value;
-      const rawRate = nairaRate - 10;
+      const rawRate = nairaRate - marchentProfit;
       const percentage = 0.8;
       const increase = (percentage / 100) * rawRate;
       const adjustedRate = rawRate - increase;
