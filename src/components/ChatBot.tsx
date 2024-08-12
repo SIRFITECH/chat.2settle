@@ -10,6 +10,7 @@ import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
 import {
+  checkGiftExists,
   checkTranscationExists,
   checkUserExists,
   createComplain,
@@ -73,8 +74,11 @@ import {
 import {
   displayCompleteTransaction,
   displayEnterCompleteTransactionId,
+  displayEnterGiftId,
+  displayGiftFeedbackMessage,
   displayTransactIDWelcome,
 } from "../menus/transaction_id";
+import { displayReportlyWelcome } from "../menus/reportly";
 
 const initialMessages = [
   {
@@ -401,6 +405,7 @@ const ChatBot = () => {
   //   }
   //   helloMenu("hi");
   // }, [walletIsConnected]);
+
   // OPERATINAL FUNCTIONS
   // ON HI | HELLO | HOWDY | HEY PROMPT
   const helloMenu = (chatInput: string) => {
@@ -740,7 +745,7 @@ const ChatBot = () => {
       displayTransactIDWelcome(addChatMessages, nextStep);
     } else if (chatInput === "5") {
       // console.log("The choice is FIVE, REPORTLY");
-      // displayTransferMoney(addChatMessages, nextStep);
+      displayReportlyWelcome(addChatMessages, nextStep);
       // nextStep("transferMoney");
     } else {
       addChatMessages([
@@ -1773,7 +1778,7 @@ const ChatBot = () => {
     }
   };
 
-  // GIVE USERS LINK TO REG
+  // ALLOW USERS ENTER TRANSACTION ID
   const handleTransactionId = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
@@ -1898,61 +1903,166 @@ const ChatBot = () => {
         displayEnterTransactionId(addChatMessages, nextStep);
       })();
     } else if (chatInput === "1") {
-      //   const message = chatInput.trim();
-      //   const words = message.trim().split(/\s+/);
-      //   let validMessage = words.length < 100 ? true : false;
-      //   // IF TRANSACTION_ID EXIST IN DB,
-
-      //   if (validMessage) {
-      //     setLoading(true);
-      //     const complainId = generateComplainId();
-      //     const phone = (await checkTranscationExists(sharedTransactionId)).user
-      //       ?.customer_phoneNumber;
-      //     console.log("User phone number is:", phone);
-
-      //     await createComplain({
-      //       transaction_id: sharedTransactionId,
-      //       complain: message,
-      //       status: "pending",
-      //       Customer_phoneNumber: phone,
-      //       complain_id: complainId,
-      //     });
-      //     setLoading(false);
-      //     addChatMessages([
-      //       {
-      //         type: "incoming",
-      //         content:
-      //           "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
-      //       },
-      //     ]);
-      //     helloMenu("hi");
-      //     goToStep("start");
-      //   } else {
-      //     console.log("Invalid message length");
-      //     addChatMessages([
-      //       {
-      //         type: "incoming",
-      //         content:
-      //           "Invalid entry, Please enter your message in not more that 100 words",
-      //       },
-      //     ]);
-      //     return;
-      //   }
-      // } else {
-      //   addChatMessages([
-      //     {
-      //       type: "incoming",
-      //       content:
-      //         "Invalid choice. You need to choose an action from the options",
-      //     },
-      //   ]);
       displayEnterCompleteTransactionId(addChatMessages, nextStep);
+    } else if (chatInput === "2") {
+      displayEnterGiftId(addChatMessages, nextStep);
+    } else if (chatInput === "3") {
     }
   };
 
   // CUSTOMER TRANSACTION ID SEQUENCE FUNCTIONS
 
+  // ALLOW USERS ENTER GIFT ID
+  const handleGiftId = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        // console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        prevStep();
+        displayTransactIDWelcome(addChatMessages, nextStep);
+      })();
+    } else if (chatInput !== "0") {
+      const gift_id = chatInput.trim();
+      setLoading(true);
+      // setSharedTransactionId(gift_id);
+      let giftExists = true;
+      // (await checkGiftExists(gift_id)).exists;
+
+      console.log("gift is processing");
+      // console.log(
+      //   "User phone:",
+      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
+      // );
+
+      setLoading(false);
+      // IF GIFT_ID EXIST IN DB,
+      if (giftExists) {
+        displayGiftFeedbackMessage(addChatMessages, nextStep);
+        helloMenu("hi");
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: "Invalid gift_id. Try again",
+          },
+        ]);
+      }
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content:
+            "Invalid choice. You need to choose an action from the options",
+        },
+      ]);
+    }
+  };
+
   // CUSTOMER REPORTLY SEQUENCE FUNCTIONS
+  const handleReportlyWelcome = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        // console.log("Going back from handlePayOptions");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        prevStep();
+        displayTransactIDWelcome(addChatMessages, nextStep);
+      })();
+    } else if (chatInput === "1") {
+      const gift_id = chatInput.trim();
+      setLoading(true);
+      // setSharedTransactionId(gift_id);
+      let giftExists = true;
+      // (await checkGiftExists(gift_id)).exists;
+
+      // console.log(
+      //   "User phone:",
+      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
+      // );
+
+      setLoading(false);
+      // IF GIFT_ID EXIST IN DB,
+      if (giftExists) {
+        displayReportlyWelcome(addChatMessages, nextStep);
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: "Invalid transaction_id. Try again",
+          },
+        ]);
+      }
+    } else if (chatInput === "2") {
+      const gift_id = chatInput.trim();
+      setLoading(true);
+      // setSharedTransactionId(gift_id);
+      let giftExists = true;
+      // (await checkGiftExists(gift_id)).exists;
+
+      // console.log(
+      //   "User phone:",
+      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
+      // );
+
+      setLoading(false);
+      // IF GIFT_ID EXIST IN DB,
+      if (giftExists) {
+        displayReportlyWelcome(addChatMessages, nextStep);
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: "Invalid transaction_id. Try again",
+          },
+        ]);
+      }
+    } else if (chatInput === "3") {
+      const gift_id = chatInput.trim();
+      setLoading(true);
+      // setSharedTransactionId(gift_id);
+      let giftExists = true;
+      // (await checkGiftExists(gift_id)).exists;
+
+      // console.log(
+      //   "User phone:",
+      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
+      // );
+
+      setLoading(false);
+      // IF GIFT_ID EXIST IN DB,
+      if (giftExists) {
+        displayReportlyWelcome(addChatMessages, nextStep);
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: "Invalid transaction_id. Try again",
+          },
+        ]);
+      }
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content:
+            "Invalid choice. You need to choose an action from the options",
+        },
+      ]);
+    }
+  };
 
   // THE ROOT FUNCTION
 
@@ -2063,6 +2173,7 @@ const ChatBot = () => {
         setChatInput("");
 
         break;
+
       case "paymentProcessing":
         console.log("Current step is paymentProcessing ");
         handleTransactionProcessing(chatInput);
@@ -2115,7 +2226,18 @@ const ChatBot = () => {
       case "completeTransactionId":
         console.log("Current step is makeComplain ");
         handleCompleteTransactionId(chatInput);
+        setChatInput("");
+        break;
 
+      case "giftFeedBack":
+        console.log("Current step is makeComplain ");
+        handleGiftId(chatInput);
+        setChatInput("");
+        break;
+
+      case "makeReport":
+        console.log("Current step is makeComplain ");
+        handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
 
