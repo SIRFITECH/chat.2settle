@@ -24,6 +24,6 @@ export const displayReportlyWelcome = async (
     },
   ];
   console.log("Next is thankForKYCReg");
-  nextStep("assurance");
+  nextStep("makeReport");
   addChatMessages(newMessages);
 };

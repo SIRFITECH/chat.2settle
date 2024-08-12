@@ -85,9 +85,36 @@ export const checkUserExists = async (
 export const checkTranscationExists = async (
   transac_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
+  // if (!navigator.onLine) {
+  //   console.error("No internet connection");
+  //   return { error: "No internet connection" };
+  // }
   try {
     const response = await axios.get("/api/check_transaction", {
       params: { transac_id: transac_id },
+    });
+    return response.data;
+  } catch (error) {
+    // if (!error.response) {
+    //   // Handle network error
+    //   console.error("No internet connection");
+    //   return { error: "No internet connection" };
+    // } else {
+    //   // Handle other errors
+    //   console.error("Error:", error.response.status);
+    //   return { error: "Something went wrong" };
+    // }
+    console.error("Error checking user existence:", error);
+    return { exists: false, user: undefined };
+  }
+};
+// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
+export const checkGiftExists = async (
+  gift_id: string
+): Promise<{ exists: boolean; user?: userData }> => {
+  try {
+    const response = await axios.get("/api/check_gift", {
+      params: { gift_id: gift_id },
     });
     return response.data;
   } catch (error) {

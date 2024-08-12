@@ -4,8 +4,6 @@ This is the 2Settle live chat website.
 Live website [spend.2settle.io](https://spend.2settle.io/)
 
 Preview deployment [chat-2settle.vercel.app](https://chat-2settle.vercel.app/)
-
-
 ## Getting Started
 
 ### For a user

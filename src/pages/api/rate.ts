@@ -52,6 +52,9 @@
 
 import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+import mysql from "mysql2/promise";
+import { RowDataPacket } from "mysql2";
+import { ExchangeRate } from "../../types/types";
 
 export default async function handler(
   req: NextApiRequest,
@@ -62,15 +65,37 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const apiKey = process.env.NAIRA_API_KEY;
-  const apiUrl = `https://api.currencyapi.com/v3/latest?apikey=${apiKey}&currencies=NGN`;
+  const dbHost = process.env.host;
+  const dbUser = process.env.user;
+  const dbPassword = process.env.password;
+  const dbName = process.env.database;
 
   try {
+    const connection = await mysql.createConnection({
+      host: dbHost,
+      user: dbUser,
+      password: dbPassword,
+      database: dbName,
+    });
+
+    const [results] = await connection.query<RowDataPacket[]>(
+      "SELECT profit_rate FROM 2Settle_ExchangeRate"
+    );
+
+    const result = results[0] as ExchangeRate;
+    const merchantProfit = result.profit_rate;
+
+    await connection.end();
+
+    const apiKey = process.env.NAIRA_API_KEY;
+    const apiUrl = `https://api.currencyapi.com/v3/latest?apikey=${apiKey}&currencies=NGN`;
+
     const response = await axios.get(apiUrl);
     const { NGN } = response.data.data;
 
     if (NGN) {
-      const rawRate = NGN.value;
+      const nairaRate = NGN.value;
+      const rawRate = nairaRate - parseFloat(merchantProfit);
       const percentage = 0.8;
       const increase = (percentage / 100) * rawRate;
       const adjustedRate = rawRate - increase;
@@ -80,8 +105,8 @@ export default async function handler(
     } else {
       res.status(404).json({ error: "Naira rate not found" });
     }
-  } catch (error) {
-    console.error("Error fetching Naira rate:", error);
+  } catch (err) {
+    console.error("Server error:", err);
     res.status(500).send("Server error");
   }
 }
