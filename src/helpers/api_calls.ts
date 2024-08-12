@@ -165,6 +165,34 @@ export const updateTransaction = async (transac_id: string, status: string) => {
   }
 };
 
+// UPDATE THE TRANSACTION STATUS
+export const updateGiftTransaction = async(
+  gift_chatID: string,
+  updateData: Record<string, any>
+) => {
+  try {
+    const response = await axios.post("/api/update_gift", {
+      gift_chatID,
+      ...updateData,
+    });
+    console.log(response.data); // Handle the response
+  } catch (error:unknown) {
+ if (axios.isAxiosError(error)) {
+      // Server responded with a status other than 2xx
+      console.error('Server error:', error.response?.data);
+    } else if (error instanceof Error) {
+      // Network or other error
+      console.error('Network error:', error.message);
+    } else {
+      // Some other unknown error
+      console.error('An unknown error occurred');
+    }
+  }
+  }
+
+
+
+
 // WRITE A USER TO THE WALLET TABLE
 export const createUser = async (user: any): Promise<any> => {
   try {

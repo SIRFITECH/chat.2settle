@@ -985,9 +985,9 @@ export const displaySendPayment = async (
   sharedCrypto: string,
   sharedPaymentAssetEstimate: string,
   sharedPaymentNairaEstimate: string,
-  transactionID: number
+  transactionID: number,
+  sharedNetwork: string
 ): Promise<void> => {
-  // transaction id
   const assetPayment = parseFloat(sharedPaymentAssetEstimate); // naira/$ exchange rate
   const paymentAsset = ` ${assetPayment
     .toFixed(8)
@@ -1017,7 +1017,7 @@ export const displaySendPayment = async (
           to our wallet address. <br /> <br />
           Note: The amount estimated
           <b>{paymentAsset}</b>
-          does not include the BTC transaction fee. <br />
+          does not include the {sharedNetwork} transaction fee. <br />
           <b>So we expect to receive not less than {paymentAsset}.</b>
           <br />
           Tap to copy or Scan the wallet address below 👇🏾

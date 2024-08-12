@@ -25,6 +25,7 @@ import {
   generateBTCWalletAddress,
   generateERCWalletAddress,
   generateTronWalletAddress,
+  updateGiftTransaction,
   updateTransaction,
   updateUser,
 } from "../helpers/api_calls";
@@ -33,6 +34,7 @@ import {
   formatPhoneNumber,
   generateChatId,
   generateComplainId,
+  generateGiftId,
   generateTransactionId,
   getChatId,
   saveChatId,
@@ -175,6 +177,8 @@ const ChatBot = () => {
     setSharedPhone,
     sharedTransactionId,
     setSharedTransactionId,
+    sharedGiftId,
+    setSharedGiftId,
   } = useSharedState();
 
   // STATE HOOKS
@@ -729,6 +733,11 @@ const ChatBot = () => {
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput === "0") {
+      // prevStep();
+      // welcomeMenu();
+      goToStep("start");
+      helloMenu("hi");
+    } else if (chatInput === "0") {
       prevStep();
       helloMenu("hi");
     } else if (chatInput === "1") {
@@ -773,8 +782,7 @@ const ChatBot = () => {
     } else if (chatInput === "2") {
       console.log("The choice is TWO, SEND GIFT ");
       displayTransferMoney(addChatMessages);
-
-      setSharedPaymentMode("gift");
+      setSharedPaymentMode("Gift");
       nextStep("estimateAsset");
     } else if (chatInput === "3") {
       displayTransferMoney(addChatMessages);
@@ -1150,58 +1158,106 @@ const ChatBot = () => {
   };
 
   // GET USER BANK DETAILS FROM NUBAN
-  const handleSearchBank = (chatInput: string) => {
-    const chargeFixed = parseFloat(sharedCharge);
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
+  const handleSearchBank = async (chatInput: string) => {
+    // IS USER TRYING TO CLAIM GIFT?
+    let isGift = sharedPaymentMode.toLowerCase() === "gift";
+
+    if (isGift) {
+      if (greetings.includes(chatInput.trim().toLowerCase())) {
         goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "0") {
-      (() => {
-        prevStep();
-        displayPayIn(
-          addChatMessages,
-          sharedEstimateAsset,
-          sharedRate,
-          sharedCrypto,
-          sharedAssetPrice,
-          sharedCrypto
-        );
-      })();
-    } else if (chatInput === "1") {
-      const finalAssetPayment = parseFloat(sharedPaymentAssetEstimate);
-      const finalNairaPayment =
-        parseFloat(sharedPaymentNairaEstimate) - parseFloat(sharedNairaCharge);
+        helloMenu(chatInput);
+      } else if (chatInput.trim() === "00") {
+        (() => {
+          // console.log("Going back from handlePayOptions");
+          goToStep("start");
+          helloMenu("hi");
+        })();
+      } else if (chatInput.trim() === "0") {
+        (() => {
+          prevStep();
+          displayTransactIDWelcome(addChatMessages, nextStep);
+        })();
+      } else if (chatInput !== "0") {
+        const gift_id = chatInput.trim();
+        setLoading(true);
+        setSharedGiftId(gift_id);
+        let giftExists = (await checkGiftExists(gift_id)).exists;
 
-      setSharedPaymentAssetEstimate(finalAssetPayment.toString());
-      setSharedPaymentNairaEstimate(finalNairaPayment.toString());
-      setSharedChargeForDB(
-        `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
-      ),
-        displaySearchBank(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      const finalAssetPayment =
-        parseFloat(sharedPaymentAssetEstimate) + parseFloat(sharedCharge);
-      const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
-
-      setSharedPaymentAssetEstimate(finalAssetPayment.toString());
-      setSharedPaymentNairaEstimate(finalNairaPayment.toString());
-      setSharedChargeForDB(
-        `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
-      );
-      displaySearchBank(addChatMessages, nextStep);
+        setLoading(false);
+        // IF GIFT_ID EXIST IN DB,
+        if (giftExists) {
+          displaySearchBank(addChatMessages, nextStep);
+        } else {
+          addChatMessages([
+            {
+              type: "incoming",
+              content: "Invalid gift_id. Try again",
+            },
+          ]);
+        }
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content:
+              "Invalid choice. You need to choose an action from the options",
+          },
+        ]);
+      }
     } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. Please choose with the options or say 'Hi' to start over.",
-        },
-      ]);
+      const chargeFixed = parseFloat(sharedCharge);
+      if (greetings.includes(chatInput.trim().toLowerCase())) {
+        goToStep("start");
+        helloMenu(chatInput);
+      } else if (chatInput === "00") {
+        (() => {
+          goToStep("start");
+          helloMenu("hi");
+        })();
+      } else if (chatInput === "0") {
+        (() => {
+          prevStep();
+          displayPayIn(
+            addChatMessages,
+            sharedEstimateAsset,
+            sharedRate,
+            sharedCrypto,
+            sharedAssetPrice,
+            sharedCrypto
+          );
+        })();
+      } else if (chatInput === "1") {
+        const finalAssetPayment = parseFloat(sharedPaymentAssetEstimate);
+        const finalNairaPayment =
+          parseFloat(sharedPaymentNairaEstimate) -
+          parseFloat(sharedNairaCharge);
+
+        setSharedPaymentAssetEstimate(finalAssetPayment.toString());
+        setSharedPaymentNairaEstimate(finalNairaPayment.toString());
+        setSharedChargeForDB(
+          `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
+        ),
+          displaySearchBank(addChatMessages, nextStep);
+      } else if (chatInput === "2") {
+        const finalAssetPayment =
+          parseFloat(sharedPaymentAssetEstimate) + parseFloat(sharedCharge);
+        const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
+
+        setSharedPaymentAssetEstimate(finalAssetPayment.toString());
+        setSharedPaymentNairaEstimate(finalNairaPayment.toString());
+        setSharedChargeForDB(
+          `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
+        );
+        displaySearchBank(addChatMessages, nextStep);
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content:
+              "Invalid choice. Please choose with the options or say 'Hi' to start over.",
+          },
+        ]);
+      }
     }
   };
 
@@ -1452,192 +1508,218 @@ const ChatBot = () => {
 
       setSharedPhone(phoneNumber);
 
-      const transactionID = generateTransactionId();
-      setSharedTransactionId(transactionID.toString());
-      window.localStorage.setItem("transactionID", transactionID.toString());
-      const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
-        .toFixed(8)
-        .toString()} ${sharedCrypto} `;
-      const date = getFormattedDateTime();
+      let isGift = sharedPaymentMode.toLowerCase() === "gift";
 
-      const isUserAvailable = await checkUserExists(
-        formatPhoneNumber(phoneNumber)
-      );
-      if (isUserAvailable.user?.phone_number === null) {
-        updateUser({
-          phone_number: formatPhoneNumber(phoneNumber),
-        });
-      }
+      if (isGift) {
+        // UPDATE THE USER GIFT PAYMENT DATA
+        // - gift_status = "Not Claimed"> "Claimed"
+        // - status = "Uncompleted"> "Pending" > "Processing" > "Successful"/ "Uncessfull"
 
-      // await asignWallet(
-      //   sharedChatId,
-      //   formatPhoneNumber(phoneNumber),
-      //   sharedNetwork,
-      //   setSharedWallet
-      // );
+        // let's save the transaction details to db
+        const userDate = {
+          gift_chatID: sharedGiftId,
+          acct_number: bankData.acct_number,
+          bank_name: bankData.bank_name,
+          receiver_name: bankData.receiver_name,
+          status: "Processing",
+          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+          gift_status: "Claimed",
+        };
 
-      const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
+        await updateGiftTransaction(sharedGiftId, userDate);
+        setLoading(false);
+        displayGiftFeedbackMessage(addChatMessages, nextStep);
+        helloMenu("hi");
+        console.log("User gift data updated", userDate);
+      } else {
+        const transactionID = generateTransactionId();
+        setSharedTransactionId(transactionID.toString());
+        window.localStorage.setItem("transactionID", transactionID.toString());
+        const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
+          .toFixed(8)
+          .toString()} ${sharedCrypto} `;
+        const date = getFormattedDateTime();
 
-      const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
+        const isUserAvailable = await checkUserExists(
+          formatPhoneNumber(phoneNumber)
+        );
+        if (isUserAvailable.user?.phone_number === null) {
+          updateUser({
+            phone_number: formatPhoneNumber(phoneNumber),
+          });
+        }
 
-      const trc20AddressPattern = /^T[a-zA-Z0-9]{33}$/;
+        // await asignWallet(
+        //   sharedChatId,
+        //   formatPhoneNumber(phoneNumber),
+        //   sharedNetwork,
+        //   setSharedWallet
+        // );
 
-      const erc20 = ["erc20", "bep20"];
+        const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
 
-      let userWallet = "";
+        const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
 
-      const userData = await checkUserExists(formatPhoneNumber(phoneNumber));
-      let userExists = userData.exists;
-      let hasBTCWallet = btcAddressPattern.test(
-        userData.user?.bitcoin_wallet || ""
-      );
-      let hasERCWallet = erc20AddressPattern.test(
-        userData.user?.eth_bnb_wallet || ""
-      );
-      let hasTRCWallet = trc20AddressPattern.test(
-        userData.user?.tron_wallet || ""
-      );
+        const trc20AddressPattern = /^T[a-zA-Z0-9]{33}$/;
 
-      // const tronWallet = await generateTronWalletAddress();
+        const erc20 = ["erc20", "bep20"];
 
-      if (userExists) {
-        console.log("This user exists");
-        if (sharedNetwork.toLocaleLowerCase() === "btc") {
-          if (hasBTCWallet) {
-            setSharedWallet(userData.user?.bitcoin_wallet || "");
-            userWallet = userData.user?.bitcoin_wallet || "";
-          } else {
+        let userWallet = "";
+
+        const userData = await checkUserExists(formatPhoneNumber(phoneNumber));
+        let userExists = userData.exists;
+        let hasBTCWallet = btcAddressPattern.test(
+          userData.user?.bitcoin_wallet || ""
+        );
+        let hasERCWallet = erc20AddressPattern.test(
+          userData.user?.eth_bnb_wallet || ""
+        );
+        let hasTRCWallet = trc20AddressPattern.test(
+          userData.user?.tron_wallet || ""
+        );
+
+        // const tronWallet = await generateTronWalletAddress();
+
+        if (userExists) {
+          console.log("This user exists");
+          if (sharedNetwork.toLocaleLowerCase() === "btc") {
+            if (hasBTCWallet) {
+              setSharedWallet(userData.user?.bitcoin_wallet || "");
+              userWallet = userData.user?.bitcoin_wallet || "";
+            } else {
+              const btcWallet = await generateBTCWalletAddress();
+              setSharedWallet(btcWallet.bitcoin_wallet);
+              userWallet = btcWallet.bitcoin_wallet;
+              // update the db
+              updateUser({
+                phone_number: formatPhoneNumber(phoneNumber),
+                bitcoin_wallet: btcWallet.bitcoin_wallet,
+                bitcoin_privateKey: btcWallet.bitcoin_privateKey,
+              });
+              console.log(
+                "User exist, new BTC wallet is:",
+                btcWallet.bitcoin_wallet
+              );
+            }
+          } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
+            if (hasERCWallet) {
+              setSharedWallet(userData.user?.eth_bnb_wallet || "");
+              userWallet = userData.user?.eth_bnb_wallet || "";
+            } else {
+              const ercWallet = await generateERCWalletAddress();
+              setSharedWallet(ercWallet.eth_bnb_wallet);
+              userWallet = ercWallet.eth_bnb_wallet;
+              // update the db
+              updateUser({
+                phone_number: formatPhoneNumber(phoneNumber),
+                eth_bnb_wallet: ercWallet.eth_bnb_wallet,
+                eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
+              });
+              console.log(
+                "User exist, new ERC wallet is:",
+                ercWallet.eth_bnb_wallet
+              );
+            }
+          } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
+            const tronWallet = await generateTronWalletAddress();
+            if (hasTRCWallet) {
+              setSharedWallet(userData.user?.tron_wallet || "");
+              userWallet = userData.user?.tron_wallet || "";
+            } else {
+              setSharedWallet(tronWallet.tron_wallet);
+              userWallet = tronWallet.tron_wallet;
+              updateUser({
+                phone_number: formatPhoneNumber(phoneNumber),
+                tron_wallet: tronWallet.tron_wallet,
+                tron_privateKey: tronWallet.tron_privateKey,
+              });
+              console.log(
+                "User exist and new tron wallet is:",
+                tronWallet.tron_wallet
+              );
+            }
+          }
+        } else {
+          if (sharedNetwork.toLocaleLowerCase() === "btc") {
             const btcWallet = await generateBTCWalletAddress();
             setSharedWallet(btcWallet.bitcoin_wallet);
             userWallet = btcWallet.bitcoin_wallet;
-            // update the db
-            updateUser({
+            await createUser({
+              agent_id: sharedChatId,
               phone_number: formatPhoneNumber(phoneNumber),
               bitcoin_wallet: btcWallet.bitcoin_wallet,
               bitcoin_privateKey: btcWallet.bitcoin_privateKey,
             });
-            console.log(
-              "User exist, new BTC wallet is:",
-              btcWallet.bitcoin_wallet
-            );
-          }
-        } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-          if (hasERCWallet) {
-            setSharedWallet(userData.user?.eth_bnb_wallet || "");
-            userWallet = userData.user?.eth_bnb_wallet || "";
-          } else {
+            console.log("BTC wallet is:", btcWallet.bitcoin_wallet);
+          } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
             const ercWallet = await generateERCWalletAddress();
             setSharedWallet(ercWallet.eth_bnb_wallet);
             userWallet = ercWallet.eth_bnb_wallet;
-            // update the db
-            updateUser({
+            await createUser({
+              agent_id: sharedChatId,
               phone_number: formatPhoneNumber(phoneNumber),
               eth_bnb_wallet: ercWallet.eth_bnb_wallet,
               eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
             });
-            console.log(
-              "User exist, new ERC wallet is:",
-              ercWallet.eth_bnb_wallet
-            );
-          }
-        } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-          const tronWallet = await generateTronWalletAddress();
-          if (hasTRCWallet) {
-            setSharedWallet(userData.user?.tron_wallet || "");
-            userWallet = userData.user?.tron_wallet || "";
-          } else {
+            console.log("ERC wallet is:", ercWallet.eth_bnb_wallet);
+          } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
+            const tronWallet = await generateTronWalletAddress();
             setSharedWallet(tronWallet.tron_wallet);
             userWallet = tronWallet.tron_wallet;
-            updateUser({
+            await createUser({
+              agent_id: sharedChatId,
               phone_number: formatPhoneNumber(phoneNumber),
               tron_wallet: tronWallet.tron_wallet,
               tron_privateKey: tronWallet.tron_privateKey,
             });
-            console.log(
-              "User exist and new tron wallet is:",
-              tronWallet.tron_wallet
-            );
+            console.log("Tron wallet is:", tronWallet.tron_wallet);
           }
         }
-      } else {
-        if (sharedNetwork.toLocaleLowerCase() === "btc") {
-          const btcWallet = await generateBTCWalletAddress();
-          setSharedWallet(btcWallet.bitcoin_wallet);
-          userWallet = btcWallet.bitcoin_wallet;
-          await createUser({
-            agent_id: sharedChatId,
-            phone_number: formatPhoneNumber(phoneNumber),
-            bitcoin_wallet: btcWallet.bitcoin_wallet,
-            bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-          });
-          console.log("BTC wallet is:", btcWallet.bitcoin_wallet);
-        } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-          const ercWallet = await generateERCWalletAddress();
-          setSharedWallet(ercWallet.eth_bnb_wallet);
-          userWallet = ercWallet.eth_bnb_wallet;
-          await createUser({
-            agent_id: sharedChatId,
-            phone_number: formatPhoneNumber(phoneNumber),
-            eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-            eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
-          });
-          console.log("ERC wallet is:", ercWallet.eth_bnb_wallet);
-        } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-          const tronWallet = await generateTronWalletAddress();
-          setSharedWallet(tronWallet.tron_wallet);
-          userWallet = tronWallet.tron_wallet;
-          await createUser({
-            agent_id: sharedChatId,
-            phone_number: formatPhoneNumber(phoneNumber),
-            tron_wallet: tronWallet.tron_wallet,
-            tron_privateKey: tronWallet.tron_privateKey,
-          });
-          console.log("Tron wallet is:", tronWallet.tron_wallet);
-        }
-      }
 
-      displaySendPayment(
-        addChatMessages,
-        nextStep,
-        userWallet,
-        sharedCrypto,
-        sharedPaymentAssetEstimate,
-        sharedPaymentNairaEstimate,
-        transactionID
-      );
-      setLoading(false);
-      // let's save the transaction details to db
-      const userDate = {
-        crypto: sharedCrypto,
-        network: sharedNetwork,
-        estimation: sharedEstimateAsset,
-        Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
-        charges: sharedChargeForDB,
-        mode_of_payment: sharedPaymentMode,
-        acct_number: bankData.acct_number,
-        bank_name: bankData.bank_name,
-        receiver_name: bankData.receiver_name,
-        receiver_amount: formatCurrency(
+        displaySendPayment(
+          addChatMessages,
+          nextStep,
+          userWallet,
+          sharedCrypto,
+          sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
-          "NGN",
-          "en-NG"
-        ),
-        crypto_sent: paymentAsset,
-        wallet_address: userWallet,
-        Date: date,
-        status: "Uncompleted",
-        customer_phoneNumber: formatPhoneNumber(phoneNumber),
-        transac_id: transactionID.toString(),
-        settle_walletLink: "",
-        chat_id: chatId,
-        current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
-        merchant_rate: merchantRate,
-        profit_rate: profitRate,
-        name: "",
-      };
-      await createTransaction(userDate);
+          transactionID,
+          sharedNetwork
+        );
+        setLoading(false);
+        // let's save the transaction details to db
+        const userDate = {
+          crypto: sharedCrypto,
+          network: sharedNetwork,
+          estimation: sharedEstimateAsset,
+          Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
+          charges: sharedChargeForDB,
+          mode_of_payment: sharedPaymentMode,
+          acct_number: bankData.acct_number,
+          bank_name: bankData.bank_name,
+          receiver_name: bankData.receiver_name,
+          receiver_amount: formatCurrency(
+            sharedPaymentNairaEstimate,
+            "NGN",
+            "en-NG"
+          ),
+          crypto_sent: paymentAsset,
+          wallet_address: userWallet,
+          Date: date,
+          status: "Uncompleted",
+          customer_phoneNumber: formatPhoneNumber(phoneNumber),
+          transac_id: transactionID.toString(),
+          settle_walletLink: "",
+          chat_id: chatId,
+          current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+          merchant_rate: merchantRate,
+          profit_rate: profitRate,
+          name: "",
+        };
+        await createTransaction(userDate);
 
-      console.log("User data created", userDate);
+        console.log("User data created", userDate);
+      }
     } else {
       setLoading(false);
       console.log("User input not recognized");
@@ -1649,16 +1731,44 @@ const ChatBot = () => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
-    } else if (chatInput.trim() === "1") {
-      console.log("Payment made, transac_id is:", sharedTransactionId);
-      // updateTransaction(sharedTransactionId, procesingStatus);
-      updateTransaction(sharedTransactionId, "Processing");
-      displayConfirmPayment(addChatMessages, nextStep);
-    } else if (chatInput.trim() === "2") {
-      console.log("Payment cancelled");
-      // updateTransaction(sharedTransactionId, cancelledStatus);
-      updateTransaction(sharedTransactionId, "Cancel");
-      displayConfirmPayment(addChatMessages, nextStep);
+    } else if (chatInput.trim() === "00") {
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "0") {
+    } else if (chatInput.trim().length > 3) {
+      console.log("Input is:", chatInput.trim());
+      const transaction_id = chatInput.trim();
+      setLoading(true);
+      setSharedTransactionId(transaction_id);
+      let transactionExists = (await checkTranscationExists(transaction_id))
+        .exists;
+
+      console.log(
+        "User phone:",
+        (await checkTranscationExists(transaction_id)).user
+          ?.customer_phoneNumber
+      );
+
+      setLoading(false);
+      // IF TRANSACTION_ID EXIST IN DB,
+      if (transactionExists) {
+        displayConfirmPayment(addChatMessages, nextStep);
+      } else {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: "Invalid transaction_id. Try again",
+          },
+        ]);
+      }
+    } else {
+      if (chatInput.trim() === "1") {
+        updateTransaction(sharedTransactionId, procesingStatus);
+        displayConfirmPayment(addChatMessages, nextStep);
+      } else if (chatInput.trim() === "2") {
+        updateTransaction(sharedTransactionId, cancelledStatus);
+        displayConfirmPayment(addChatMessages, nextStep);
+      }
     }
   };
   // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
@@ -1891,21 +2001,17 @@ const ChatBot = () => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        // console.log("Going back from handlePayOptions");
-        goToStep("start");
-        helloMenu("hi");
-      })();
     } else if (chatInput.trim() === "0") {
       (() => {
         prevStep();
-        displayEnterTransactionId(addChatMessages, nextStep);
+        choiceMenu("2");
       })();
     } else if (chatInput === "1") {
       displayEnterCompleteTransactionId(addChatMessages, nextStep);
     } else if (chatInput === "2") {
+      console.log("Let's see what is going on HERE!!!");
       displayEnterGiftId(addChatMessages, nextStep);
+      setSharedPaymentMode("Gift");
     } else if (chatInput === "3") {
     }
   };
@@ -1931,21 +2037,16 @@ const ChatBot = () => {
     } else if (chatInput !== "0") {
       const gift_id = chatInput.trim();
       setLoading(true);
-      // setSharedTransactionId(gift_id);
-      let giftExists = true;
-      // (await checkGiftExists(gift_id)).exists;
+      setSharedGiftId(chatInput.trim());
+      let giftExists = (await checkGiftExists(gift_id)).exists;
 
       console.log("gift is processing");
-      // console.log(
-      //   "User phone:",
-      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
-      // );
 
-      setLoading(false);
       // IF GIFT_ID EXIST IN DB,
       if (giftExists) {
         displayGiftFeedbackMessage(addChatMessages, nextStep);
         helloMenu("hi");
+        setLoading(false);
       } else {
         addChatMessages([
           {
@@ -1953,6 +2054,7 @@ const ChatBot = () => {
             content: "Invalid gift_id. Try again",
           },
         ]);
+        setLoading(false);
       }
     } else {
       addChatMessages([
@@ -2064,6 +2166,52 @@ const ChatBot = () => {
     }
   };
 
+  // // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
+  // const handleConfirmTransaction = async (chatInput: string) => {
+  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
+  //     goToStep("start");
+  //     helloMenu(chatInput);
+  //   } else if (chatInput.trim() === "00") {
+  //     goToStep("start");
+  //     helloMenu(chatInput);
+  //   } else if (chatInput.trim() === "0") {
+  //   } else if (chatInput.trim().length > 3) {
+  //     console.log("Input is:", chatInput.trim());
+  //     const transaction_id = chatInput.trim();
+  //     setLoading(true);
+  //     setSharedTransactionId(transaction_id);
+  //     let transactionExists = (await checkTranscationExists(transaction_id))
+  //       .exists;
+
+  //     console.log(
+  //       "User phone:",
+  //       (await checkTranscationExists(transaction_id)).user
+  //         ?.customer_phoneNumber
+  //     );
+
+  //     setLoading(false);
+  //     // IF TRANSACTION_ID EXIST IN DB,
+  //     if (transactionExists) {
+  //       displayConfirmPayment(addChatMessages, nextStep);
+  //     } else {
+  //       addChatMessages([
+  //         {
+  //           type: "incoming",
+  //           content: "Invalid transaction_id. Try again",
+  //         },
+  //       ]);
+  //     }
+  //   } else {
+  //     if (chatInput.trim() === "1") {
+  //       updateTransaction(sharedTransactionId, procesingStatus);
+  //       displayConfirmPayment(addChatMessages, nextStep);
+  //     } else if (chatInput.trim() === "2") {
+  //       updateTransaction(sharedTransactionId, cancelledStatus);
+  //       displayConfirmPayment(addChatMessages, nextStep);
+  //     }
+  //   }
+  // };
+
   // THE ROOT FUNCTION
 
   const handleConversation = async (chatInput: any) => {
@@ -2084,7 +2232,6 @@ const ChatBot = () => {
       case "start":
         console.log("current step is start");
         helloMenu(chatInput);
-
         setChatInput("");
         break;
 
@@ -2219,24 +2366,29 @@ const ChatBot = () => {
       case "makeComplain":
         console.log("Current step is makeComplain ");
         handleMakeComplain(chatInput);
-
         setChatInput("");
         break;
 
       case "completeTransactionId":
-        console.log("Current step is makeComplain ");
+        console.log("Current step is completeTransactionId ");
         handleCompleteTransactionId(chatInput);
         setChatInput("");
         break;
 
       case "giftFeedBack":
-        console.log("Current step is makeComplain ");
+        console.log("Current step is giftFeedBack ");
         handleGiftId(chatInput);
         setChatInput("");
         break;
 
       case "makeReport":
-        console.log("Current step is makeComplain ");
+        console.log("Current step is makeReport ");
+        handleReportlyWelcome(chatInput);
+        setChatInput("");
+        break;
+
+      case "completetrxWithID":
+        console.log("Current step is trxIDFeedback ");
         handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
@@ -2260,7 +2412,7 @@ const ChatBot = () => {
     }
   };
 
-  // CHATBOT h-2/4 md:h-4/6 lg:h-5/6
+  // CHATBOT
   return (
     <div className="fixed right-8 bottom-24 w-10/12 md:w-7/12 lg:w-5/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-transform scale-100 opacity-100 pointer-events-auto">
       <header className="py-4 text-center text-white bg-blue-500 shadow">

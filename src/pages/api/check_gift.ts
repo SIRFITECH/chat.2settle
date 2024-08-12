@@ -29,7 +29,7 @@ export default async function handler(
     });
 
     const [rows] = await connection.query<RowDataPacket[]>(
-      "SELECT * FROM `Telegram_Database`.`2settle_transaction_table` WHERE `gift_id` = ?",
+      "SELECT * FROM `Telegram_Database`.`2settle_transaction_table` WHERE `gift_chatID` = ?",
       [gift_id]
     );
 

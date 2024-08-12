@@ -83,7 +83,6 @@ export interface erc20TrxData {
   transactionIndex: string;
   txreceipt_status: string;
   value: string;
-  
 }
 
 //ETHERSCAN RESPONSE
@@ -120,8 +119,6 @@ export interface BscScanResponse {
   message: string;
   result: BscTransaction[];
 }
-
-
 
 // BTC WALLET FORM VENDOR TABLE WALLET DATA
 export interface btcWalletData {
@@ -217,4 +214,6 @@ export interface SharedStateContextProps {
   setSharedPhone: React.Dispatch<React.SetStateAction<string>>;
   sharedTransactionId: string;
   setSharedTransactionId: React.Dispatch<React.SetStateAction<string>>;
+  sharedGiftId: string;
+  setSharedGiftId: React.Dispatch<React.SetStateAction<string>>;
 }
