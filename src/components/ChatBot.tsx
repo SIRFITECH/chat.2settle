@@ -134,6 +134,7 @@ const ChatBot = () => {
   let walletIsConnected = account.isConnected;
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
+  const narration = "BwB quiz price";
 
   const {
     sharedRate,
@@ -1541,6 +1542,7 @@ const ChatBot = () => {
             amount: nairaPayment,
             accountName: bankData.receiver_name,
             pin: process.env.NEXT_PUBLIC_MONGORO_TRANSFERPIN,
+            narration: narration,
           };
           updateGiftTransaction(sharedGiftId, { gift_status: "Pending" });
           claimGiftMoney(giftData).then(() =>

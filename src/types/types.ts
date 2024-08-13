@@ -173,6 +173,8 @@ export interface ClaimGiftData {
   accountName: string | undefined;
   pin: string | undefined;
   amount: string | undefined;
+  narration: string | undefined;
+  //  "BwB quiz price",
 }
 
 // SHARED STATE VARIABLE FROM SHARED CONTEXT
