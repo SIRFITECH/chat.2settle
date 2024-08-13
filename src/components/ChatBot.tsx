@@ -13,6 +13,7 @@ import {
   checkGiftExists,
   checkTranscationExists,
   checkUserExists,
+  claimGiftMoney,
   createComplain,
   createTransaction,
   createUser,
@@ -25,6 +26,8 @@ import {
   generateBTCWalletAddress,
   generateERCWalletAddress,
   generateTronWalletAddress,
+  getGiftNaira,
+  isGiftValid,
   updateGiftTransaction,
   updateTransaction,
   updateUser,
@@ -1515,22 +1518,50 @@ const ChatBot = () => {
         // - gift_status = "Not Claimed"> "Claimed"
         // - status = "Uncompleted"> "Pending" > "Processing" > "Successful"/ "Uncessfull"
 
+        let giftNotClaimed = await isGiftValid(sharedGiftId);
         // let's save the transaction details to db
-        const userDate = {
-          gift_chatID: sharedGiftId,
-          acct_number: bankData.acct_number,
-          bank_name: bankData.bank_name,
-          receiver_name: bankData.receiver_name,
-          status: "Processing",
-          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-          gift_status: "Claimed",
-        };
+        if (giftNotClaimed) {
+          const giftUpdateDate = {
+            gift_chatID: sharedGiftId,
+            acct_number: bankData.acct_number,
+            bank_name: bankData.bank_name,
+            receiver_name: bankData.receiver_name,
+            receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+            gift_status: "Claimed",
+          };
 
-        await updateGiftTransaction(sharedGiftId, userDate);
-        setLoading(false);
-        displayGiftFeedbackMessage(addChatMessages, nextStep);
-        helloMenu("hi");
-        console.log("User gift data updated", userDate);
+          // const nairaPayment = getGiftNaira(sharedGiftId);695543
+          const nairaPayment: string = (
+            await getGiftNaira(sharedGiftId)
+          ).toString();
+          const giftData = {
+            accountNumber: bankData.acct_number,
+            accountBank: sharedSelectedBankCode,
+            bankName: bankData.bank_name,
+            amount: nairaPayment,
+            accountName: bankData.receiver_name,
+            pin: process.env.NEXT_PUBLIC_MONGORO_TRANSFERPIN,
+          };
+          updateGiftTransaction(sharedGiftId, { gift_status: "Pending" });
+          claimGiftMoney(giftData).then(() =>
+            updateGiftTransaction(sharedGiftId, giftUpdateDate)
+          );
+          setLoading(false);
+          displayGiftFeedbackMessage(addChatMessages, nextStep);
+          helloMenu("hi");
+          console.log("User gift data updated", giftUpdateDate);
+        } else {
+          setLoading(false);
+          addChatMessages([
+            {
+              type: "incoming",
+              content: "This gift is already claimed",
+            },
+          ]);
+          nextStep("start");
+
+          helloMenu("hi");
+        }
       } else {
         const transactionID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());

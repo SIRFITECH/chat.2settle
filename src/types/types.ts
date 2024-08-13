@@ -166,6 +166,15 @@ export interface UserBankData {
   receiver_name?: string;
 }
 
+export interface ClaimGiftData {
+  accountNumber: string | undefined;
+  accountBank: string | undefined;
+  bankName: string | undefined;
+  accountName: string | undefined;
+  pin: string | undefined;
+  amount: string | undefined;
+}
+
 // SHARED STATE VARIABLE FROM SHARED CONTEXT
 export interface SharedStateContextProps {
   sharedState: string;

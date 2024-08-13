@@ -2,6 +2,7 @@ import axios from "axios";
 import {
   BankName,
   btcWalletData,
+  ClaimGiftData,
   ercWalletData,
   ServerData,
   trcWalletData,
@@ -122,6 +123,20 @@ export const checkGiftExists = async (
     throw error;
   }
 };
+// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
+export const isGiftValid = async (
+  gift_id: string
+): Promise<{ exists: boolean; user?: userData }> => {
+  try {
+    const response = await axios.get("/api/confirm_gift", {
+      params: { gift_id: gift_id },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    throw error;
+  }
+};
 
 export const updateUser = async (
   updatedData: Partial<vendorData>
@@ -166,7 +181,7 @@ export const updateTransaction = async (transac_id: string, status: string) => {
 };
 
 // UPDATE THE TRANSACTION STATUS
-export const updateGiftTransaction = async(
+export const updateGiftTransaction = async (
   gift_chatID: string,
   updateData: Record<string, any>
 ) => {
@@ -176,22 +191,70 @@ export const updateGiftTransaction = async(
       ...updateData,
     });
     console.log(response.data); // Handle the response
-  } catch (error:unknown) {
- if (axios.isAxiosError(error)) {
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
       // Server responded with a status other than 2xx
-      console.error('Server error:', error.response?.data);
+      console.error("Server error:", error.response?.data);
     } else if (error instanceof Error) {
       // Network or other error
-      console.error('Network error:', error.message);
+      console.error("Network error:", error.message);
     } else {
       // Some other unknown error
-      console.error('An unknown error occurred');
+      console.error("An unknown error occurred");
     }
   }
+};
+
+export async function claimGiftMoney(data: ClaimGiftData) {
+  try {
+    const response = await axios.post("/api/payout_gift", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Transaction successful:", response.data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        console.error("Error response from API:", error.response.data);
+        throw new Error(error.response.data.message || "Transaction failed");
+      } else {
+        console.error("Network or other error:", error.message);
+        throw new Error("Internal Server Error");
+      }
+    } else {
+      console.error("Unexpected error:", error);
+      throw new Error("Unexpected Error");
+    }
   }
+}
 
+export const getGiftNaira = async (gift_id: string): Promise<number> => {
+  try {
+    // Log the URL and params before making the request
+    console.log("Requesting gift naira with:", `${apiURL}/api/user_naira`, {
+      gift_id,
+    });
 
+    const response = await axios.get<userData>(`${apiURL}/api/user_naira`, {
+      params: { gift_id },
+    });
 
+    const rawGiftNaira = response.data.receiver_amount?.replace(/[^\d]/g, "");
+    const giftNaira = parseFloat(rawGiftNaira || "");
+
+    if (isNaN(giftNaira)) {
+      throw new Error("Invalid giftNaira received");
+    }
+
+    return giftNaira;
+  } catch (error) {
+    console.error("Error fetching gift naira:", error);
+    throw error;
+  }
+};
 
 // WRITE A USER TO THE WALLET TABLE
 export const createUser = async (user: any): Promise<any> => {
