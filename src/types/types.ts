@@ -60,6 +60,7 @@ export interface userData {
   merchant_rate?: string | null;
   profit_rat?: string | null;
   name?: string | null;
+  gift_status?: string | null;
 }
 
 export interface erc20TrxData {
@@ -171,7 +172,6 @@ export interface ClaimGiftData {
   accountBank: string | undefined;
   bankName: string | undefined;
   accountName: string | undefined;
-  pin: string | undefined;
   amount: string | undefined;
   narration: string | undefined;
   //  "BwB quiz price",

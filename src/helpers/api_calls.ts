@@ -133,7 +133,7 @@ export const isGiftValid = async (
     });
     return response.data;
   } catch (error) {
-    console.error("Error checking user existence:", error);
+    console.error("Error checking gift validity:", error);
     throw error;
   }
 };

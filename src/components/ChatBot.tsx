@@ -1519,49 +1519,84 @@ const ChatBot = () => {
         // - gift_status = "Not Claimed"> "Claimed"
         // - status = "Uncompleted"> "Pending" > "Processing" > "Successful"/ "Uncessfull"
 
-        let giftNotClaimed = await isGiftValid(sharedGiftId);
-        // let's save the transaction details to db
-        if (giftNotClaimed) {
-          const giftUpdateDate = {
-            gift_chatID: sharedGiftId,
-            acct_number: bankData.acct_number,
-            bank_name: bankData.bank_name,
-            receiver_name: bankData.receiver_name,
-            receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-            gift_status: "Claimed",
-          };
+        let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
+        try {
+          let giftNotClaimed =
+            giftStatus?.toLocaleLowerCase() === "not claimed";
 
-          // const nairaPayment = getGiftNaira(sharedGiftId);695543
-          const nairaPayment: string = (
-            await getGiftNaira(sharedGiftId)
-          ).toString();
-          const giftData = {
-            accountNumber: bankData.acct_number,
-            accountBank: sharedSelectedBankCode,
-            bankName: bankData.bank_name,
-            amount: nairaPayment,
-            accountName: bankData.receiver_name,
-            pin: process.env.NEXT_PUBLIC_MONGORO_TRANSFERPIN,
-            narration: narration,
-          };
-          updateGiftTransaction(sharedGiftId, { gift_status: "Pending" });
-          claimGiftMoney(giftData).then(() =>
-            updateGiftTransaction(sharedGiftId, giftUpdateDate)
-          );
+          if (giftNotClaimed) {
+            const giftUpdateDate = {
+              gift_chatID: sharedGiftId,
+              acct_number: bankData.acct_number,
+              bank_name: bankData.bank_name,
+              receiver_name: bankData.receiver_name,
+              receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+              gift_status: "Claimed",
+            };
+
+            const nairaPayment: string = (
+              await getGiftNaira(sharedGiftId)
+            ).toString();
+            const giftData = {
+              accountNumber: bankData.acct_number,
+              accountBank: sharedSelectedBankCode,
+              bankName: bankData.bank_name,
+              amount: nairaPayment,
+              accountName: bankData.receiver_name,
+              narration: narration,
+            };
+
+            // Update the transaction to "Pending" before making the payment
+            await updateGiftTransaction(sharedGiftId, {
+              gift_status: "Pending",
+            });
+
+            // Attempt to claim the gift money
+            await claimGiftMoney(giftData);
+
+            // If successful, update the transaction status to "Claimed"
+            await updateGiftTransaction(sharedGiftId, giftUpdateDate);
+
+            setLoading(false);
+            displayGiftFeedbackMessage(addChatMessages, nextStep);
+            helloMenu("hi");
+            console.log("User gift data updated", giftUpdateDate);
+          } else {
+            setLoading(false);
+            addChatMessages([
+              {
+                type: "incoming",
+                content: "This gift is already claimed",
+              },
+            ]);
+            helloMenu("hi");
+            goToStep("start");
+          }
+        } catch (error) {
+          console.error("Error during gift claim process:", error);
+
+          // Rollback or update the transaction to indicate a failure
+          await updateGiftTransaction(sharedGiftId, {
+            gift_status: giftStatus,
+          });
+
           setLoading(false);
-          displayGiftFeedbackMessage(addChatMessages, nextStep);
-          helloMenu("hi");
-          console.log("User gift data updated", giftUpdateDate);
-        } else {
-          setLoading(false);
+
+          // Inform the user that the transaction failed
           addChatMessages([
             {
               type: "incoming",
-              content: "This gift is already claimed",
+              content: (
+                <span>
+                  Sorry, the transaction failed. Please try again
+                  <br />
+                  <b> NOTE:</b> We don't support microfinance banks like Opay,
+                  Kuda Bank, or Moniepoint at the moment.
+                </span>
+              ),
             },
           ]);
           nextStep("start");
-
           helloMenu("hi");
         }
       } else {

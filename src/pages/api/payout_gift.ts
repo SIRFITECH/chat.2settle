@@ -15,7 +15,6 @@ export default async function handler(
     accountBank,
     bankName,
     accountName,
-    pin,
     amount,
     narration,
   } = req.body;
@@ -29,8 +28,6 @@ export default async function handler(
     !accountBank ||
     !bankName ||
     !accountName ||
-    !pin ||
-    !amount ||
     !narration
   ) {
     console.log("Missing required fields:", {
@@ -38,7 +35,6 @@ export default async function handler(
       accountBank,
       bankName,
       accountName,
-      pin,
       amount,
       narration,
     });
@@ -57,7 +53,7 @@ export default async function handler(
     currency: "NGN",
     callbackUrl: "http://localhost:3000/payment/success",
     debitCurrency: "NGN",
-    pin: pin,
+    pin: process.env.MONGORO_TRANSFERPIN,
   };
   const mongoroTransferUrl =
     "https://api-biz-dev.mongoro.com/api/v1/openapi/transfer";
