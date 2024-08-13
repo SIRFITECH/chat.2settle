@@ -1590,14 +1590,14 @@ const ChatBot = () => {
                 <span>
                   Sorry, the transaction failed. Please try again
                   <br />
+                  <br />
                   <b> NOTE:</b> We don't support microfinance banks like Opay,
                   Kuda Bank, or Moniepoint at the moment.
                 </span>
               ),
             },
           ]);
-          nextStep("start");
-          helloMenu("hi");
+          displayEnterGiftId(addChatMessages, nextStep);
         }
       } else {
         const transactionID = generateTransactionId();
