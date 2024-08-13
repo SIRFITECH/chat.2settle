@@ -76,7 +76,7 @@ export const displayEnterCompleteTransactionId = async (
     },
   ];
   console.log("Next is entreTrxId");
-  nextStep("trxIDFeedback");
+  nextStep("confirmTransaction");
   addChatMessages(newMessages);
 };
 // TRANSACTION FEEDBACK MESSAGE
@@ -115,7 +115,8 @@ export const displayEnterGiftId = async (
     },
   ];
   console.log("Next is giftFeedBack");
-  nextStep("giftFeedBack");
+  nextStep("enterBankSearchWord");
+  // nextStep("giftFeedBack");
   addChatMessages(newMessages);
 };
 // GIFT FEEDBACK MESSAGE

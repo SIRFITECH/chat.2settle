@@ -51,6 +51,7 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
     useState<string>("");
   const [bankData, setBankData] = useState<UserBankData>({});
   const [sharedPhone, setSharedPhone] = useState<string>("");
+  const [sharedGiftId, setSharedGiftId] = useState<string>("");
 
   // Function to update the user object
   const updateBankData = (newData: Partial<UserBankData>) => {
@@ -129,6 +130,8 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
         setSharedPhone,
         sharedTransactionId,
         setSharedTransactionId,
+        sharedGiftId,
+        setSharedGiftId,
       }}
     >
       {children}

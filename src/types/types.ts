@@ -60,6 +60,7 @@ export interface userData {
   merchant_rate?: string | null;
   profit_rat?: string | null;
   name?: string | null;
+  gift_status?: string | null;
 }
 
 export interface erc20TrxData {
@@ -83,7 +84,6 @@ export interface erc20TrxData {
   transactionIndex: string;
   txreceipt_status: string;
   value: string;
-  
 }
 
 //ETHERSCAN RESPONSE
@@ -120,8 +120,6 @@ export interface BscScanResponse {
   message: string;
   result: BscTransaction[];
 }
-
-
 
 // BTC WALLET FORM VENDOR TABLE WALLET DATA
 export interface btcWalletData {
@@ -167,6 +165,16 @@ export interface UserBankData {
   acct_number?: string;
   bank_name?: string;
   receiver_name?: string;
+}
+
+export interface ClaimGiftData {
+  accountNumber: string | undefined;
+  accountBank: string | undefined;
+  bankName: string | undefined;
+  accountName: string | undefined;
+  amount: string | undefined;
+  narration: string | undefined;
+  //  "BwB quiz price",
 }
 
 // SHARED STATE VARIABLE FROM SHARED CONTEXT
@@ -217,4 +225,6 @@ export interface SharedStateContextProps {
   setSharedPhone: React.Dispatch<React.SetStateAction<string>>;
   sharedTransactionId: string;
   setSharedTransactionId: React.Dispatch<React.SetStateAction<string>>;
+  sharedGiftId: string;
+  setSharedGiftId: React.Dispatch<React.SetStateAction<string>>;
 }
