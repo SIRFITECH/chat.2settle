@@ -13,7 +13,7 @@ const PageBody: React.FC = () => {
   // my state hooks
   // hook to show if chat is open or not
   const [isOpen, setIsOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  // const [isChatOpen, setIsChatOpen] = useState(false);
   const [formattedRate, setFormattedRate] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [rate, setRate] = useState("");
@@ -24,7 +24,6 @@ const PageBody: React.FC = () => {
       textareaRef.current.focus();
     }
   }, [isOpen]);
-  //   const { sharedRate, setSharedRate } = useSharedState();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -50,8 +49,19 @@ const PageBody: React.FC = () => {
     }
   };
 
+  // const price = 
+  // // "₦100.556";
+  // formattedRate;
+  // const cleanPrice = price.replace("₦", "");
+  // // .replace(/[^\d.]/g, "");
+
   useEffect(() => {
     fetchData();
+    // console.log(
+    //   "cleaned price is",
+    //   // cleanPrice
+    //   Math.round(parseFloat(cleanPrice))
+    // );
   }, []);
 
   return (
