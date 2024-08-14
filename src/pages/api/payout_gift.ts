@@ -49,7 +49,6 @@ export default async function handler(
     saveBeneficiary: false,
     accountName,
     narration: narration,
-    //  "BwB quiz price",
     currency: "NGN",
     callbackUrl: "http://localhost:3000/payment/success",
     debitCurrency: "NGN",

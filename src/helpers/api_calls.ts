@@ -246,13 +246,17 @@ export const getGiftNaira = async (gift_id: string): Promise<number> => {
       // .replace("₦", "");
       ?.replace(/[^\d.]/g, "");
     /[^\d.]/g;
-    const giftNaira = parseFloat(rawGiftNaira || "");
 
-    if (isNaN(giftNaira)) {
+    // 831683;
+    // 0177367583
+
+    const giftNaira = parseFloat(rawGiftNaira || "");
+    const giftNairaRounded = Math.round(giftNaira);
+    if (isNaN(giftNairaRounded)) {
       throw new Error("Invalid giftNaira received");
     }
 
-    return giftNaira;
+    return giftNairaRounded;
   } catch (error) {
     console.error("Error fetching gift naira:", error);
     throw error;
