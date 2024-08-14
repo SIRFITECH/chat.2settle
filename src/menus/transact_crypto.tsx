@@ -234,7 +234,8 @@ export const displayCharge = async (
   setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
   setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
   setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
-  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>
+  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
+  sharedPaymentMode: string
 ) => {
   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
   const dollar = ["usdt"];
@@ -252,7 +253,6 @@ export const displayCharge = async (
 
   let max: number;
   let min: number;
-  console.log("LET'S SEE THE RATE FROM HERE", rate);
 
   /**
    * Remember charges include
@@ -573,7 +573,9 @@ export const displayCharge = async (
         ];
 
         console.log("Next is enterBankSearchWord");
-        nextStep("enterBankSearchWord");
+        sharedPaymentMode.toLowerCase() === "gift"
+          ? nextStep("enterPhone")
+          : nextStep("enterBankSearchWord");
         addChatMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -1017,7 +1019,8 @@ export const displaySendPayment = async (
           to our wallet address. <br /> <br />
           Note: The amount estimated
           <b>{paymentAsset}</b>
-          does not include the {sharedNetwork} transaction fee. <br />
+          does not include the {sharedCrypto} ({sharedNetwork}) transaction fee.{" "}
+          <br />
           <b>So we expect to receive not less than {paymentAsset}.</b>
           <br />
           Tap to copy or Scan the wallet address below 👇🏾

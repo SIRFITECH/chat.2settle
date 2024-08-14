@@ -242,7 +242,10 @@ export const getGiftNaira = async (gift_id: string): Promise<number> => {
       params: { gift_id },
     });
 
-    const rawGiftNaira = response.data.receiver_amount?.replace(/[^\d]/g, "");
+    const rawGiftNaira = response.data.receiver_amount
+      // .replace("₦", "");
+      ?.replace(/[^\d.]/g, "");
+    /[^\d.]/g;
     const giftNaira = parseFloat(rawGiftNaira || "");
 
     if (isNaN(giftNaira)) {

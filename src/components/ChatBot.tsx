@@ -270,10 +270,7 @@ const ChatBot = () => {
   }, [sharedCrypto]);
 
   React.useEffect(() => {
-    console.log(
-      "Transaction ID is",
-      window.localStorage.getItem("transactionID")
-    );
+    console.log("sharedPaymentMode is", sharedPaymentMode);
     let trxID = window.localStorage.getItem("transactionID");
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
@@ -419,6 +416,7 @@ const ChatBot = () => {
   const helloMenu = (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       window.localStorage.setItem("transactionID", "");
+      setSharedPaymentMode("");
       if (walletIsConnected) {
         addChatMessages([
           {
@@ -1148,7 +1146,8 @@ const ChatBot = () => {
         setSharedPaymentAssetEstimate,
         setSharedPaymentNairaEstimate,
         setSharedNairaCharge,
-        setSharedChargeForDB
+        setSharedChargeForDB,
+        sharedPaymentMode
       );
     } else {
       addChatMessages([
@@ -1164,7 +1163,7 @@ const ChatBot = () => {
   // GET USER BANK DETAILS FROM NUBAN
   const handleSearchBank = async (chatInput: string) => {
     // IS USER TRYING TO CLAIM GIFT?
-    let isGift = sharedPaymentMode.toLowerCase() === "gift";
+    let isGift = sharedPaymentMode.toLowerCase() === "claim gift";
 
     if (isGift) {
       if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -1290,7 +1289,8 @@ const ChatBot = () => {
           setSharedPaymentAssetEstimate,
           setSharedPaymentNairaEstimate,
           setSharedNairaCharge,
-          setSharedChargeForDB
+          setSharedChargeForDB,
+          sharedPaymentMode
         );
       })();
     } else if (chatInput != "0") {
@@ -1512,7 +1512,7 @@ const ChatBot = () => {
 
       setSharedPhone(phoneNumber);
 
-      let isGift = sharedPaymentMode.toLowerCase() === "gift";
+      let isGift = sharedPaymentMode.toLowerCase() === "claim gift";
 
       if (isGift) {
         // UPDATE THE USER GIFT PAYMENT DATA
@@ -1600,6 +1600,7 @@ const ChatBot = () => {
           displayEnterGiftId(addChatMessages, nextStep);
         }
       } else {
+        console.log("sharedPaymentMode is", sharedPaymentMode);
         const transactionID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
@@ -2079,7 +2080,7 @@ const ChatBot = () => {
     } else if (chatInput === "2") {
       console.log("Let's see what is going on HERE!!!");
       displayEnterGiftId(addChatMessages, nextStep);
-      setSharedPaymentMode("Gift");
+      setSharedPaymentMode("Claim Gift");
     } else if (chatInput === "3") {
     }
   };
