@@ -40,6 +40,8 @@ export default async function handler(
     });
     return res.status(400).json({ message: "All fields are required" });
   }
+  const mongoroTransferUrl =
+    "https://api-biz-dev.mongoro.com/api/v1/openapi/transfer";
 
   const user = {
     accountNumber,
@@ -54,8 +56,6 @@ export default async function handler(
     debitCurrency: "NGN",
     pin: process.env.MONGORO_TRANSFERPIN,
   };
-  const mongoroTransferUrl =
-    "https://api-biz-dev.mongoro.com/api/v1/openapi/transfer";
 
   try {
     // Log the user data before sending the request
@@ -64,7 +64,8 @@ export default async function handler(
     const response = await axios.post(mongoroTransferUrl, user, {
       headers: {
         "Content-Type": "application/json",
-        accessKey: process.env.MONGORO_ACCESS_KEY_API,
+        // accessKey: process.env.MONGORO_ACCESS_KEY_API,
+        // token: process.env.MONGORO_ACCESS_KEY_API,
         token: process.env.MONGORO_TOKEN,
       },
     });

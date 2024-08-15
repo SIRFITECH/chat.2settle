@@ -1678,6 +1678,8 @@ const ChatBot = () => {
             const nairaPayment: string = (
               await getGiftNaira(sharedGiftId)
             ).toString();
+
+            
             const giftData = {
               accountNumber: bankData.acct_number,
               accountBank: sharedSelectedBankCode,
