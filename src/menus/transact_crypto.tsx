@@ -917,10 +917,53 @@ export const displayContinueToPay = (
   nextStep: (step: string) => void,
   name: string,
   bank_name: string,
-  account_number: string
+  account_number: string,
+  sharedPaymentMode: string
 ) => {
-  const newMessages: MessageType[] = [
-    {
+  // let isGift = sharedPaymentMode.toLowerCase() !== "gift";
+  // const newMessages: MessageType[] = [
+  //   isGift
+  //     ? {
+  //         type: "incoming",
+  //         content: (
+  //           <span>
+  //             Name: {name}
+  //             <br />
+  //             Bank name: {bank_name}
+  //             <br />
+  //             Account number: {account_number}
+  //           </span>
+  //         ),
+  //       }
+  //     : {
+  //         type: "incoming",
+  //         content: (""),
+  //       },
+  //   {
+  //     type: "incoming",
+  //     content: (
+  //       <span>
+  //         Here is your menu:
+  //         <br />
+  //         <br />
+  //         1. Continue
+  //         <br />
+  //         0. Go back
+  //         <br />
+  //         00. Exit
+  //       </span>
+  //     ),
+  //   },
+  // ].filter(Boolean);
+  // console.log("Next is enterPhone");
+  // nextStep("enterPhone");
+  // addChatMessages(newMessages);
+  let isGift = sharedPaymentMode.toLowerCase() !== "gift";
+
+  const newMessages: MessageType[] = [];
+
+  if (isGift) {
+    newMessages.push({
       type: "incoming",
       content: (
         <span>
@@ -931,23 +974,25 @@ export const displayContinueToPay = (
           Account number: {account_number}
         </span>
       ),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Here is your menu:
-          <br />
-          <br />
-          1. Continue
-          <br />
-          0. Go back
-          <br />
-          00. Exit
-        </span>
-      ),
-    },
-  ];
+    });
+  }
+
+  newMessages.push({
+    type: "incoming",
+    content: (
+      <span>
+        Here is your menu:
+        <br />
+        <br />
+        1. Continue
+        <br />
+        0. Go back
+        <br />
+        00. Exit
+      </span>
+    ),
+  });
+
   console.log("Next is enterPhone");
   nextStep("enterPhone");
   addChatMessages(newMessages);

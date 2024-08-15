@@ -61,6 +61,7 @@ export interface userData {
   profit_rat?: string | null;
   name?: string | null;
   gift_status?: string | null;
+  gift_chatID?: string | null;
 }
 
 export interface erc20TrxData {

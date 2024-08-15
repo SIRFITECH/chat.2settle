@@ -38,6 +38,8 @@ export default async function handler(
     merchant_rate,
     profit_rate,
     name,
+    gift_status,
+    gift_chatID,
   } = req.body;
 
   const userData = {
@@ -63,6 +65,8 @@ export default async function handler(
     merchant_rate,
     profit_rate,
     name,
+    gift_status,
+    gift_chatID,
   };
 
   try {
