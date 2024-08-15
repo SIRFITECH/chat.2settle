@@ -920,44 +920,6 @@ export const displayContinueToPay = (
   account_number: string,
   sharedPaymentMode: string
 ) => {
-  // let isGift = sharedPaymentMode.toLowerCase() !== "gift";
-  // const newMessages: MessageType[] = [
-  //   isGift
-  //     ? {
-  //         type: "incoming",
-  //         content: (
-  //           <span>
-  //             Name: {name}
-  //             <br />
-  //             Bank name: {bank_name}
-  //             <br />
-  //             Account number: {account_number}
-  //           </span>
-  //         ),
-  //       }
-  //     : {
-  //         type: "incoming",
-  //         content: (""),
-  //       },
-  //   {
-  //     type: "incoming",
-  //     content: (
-  //       <span>
-  //         Here is your menu:
-  //         <br />
-  //         <br />
-  //         1. Continue
-  //         <br />
-  //         0. Go back
-  //         <br />
-  //         00. Exit
-  //       </span>
-  //     ),
-  //   },
-  // ].filter(Boolean);
-  // console.log("Next is enterPhone");
-  // nextStep("enterPhone");
-  // addChatMessages(newMessages);
   let isGift = sharedPaymentMode.toLowerCase() !== "gift";
 
   const newMessages: MessageType[] = [];
@@ -1033,12 +995,16 @@ export const displaySendPayment = async (
   sharedPaymentAssetEstimate: string,
   sharedPaymentNairaEstimate: string,
   transactionID: number,
-  sharedNetwork: string
+  sharedNetwork: string,
+  sharedPaymentMode: string,
+  giftID: number
 ): Promise<void> => {
   const assetPayment = parseFloat(sharedPaymentAssetEstimate); // naira/$ exchange rate
   const paymentAsset = ` ${assetPayment
     .toFixed(8)
     .toString()} ${sharedCrypto} `;
+
+  let isGift = sharedPaymentMode.toLowerCase() === "gift";
 
   const newMessages: MessageType[] = [
     {
@@ -1096,6 +1062,19 @@ export const displaySendPayment = async (
       ),
     },
   ];
+  if (isGift) {
+    newMessages[1] = {
+      type: "incoming",
+      content: (
+        <span>
+          You are sending
+          <b>{ formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+          <br />
+          Tap to copy Gift ID 👉 : {giftID}
+        </span>
+      ),
+    };
+  }
 
   // confirmTransaction
   nextStep("confirmTransaction");
