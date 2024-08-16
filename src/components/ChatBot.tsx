@@ -10,6 +10,7 @@ import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
 import {
+  appendToGoogleSheet,
   checkGiftExists,
   checkTranscationExists,
   checkUserExists,
@@ -378,6 +379,7 @@ const ChatBot = () => {
         "NGN",
         "en-NG"
       );
+
       console.log("formattedRate is :", formattedRate);
       setFormattedRate(formattedRate);
       setMerchantRate(formattedMerchantRate);
@@ -1168,6 +1170,7 @@ const ChatBot = () => {
     let wantsToSendGift = sharedPaymentMode.toLowerCase().trim() === "gift";
 
     if (wantsToClaimGift) {
+      console.log("USER WANTS TO CLAIM GIFT");
       if (greetings.includes(chatInput.trim().toLowerCase())) {
         goToStep("start");
         helloMenu(chatInput);
@@ -1208,6 +1211,7 @@ const ChatBot = () => {
         ]);
       }
     } else if (wantsToSendGift) {
+      console.log("USER WANTS TO SEND GIFT");
       const chargeFixed = parseFloat(sharedCharge);
       if (greetings.includes(chatInput.trim().toLowerCase())) {
         goToStep("start");
@@ -1262,6 +1266,7 @@ const ChatBot = () => {
         ]);
       }
     } else {
+      console.log("USER WANTS TO TRANSACT CRYPTO");
       const chargeFixed = parseFloat(sharedCharge);
       if (greetings.includes(chatInput.trim().toLowerCase())) {
         goToStep("start");
@@ -1446,68 +1451,69 @@ const ChatBot = () => {
       // console.log(chatInput.trim());
 
       if (chatInput === "1" || chatInput === "2") {
-        let bank_name = "";
-        let account_name = "";
-        let account_number = "";
+        // let bank_name = "";
+        // let account_name = "";
+        // let account_number = "";
 
-        setLoading(true);
+        // setLoading(true);
 
-        try {
-          const bankData = await fetchBankDetails(
-            sharedSelectedBankCode,
-            chatInput.trim()
-          );
-          // console.log(
-          //   "Bank data: account number is  ",
-          //   bankData[0].account_number
-          // );
+        // try {
+        //   const bankData = await fetchBankDetails(
+        //     sharedSelectedBankCode,
+        //     chatInput.trim()
+        //   );
+        //   // console.log(
+        //   //   "Bank data: account number is  ",
+        //   //   bankData[0].account_number
+        //   // );
 
-          bank_name = bankData[0].bank_name;
-          account_name = bankData[0].account_name;
-          account_number = bankData[0].account_number;
+        //   bank_name = bankData[0].bank_name;
+        //   account_name = bankData[0].account_name;
+        //   account_number = bankData[0].account_number;
 
-          if (!account_number) {
-            const newMessages: MessageType[] = [
-              {
-                type: "incoming",
-                content: <span>Invalid account number. Please try again.</span>,
-              },
-            ];
-            addChatMessages(newMessages);
-            setLoading(false);
-            return; // Exit the function to let the user try again
-          }
+        //   if (!account_number) {
+        //     const newMessages: MessageType[] = [
+        //       {
+        //         type: "incoming",
+        //         content: <span>Invalid account number. Please try again.</span>,
+        //       },
+        //     ];
+        //     addChatMessages(newMessages);
+        //     setLoading(false);
+        //     return; // Exit the function to let the user try again
+        //   }
 
-          setLoading(false);
-          updateBankData({
-            acct_number: account_number,
-            bank_name: sharedSelectedBankName,
-            receiver_name: account_name,
-          });
-          displayContinueToPay(
-            addChatMessages,
-            nextStep,
-            account_name,
-            sharedSelectedBankName,
-            account_number,
-            sharedPaymentMode
-          );
-        } catch (error) {
-          console.error("Failed to fetch bank data:", error);
-          const errorMessage: MessageType[] = [
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  Failed to fetch bank data. Please check your accouunt number
-                  and try again.
-                </span>
-              ),
-            },
-          ];
-          addChatMessages(errorMessage);
-          setLoading(false);
-        }
+        //   setLoading(false);
+        //   updateBankData({
+        //     acct_number: account_number,
+        //     bank_name: sharedSelectedBankName,
+        //     receiver_name: account_name,
+        //   });
+        //   displayContinueToPay(
+        //     addChatMessages,
+        //     nextStep,
+        //     account_name,
+        //     sharedSelectedBankName,
+        //     account_number,
+        //     sharedPaymentMode
+        //   );
+        // } catch (error) {
+        //   console.error("Failed to fetch bank data:", error);
+        //   const errorMessage: MessageType[] = [
+        //     {
+        //       type: "incoming",
+        //       content: (
+        //         <span>
+        //           Failed to fetch bank data. Please check your accouunt number
+        //           and try again.
+        //         </span>
+        //       ),
+        //     },
+        //   ];
+        //   addChatMessages(errorMessage);
+        //   setLoading(false);
+        // }
+        displayEnterPhone(addChatMessages, nextStep);
       } else {
         let bank_name = "";
         let account_name = "";
@@ -1679,7 +1685,6 @@ const ChatBot = () => {
               await getGiftNaira(sharedGiftId)
             ).toString();
 
-            
             const giftData = {
               accountNumber: bankData.acct_number,
               accountBank: sharedSelectedBankCode,
@@ -1695,7 +1700,16 @@ const ChatBot = () => {
             });
 
             // Attempt to claim the gift money
-            await claimGiftMoney(giftData);
+            // await claimGiftMoney(giftData);
+            // await appendToGoogleSheet();
+            const data = {
+              "Gift ID": sharedGiftId.toString(),
+              "Account Name": bankData.receiver_name || "",
+              "Account Number": bankData.acct_number || "",
+              "Bank Name": bankData.bank_name || "",
+              "Payment Amount": nairaPayment,
+            };
+            await appendToGoogleSheet(data);
 
             // If successful, update the transaction status to "Claimed"
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
@@ -1899,8 +1913,10 @@ const ChatBot = () => {
           sharedCrypto,
           sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
-          giftID,
-          sharedNetwork
+          transactionID,
+          sharedNetwork,
+          sharedPaymentMode,
+          giftID
         );
         setLoading(false);
         // let's save the transaction details to db
@@ -2092,7 +2108,9 @@ const ChatBot = () => {
           sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
           transactionID,
-          sharedNetwork
+          sharedNetwork,
+          sharedPaymentMode,
+          0
         );
         setLoading(false);
         // let's save the transaction details to db
@@ -2694,18 +2712,19 @@ const ChatBot = () => {
 
         // };
         let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
+        let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
+        let wnatsToTransactCrypto =
+          sharedPaymentMode.toLowerCase() === "transfermoney";
 
-        !wantsToClaimGift
-          ? (console.log(
+        wantsToClaimGift || wnatsToTransactCrypto
+          ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
+            console.log("PAYMENT MODE IS:", sharedPaymentMode),
+            handleSearchBank(chatInput))
+          : (console.log(
               "CURRENT STEP IS continueToPay IN enterBankSearchWord "
             ),
             console.log("PAYMENT MODE IS:", sharedPaymentMode),
-            handleContinueToPay(chatInput))
-          : // handleCryptoPayment(chatInput) ;
-            console.log("PAYMENT MODE IS:", sharedPaymentMode),
-          handleSearchBank(chatInput);
-        //  "continueToPay":
-
+            handleContinueToPay(chatInput));
         setChatInput("");
         break;
 

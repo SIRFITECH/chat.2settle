@@ -5,10 +5,12 @@ import {
   ClaimGiftData,
   ercWalletData,
   ServerData,
+  SheetData,
   trcWalletData,
   userData,
   vendorData,
 } from "../types/types";
+import { headers } from "next/headers";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -230,6 +232,50 @@ export async function claimGiftMoney(data: ClaimGiftData) {
     }
   }
 }
+
+export async function appendToGoogleSheet(data: SheetData) {
+  try {
+    const response = await axios.post("/api/send_to_support", data);
+    console.log("Response from server:", response.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error appending to Google Sheet:", error.response?.data);
+    } else {
+      console.error("Unexpected error:", error);
+    }
+  }
+}
+
+// export async function appendToGoogleSheet(data: SheetData) {
+//   try {
+//     const response = await fetch("/api/send_to_support", {
+//       method: "POST",
+//       headers: {
+//         Accept: "application/json",
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(data),
+//     });
+
+//     // Ensure that the response is OK
+//     if (!response.ok) {
+//       console.error(
+//         "Server returned an error:",
+//         response.status,
+//         response.statusText
+//       );
+//       const errorText = await response.text(); // Get the full response
+//       console.error("Full response:", errorText);
+//       throw new Error("Failed to append data to Google Sheet");
+//     }
+
+//     // Parse the response as JSON
+//     const content = await response.json();
+//     console.log("Content is ", content);
+//   } catch (error) {
+//     console.error("Error during fetch operation:", error);
+//   }
+// }
 
 export const getGiftNaira = async (gift_id: string): Promise<number> => {
   try {
