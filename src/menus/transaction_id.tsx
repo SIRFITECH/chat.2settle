@@ -127,7 +127,23 @@ export const displayGiftFeedbackMessage = (
   const newMessages: MessageType[] = [
     {
       type: "incoming",
-      content: "This transaction is Processing",
+      content: (
+        <span>
+          Gift claim confirmed!
+          <br />
+          This transaction is Processing
+        </span>
+      ),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          You would recieve your credit in at most the next 15 mins,
+          <br />
+          If not contact support in '3. Customer support'
+        </span>
+      ),
     },
   ];
   console.log("Next is start");

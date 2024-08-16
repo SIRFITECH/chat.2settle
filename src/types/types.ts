@@ -63,7 +63,13 @@ export interface userData {
   gift_status?: string | null;
   gift_chatID?: string | null;
 }
-
+export interface SheetData {
+  "Gift ID": string;
+  "Account Name": string;
+  "Account Number": string;
+  "Bank Name": string;
+  "Payment Amount": string;
+};
 export interface erc20TrxData {
   blockHash: string;
   blockNumber: string;

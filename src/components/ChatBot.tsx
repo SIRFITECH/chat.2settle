@@ -10,6 +10,7 @@ import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType } from "../types/types";
 import {
+  appendToGoogleSheet,
   checkGiftExists,
   checkTranscationExists,
   checkUserExists,
@@ -378,6 +379,7 @@ const ChatBot = () => {
         "NGN",
         "en-NG"
       );
+
       console.log("formattedRate is :", formattedRate);
       setFormattedRate(formattedRate);
       setMerchantRate(formattedMerchantRate);
@@ -1698,7 +1700,16 @@ const ChatBot = () => {
             });
 
             // Attempt to claim the gift money
-            await claimGiftMoney(giftData);
+            // await claimGiftMoney(giftData);
+            // await appendToGoogleSheet();
+            const data = {
+              "Gift ID": sharedGiftId.toString(),
+              "Account Name": bankData.receiver_name || "",
+              "Account Number": bankData.acct_number || "",
+              "Bank Name": bankData.bank_name || "",
+              "Payment Amount": nairaPayment,
+            };
+            await appendToGoogleSheet(data);
 
             // If successful, update the transaction status to "Claimed"
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
