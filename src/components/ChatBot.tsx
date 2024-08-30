@@ -85,6 +85,7 @@ import {
   displayTransactIDWelcome,
 } from "../menus/transaction_id";
 import { displayReportlyWelcome } from "../menus/reportly";
+import { approveAmount, transferTokens } from "../helpers/spende_ether";
 
 const initialMessages = [
   {
@@ -1700,16 +1701,16 @@ const ChatBot = () => {
             });
 
             // Attempt to claim the gift money
-            // await claimGiftMoney(giftData);
-            // await appendToGoogleSheet();
-            const data = {
-              "Gift ID": sharedGiftId.toString(),
-              "Account Name": bankData.receiver_name || "",
-              "Account Number": bankData.acct_number || "",
-              "Bank Name": bankData.bank_name || "",
-              "Payment Amount": nairaPayment,
-            };
-            await appendToGoogleSheet(data);
+            await claimGiftMoney(giftData);
+
+            // const data = {
+            //   "Gift ID": sharedGiftId.toString(),
+            //   "Account Name": bankData.receiver_name || "",
+            //   "Account Number": bankData.acct_number || "",
+            //   "Bank Name": bankData.bank_name || "",
+            //   "Payment Amount": nairaPayment,
+            // };
+            // await appendToGoogleSheet(data);
 
             // If successful, update the transaction status to "Claimed"
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
@@ -2591,6 +2592,27 @@ const ChatBot = () => {
             "Invalid choice. You need to choose an action from the options",
         },
       ]);
+    }
+  };
+
+  const [amount, setAmount] = useState("");
+  const [recipient, setRecipient] = useState("");
+
+  const handleApprove = async () => {
+    try {
+      await approveAmount(amount);
+      alert("Approval successful!");
+    } catch (error) {
+      console.error("Error approving amount:", error);
+    }
+  };
+
+  const handleTransfer = async () => {
+    try {
+      await transferTokens( recipient, amount);
+      alert("Transfer successful!");
+    } catch (error) {
+      console.error("Error transferring amount:", error);
     }
   };
 
