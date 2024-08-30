@@ -85,6 +85,7 @@ import {
   displayTransactIDWelcome,
 } from "../menus/transaction_id";
 import { displayReportlyWelcome } from "../menus/reportly";
+// import { approveAmount, transferTokens } from "../helpers/spende_ether";
 
 const initialMessages = [
   {
@@ -1695,13 +1696,13 @@ const ChatBot = () => {
             };
 
             // Update the transaction to "Pending" before making the payment
-            await updateGiftTransaction(sharedGiftId, {
-              gift_status: "Pending",
-            });
+            // await updateGiftTransaction(sharedGiftId, {
+            //   gift_status: "Pending",
+            // });
 
-            // Attempt to claim the gift money
+            // // Attempt to claim the gift money
             // await claimGiftMoney(giftData);
-            // await appendToGoogleSheet();
+
             const data = {
               "Gift ID": sharedGiftId.toString(),
               "Account Name": bankData.receiver_name || "",
@@ -2593,6 +2594,27 @@ const ChatBot = () => {
       ]);
     }
   };
+
+  // const [amount, setAmount] = useState("");
+  // const [recipient, setRecipient] = useState("");
+
+  // const handleApprove = async () => {
+  //   try {
+  //     await approveAmount(amount);
+  //     alert("Approval successful!");
+  //   } catch (error) {
+  //     console.error("Error approving amount:", error);
+  //   }
+  // };
+
+  // const handleTransfer = async () => {
+  //   try {
+  //     await transferTokens( recipient, amount);
+  //     alert("Transfer successful!");
+  //   } catch (error) {
+  //     console.error("Error transferring amount:", error);
+  //   }
+  // };
 
   // // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
   // const handleConfirmTransaction = async (chatInput: string) => {

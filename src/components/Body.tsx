@@ -8,12 +8,17 @@ import { fetchRate } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
+// import {
+//   approveAmount,
+//   generateAlias,
+//   transferTokens,
+// } from "../helpers/spende_ether";
+import { useAccount } from "wagmi";
 
 const PageBody: React.FC = () => {
   // my state hooks
   // hook to show if chat is open or not
   const [isOpen, setIsOpen] = useState(false);
-  // const [isChatOpen, setIsChatOpen] = useState(false);
   const [formattedRate, setFormattedRate] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [rate, setRate] = useState("");
@@ -49,12 +54,6 @@ const PageBody: React.FC = () => {
     }
   };
 
-  // const price = 
-  // // "₦100.556";
-  // formattedRate;
-  // const cleanPrice = price.replace("₦", "");
-  // // .replace(/[^\d.]/g, "");
-
   useEffect(() => {
     fetchData();
     // console.log(
@@ -63,6 +62,34 @@ const PageBody: React.FC = () => {
     //   Math.round(parseFloat(cleanPrice))
     // );
   }, []);
+  const account = useAccount();
+  const wallet = account.address;
+
+  // const handleApprove = async () => {
+  //   // Example usage
+  //   // const publicKey = "0xf3521cfDA98Cf267e6E2dB9c7528669F465F5A62";
+  //   // const alias = generateAlias(publicKey);
+  //   // console.log(alias); // Outputs: alias_<first 8 characters of the hash>
+  //   try {
+  //     await approveAmount("20");
+  //     alert("Approval successful!");
+  //   } catch (error) {
+  //     console.error("Error approving amount:", error);
+  //   }
+  // };
+
+  // const handleTransfer = async () => {
+  //   try {
+  //     await transferTokens(
+  //       wallet,
+  //       "0x77Af2C6Da8c16E3825f1185589E8cbc1710a7639",
+  //       "20"
+  //     );
+  //     alert("Transfer successful!");
+  //   } catch (error) {
+  //     console.error("Error transferring amount:", error);
+  //   }
+  // };
 
   return (
     <div className="relative h-dvh w-full flex flex-col items-center justify-center">
@@ -92,6 +119,20 @@ const PageBody: React.FC = () => {
           </div>
         </div>
       )}
+      {/* <button
+        className="bg-green-700 mt-4 p-2 rounded text-white"
+        type="button"
+        onClick={handleApprove}
+      >
+        Approve transfer
+      </button>
+      <button
+        className="bg-green-700 mt-4 p-2 rounded text-white"
+        type="button"
+        onClick={handleTransfer}
+      >
+        Test transfer
+      </button> */}
       <button
         className={`fixed bottom-8 right-8 h-12 w-12 flex items-center justify-center rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""

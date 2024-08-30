@@ -39,7 +39,7 @@ export default async function handler(
       .join(", ");
     const values = Object.values(fieldsToUpdate);
 
-    const query = `UPDATE Telegram_Database.2settle_transaction_table SET ${setClause} WHERE gift_chatID = ?`;
+    const query = `UPDATE settle_database.2settle_transaction_table SET ${setClause} WHERE gift_chatID = ?`;
 
     const [result] = await connection.execute<mysql.ResultSetHeader>(query, [
       ...values,

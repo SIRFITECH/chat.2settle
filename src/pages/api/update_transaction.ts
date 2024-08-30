@@ -83,7 +83,7 @@ export default async function handler(
     });
 
     const [result] = await connection.execute<mysql.ResultSetHeader>(
-      "UPDATE `Telegram_Database`.`2settle_transaction_table` SET `status` = ? WHERE `transac_id` = ?",
+      "UPDATE `settle_database`.`2settle_transaction_table` SET `status` = ? WHERE `transac_id` = ?",
       [status, transac_id]
     );
 

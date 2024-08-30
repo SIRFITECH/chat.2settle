@@ -112,7 +112,7 @@ export default async function handler(
     });
 
     const [result] = await connection.execute<mysql.ResultSetHeader>(
-      `UPDATE \`Telegram_Database\`.\`2Settle_walletAddress\`
+      `UPDATE \`settle_database\`.\`2Settle_walletAddress\`
        SET 
          bitcoin_wallet = COALESCE(?, bitcoin_wallet),
          bitcoin_privateKey = COALESCE(?, bitcoin_privateKey),
@@ -131,6 +131,7 @@ export default async function handler(
         phone_number,
       ]
     );
+
 
     await connection.end();
 
