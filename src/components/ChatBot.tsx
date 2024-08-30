@@ -85,7 +85,7 @@ import {
   displayTransactIDWelcome,
 } from "../menus/transaction_id";
 import { displayReportlyWelcome } from "../menus/reportly";
-import { approveAmount, transferTokens } from "../helpers/spende_ether";
+// import { approveAmount, transferTokens } from "../helpers/spende_ether";
 
 const initialMessages = [
   {
@@ -1696,21 +1696,21 @@ const ChatBot = () => {
             };
 
             // Update the transaction to "Pending" before making the payment
-            await updateGiftTransaction(sharedGiftId, {
-              gift_status: "Pending",
-            });
+            // await updateGiftTransaction(sharedGiftId, {
+            //   gift_status: "Pending",
+            // });
 
-            // Attempt to claim the gift money
-            await claimGiftMoney(giftData);
+            // // Attempt to claim the gift money
+            // await claimGiftMoney(giftData);
 
-            // const data = {
-            //   "Gift ID": sharedGiftId.toString(),
-            //   "Account Name": bankData.receiver_name || "",
-            //   "Account Number": bankData.acct_number || "",
-            //   "Bank Name": bankData.bank_name || "",
-            //   "Payment Amount": nairaPayment,
-            // };
-            // await appendToGoogleSheet(data);
+            const data = {
+              "Gift ID": sharedGiftId.toString(),
+              "Account Name": bankData.receiver_name || "",
+              "Account Number": bankData.acct_number || "",
+              "Bank Name": bankData.bank_name || "",
+              "Payment Amount": nairaPayment,
+            };
+            await appendToGoogleSheet(data);
 
             // If successful, update the transaction status to "Claimed"
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
@@ -2595,8 +2595,8 @@ const ChatBot = () => {
     }
   };
 
-  const [amount, setAmount] = useState("");
-  const [recipient, setRecipient] = useState("");
+  // const [amount, setAmount] = useState("");
+  // const [recipient, setRecipient] = useState("");
 
   // const handleApprove = async () => {
   //   try {
