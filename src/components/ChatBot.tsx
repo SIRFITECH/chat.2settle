@@ -2598,23 +2598,23 @@ const ChatBot = () => {
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
 
-  const handleApprove = async () => {
-    try {
-      await approveAmount(amount);
-      alert("Approval successful!");
-    } catch (error) {
-      console.error("Error approving amount:", error);
-    }
-  };
+  // const handleApprove = async () => {
+  //   try {
+  //     await approveAmount(amount);
+  //     alert("Approval successful!");
+  //   } catch (error) {
+  //     console.error("Error approving amount:", error);
+  //   }
+  // };
 
-  const handleTransfer = async () => {
-    try {
-      await transferTokens( recipient, amount);
-      alert("Transfer successful!");
-    } catch (error) {
-      console.error("Error transferring amount:", error);
-    }
-  };
+  // const handleTransfer = async () => {
+  //   try {
+  //     await transferTokens( recipient, amount);
+  //     alert("Transfer successful!");
+  //   } catch (error) {
+  //     console.error("Error transferring amount:", error);
+  //   }
+  // };
 
   // // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
   // const handleConfirmTransaction = async (chatInput: string) => {
