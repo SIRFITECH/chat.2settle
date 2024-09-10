@@ -1,60 +1,6 @@
-// import type { NextApiRequest, NextApiResponse } from "next";
-// import mysql, { RowDataPacket } from "mysql2/promise"; // Use mysql2 for async/await
-
-// // Create a connection pool (replace with your actual DB credentials)
-// const db = mysql.createPool({
-//   host: process.env.host,
-//   user: process.env.user,
-//   password: process.env.password,
-//   database: process.env.database,
-// });
-
-// export default async function handler(
-//   req: NextApiRequest,
-//   res: NextApiResponse
-// ) {
-//   if (req.method !== "POST") {
-//     return res.status(405).json({ error: "Only POST requests allowed" });
-//   }
-
-//   const { pin, phoneNumber } = req.body;
-
-//   // Validate the request body
-//   if (!pin || !phoneNumber) {
-//     return res.status(400).json({ error: "Phone number and pin are required" });
-//   }
-
-//   try {
-//     // Construct the query to check the pin for the given phone number
-//     const queryStr = `
-//       SELECT * FROM settle_database.2settle_user
-//       WHERE phone_number = ? AND pin = ?
-//     `;
-
-//     // Execute the query, passing the phone number and pin as query parameters
-//     const [rows] = await db.query<RowDataPacket[]>(queryStr, [
-//       phoneNumber,
-//       pin,
-//     ]);
-
-//     // Check if any rows were returned
-//     if (rows.length > 0) {
-//       return res
-//         .status(200)
-//         .json({ success: true, message: "Pin is correct", user: rows[0] });
-//     } else {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Invalid pin or phone number" });
-//     }
-//   } catch (error) {
-//     console.error("Error checking pin:", error);
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// }
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import mysql, { RowDataPacket } from "mysql2/promise"; // Use mysql2 for async/await
+import mysql, { RowDataPacket } from "mysql2/promise";
 
 // Create a connection pool (replace with your actual DB credentials)
 const db = mysql.createPool({

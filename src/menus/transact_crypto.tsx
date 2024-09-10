@@ -1045,6 +1045,11 @@ export const displaySendPayment = async (
           Tap to copy 👉: <br />
           <br />
           {wallet}
+          <br />
+          <br />
+          <b>This transaction expires after 10 munites</b>
+          <br />
+          <b>This wallet address is only available for the next 10 munites</b>
         </span>
       ),
     },
@@ -1053,14 +1058,29 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          Make A choice:
+          Thank you for transaction with me, <br />
+          Wait a little while and check if you have received your funds.
           <br />
-          1.Confirm Transaction
           <br />
-          2.Cancel Transaction
+          1. Start another transaction
+          <br />
+          2. No, I want to complain
         </span>
       ),
     },
+
+    // {
+    //   type: "incoming",
+    //   content: (
+    //     <span>
+    //       Make A choice:
+    //       <br />
+    //       1.Confirm Transaction
+    //       <br />
+    //       2.Cancel Transaction
+    //     </span>
+    //   ),
+    // },
   ];
   if (isGift) {
     newMessages[1] = {
@@ -1068,7 +1088,7 @@ export const displaySendPayment = async (
       content: (
         <span>
           You are sending
-          <b>{ formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
           <br />
           Tap to copy Gift ID 👉 : {giftID}
         </span>
@@ -1077,7 +1097,8 @@ export const displaySendPayment = async (
   }
 
   // confirmTransaction
-  nextStep("confirmTransaction");
+  // nextStep("confirmTransaction");
+  nextStep("paymentProcessing");
   addChatMessages(newMessages);
 };
 // USER CONFIRM TO SHOW THEY HAVE SENT THE CRYPTO
