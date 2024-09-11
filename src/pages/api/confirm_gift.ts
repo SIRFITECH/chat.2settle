@@ -29,7 +29,7 @@ export default async function handler(
     });
 
     const [rows] = await connection.query<RowDataPacket[]>(
-      "SELECT * FROM `settle_database`.`2settle_transaction_table` WHERE `gift_chatID` = ? AND `status` = 'Successful' AND `gift_status` = 'Not claimed'",
+      "SELECT * FROM `settle_database`.`2settle_transaction_table` WHERE `gift_chatID` = ? AND `status` = 'Successful' AND `gift_status` = 'Pending'",
       [gift_id]
     );
 

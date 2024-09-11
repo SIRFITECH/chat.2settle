@@ -15,7 +15,10 @@
     // "jsx": "preserve",
     "incremental": true,
     "module": "commonjs",
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

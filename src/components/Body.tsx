@@ -1,4 +1,3 @@
-// components/LiveChat.tsx
 import React, { useEffect, useRef, useState } from "react";
 import ChatBot from "./ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
@@ -8,12 +7,14 @@ import { fetchRate } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
-// import {
-//   approveAmount,
-//   generateAlias,
-//   transferTokens,
-// } from "../helpers/spende_ether";
+import {
+  approveAmount,
+  generateAlias,
+  setSpender,
+  transferTokens,
+} from "../helpers/spende_ether";
 import { useAccount } from "wagmi";
+import Loader from "./Loader";
 
 const PageBody: React.FC = () => {
   // my state hooks
@@ -24,6 +25,8 @@ const PageBody: React.FC = () => {
   const [rate, setRate] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [loading, setLoading] = useState(false);
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [spendloading, setSpendLoading] = useState(false);
   useEffect(() => {
     if (isOpen && textareaRef.current) {
       textareaRef.current.focus();
@@ -65,31 +68,37 @@ const PageBody: React.FC = () => {
   const account = useAccount();
   const wallet = account.address;
 
-  // const handleApprove = async () => {
-  //   // Example usage
-  //   // const publicKey = "0xf3521cfDA98Cf267e6E2dB9c7528669F465F5A62";
-  //   // const alias = generateAlias(publicKey);
-  //   // console.log(alias); // Outputs: alias_<first 8 characters of the hash>
-  //   try {
-  //     await approveAmount("20");
-  //     alert("Approval successful!");
-  //   } catch (error) {
-  //     console.error("Error approving amount:", error);
-  //   }
-  // };
+  const handleApprove = async () => {
+    try {
+      setApproveLoading(true);
+      await setSpender(wallet);
+      await approveAmount("0.001");
 
-  // const handleTransfer = async () => {
-  //   try {
-  //     await transferTokens(
-  //       wallet,
-  //       "0x77Af2C6Da8c16E3825f1185589E8cbc1710a7639",
-  //       "20"
-  //     );
-  //     alert("Transfer successful!");
-  //   } catch (error) {
-  //     console.error("Error transferring amount:", error);
-  //   }
-  // };
+      setApproveLoading(false);
+      alert("Approval successful!");
+    } catch (error) {
+      setApproveLoading(false);
+      alert("Error Approving");
+      console.error("Error approving amount:", error);
+    }
+  };
+
+  const handleTransfer = async () => {
+    try {
+      setSpendLoading(true);
+      await transferTokens(
+        wallet,
+        "0x77Af2C6Da8c16E3825f1185589E8cbc1710a7639",
+        "0.001"
+      );
+      setSpendLoading(false);
+      alert("Transfer successful!");
+    } catch (error) {
+      setSpendLoading(false);
+      alert("There was error completing the Transfer");
+      console.error("Error transferring amount:", error);
+    }
+  };
 
   return (
     <div className="relative h-dvh w-full flex flex-col items-center justify-center">
@@ -119,20 +128,7 @@ const PageBody: React.FC = () => {
           </div>
         </div>
       )}
-      {/* <button
-        className="bg-green-700 mt-4 p-2 rounded text-white"
-        type="button"
-        onClick={handleApprove}
-      >
-        Approve transfer
-      </button>
-      <button
-        className="bg-green-700 mt-4 p-2 rounded text-white"
-        type="button"
-        onClick={handleTransfer}
-      >
-        Test transfer
-      </button> */}
+
       <button
         className={`fixed bottom-8 right-8 h-12 w-12 flex items-center justify-center rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""
@@ -149,3 +145,35 @@ const PageBody: React.FC = () => {
 };
 
 export default PageBody;
+
+//  {
+//    !approveLoading ? (
+//      <button
+//        className="bg-green-700 mt-4 p-2 rounded text-white"
+//        type="button"
+//        onClick={handleApprove}
+//      >
+//        Approve transfer
+//      </button>
+//    ) : (
+//      <div className="text-white mt-4 p-2">
+//        <Loader />
+//      </div>
+//    );
+//  }
+
+//  {
+//    !spendloading ? (
+//      <button
+//        className="bg-green-700 mt-4 p-2 rounded text-white"
+//        type="button"
+//        onClick={handleTransfer}
+//      >
+//        Test transfer
+//      </button>
+//    ) : (
+//      <div className="text-white mt-4 p-2">
+//        <Loader />
+//      </div>
+//    );
+//  }
