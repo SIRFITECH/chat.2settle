@@ -1047,9 +1047,9 @@ export const displaySendPayment = async (
           {wallet}
           <br />
           <br />
-          <b>This transaction expires after 10 munites</b>
+          <b>This transaction expires after 5 munites</b>
           <br />
-          <b>This wallet address is only available for the next 10 munites</b>
+          <b>This wallet address is only available for the next 5 munites</b>
         </span>
       ),
     },

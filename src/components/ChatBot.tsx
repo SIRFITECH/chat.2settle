@@ -1986,6 +1986,8 @@ const ChatBot = () => {
         };
         await createTransaction(userDate);
 
+        // set the wallet flag to false
+
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
         console.log("USER WANTS TO REQUEST PAYMENT");
