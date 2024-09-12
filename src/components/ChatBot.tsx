@@ -1692,7 +1692,7 @@ const ChatBot = () => {
         let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
         try {
           let giftNotClaimed =
-            giftStatus?.toLocaleLowerCase() === "Not claimed";
+            giftStatus?.toLocaleLowerCase() === "not claimed";
 
           if (giftNotClaimed) {
             const giftUpdateDate = {
