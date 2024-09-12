@@ -28,12 +28,15 @@ const Footer = () => {
             <p>Follow Us:</p>
             <div className="flex justify-center md:justify-end space-x-4 mt-2">
               <a href="#facebook" className="hover:text-blue-600">
-                Facebook
+                LinkedIn
               </a>
-              <a href="#twitter" className="hover:text-blue-600">
+              <a href="https://x.com/2SettleHQ" className="hover:text-blue-600">
                 Twitter
               </a>
-              <a href="#instagram" className="hover:text-blue-600">
+              <a
+                href="https://www.instagram.com/2settlehq/"
+                className="hover:text-blue-600"
+              >
                 Instagram
               </a>
             </div>

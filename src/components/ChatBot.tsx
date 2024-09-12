@@ -1691,17 +1691,18 @@ const ChatBot = () => {
 
         let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
         try {
-          let giftNotClaimed = giftStatus?.toLocaleLowerCase() === "pending";
+          let giftNotClaimed =
+            giftStatus?.toLocaleLowerCase() === "Not claimed";
 
           if (giftNotClaimed) {
-            // const giftUpdateDate = {
-            //   gift_chatID: sharedGiftId,
-            //   acct_number: bankData.acct_number,
-            //   bank_name: bankData.bank_name,
-            //   receiver_name: bankData.receiver_name,
-            //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-            //   gift_status: "Claimed",
-            // };
+            const giftUpdateDate = {
+              gift_chatID: sharedGiftId,
+              acct_number: bankData.acct_number,
+              bank_name: bankData.bank_name,
+              receiver_name: bankData.receiver_name,
+              receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+              gift_status: "Claimed",
+            };
 
             const nairaPayment: string = (
               await getGiftNaira(sharedGiftId)
@@ -1716,18 +1717,13 @@ const ChatBot = () => {
               narration: narration,
             };
 
-            // Update the transaction to "Pending" before making the payment
+            // Update the transaction to "Not Claimed" before making the payment
             await updateGiftTransaction(sharedGiftId, {
-              gift_chatID: sharedGiftId,
-              acct_number: bankData.acct_number,
-              bank_name: bankData.bank_name,
-              receiver_name: bankData.receiver_name,
-              receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-              gift_status: "Processing",
+              gift_status: "Pending",
             });
 
-            // // Attempt to claim the gift money
-            // await claimGiftMoney(giftData);
+            // Attempt to claim the gift money
+            await claimGiftMoney(giftData);
 
             // claim gift through googlesheet
             // const data = {
@@ -1740,8 +1736,18 @@ const ChatBot = () => {
 
             // await appendToGoogleSheet(data);
 
-            // // If successful, update the transaction status to "Claimed"
-            // await updateGiftTransaction(sharedGiftId, giftUpdateDate);
+            // If successful, update the transaction status to "Claimed"
+            await updateGiftTransaction(sharedGiftId, giftUpdateDate);
+
+            // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
+            // await updateGiftTransaction(sharedGiftId, {
+            //   gift_chatID: sharedGiftId,
+            //   acct_number: bankData.acct_number,
+            //   bank_name: bankData.bank_name,
+            //   receiver_name: bankData.receiver_name,
+            //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+            //   gift_status: "Processing",
+            // });
 
             setLoading(false);
             displayGiftFeedbackMessage(addChatMessages, nextStep);
@@ -1775,10 +1781,10 @@ const ChatBot = () => {
               content: (
                 <span>
                   Sorry, the transaction failed. Please try again
-                  <br />
+                  {/* <br />
                   <br />
                   <b> NOTE:</b> We don't support microfinance banks like Opay,
-                  Kuda Bank, or Moniepoint at the moment.
+                  Kuda Bank, or Moniepoint at the moment. */}
                 </span>
               ),
             },
