@@ -194,8 +194,6 @@ export default function Component() {
       setLoading(false);
     } catch (error) {
       console.error("Failed to fetch rate:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
