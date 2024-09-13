@@ -142,6 +142,11 @@ export const displayGiftFeedbackMessage = (
           You would recieve your credit in at most the next 15 mins,
           <br />
           If not contact support in '3. Customer support'
+          <br />
+          <b>
+            Please make sure you check your balance before contacting support,
+            thank you
+          </b>
         </span>
       ),
     },

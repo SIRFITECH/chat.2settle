@@ -186,17 +186,31 @@ export const displayPayIn = (
     min = lowerDollar / assetPrice;
   }
 
-  const rangeMessage =
-    sharedEstimateAsset.toLowerCase() === "naira"
-      ? `Min. = ${formatCurrency("20000", "NGN", "en-NG")},
-         Max. = ${formatCurrency("2000000", "NGN", "en-NG")}`
-      : sharedEstimateAsset.toLowerCase() === "dollar" || isDollar
-      ? `Min. = ${formatCurrency(min.toFixed(2).toString(), "USD", "en-NG")},  
-        Max. = ${formatCurrency(max.toFixed(2).toString(), "USD")}.`
-      : isCrypto
-      ? `Min. = ${min.toFixed(5)} ${sharedTicker}, 
-        Max. = ${max.toFixed(5)} ${sharedTicker}.`
-      : "";
+  const rangeMessage = (
+    <div style={{ margin: 0, padding: 0 }}>
+      {sharedEstimateAsset.toLowerCase() === "naira" ? (
+        <>
+          Min. = {formatCurrency("20000", "NGN", "en-NG")}
+          <br />
+          Max. = {formatCurrency("2000000", "NGN", "en-NG")}
+        </>
+      ) : sharedEstimateAsset.toLowerCase() === "dollar" || isDollar ? (
+        <>
+          Min. = {formatCurrency(min.toFixed(2).toString(), "USD", "en-NG")}
+          <br />
+          Max. = {formatCurrency(max.toFixed(2).toString(), "USD")}
+        </>
+      ) : isCrypto ? (
+        <>
+          Min. = {min.toFixed(5)} {sharedTicker}
+          <br />
+          Max. = {max.toFixed(5)} {sharedTicker}
+        </>
+      ) : (
+        ""
+      )}
+    </div>
+  );
 
   const newMessages: MessageType[] = [
     {
@@ -208,7 +222,6 @@ export const displayPayIn = (
           <br />
           NOTE:
           <b> {rangeMessage}.</b>
-          <br />
           <br />
           0. Go back
           <br />
@@ -1047,9 +1060,9 @@ export const displaySendPayment = async (
           {wallet}
           <br />
           <br />
-          <b>This transaction expires after 5 munites</b>
+          <b>This transaction expires after 10 munites</b>
           <br />
-          <b>This wallet address is only available for the next 5 munites</b>
+          <b>This wallet address is only available for the next 10 munites</b>
         </span>
       ),
     },
