@@ -60,7 +60,7 @@ const Footer = () => {
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           {/* Left Section */}
           <div className="text-xs md:text-sm lg:text-base font-semibold mb-4 md:mb-0">
-            <p>&copy; {new Date().getFullYear()} Sirfitech</p>
+            <p>&copy; 2023 - {new Date().getFullYear()} Sirfitech</p>
           </div>
 
           {/* Middle Section */}

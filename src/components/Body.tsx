@@ -111,7 +111,7 @@ export default function Component() {
       </div>
 
       <Button
-        className={`fixed bottom-20 right-20 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
+        className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""
         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden`}
         onClick={() => setIsOpen(!isOpen)}
