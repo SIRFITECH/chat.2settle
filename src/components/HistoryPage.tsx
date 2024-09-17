@@ -460,6 +460,108 @@
 
 // export default HistoryPage;
 
+// const mockTransactions: any[] =
+//   // [];
+//   [
+//     {
+//       id: 1,
+//       type: "Spend",
+//       amount: 0.5,
+//       currency: "BTC",
+//       date: "2023-04-01",
+//       status: "Completed",
+//     },
+//     {
+//       id: 2,
+//       type: "Receive",
+//       amount: 1000,
+//       currency: "USD",
+//       date: "2023-03-28",
+//       status: "Completed",
+//     },
+//     {
+//       id: 3,
+//       type: "Spend",
+//       amount: 1.2,
+//       currency: "ETH",
+//       date: "2023-03-25",
+//       status: "Pending",
+//     },
+//     {
+//       id: 4,
+//       type: "Receive",
+//       amount: 500,
+//       currency: "EUR",
+//       date: "2023-03-20",
+//       status: "Completed",
+//     },
+//     {
+//       id: 5,
+//       type: "Spend",
+//       amount: 0.3,
+//       currency: "BTC",
+//       date: "2023-03-15",
+//       status: "Failed",
+//     },
+//     {
+//       id: 6,
+//       type: "Receive",
+//       amount: 750,
+//       currency: "USD",
+//       date: "2023-03-10",
+//       status: "Completed",
+//     },
+//     {
+//       id: 7,
+//       type: "Spend",
+//       amount: 0.5,
+//       currency: "BTC",
+//       date: "2023-04-01",
+//       status: "Completed",
+//     },
+//     {
+//       id: 8,
+//       type: "Receive",
+//       amount: 1000,
+//       currency: "USD",
+//       date: "2023-03-28",
+//       status: "Completed",
+//     },
+//     {
+//       id: 9,
+//       type: "Spend",
+//       amount: 1.2,
+//       currency: "ETH",
+//       date: "2023-03-25",
+//       status: "Pending",
+//     },
+//     {
+//       id: 10,
+//       type: "Receive",
+//       amount: 500,
+//       currency: "EUR",
+//       date: "2023-03-20",
+//       status: "Completed",
+//     },
+//     {
+//       id: 11,
+//       type: "Spend",
+//       amount: 0.3,
+//       currency: "BTC",
+//       date: "2023-03-15",
+//       status: "Failed",
+//     },
+//     {
+//       id: 12,
+//       type: "Receive",
+//       amount: 750,
+//       currency: "USD",
+//       date: "2023-03-10",
+//       status: "Completed",
+//     },
+//   ];
+
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import SearchIcon from "@mui/icons-material/Search";
@@ -483,6 +585,7 @@ const mockTransactions: any[] = [
   // ... (keep the existing mockTransactions array)
 ];
 
+
 type ToastType = "success" | "error" | "warning" | "info";
 
 const HistoryPage: React.FC = () => {
@@ -502,14 +605,15 @@ const HistoryPage: React.FC = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<ToastType>("info");
 
-  //  const isWalletConnected = () => {
-  //   // Replace this with actual wallet connection check
-  //   if(account.isConnected){
-  //     setIsAuthenticated(true);
-  //     return true;
-  //   } else{return false;}
-
-  // };
+  const isWalletConnected = () => {
+    // Replace this with actual wallet connection check
+    if (account.isConnected) {
+      setIsAuthenticated(true);
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   const sendOTP = async (phoneNumber: string) => {
     // Replace this with actual OTP sending logic
@@ -521,7 +625,7 @@ const HistoryPage: React.FC = () => {
     // Replace this with actual OTP verification logic
     if (otp == "1234") {
       console.log(`Verifying OTP ${otp} for ${phoneNumber}`);
-
+      setIsAuthenticated(true);
       return true;
     } else {
       console.log(`Verifying OTP failed for ${phoneNumber}`);
@@ -536,7 +640,7 @@ const HistoryPage: React.FC = () => {
       }
     };
     checkAuthentication();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleSendOTP = async () => {
     if (await sendOTP(phoneNumber)) {

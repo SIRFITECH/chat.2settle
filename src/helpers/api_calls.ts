@@ -363,33 +363,67 @@ async function processPayoutQueue() {
 }
 
 // The payoutMoney function integrated with the queue
-export async function payoutMoney(data: PayoutData) {
-  addToPayoutQueue(async () => {
-    try {
-      const response = await axios.post("/api/payout_gift", data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+// export async function payoutMoney(data: PayoutData) {
+//   addToPayoutQueue(async () => {
+//     try {
+//       const response = await axios.post("/api/payout_gift", data, {
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       });
 
-      console.log("Transaction successful:", response.data);
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          console.error("Error response from API:", error.response.data);
-          throw new Error(error.response.data.message || "Transaction failed");
+//       console.log("Transaction successful:", response.data);
+//       return response.data;
+//     } catch (error) {
+//       if (axios.isAxiosError(error)) {
+//         if (error.response) {
+//           console.error("Error response from API:", error.response.data);
+//           throw new Error(error.response.data.message || "Transaction failed");
+//         } else {
+//           console.error("Network or other error:", error.message);
+//           throw new Error("Internal Server Error");
+//         }
+//       } else {
+//         console.error("Unexpected error:", error);
+//         throw new Error("Unexpected Error");
+//       }
+//     }
+//   });
+// }
+
+
+export async function payoutMoney(data: PayoutData) {
+  return new Promise((resolve, reject) => {
+    addToPayoutQueue(async () => {
+      try {
+        const response = await axios.post("/api/payout_gift", data, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("Transaction successful:", response.data);
+        resolve(response.data); // Resolve when the transaction is successful
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response) {
+            console.error("Error response from API:", error.response.data);
+            reject(
+              new Error(error.response.data.message || "Transaction failed")
+            ); // Reject in case of error
+          } else {
+            console.error("Network or other error:", error.message);
+            reject(new Error("Internal Server Error"));
+          }
         } else {
-          console.error("Network or other error:", error.message);
-          throw new Error("Internal Server Error");
+          console.error("Unexpected error:", error);
+          reject(new Error("Unexpected Error"));
         }
-      } else {
-        console.error("Unexpected error:", error);
-        throw new Error("Unexpected Error");
       }
-    }
+    });
   });
 }
+
 
 export async function appendToGoogleSheet(data: SheetData) {
   try {
