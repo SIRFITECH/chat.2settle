@@ -33,18 +33,18 @@ export default MyApp;
 
 // import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { WagmiConfig } from "wagmi";
-// import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+// import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 
-// import { wagmiClient, chains } from "../wagmi";
+// import { config } from "../wagmi";
 // import { SharedStateProvider } from "../context/SharedStateContext";
 
 // const client = new QueryClient();
 
 // function MyApp({ Component, pageProps }: AppProps) {
 //   return (
-//     <WagmiConfig client={wagmiClient}>
+//     <WagmiConfig config={config}>
 //       <QueryClientProvider client={client}>
-//         <RainbowKitProvider chains={chains}>
+//         <RainbowKitProvider chains={config.chains} theme={darkTheme()}>
 //           <SharedStateProvider>
 //             <Component {...pageProps} />
 //           </SharedStateProvider>
@@ -55,5 +55,4 @@ export default MyApp;
 // }
 
 // export default MyApp;
-
 

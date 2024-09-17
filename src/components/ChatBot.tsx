@@ -14,7 +14,6 @@ import {
   checkGiftExists,
   checkTranscationExists,
   checkUserExists,
-  claimGiftMoney,
   createComplain,
   createTransaction,
   createUser,
@@ -30,6 +29,7 @@ import {
   getAvaialableWallet,
   getGiftNaira,
   isGiftValid,
+  payoutMoney,
   updateGiftTransaction,
   updateTransaction,
   updateUser,
@@ -1689,10 +1689,21 @@ const ChatBot = () => {
 
         console.log("USER WANTS TO CLAIM GIFT");
 
-        let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
-        try {
-          let giftNotClaimed =
-            giftStatus?.toLocaleLowerCase() === "not claimed";
+        // let giftStatus = (await isGiftValid(sharedGiftId)).statuses;
+        // let transactionStatus = (await isGiftValid(sharedGiftId)).statuses;
+       let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
+let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
+        
+try {
+          let giftNotClaimed = 
+            giftStatus?.toLocaleLowerCase() === "not claimed" &&
+            transactionStatus?.toLocaleLowerCase() === "successful";
+          let giftClaimed = 
+            giftStatus?.toLocaleLowerCase() === "claimed" &&
+            transactionStatus?.toLocaleLowerCase() === "successful";
+          let giftNotPaid = 
+            giftStatus?.toLocaleLowerCase() === "pending" &&
+            transactionStatus?.toLocaleLowerCase() === "processing";
 
           if (giftNotClaimed) {
             const giftUpdateDate = {
@@ -1723,7 +1734,7 @@ const ChatBot = () => {
             });
 
             // Attempt to claim the gift money
-            await claimGiftMoney(giftData);
+            await payoutMoney(giftData);
 
             // claim gift through googlesheet
             // const data = {
@@ -1753,13 +1764,48 @@ const ChatBot = () => {
             displayGiftFeedbackMessage(addChatMessages, nextStep);
             helloMenu("hi");
             // console.log("User gift data updated", giftUpdateDate);
-          } else {
+          } else if (giftClaimed) {
             setLoading(false);
             addChatMessages([
               {
                 type: "incoming",
                 content: "This gift is already claimed",
               },
+            ]);
+            helloMenu("hi");
+            goToStep("start");
+          } else if (giftNotPaid) {
+            setLoading(false);
+            addChatMessages([
+              {
+                type: "incoming",
+                content: <span>
+                We are yet to confirm the crypto payment <br />
+                Please check again in later,
+
+                </span>
+                
+              },
+              {
+                type: "incoming",
+                content:
+                  "If it persists, it could be that the gifter have not sent the asset yet",
+              },
+            ]);
+            helloMenu("hi");
+            goToStep("start");
+          } else {        
+            setLoading(false);
+            addChatMessages([
+              {
+                type: "incoming",
+                content: "You have to reach our customer support",
+              },
+              // {
+              //   type: "incoming",
+              //   content:
+              //     "If it persists, it could be that the gifter have not sent the asset",
+              // },
             ]);
             helloMenu("hi");
             goToStep("start");
