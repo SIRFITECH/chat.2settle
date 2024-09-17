@@ -20,7 +20,7 @@ export default async function handler(
   } = req.body;
 
   // Log the incoming request body
-  console.log("Request body:", req.body);
+  // console.log("Request body:", req.body);
 
   // Check for missing fields and log an error if any are missing
   if (
@@ -59,7 +59,7 @@ export default async function handler(
 
   try {
     // Log the user data before sending the request
-    console.log("Sending request with user data:", user);
+    console.log("Sending request with correct user data");
 
     const response = await axios.post(mongoroTransferUrl, user, {
       headers: {

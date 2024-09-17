@@ -177,7 +177,7 @@ export interface UserBankData {
   receiver_name?: string;
 }
 
-export interface ClaimGiftData {
+export interface PayoutData {
   accountNumber: string | undefined;
   accountBank: string | undefined;
   bankName: string | undefined;

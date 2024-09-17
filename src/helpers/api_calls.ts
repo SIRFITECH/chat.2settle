@@ -2,8 +2,8 @@ import axios from "axios";
 import {
   BankName,
   btcWalletData,
-  ClaimGiftData,
   ercWalletData,
+  PayoutData,
   ServerData,
   SheetData,
   trcWalletData,
@@ -163,16 +163,26 @@ export const getAvaialableWallet = async (network: string): Promise<string> => {
   }
 };
 
-
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
+
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
     const response = await axios.get("/api/confirm_gift", {
-      params: { gift_id: gift_id },
+      params: { gift_id },
     });
-    return response.data;
+
+    if (response.data.exists && response.data.transactions.length > 0) {
+      // Extract the first transaction as the userData object
+      const firstTransaction: userData =
+        response.data.transactions[0].transaction;
+
+      // Return the exists flag and the user object
+      return { exists: true, user: firstTransaction };
+    } else {
+      return { exists: false };
+    }
   } catch (error) {
     console.error("Error checking gift validity:", error);
     throw error;
@@ -246,30 +256,139 @@ export const updateGiftTransaction = async (
   }
 };
 
-export async function claimGiftMoney(data: ClaimGiftData) {
-  try {
-    const response = await axios.post("/api/payout_gift", data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+// export async function payoutMoney(data: ClaimGiftData) {
+//   try {
+//     const response = await axios.post("/api/payout_gift", data, {
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
 
-    console.log("Transaction successful:", response.data);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        console.error("Error response from API:", error.response.data);
-        throw new Error(error.response.data.message || "Transaction failed");
-      } else {
-        console.error("Network or other error:", error.message);
-        throw new Error("Internal Server Error");
-      }
-    } else {
-      console.error("Unexpected error:", error);
-      throw new Error("Unexpected Error");
+//     console.log("Transaction successful:", response.data);
+//     return response.data;
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       if (error.response) {
+//         console.error("Error response from API:", error.response.data);
+//         throw new Error(error.response.data.message || "Transaction failed");
+//       } else {
+//         console.error("Network or other error:", error.message);
+//         throw new Error("Internal Server Error");
+//       }
+//     } else {
+//       console.error("Unexpected error:", error);
+//       throw new Error("Unexpected Error");
+//     }
+//   }
+// }
+
+// Queue to store the payout API calls
+
+// function addCallToQueue(call: () => Promise<void>) {
+//   payoutQueue.push(call);
+
+//   if (!isProcessingQueue) {
+//     processQueue();
+//   }
+// }
+
+// async function processQueue() {
+//   isProcessingQueue = true;
+
+//   while (payoutQueue.length > 0) {
+//     const nextCall = payoutQueue.shift();
+
+//     if (nextCall) {
+//       // Execute the next API call
+//       await nextCall();
+
+//       // Wait for 3 seconds before processing the next call
+//       await new Promise((resolve) => setTimeout(resolve, 3000));
+//     }
+//   }
+
+//   isProcessingQueue = false;
+// }
+
+// // Example of how to queue an API call
+// function makeApiCall() {
+//   return new Promise<void>(async (resolve, reject) => {
+//     try {
+//       // Simulate calling your external API
+//       const response = await fetch("https://api.example.com");
+//       const data = await response.json();
+//       console.log(data);
+
+//       // Resolve the promise once the call is done
+//       resolve();
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+// }
+
+// // To add a new API call to the queue
+// addCallToQueue(makeApiCall);
+
+const payoutQueue: (() => Promise<void>)[] = [];
+let isProcessingQueue = false;
+
+function addToPayoutQueue(call: () => Promise<void>) {
+  payoutQueue.push(call);
+
+  // If the queue is not currently processing, start processing
+  if (!isProcessingQueue) {
+    processPayoutQueue();
+  }
+}
+
+async function processPayoutQueue() {
+  isProcessingQueue = true;
+
+  while (payoutQueue.length > 0) {
+    const nextCall = payoutQueue.shift();
+    const pendingInQueue = payoutQueue.length;
+
+    if (nextCall) {
+      console.log(`We have ${pendingInQueue} pending tranactions`);
+      // Execute the next API call
+      await nextCall();
+
+      // Introduce a 3-second delay between calls
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     }
   }
+
+  isProcessingQueue = false;
+}
+
+// The payoutMoney function integrated with the queue
+export async function payoutMoney(data: PayoutData) {
+  addToPayoutQueue(async () => {
+    try {
+      const response = await axios.post("/api/payout_gift", data, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Transaction successful:", response.data);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          console.error("Error response from API:", error.response.data);
+          throw new Error(error.response.data.message || "Transaction failed");
+        } else {
+          console.error("Network or other error:", error.message);
+          throw new Error("Internal Server Error");
+        }
+      } else {
+        console.error("Unexpected error:", error);
+        throw new Error("Unexpected Error");
+      }
+    }
+  });
 }
 
 export async function appendToGoogleSheet(data: SheetData) {
@@ -361,6 +480,7 @@ export const createUser = async (user: any): Promise<any> => {
 };
 
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
+
 export const createTransaction = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(
