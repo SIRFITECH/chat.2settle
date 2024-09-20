@@ -42,6 +42,7 @@ import {
   generateGiftId,
   generateTransactionId,
   getChatId,
+  phoneNumberPattern,
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
@@ -1657,7 +1658,7 @@ const ChatBot = () => {
       })();
     } else if (chatInput != "0") {
       setLoading(true);
-      const phoneNumberPattern = /^[0-9]{11}$/;
+      
 
       if (!phoneNumberPattern.test(phoneNumber)) {
         const newMessages: MessageType[] = [

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next line",
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test": "jest",
     "test:comp": "vitest",
     "test:watch": "jest --watchAll",
     "jest:clearCache": "jest --clearCache"

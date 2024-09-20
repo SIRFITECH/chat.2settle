@@ -35,3 +35,7 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
   }
   return phoneNumber;
 };
+
+export const phoneNumberPattern = /^[0-9]{11}$/;
+
+
