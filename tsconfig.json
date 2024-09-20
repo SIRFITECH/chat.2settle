@@ -14,11 +14,13 @@
     "isolatedModules": true,
     // "jsx": "preserve",
     "incremental": true,
-    "module": "commonjs",
+    // "module": "commonjs",
     "jsx": "preserve",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["jest", "@testing-library/jest-dom", "node"],
+    "module": "esnext"
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

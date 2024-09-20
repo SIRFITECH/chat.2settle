@@ -47,8 +47,11 @@
 //   }
 // }
 
+// FOR TRANSACTION TABLE
+
 import type { NextApiRequest, NextApiResponse } from "next";
 import mysql, { RowDataPacket } from "mysql2/promise"; // Use the promise version of mysql2 for async/await
+import { formatPhoneNumber } from "@/utils/utilities";
 
 // Create a connection pool (replace with your actual DB credentials)
 const db = mysql.createPool({
@@ -58,6 +61,57 @@ const db = mysql.createPool({
   database: process.env.database,
 });
 
+// export default async function handler(
+//   req: NextApiRequest,
+//   res: NextApiResponse
+// ) {
+//   const { query } = req;
+//   const { phoneNumber, walletAddress } = query;
+
+//   // If neither input is provided, return an error
+//   if (!phoneNumber && !walletAddress) {
+//     return res.status(400).json({
+//       error: "At least one of phone number or wallet address is required",
+//     });
+//   }
+
+//   try {
+//     // Construct dynamic query based on which parameters are provided
+//     let queryStr = `
+//       SELECT * FROM settle_database.2settle_transaction_table 
+//       WHERE 1=1
+//     `;
+//     const queryParams: (string | null)[] = [];
+
+//     // If phoneNumber is provided, add it to the query
+//     if (phoneNumber) {
+//       const phoneNo = formatPhoneNumber(phoneNumber as string);
+//       queryStr += " AND customer_phoneNumber = ?";
+//       queryParams.push(phoneNo as string);
+//     }
+
+//     // If walletAddress is provided, add it to the query
+//     if (walletAddress) {
+//       queryStr += " AND wallet_address = ?";
+//       queryParams.push(walletAddress as string);
+//     }
+
+//     // Execute the query, and explicitly type the result as RowDataPacket[]
+//     const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
+
+//     // Return all matching transactions
+//     if (rows.length > 0) {
+//       return res.status(200).json({ exists: true, transactions: rows });
+//     } else {
+//       return res.status(404).json({ exists: false, transactions: [] });
+//     }
+//   } catch (error) {
+//     console.error("Error checking user in database:", error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// }
+
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -65,7 +119,6 @@ export default async function handler(
   const { query } = req;
   const { phoneNumber, walletAddress } = query;
 
-  // If neither input is provided, return an error
   if (!phoneNumber && !walletAddress) {
     return res.status(400).json({
       error: "At least one of phone number or wallet address is required",
@@ -73,33 +126,30 @@ export default async function handler(
   }
 
   try {
-    // Construct dynamic query based on which parameters are provided
     let queryStr = `
-      SELECT * FROM settle_database.2settle_user 
+      SELECT * FROM settle_database.2settle_transaction_table 
       WHERE 1=1
     `;
     const queryParams: (string | null)[] = [];
 
-    // If phoneNumber is provided, add it to the query
     if (phoneNumber) {
-      queryStr += " AND phone_number = ?";
-      queryParams.push(phoneNumber as string);
+      const phoneNo = formatPhoneNumber(phoneNumber as string);
+      queryStr += " AND customer_phoneNumber = ?";
+      queryParams.push(phoneNo);
     }
 
-    // If walletAddress is provided, add it to the query
     if (walletAddress) {
       queryStr += " AND wallet_address = ?";
       queryParams.push(walletAddress as string);
     }
 
-    // Execute the query, and explicitly type the result as RowDataPacket[]
     const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
 
-    // Check if any rows were returned
+    // Return the rows (transactions) in the "transactions" field
     if (rows.length > 0) {
-      return res.status(200).json({ exists: true, user: rows[0] });
+      return res.status(200).json({ exists: true, transactions: rows });
     } else {
-      return res.status(404).json({ exists: false });
+      return res.status(404).json({ exists: false, transactions: [] });
     }
   } catch (error) {
     console.error("Error checking user in database:", error);
@@ -107,25 +157,30 @@ export default async function handler(
   }
 }
 
-// import type { NextApiRequest, NextApiResponse } from 'next';
-// import mysql, { RowDataPacket } from "mysql2/promise";  // Use the promise version of mysql2 for async/await
+// // FOR USER TABLE
+// import type { NextApiRequest, NextApiResponse } from "next";
+// import mysql, { RowDataPacket } from "mysql2/promise"; // Use the promise version of mysql2 for async/await
 
 // // Create a connection pool (replace with your actual DB credentials)
 // const db = mysql.createPool({
-
 //   host: process.env.host,
 //   user: process.env.user,
 //   password: process.env.password,
-//   database:process.env.database,
+//   database: process.env.database,
 // });
 
-// export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+// export default async function handler(
+//   req: NextApiRequest,
+//   res: NextApiResponse
+// ) {
 //   const { query } = req;
 //   const { phoneNumber, walletAddress } = query;
 
 //   // If neither input is provided, return an error
 //   if (!phoneNumber && !walletAddress) {
-//     return res.status(400).json({ error: 'At least one of phone number or wallet address is required' });
+//     return res.status(400).json({
+//       error: "At least one of phone number or wallet address is required",
+//     });
 //   }
 
 //   try {
@@ -138,26 +193,27 @@ export default async function handler(
 
 //     // If phoneNumber is provided, add it to the query
 //     if (phoneNumber) {
-//       queryStr += ' AND phone_number = ?';
+//       queryStr += " AND phone_number = ?";
 //       queryParams.push(phoneNumber as string);
 //     }
 
 //     // If walletAddress is provided, add it to the query
 //     if (walletAddress) {
-//       queryStr += ' AND wallet_address = ?';
+//       queryStr += " AND wallet_address = ?";
 //       queryParams.push(walletAddress as string);
 //     }
 
-//     // Execute the query
-//     const [rows] = await db.query(queryStr, queryParams);
+//     // Execute the query, and explicitly type the result as RowDataPacket[]
+//     const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
 
+//     // Check if any rows were returned
 //     if (rows.length > 0) {
 //       return res.status(200).json({ exists: true, user: rows[0] });
 //     } else {
 //       return res.status(404).json({ exists: false });
 //     }
 //   } catch (error) {
-//     console.error('Error checking user in database:', error);
-//     return res.status(500).json({ error: 'Internal server error' });
+//     console.error("Error checking user in database:", error);
+//     return res.status(500).json({ error: "Internal server error" });
 //   }
 // }

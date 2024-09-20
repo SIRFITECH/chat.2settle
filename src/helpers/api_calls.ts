@@ -256,53 +256,31 @@ export const updateGiftTransaction = async (
   }
 };
 
-// export async function payoutMoney(data: ClaimGiftData) {
-//   try {
-//     const response = await axios.post("/api/payout_gift", data, {
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//     });
+const payoutQueue: (() => Promise<void>)[] = [];
+let isProcessingQueue = false;
 
-//     console.log("Transaction successful:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     if (axios.isAxiosError(error)) {
-//       if (error.response) {
-//         console.error("Error response from API:", error.response.data);
-//         throw new Error(error.response.data.message || "Transaction failed");
-//       } else {
-//         console.error("Network or other error:", error.message);
-//         throw new Error("Internal Server Error");
-//       }
-//     } else {
-//       console.error("Unexpected error:", error);
-//       throw new Error("Unexpected Error");
-//     }
-//   }
-// }
-
-// Queue to store the payout API calls
-
-// function addCallToQueue(call: () => Promise<void>) {
+// export function addToPayoutQueue(call: () => Promise<void>) {
 //   payoutQueue.push(call);
 
+//   // If the queue is not currently processing, start processing
 //   if (!isProcessingQueue) {
-//     processQueue();
+//     processPayoutQueue();
 //   }
 // }
 
-// async function processQueue() {
+// export async function processPayoutQueue() {
 //   isProcessingQueue = true;
 
 //   while (payoutQueue.length > 0) {
 //     const nextCall = payoutQueue.shift();
+//     const pendingInQueue = payoutQueue.length;
 
 //     if (nextCall) {
+//       console.log(`We have ${pendingInQueue} pending tranactions`);
 //       // Execute the next API call
 //       await nextCall();
 
-//       // Wait for 3 seconds before processing the next call
+//       // Introduce a 3-second delay between calls
 //       await new Promise((resolve) => setTimeout(resolve, 3000));
 //     }
 //   }
@@ -310,30 +288,7 @@ export const updateGiftTransaction = async (
 //   isProcessingQueue = false;
 // }
 
-// // Example of how to queue an API call
-// function makeApiCall() {
-//   return new Promise<void>(async (resolve, reject) => {
-//     try {
-//       // Simulate calling your external API
-//       const response = await fetch("https://api.example.com");
-//       const data = await response.json();
-//       console.log(data);
-
-//       // Resolve the promise once the call is done
-//       resolve();
-//     } catch (error) {
-//       reject(error);
-//     }
-//   });
-// }
-
-// // To add a new API call to the queue
-// addCallToQueue(makeApiCall);
-
-const payoutQueue: (() => Promise<void>)[] = [];
-let isProcessingQueue = false;
-
-function addToPayoutQueue(call: () => Promise<void>) {
+export function addToPayoutQueue(call: () => Promise<void>) {
   payoutQueue.push(call);
 
   // If the queue is not currently processing, start processing
@@ -344,50 +299,61 @@ function addToPayoutQueue(call: () => Promise<void>) {
 
 async function processPayoutQueue() {
   isProcessingQueue = true;
+  let isFirstCall = true; // To track if it's the first call
 
   while (payoutQueue.length > 0) {
+    console.log(`We have ${payoutQueue.length} transaction(s) to start with`);
     const nextCall = payoutQueue.shift();
     const pendingInQueue = payoutQueue.length;
 
     if (nextCall) {
-      console.log(`We have ${pendingInQueue} pending tranactions`);
+      console.log(`We have ${pendingInQueue} pending transactions`);
+
       // Execute the next API call
       await nextCall();
 
-      // Introduce a 3-second delay between calls
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      // Add a 3-second delay after every call except the first one
+      if (!isFirstCall && pendingInQueue > 0) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+
+      // After the first call, set the flag to false to allow delay for the next calls
+      isFirstCall = false;
     }
   }
 
   isProcessingQueue = false;
 }
 
-// The payoutMoney function integrated with the queue
 export async function payoutMoney(data: PayoutData) {
-  addToPayoutQueue(async () => {
-    try {
-      const response = await axios.post("/api/payout_gift", data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+  return new Promise((resolve, reject) => {
+    addToPayoutQueue(async () => {
+      try {
+        const response = await axios.post("/api/payout_gift", data, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-      console.log("Transaction successful:", response.data);
-      return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          console.error("Error response from API:", error.response.data);
-          throw new Error(error.response.data.message || "Transaction failed");
+        console.log("Transaction successful:", response.data);
+        resolve(response.data); // Resolve when the transaction is successful
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response) {
+            console.error("Error response from API:", error.response.data);
+            reject(
+              new Error(error.response.data.message || "Transaction failed")
+            ); // Reject in case of error
+          } else {
+            console.error("Network or other error:", error.message);
+            reject(new Error("Internal Server Error"));
+          }
         } else {
-          console.error("Network or other error:", error.message);
-          throw new Error("Internal Server Error");
+          console.error("Unexpected error:", error);
+          reject(new Error("Unexpected Error"));
         }
-      } else {
-        console.error("Unexpected error:", error);
-        throw new Error("Unexpected Error");
       }
-    }
+    });
   });
 }
 

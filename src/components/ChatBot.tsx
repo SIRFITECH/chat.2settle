@@ -42,6 +42,7 @@ import {
   generateGiftId,
   generateTransactionId,
   getChatId,
+  phoneNumberPattern,
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
@@ -1657,7 +1658,7 @@ const ChatBot = () => {
       })();
     } else if (chatInput != "0") {
       setLoading(true);
-      const phoneNumberPattern = /^[0-9]{11}$/;
+      
 
       if (!phoneNumberPattern.test(phoneNumber)) {
         const newMessages: MessageType[] = [
@@ -1691,19 +1692,25 @@ const ChatBot = () => {
 
         // let giftStatus = (await isGiftValid(sharedGiftId)).statuses;
         // let transactionStatus = (await isGiftValid(sharedGiftId)).statuses;
-       let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
-let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
-        
-try {
-          let giftNotClaimed = 
+        let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
+        let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
+
+        try {
+          let giftNotClaimed =
             giftStatus?.toLocaleLowerCase() === "not claimed" &&
             transactionStatus?.toLocaleLowerCase() === "successful";
-          let giftClaimed = 
+
+          let giftClaimed =
             giftStatus?.toLocaleLowerCase() === "claimed" &&
             transactionStatus?.toLocaleLowerCase() === "successful";
-          let giftNotPaid = 
+
+          let paymentPending =
             giftStatus?.toLocaleLowerCase() === "pending" &&
             transactionStatus?.toLocaleLowerCase() === "processing";
+
+          let giftNotPaid =
+            giftStatus?.toLocaleLowerCase() === "pending" &&
+            transactionStatus?.toLocaleLowerCase() === "unsuccessful";
 
           if (giftNotClaimed) {
             const giftUpdateDate = {
@@ -1715,9 +1722,7 @@ try {
               gift_status: "Claimed",
             };
 
-            const nairaPayment: string = (
-              await getGiftNaira(sharedGiftId)
-            ).toString();
+            const nairaPayment = (await getGiftNaira(sharedGiftId)).toString();
 
             const giftData = {
               accountNumber: bankData.acct_number,
@@ -1728,29 +1733,15 @@ try {
               narration: narration,
             };
 
-            // Update the transaction to "Not Claimed" before making the payment
+            // Update transaction to "Pending" before making the payment
             await updateGiftTransaction(sharedGiftId, {
               gift_status: "Pending",
             });
 
-            // Attempt to claim the gift money
+            // Attempt to claim the gift money, use Mongoro from Next app
             await payoutMoney(giftData);
 
-            // claim gift through googlesheet
-            // const data = {
-            //   "Gift ID": sharedGiftId.toString(),
-            //   "Account Name": bankData.receiver_name || "",
-            //   "Account Number": bankData.acct_number || "",
-            //   "Bank Name": bankData.bank_name || "",
-            //   "Payment Amount": nairaPayment,
-            // };
-
-            // await appendToGoogleSheet(data);
-
-            // If successful, update the transaction status to "Claimed"
-            await updateGiftTransaction(sharedGiftId, giftUpdateDate);
-
-            // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
+            // // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
             // await updateGiftTransaction(sharedGiftId, {
             //   gift_chatID: sharedGiftId,
             //   acct_number: bankData.acct_number,
@@ -1760,16 +1751,45 @@ try {
             //   gift_status: "Processing",
             // });
 
+            //     // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
+            // await updateGiftTransaction(sharedGiftId, {
+            //   gift_chatID: sharedGiftId,
+            //   acct_number: bankData.acct_number,
+            //   bank_name: bankData.bank_name,
+            //   receiver_name: bankData.receiver_name,
+            //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+            //   gift_status: "Processing",
+            // });
+
+            // Only update the status to "Claimed" if payoutMoney is successful
+            await updateGiftTransaction(sharedGiftId, giftUpdateDate);
+
             setLoading(false);
             displayGiftFeedbackMessage(addChatMessages, nextStep);
             helloMenu("hi");
-            // console.log("User gift data updated", giftUpdateDate);
           } else if (giftClaimed) {
+            setLoading(false);
+            addChatMessages([
+              { type: "incoming", content: "This gift is already claimed" },
+            ]);
+            helloMenu("hi");
+            goToStep("start");
+          } else if (paymentPending) {
             setLoading(false);
             addChatMessages([
               {
                 type: "incoming",
-                content: "This gift is already claimed",
+                content: (
+                  <span>
+                    We are yet to confirm the crypto payment <br />
+                    Please check again later.
+                  </span>
+                ),
+              },
+              {
+                type: "incoming",
+                content:
+                  "If it persists, it could be that the gifter has not sent the asset yet.",
               },
             ]);
             helloMenu("hi");
@@ -1779,33 +1799,23 @@ try {
             addChatMessages([
               {
                 type: "incoming",
-                content: <span>
-                We are yet to confirm the crypto payment <br />
-                Please check again in later,
-
-                </span>
-                
-              },
-              {
-                type: "incoming",
-                content:
-                  "If it persists, it could be that the gifter have not sent the asset yet",
+                content: (
+                  <span>
+                    This gift has been canceled. <br />
+                    You have to contact your gifter to do the transaction again.
+                  </span>
+                ),
               },
             ]);
             helloMenu("hi");
             goToStep("start");
-          } else {        
+          } else {
             setLoading(false);
             addChatMessages([
               {
                 type: "incoming",
-                content: "You have to reach our customer support",
+                content: "You have to reach our customer support.",
               },
-              // {
-              //   type: "incoming",
-              //   content:
-              //     "If it persists, it could be that the gifter have not sent the asset",
-              // },
             ]);
             helloMenu("hi");
             goToStep("start");
@@ -1813,30 +1823,178 @@ try {
         } catch (error) {
           console.error("Error during gift claim process:", error);
 
-          // Rollback or update the transaction to indicate a failure
+          // Rollback or retain the transaction status in case of failure
           await updateGiftTransaction(sharedGiftId, {
             gift_status: giftStatus,
           });
 
           setLoading(false);
-
-          // Inform the user that the transaction failed
           addChatMessages([
             {
               type: "incoming",
               content: (
-                <span>
-                  Sorry, the transaction failed. Please try again
-                  {/* <br />
-                  <br />
-                  <b> NOTE:</b> We don't support microfinance banks like Opay,
-                  Kuda Bank, or Moniepoint at the moment. */}
-                </span>
+                <span>Sorry, the transaction failed. Please try again.</span>
               ),
             },
           ]);
           displayEnterGiftId(addChatMessages, nextStep);
         }
+
+        // try {
+        //   let giftNotClaimed =
+        //     giftStatus?.toLocaleLowerCase() === "not claimed" &&
+        //     transactionStatus?.toLocaleLowerCase() === "successful";
+        //   let giftClaimed =
+        //     giftStatus?.toLocaleLowerCase() === "claimed" &&
+        //     transactionStatus?.toLocaleLowerCase() === "successful";
+        //   let paymentPending =
+        //     giftStatus?.toLocaleLowerCase() === "pending" &&
+        //     transactionStatus?.toLocaleLowerCase() === "processing";
+        //   let giftNotPaid =
+        //     giftStatus?.toLocaleLowerCase() === "pending" &&
+        //     transactionStatus?.toLocaleLowerCase() === "unsuccessful";
+
+        //   if (giftNotClaimed) {
+        //     const giftUpdateDate = {
+        //       gift_chatID: sharedGiftId,
+        //       acct_number: bankData.acct_number,
+        //       bank_name: bankData.bank_name,
+        //       receiver_name: bankData.receiver_name,
+        //       receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+        //       gift_status: "Claimed",
+        //     };
+
+        //     const nairaPayment: string = (
+        //       await getGiftNaira(sharedGiftId)
+        //     ).toString();
+
+        //     const giftData = {
+        //       accountNumber: bankData.acct_number,
+        //       accountBank: sharedSelectedBankCode,
+        //       bankName: bankData.bank_name,
+        //       amount: nairaPayment,
+        //       accountName: bankData.receiver_name,
+        //       narration: narration,
+        //     };
+
+        //     // Update the transaction to "Pending" before making the payment
+        //     await updateGiftTransaction(sharedGiftId, {
+        //       gift_status: "Pending",
+        //     });
+
+        //     // Attempt to claim the gift money
+        //     await payoutMoney(giftData);
+
+        //     // claim gift through googlesheet
+        //     // const data = {
+        //     //   "Gift ID": sharedGiftId.toString(),
+        //     //   "Account Name": bankData.receiver_name || "",
+        //     //   "Account Number": bankData.acct_number || "",
+        //     //   "Bank Name": bankData.bank_name || "",
+        //     //   "Payment Amount": nairaPayment,
+        //     // };
+
+        //     // await appendToGoogleSheet(data);
+
+        //     // If successful, update the transaction status to "Claimed"
+        //     await updateGiftTransaction(sharedGiftId, giftUpdateDate);
+
+        //     // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
+        //     // await updateGiftTransaction(sharedGiftId, {
+        //     //   gift_chatID: sharedGiftId,
+        //     //   acct_number: bankData.acct_number,
+        //     //   bank_name: bankData.bank_name,
+        //     //   receiver_name: bankData.receiver_name,
+        //     //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+        //     //   gift_status: "Processing",
+        //     // });
+
+        //     setLoading(false);
+        //     displayGiftFeedbackMessage(addChatMessages, nextStep);
+        //     helloMenu("hi");
+        //     // console.log("User gift data updated", giftUpdateDate);
+        //   } else if (giftClaimed) {
+        //     setLoading(false);
+        //     addChatMessages([
+        //       {
+        //         type: "incoming",
+        //         content: "This gift is already claimed",
+        //       },
+        //     ]);
+        //     helloMenu("hi");
+        //     goToStep("start");
+        //   } else if (paymentPending) {
+        //     setLoading(false);
+        //     addChatMessages([
+        //       {
+        //         type: "incoming",
+        //         content: (
+        //           <span>
+        //             We are yet to confirm the crypto payment <br />
+        //             Please check again in later,
+        //           </span>
+        //         ),
+        //       },
+        //       {
+        //         type: "incoming",
+        //         content:
+        //           "If it persists, it could be that the gifter have not sent the asset yet",
+        //       },
+        //     ]);
+        //     helloMenu("hi");
+        //     goToStep("start");
+        //   } else if (giftNotPaid) {
+        //     setLoading(false);
+        //     addChatMessages([
+        //       {
+        //         type: "incoming",
+        //         content: (
+        //           <span>
+        //             This gift have been canceled <br />
+        //             You have to contact your gifter to do the transaction again
+        //           </span>
+        //         ),
+        //       },
+        //     ]);
+        //     helloMenu("hi");
+        //     goToStep("start");
+        //   } else {
+        //     setLoading(false);
+        //     addChatMessages([
+        //       {
+        //         type: "incoming",
+        //         content: "You have to reach our customer support",
+        //       },
+        //       // {
+        //       //   type: "incoming",
+        //       //   content:
+        //       //     "If it persists, it could be that the gifter have not sent the asset",
+        //       // },
+        //     ]);
+        //     helloMenu("hi");
+        //     goToStep("start");
+        //   }
+        // } catch (error) {
+        //   console.error("Error during gift claim process:", error);
+
+        //   // Rollback or update the transaction to indicate a failure
+        //   await updateGiftTransaction(sharedGiftId, {
+        //     gift_status: giftStatus,
+        //   });
+
+        //   setLoading(false);
+
+        //   // Inform the user that the transaction failed
+        //   addChatMessages([
+        //     {
+        //       type: "incoming",
+        //       content: (
+        //         <span>Sorry, the transaction failed. Please try again</span>
+        //       ),
+        //     },
+        //   ]);
+        //   displayEnterGiftId(addChatMessages, nextStep);
+        // }
       } else if (isGiftTrx) {
         console.log("USER WANTS TO SEND GIFT");
         const transactionID = generateTransactionId();
