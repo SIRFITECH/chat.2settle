@@ -1,6 +1,7 @@
 import React from "react";
 import { MessageType, Result } from "../types/types";
 import { formatCurrency } from "../helpers/format_currency";
+import { CountdownTimer } from "@/helpers/format_date";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -1019,6 +1020,8 @@ export const displaySendPayment = async (
 
   let isGift = sharedPaymentMode.toLowerCase() === "gift";
 
+  const allowedTime = 5;
+
   const newMessages: MessageType[] = [
     {
       type: "incoming",
@@ -1060,9 +1063,16 @@ export const displaySendPayment = async (
           {wallet}
           <br />
           <br />
-          <b>This transaction expires after 10 munites</b>
+          <b>This transaction expires in {allowedTime.toString()} minutes</b>
           <br />
-          <b>This wallet address is only available for the next 10 munites</b>
+          <b>
+            You have {<CountdownTimer />} minutes to complete the transaction
+          </b>
+          <br />
+          <b>
+            This wallet address is only available for {""}
+            {allowedTime.toString()} munites
+          </b>
         </span>
       ),
     },
@@ -1081,19 +1091,6 @@ export const displaySendPayment = async (
         </span>
       ),
     },
-
-    // {
-    //   type: "incoming",
-    //   content: (
-    //     <span>
-    //       Make A choice:
-    //       <br />
-    //       1.Confirm Transaction
-    //       <br />
-    //       2.Cancel Transaction
-    //     </span>
-    //   ),
-    // },
   ];
   if (isGift) {
     newMessages[1] = {
