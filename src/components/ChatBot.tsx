@@ -46,7 +46,7 @@ import {
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
-import { getFormattedDateTime } from "../helpers/format_date";
+import { CountdownTimer, getFormattedDateTime } from "../helpers/format_date";
 import {
   asignWallet,
   checkBEP20Transaction,
@@ -92,6 +92,7 @@ import {
   displayTransactionProcessing,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
+import { Button, Dialog, DialogContent } from "@mui/material";
 // import { approveAmount, transferTokens } from "../helpers/spende_ether";
 
 const initialMessages = [
@@ -281,20 +282,13 @@ const ChatBot = () => {
   }, [serializedMessages, currentStep, stepHistory]);
 
   useEffect(() => {
-    // console.log("Crypto ticker", sharedTicker);
     if (sharedCrypto != "") {
       if (sharedCrypto.toLowerCase() === "usdt") {
         setSharedAssetPrice(`${rate}`);
-        // console.log(
-        //   `form fetchCoinPrice The price of ${sharedTicker} in USDT is: ${sharedAssetPrice}`
-        // );
       } else {
         fetchCoinPrice(`${sharedCrypto}`).then((price) => {
           if (price !== null) {
             setSharedAssetPrice(`${price}`);
-            // console.log(
-            //   `form fetchCoinPrice The price of ${sharedCrypto} in USDT is: ${price}`
-            // );
           } else {
             console.log("form fetchCoinPrice Failed to fetch the price.");
           }
@@ -1647,19 +1641,19 @@ const ChatBot = () => {
   // CREATE USER, UPDATE TRANSACTION
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
+
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
     } else if (chatInput != "0") {
       setLoading(true);
-      
 
+      // Validate phone number
       if (!phoneNumberPattern.test(phoneNumber)) {
         const newMessages: MessageType[] = [
           {
@@ -1683,6 +1677,63 @@ const ChatBot = () => {
       let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
       let requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
+      if (!isGift && !requestPayment) {
+        // Show prompt to user
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <div className="flex flex-col items-center">
+                <p className="mb-4">
+                  Do you understand that you need to complete your payment
+                  within <b>5 minutes</b>, otherwise you may lose your money.
+                </p>
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out"
+                  onClick={async () => {
+                    setLoading(true);
+                    await proceedWithTransaction(phoneNumber);
+                  }}
+                >
+                  Confirm and Proceed
+                </button>
+              </div>
+            ),
+          },
+        ];
+
+        setLoading(false);
+        addChatMessages(newMessages);
+      } else {
+        await processTransaction(
+          phoneNumber,
+          isGift,
+          isGiftTrx,
+          requestPayment
+        );
+      }
+    } else {
+      setLoading(false);
+      console.log("User input not recognized");
+    }
+  };
+
+  const proceedWithTransaction = async (phoneNumber: string) => {
+    setLoading(true);
+    let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+    let requestPayment = sharedPaymentMode.toLowerCase() === "request";
+
+    await processTransaction(phoneNumber, false, isGiftTrx, requestPayment);
+    setLoading(false);
+  };
+
+  const processTransaction = async (
+    phoneNumber: string,
+    isGift: boolean,
+    isGiftTrx: boolean,
+    requestPayment: boolean
+  ) => {
+    try {
       if (isGift) {
         // UPDATE THE USER GIFT PAYMENT DATA
         // - gift_status = "Not Claimed"> "Claimed"
@@ -1690,8 +1741,6 @@ const ChatBot = () => {
 
         console.log("USER WANTS TO CLAIM GIFT");
 
-        // let giftStatus = (await isGiftValid(sharedGiftId)).statuses;
-        // let transactionStatus = (await isGiftValid(sharedGiftId)).statuses;
         let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
         let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
 
@@ -2287,25 +2336,6 @@ const ChatBot = () => {
         //   setSharedWallet
         // );
 
-        // // Initialize wallet queue with 10 wallets
-        // const walletQueue = new WalletQueueWithLock([
-        //   "wallet1",
-        //   "wallet2",
-        //   "wallet3",
-        //   "wallet4",
-        //   "wallet5",
-        //   "wallet6",
-        //   "wallet7",
-        //   "wallet8",
-        //   "wallet9",
-        //   "wallet10",
-        // ]);
-
-        // // Simulate multiple payments
-        // processQueue(walletQueue);
-        // processQueue(walletQueue);
-        // processQueue(walletQueue);
-
         // const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
 
         // const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
@@ -2537,9 +2567,8 @@ const ChatBot = () => {
         //   }
         // }
       }
-    } else {
-      setLoading(false);
-      console.log("User input not recognized");
+    } catch (error) {
+      console.error("Error during transaction", error);
     }
   };
 

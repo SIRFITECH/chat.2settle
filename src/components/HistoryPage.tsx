@@ -1,103 +1,3 @@
-// const Transactions: any[] =
-//   // [];
-//   [
-//     {
-//       id: 1,
-//       type: "Spend",
-//       amount: 0.5,
-//       currency: "BTC",
-//       date: "2023-04-01",
-//       status: "Completed",
-//     },
-//     {
-//       id: 2,
-//       type: "Receive",
-//       amount: 1000,
-//       currency: "USD",
-//       date: "2023-03-28",
-//       status: "Completed",
-//     },
-//     {
-//       id: 3,
-//       type: "Spend",
-//       amount: 1.2,
-//       currency: "ETH",
-//       date: "2023-03-25",
-//       status: "Pending",
-//     },
-//     {
-//       id: 4,
-//       type: "Receive",
-//       amount: 500,
-//       currency: "EUR",
-//       date: "2023-03-20",
-//       status: "Completed",
-//     },
-//     {
-//       id: 5,
-//       type: "Spend",
-//       amount: 0.3,
-//       currency: "BTC",
-//       date: "2023-03-15",
-//       status: "Failed",
-//     },
-//     {
-//       id: 6,
-//       type: "Receive",
-//       amount: 750,
-//       currency: "USD",
-//       date: "2023-03-10",
-//       status: "Completed",
-//     },
-//     {
-//       id: 7,
-//       type: "Spend",
-//       amount: 0.5,
-//       currency: "BTC",
-//       date: "2023-04-01",
-//       status: "Completed",
-//     },
-//     {
-//       id: 8,
-//       type: "Receive",
-//       amount: 1000,
-//       currency: "USD",
-//       date: "2023-03-28",
-//       status: "Completed",
-//     },
-//     {
-//       id: 9,
-//       type: "Spend",
-//       amount: 1.2,
-//       currency: "ETH",
-//       date: "2023-03-25",
-//       status: "Pending",
-//     },
-//     {
-//       id: 10,
-//       type: "Receive",
-//       amount: 500,
-//       currency: "EUR",
-//       date: "2023-03-20",
-//       status: "Completed",
-//     },
-//     {
-//       id: 11,
-//       type: "Spend",
-//       amount: 0.3,
-//       currency: "BTC",
-//       date: "2023-03-15",
-//       status: "Failed",
-//     },
-//     {
-//       id: 12,
-//       type: "Receive",
-//       amount: 750,
-//       currency: "USD",
-//       date: "2023-03-10",
-//       status: "Completed",
-//     },
-//   ];
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAccount, useDisconnect } from "wagmi";
@@ -121,107 +21,6 @@ import { checkUserHasHistory } from "@/helpers/api_call/history_page_calls";
 
 const Transactions: any[] = [];
 
-// const Transactions: any[] =
-//   // [];
-//   [
-//     {
-//       id: 1,
-//       type: "Spend",
-//       amount: 0.5,
-//       currency: "BTC",
-//       date: "2023-04-01",
-//       status: "Completed",
-//     },
-//     {
-//       id: 2,
-//       type: "Receive",
-//       amount: 1000,
-//       currency: "USD",
-//       date: "2023-03-28",
-//       status: "Completed",
-//     },
-//     {
-//       id: 3,
-//       type: "Spend",
-//       amount: 1.2,
-//       currency: "ETH",
-//       date: "2023-03-25",
-//       status: "Pending",
-//     },
-//     {
-//       id: 4,
-//       type: "Receive",
-//       amount: 500,
-//       currency: "EUR",
-//       date: "2023-03-20",
-//       status: "Completed",
-//     },
-//     {
-//       id: 5,
-//       type: "Spend",
-//       amount: 0.3,
-//       currency: "BTC",
-//       date: "2023-03-15",
-//       status: "Failed",
-//     },
-//     {
-//       id: 6,
-//       type: "Receive",
-//       amount: 750,
-//       currency: "USD",
-//       date: "2023-03-10",
-//       status: "Completed",
-//     },
-//     {
-//       id: 7,
-//       type: "Spend",
-//       amount: 0.5,
-//       currency: "BTC",
-//       date: "2023-04-01",
-//       status: "Completed",
-//     },
-//     {
-//       id: 8,
-//       type: "Receive",
-//       amount: 1000,
-//       currency: "USD",
-//       date: "2023-03-28",
-//       status: "Completed",
-//     },
-//     {
-//       id: 9,
-//       type: "Spend",
-//       amount: 1.2,
-//       currency: "ETH",
-//       date: "2023-03-25",
-//       status: "Pending",
-//     },
-//     {
-//       id: 10,
-//       type: "Receive",
-//       amount: 500,
-//       currency: "EUR",
-//       date: "2023-03-20",
-//       status: "Completed",
-//     },
-//     {
-//       id: 11,
-//       type: "Spend",
-//       amount: 0.3,
-//       currency: "BTC",
-//       date: "2023-03-15",
-//       status: "Failed",
-//     },
-//     {
-//       id: 12,
-//       type: "Receive",
-//       amount: 750,
-//       currency: "USD",
-//       date: "2023-03-10",
-//       status: "Completed",
-//     },
-//   ];
-
 type ToastType = "success" | "error" | "warning" | "info";
 
 const HistoryPage: React.FC = () => {
@@ -239,20 +38,17 @@ const HistoryPage: React.FC = () => {
   const router = useRouter();
   const account = useAccount();
   const { disconnect } = useDisconnect();
+  const wallet = account.address;
 
   useEffect(() => {
     if (account.isConnected) {
       handleAuthentication();
-      // const userHistory = checkUserHasHistory(phoneNumber).then((history)=>{
-      //  Transactions.push(history.user);})
+      populateHistory(undefined, wallet);
     } else {
+      Transactions.length = 0;
       setIsAuthenticated(false);
     }
   }, [account.isConnected]);
-
-  // useEffect(() => {
-  //   populateHistory("1H2AEX9WWRkiENWt5P1ycHpoJmedof5a6d");
-  // });
 
   const handleAuthentication = () => {
     setIsAuthenticated(true);
@@ -272,7 +68,7 @@ const HistoryPage: React.FC = () => {
         showToast("Please enter a valid Phone number.", "error");
         return;
       } else {
-        populateHistory(phoneNumber);
+        populateHistory(phoneNumber, "");
         const generatedOTP = Math.floor(
           100000 + Math.random() * 900000
         ).toString();
@@ -328,6 +124,7 @@ const HistoryPage: React.FC = () => {
     setPhoneNumber("");
     setOtp("");
     setUserOTPEntry("");
+    Transactions.length = 0;
     showToast("Please authenticate again", "info");
   };
   const populateHistory = async (
@@ -343,19 +140,34 @@ const HistoryPage: React.FC = () => {
       const userHistory = await checkUserHasHistory(phoneNumber, walletAddress);
 
       if (userHistory.exists && Array.isArray(userHistory.transactions)) {
-        console.log("These are the transactions of the user:");
         userHistory.transactions.forEach((transaction, index) => {
+          let paymentType = transaction.mode_of_payment;
+
+          switch (paymentType) {
+            case "transferMoney":
+              paymentType = "Paid";
+              break;
+            case "Gift":
+              paymentType = "Gifts Sent";
+              break;
+            case "Claim Gift":
+              paymentType = "Gifts Received";
+              break;
+            case "request":
+              paymentType = "Received";
+              break;
+            default:
+              paymentType = transaction.mode_of_payment;
+          }
           const transformedTransaction = {
             id: index + 1,
-            type: transaction.mode_of_payment,
+            type: paymentType,
             amount: transaction.Amount,
             currency: transaction.crypto,
             date: transaction.Date,
             status: transaction.status,
           };
           Transactions.push(transformedTransaction);
-
-          console.log("Transformed Transactions:", Transactions);
         });
       } else {
         console.log("No transactions found for the user.");
@@ -367,9 +179,9 @@ const HistoryPage: React.FC = () => {
 
   const filteredTransactions = Transactions.filter((transaction) => {
     const matchesSearch =
-      transaction.currency.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.date.includes(searchTerm) ||
-      transaction.amount.toString().includes(searchTerm);
+      transaction.currency?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.date?.includes(searchTerm) ||
+      transaction.amount?.toString().includes(searchTerm);
     const matchesType =
       filterType === "all" || transaction.type.toLowerCase() === filterType;
     return matchesSearch && matchesType;
@@ -467,7 +279,7 @@ const HistoryPage: React.FC = () => {
         <div className="flex-grow relative">
           <TextField
             type="text"
-            placeholder="Search by currency, date, or amount"
+            placeholder="Search by amount, crypto or date"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             fullWidth
@@ -487,10 +299,10 @@ const HistoryPage: React.FC = () => {
             }}
           >
             <option value="all">All Transactions</option>
-            <option value="spend">Paid</option>
-            <option value="receive">Received</option>
-            <option value="gift_sent">Gifts Sent</option>
-            <option value="gift_received">Gifts Received</option>
+            <option value="paid">Paid</option>
+            <option value="received">Received</option>
+            <option value="gifts sent">Gifts Sent</option>
+            <option value="gifts received">Gifts Received</option>
           </TextField>
         </div>
       </div>
@@ -517,8 +329,8 @@ const HistoryPage: React.FC = () => {
                       >
                         <td className="py-2 px-4">
                           <div className="flex items-center">
-                            {transaction.type === "transferMoney" ||
-                            transaction.type === "Gift" ? (
+                            {transaction.type === "Paid" ||
+                            transaction.type === "Gifts Sent" ? (
                               <ArrowUpwardIcon className="mr-2 h-4 w-4 text-red-500" />
                             ) : (
                               <ArrowDownwardIcon className="mr-2 h-4 w-4 text-green-500" />
@@ -534,7 +346,8 @@ const HistoryPage: React.FC = () => {
                             className={`px-2 py-1 rounded-full text-xs ${
                               transaction.status === "Successful"
                                 ? "bg-green-200 text-green-800"
-                                : transaction.status === "Pending"
+                                : transaction.status === "Pending" ||
+                                  transaction.status === "Processing"
                                 ? "bg-yellow-200 text-yellow-800"
                                 : "bg-red-200 text-red-800"
                             }`}

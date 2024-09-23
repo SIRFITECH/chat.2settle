@@ -236,7 +236,7 @@ export default function Component() {
             <div>
               <h2 className="font-bold font-Poppins text-2xl md:text-3xl mb-4">
                 Today's Rate: <br />
-                <span className="text-blue-500 text-4xl md:text-5xl">
+                <span className="text-blue-500 text-4xl md:text-5xl animate-pulse">
                   <b>{formattedRate}/$1</b>
                 </span>
               </h2>
