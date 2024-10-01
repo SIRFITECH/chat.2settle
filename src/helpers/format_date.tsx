@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export function getFormattedDateTime(): string {
   const now = new Date();
 
@@ -19,3 +21,30 @@ export function getFormattedDateTime(): string {
 
   return `${time} ${formattedDate}`;
 }
+
+export const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState(5 * 60);
+
+  useEffect(() => {
+    if (timeLeft <= 0) return;
+
+    const intervalId = setInterval(() => {
+      setTimeLeft((prevTime) => prevTime - 1);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [timeLeft]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  return (
+    <span
+      className={`font-bold text-xl ${
+        timeLeft > 2 * 60 ? "text-green-600 " : "text-red-600 animate-pulse"
+      }`}
+    >
+      {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+    </span>
+  );
+};
