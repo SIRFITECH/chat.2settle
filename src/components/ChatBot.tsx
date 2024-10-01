@@ -2246,7 +2246,6 @@ const ChatBot = () => {
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
           gift_chatID: null,
-          // giftID.toString(),
           settle_walletLink: null,
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
