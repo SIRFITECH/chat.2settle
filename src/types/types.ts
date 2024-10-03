@@ -7,7 +7,7 @@ export type MessageType = {
   content: React.ReactNode;
 };
 
-//WALLET 
+//WALLET
 export type EthereumAddress = `0x${string}`;
 
 // RATES FROM THE VENDOR TABLE
@@ -65,6 +65,7 @@ export interface userData {
   name?: string | null;
   gift_status?: string | null;
   gift_chatID?: string | null;
+  asset_price?: string | null;
 }
 export interface SheetData {
   "Gift ID": string;
@@ -72,7 +73,7 @@ export interface SheetData {
   "Account Number": string;
   "Bank Name": string;
   "Payment Amount": string;
-};
+}
 export interface erc20TrxData {
   blockHash: string;
   blockNumber: string;
@@ -237,51 +238,52 @@ export interface SharedStateContextProps {
   setSharedTransactionId: React.Dispatch<React.SetStateAction<string>>;
   sharedGiftId: string;
   setSharedGiftId: React.Dispatch<React.SetStateAction<string>>;
+  sharedReportlyReportType: string;
+  setSharedReportlyReportType: React.Dispatch<React.SetStateAction<string>>;
 }
 
-
-  // if (successfulTrx && giftNotClaimed) {
-          //   // allow user to continue to claim
-          //   // displaySearchBank(addChatMessages, nextStep);
-          // } else if (unSuccessfulTrx) {
-          //   // the crypto is not yet transfered
-          //   addChatMessages([
-          //     {
-          //       type: "incoming",
-          //       content: "The gifter did not send the crypto",
-          //     },
-          //   ]);
-          //   goToStep("start");
-          //   helloMenu("hi");
-          // } else if (processingTrx) {
-          //   // we have not confirmed the crypto sent yet
-          //   addChatMessages([
-          //     {
-          //       type: "incoming",
-          //       content:
-          //         "Please wiat, we have to confirm the crypto payment first",
-          //     },
-          //   ]);
-          //   goToStep("start");
-          //   helloMenu("hi");
-          // } else if (uncompletedTrx) {
-          //   // this payment was canceled by the gifter
-          //   addChatMessages([
-          //     {
-          //       type: "incoming",
-          //       content: "The gifter did not complete the gifting process",
-          //     },
-          //   ]);
-          //   goToStep("start");
-          //   helloMenu("hi");
-          // } else if (CancelTrx) {
-          //   // the gifter canceled this transaction
-          //   addChatMessages([
-          //     {
-          //       type: "incoming",
-          //       content: "This transaction was canceleds",
-          //     },
-          //   ]);
-          //   goToStep("start");
-          //   helloMenu("hi");
-          // }
+// if (successfulTrx && giftNotClaimed) {
+//   // allow user to continue to claim
+//   // displaySearchBank(addChatMessages, nextStep);
+// } else if (unSuccessfulTrx) {
+//   // the crypto is not yet transfered
+//   addChatMessages([
+//     {
+//       type: "incoming",
+//       content: "The gifter did not send the crypto",
+//     },
+//   ]);
+//   goToStep("start");
+//   helloMenu("hi");
+// } else if (processingTrx) {
+//   // we have not confirmed the crypto sent yet
+//   addChatMessages([
+//     {
+//       type: "incoming",
+//       content:
+//         "Please wiat, we have to confirm the crypto payment first",
+//     },
+//   ]);
+//   goToStep("start");
+//   helloMenu("hi");
+// } else if (uncompletedTrx) {
+//   // this payment was canceled by the gifter
+//   addChatMessages([
+//     {
+//       type: "incoming",
+//       content: "The gifter did not complete the gifting process",
+//     },
+//   ]);
+//   goToStep("start");
+//   helloMenu("hi");
+// } else if (CancelTrx) {
+//   // the gifter canceled this transaction
+//   addChatMessages([
+//     {
+//       type: "incoming",
+//       content: "This transaction was canceleds",
+//     },
+//   ]);
+//   goToStep("start");
+//   helloMenu("hi");
+// }
