@@ -65,7 +65,7 @@ export const getNextReportID = (reportString: string): string => {
     const numberPart = match[1];
     const incrementedNumber = (parseInt(numberPart, 10) + 1)
       .toString()
-      .padStart(numberPart.length, "0");
+      .padStart(numberPart.length, "Report_0");
 
     console.log(incrementedNumber);
     return incrementedNumber;

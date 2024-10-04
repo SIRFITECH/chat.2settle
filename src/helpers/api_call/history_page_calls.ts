@@ -2,29 +2,6 @@ import { userData } from "@/types/general_types";
 import axios from "axios";
 
 // CHECK IF USER HAS HISTORY IN OUR DB RECORDS USING PHONE NUMBER OR WALLET, SO WE CAN POPULATE THEIR TRANSACTIONS ARRAY
-// export const checkUserHasHistory = async (
-//   phone?: string,
-//   walletAddress?: string
-// ): Promise<{ exists: boolean; user?: userData }> => {
-//   // Ensure that at least one parameter is provided
-//   if (!phone && !walletAddress) {
-//     throw new Error("Either phone number or wallet address must be provided.");
-//   }
-
-//   try {
-//     const response = await axios.get("/api/check_user", {
-//       params: {
-//         phone_number: phone ?? null,
-//         wallet_address: walletAddress ?? null,
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error checking user existence:", error);
-//     throw error;
-//   }
-// };
-
 export const checkUserHasHistory = async (
   phone?: string,
   walletAddress?: string
@@ -46,6 +23,8 @@ export const checkUserHasHistory = async (
     throw error;
   }
 };
+
+
 
 export const sendOtp = async (
   phone: string,

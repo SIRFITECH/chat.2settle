@@ -87,15 +87,7 @@ export function useChatNavigation(): ChatNavigationHook {
   const [stepHistory, setStepHistory] = useState<string[]>(["start"]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-//   const serializeMessage = (message: MessageType): SerializedMessageType => {
-//     return {
-//       type: message.type,
-//       content:
-//         typeof message.content === "string"
-//           ? message.content
-//           : JSON.stringify(message.content),
-//     };
-//   };
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

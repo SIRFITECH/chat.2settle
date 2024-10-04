@@ -39,6 +39,7 @@ import {
   generateGiftId,
   generateTransactionId,
   getChatId,
+  greetings,
   phoneNumberPattern,
   saveChatId,
 } from "../utils/utilities";
@@ -84,6 +85,10 @@ import {
   displayTransferMoney,
 } from "@/menus/transact_crypto";
 import { useChatNavigation } from "../hooks/useChatNavigation";
+import {
+  getLastReportId,
+  getNextReportID,
+} from "@/helpers/api_call/reportly_page_calls";
 const initialMessages = [
   {
     type: "incoming",
@@ -129,7 +134,6 @@ const ChatBot = () => {
   // CONST VARIABLES
   const account = useAccount();
   const wallet = account.address;
-  const greetings = ["hi", "hello", "hey", "howdy"];
   let walletIsConnected = account.isConnected;
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
@@ -414,8 +418,20 @@ const ChatBot = () => {
     }
   };
 
+  const lastReportId = async () => {
+    try {
+      const lastReportId = await getLastReportId();
+      const lastId = getNextReportID(lastReportId);
+
+      console.log("the last id is:", lastId);
+    } catch (e) {
+      console.log("we got into a challenge bro", e);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    lastReportId();
   }, []);
 
   // OPERATINAL FUNCTIONS
