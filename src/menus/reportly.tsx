@@ -1,4 +1,4 @@
-import { MessageType } from "../types/types";
+import { MessageType } from "../types/general_types";
 
 export const displayReportlyWelcome = async (
   addChatMessages: (messages: MessageType[]) => void,
@@ -38,7 +38,6 @@ export const displayReportlyName = async (
         <span>
           Please enter your full name
           <br />
-       
           00. Exit
         </span>
       ),
@@ -81,7 +80,7 @@ export const displayReportlyFarwell = async (
         <span>
           Your report is noted.
           <br />
-        Thanks for using Reportly 
+          Thanks for using Reportly
         </span>
       ),
     },

@@ -1,4 +1,4 @@
-import { MessageType } from "../types/types";
+import { MessageType } from "../types/general_types";
 
 // WELCOME USER TO TRANSACTION ID
 export const displayTransactIDWelcome = (

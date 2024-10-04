@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { getChatId } from "../utils/utilities";
-import { SharedStateContextProps, UserBankData } from "../types/types";
+import { SharedStateContextProps, UserBankData } from "../types/general_types";
 
 const SharedStateContext = createContext<SharedStateContextProps | undefined>(
   undefined

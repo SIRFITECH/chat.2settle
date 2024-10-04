@@ -9,7 +9,7 @@ import {
   trcWalletData,
   userData,
   vendorData,
-} from "../types/types";
+} from "../types/general_types";
 import { headers } from "next/headers";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";

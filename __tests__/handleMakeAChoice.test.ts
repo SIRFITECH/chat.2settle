@@ -1,4 +1,4 @@
-// // handleMakeAChoice.test.ts
+
 // import { handleMakeAChoice } from "../src/components/ChatBot";
 
 // // Mock the dependencies

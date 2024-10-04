@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MessageType } from "../types/types";
+import { MessageType } from "../types/general_types";
 
 // ALERT USERS OF THE DATA NEEDED FOR PAYCARD REQUEST
 export const displayKYCInfo = async (

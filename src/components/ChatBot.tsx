@@ -8,7 +8,7 @@ import elementToJSXString from "react-element-to-jsx-string";
 import { useAccount } from "wagmi";
 import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType } from "../types/types";
+import { MessageType } from "../types/general_types";
 import {
   appendToGoogleSheet,
   checkGiftExists,
@@ -83,9 +83,7 @@ import {
   displayTransactCrypto,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { Button, Dialog, DialogContent } from "@mui/material";
-// import { approveAmount, transferTokens } from "../helpers/spende_ether";
-
+import { useChatNavigation } from "../hooks/useChatNavigation";
 const initialMessages = [
   {
     type: "incoming",
@@ -161,7 +159,7 @@ const ChatBot = () => {
       }
     };
   }, []);
-
+  // SHAREDSTATE HOOK
   const {
     sharedRate,
     setSharedRate,
@@ -213,6 +211,19 @@ const ChatBot = () => {
     setSharedReportlyReportType,
   } = useSharedState();
 
+  // USECHATNAVIGATION HOOK
+
+  const {
+    chatMessages,
+    serializedMessages,
+    currentStep,
+    stepHistory,
+    addChatMessages,
+    nextStep,
+    prevStep,
+    goToStep,
+  } = useChatNavigation();
+
   // STATE HOOKS
   const [isOpen, setIsOpen] = useState(true);
   // hook to collect user input from the chat input form
@@ -256,14 +267,14 @@ const ChatBot = () => {
     };
   });
 
-  const [chatMessages, setChatMessages] = useState<MessageType[]>(
-    local.messages
-  );
-  const [serializedMessages, setSerializedMessages] = React.useState(
-    local.serializedMessages
-  );
-  const [currentStep, setCurrentStep] = useState<string>(local.step);
-  const [stepHistory, setStepHistory] = useState<string[]>(local.stepHistory);
+  // const [chatMessages, setChatMessages] = useState<MessageType[]>(
+  //   local.messages
+  // );
+  // const [serializedMessages, setSerializedMessages] = React.useState(
+  //   local.serializedMessages
+  // );
+  // const [currentStep, setCurrentStep] = useState<string>(local.step);
+  // const [stepHistory, setStepHistory] = useState<string[]>(local.stepHistory);
 
   React.useEffect(() => {
     const chatData = {
@@ -295,41 +306,41 @@ const ChatBot = () => {
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
 
-  const addChatMessages = (messages: MessageType[]) => {
-    const serializedMessages = messages.map(serializeMessage);
-    setChatMessages((prevMessages) => [...prevMessages, ...messages]);
-    setSerializedMessages((prevMessages) => [
-      ...prevMessages,
-      ...serializedMessages,
-    ]);
-    scrollToBottom();
-  };
+  // const addChatMessages = (messages: MessageType[]) => {
+  //   const serializedMessages = messages.map(serializeMessage);
+  //   setChatMessages((prevMessages) => [...prevMessages, ...messages]);
+  //   setSerializedMessages((prevMessages) => [
+  //     ...prevMessages,
+  //     ...serializedMessages,
+  //   ]);
+  //   scrollToBottom();
+  // };
 
-  const nextStep = (nextStep: string) => {
-    setStepHistory((prevHistory) => {
-      // Avoid adding "start" twice
-      const newHistory = [...prevHistory, currentStep];
-      // Ensure "start" is not duplicated if it's already the last step
-      if (
-        newHistory[newHistory.length - 2] === "start" &&
-        currentStep === "start"
-      ) {
-        return prevHistory;
-      }
-      return newHistory;
-    });
-    setCurrentStep(nextStep);
-  };
+  // const nextStep = (nextStep: string) => {
+  //   setStepHistory((prevHistory) => {
+  //     // Avoid adding "start" twice
+  //     const newHistory = [...prevHistory, currentStep];
+  //     // Ensure "start" is not duplicated if it's already the last step
+  //     if (
+  //       newHistory[newHistory.length - 2] === "start" &&
+  //       currentStep === "start"
+  //     ) {
+  //       return prevHistory;
+  //     }
+  //     return newHistory;
+  //   });
+  //   setCurrentStep(nextStep);
+  // };
 
-  const prevStep = () => {
-    setStepHistory((prevHistory) => prevHistory.slice(0, -1));
-    setCurrentStep(stepHistory[stepHistory.length - 1] || "start");
-  };
+  // const prevStep = () => {
+  //   setStepHistory((prevHistory) => prevHistory.slice(0, -1));
+  //   setCurrentStep(stepHistory[stepHistory.length - 1] || "start");
+  // };
 
-  const goToStep = (step: string) => {
-    setStepHistory((prevHistory) => [...prevHistory, currentStep]);
-    setCurrentStep(step);
-  };
+  // const goToStep = (step: string) => {
+  //   setStepHistory((prevHistory) => [...prevHistory, currentStep]);
+  //   setCurrentStep(step);
+  // };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1975,7 +1986,7 @@ const ChatBot = () => {
     }
   };
 
-  // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
+  // ALLOW USER TO START A NEW TRANSACTION OR CONTACT SUPPORT
   const handleTransactionProcessing = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
@@ -2543,11 +2554,7 @@ const ChatBot = () => {
         break;
 
       case "enterBankSearchWord":
-        console.log("Current step is enterBankSearchWord, LEARN ");
-        // () => {
-
-        // };
-
+        console.log("Current step is enterBankSearchWord");
         let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
         let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
         let wantsToRequestPayment =
@@ -2666,7 +2673,7 @@ const ChatBot = () => {
 
       case "completetrxWithID":
         console.log("Current step is trxIDFeedback ");
-        handleReportlyWelcome(chatInput);
+        // handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
 

@@ -1,4 +1,4 @@
-import { userData } from "@/types/types";
+import { userData } from "@/types/general_types";
 import axios from "axios";
 
 // CHECK IF USER HAS HISTORY IN OUR DB RECORDS USING PHONE NUMBER OR WALLET, SO WE CAN POPULATE THEIR TRANSACTIONS ARRAY

@@ -1,4 +1,4 @@
-import { MessageType } from "../types/types";
+import { MessageType } from "../types/general_types";
 
 // WELCOME USERS FOR COMING TO CUSTOMER SUPPORT
 export const displayCustomerSupportWelcome = async (
