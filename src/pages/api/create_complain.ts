@@ -1,5 +1,5 @@
 import mysql from "mysql2/promise";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse } from "next/types";
 
 export default async function handler(
   req: NextApiRequest,
@@ -44,7 +44,9 @@ export default async function handler(
 
     await connection.end();
 
-    res.status(200).json({ message: "Complain data stored successfully", result });
+    res
+      .status(200)
+      .json({ message: "Complain data stored successfully", result });
   } catch (err) {
     console.error("Error storing user data:", err);
     res.status(500).send("Server error");

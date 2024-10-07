@@ -65,7 +65,7 @@ export const getNextReportID = (reportString: string): string => {
     const numberPart = match[1];
     const incrementedNumber = (parseInt(numberPart, 10) + 1)
       .toString()
-      .padStart(numberPart.length, "Report_0");
+      .padStart(numberPart.length, "0");
 
     console.log(incrementedNumber);
     return incrementedNumber;
@@ -73,3 +73,32 @@ export const getNextReportID = (reportString: string): string => {
 
   return "";
 };
+
+export function isValidWalletAddress(address: string): boolean {
+  const ethereumRegex = /^0x[a-fA-F0-9]{40}$/;
+  const btcP2PKHRegex = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/;
+  const btcBech32Regex = /^bc1([a-zA-HJ-NP-Z0-9]{25,39})$/;
+  const tronRegex = /^T[a-zA-Z0-9]{33}$/;
+
+  return (
+    ethereumRegex.test(address) ||
+    btcP2PKHRegex.test(address) ||
+    btcBech32Regex.test(address) ||
+    tronRegex.test(address)
+  );
+}
+
+export function countWords(text: string): number {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word !== "").length;
+}
+
+// Example usage:
+const userInput = "0x1234..."; // Replace with actual user input
+if (isValidWalletAddress(userInput)) {
+  console.log("Valid wallet address");
+} else {
+  console.log("Invalid wallet address");
+}

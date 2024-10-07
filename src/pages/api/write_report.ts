@@ -1,5 +1,5 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import mysql, { RowDataPacket } from "mysql2/promise";
+import { NextApiRequest, NextApiResponse } from "next/types";
 
 type Data = {
   message: string;

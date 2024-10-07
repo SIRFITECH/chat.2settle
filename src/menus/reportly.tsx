@@ -24,7 +24,7 @@ export const displayReportlyWelcome = async (
     },
   ];
   console.log("Next is reporterName");
-  nextStep("reporterName");
+  nextStep("makeReport");
   addChatMessages(newMessages);
 };
 export const displayReportlyName = async (
@@ -65,6 +65,74 @@ export const displayReportlyPhoneNumber = async (
       ),
     },
   ];
+  console.log("Next is reporterWallet");
+  nextStep("reporterWallet");
+  addChatMessages(newMessages);
+};
+export const displayReportlyReporterWalletAddress = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
+) => {
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Please enter your wallet address
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+    },
+  ];
+  console.log("Next is fraudsterWallet");
+  nextStep("fraudsterWallet");
+  addChatMessages(newMessages);
+};
+export const displayReportlyFraudsterWalletAddress = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
+) => {
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Please enter the fraudster wallet address (optional)
+          <br />
+          1. Skip
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+    },
+  ];
+  console.log("Next is reportlyNote");
+  nextStep("reportlyNote");
+  addChatMessages(newMessages);
+};
+export const displayReportlyNote = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void
+) => {
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Explain what happened in less than 100 words
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+    },
+  ];
   console.log("Next is reporterFarwell");
   nextStep("reporterFarwell");
   addChatMessages(newMessages);
@@ -78,9 +146,9 @@ export const displayReportlyFarwell = async (
       type: "incoming",
       content: (
         <span>
-          Your report is noted.
+          Thank you for submitting the report,
           <br />
-          Thanks for using Reportly
+          We get back to you shortly
         </span>
       ),
     },
