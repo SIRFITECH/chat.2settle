@@ -2585,9 +2585,9 @@ const ChatBot = () => {
         // }
         await makeAReport(reportData);
         // re write write_report api to throw error if we get any response other than 200
-        if (response.status !== 200) {
-          throw new Error(`API responded with status ${response.status}`);
-        }
+        // if (response.status !== 200) {
+        //   throw new Error(`API responded with status ${response.status}`);
+        // }
         setReporterName("");
         setReporterPhoneNumber("");
         setReporterWalletAddress("");
