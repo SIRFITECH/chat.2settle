@@ -8,7 +8,7 @@ import elementToJSXString from "react-element-to-jsx-string";
 import { useAccount } from "wagmi";
 import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType } from "../types/types";
+import { MessageType } from "../types/general_types";
 import {
   appendToGoogleSheet,
   checkGiftExists,
@@ -23,9 +23,6 @@ import {
   fetchMerchantRate,
   fetchProfitRate,
   fetchRate,
-  generateBTCWalletAddress,
-  generateERCWalletAddress,
-  generateTronWalletAddress,
   getAvaialableWallet,
   getGiftNaira,
   isGiftValid,
@@ -42,16 +39,13 @@ import {
   generateGiftId,
   generateTransactionId,
   getChatId,
+  greetings,
   phoneNumberPattern,
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
 import { CountdownTimer, getFormattedDateTime } from "../helpers/format_date";
-import {
-  asignWallet,
-  checkBEP20Transaction,
-  checkERC20Transaction,
-} from "../helpers/user_functions";
+
 import {
   displayKYCInfo,
   displayRegKYC,
@@ -64,18 +58,20 @@ import {
   displayMakeComplain,
 } from "../menus/customer_support";
 import {
-  displayCompleteTransaction,
   displayEnterCompleteTransactionId,
   displayEnterGiftId,
   displayGiftFeedbackMessage,
   displayTransactIDWelcome,
 } from "../menus/transaction_id";
-import { displayReportlyWelcome } from "../menus/reportly";
-import { WalletQueueWithLock } from "../utils/walletQueue";
 import {
-  processQueue,
-  simulatePaymentProcessing,
-} from "../helpers/queue_managment";
+  displayReportlyFarwell,
+  displayReportlyFraudsterWalletAddress,
+  displayReportlyName,
+  displayReportlyNote,
+  displayReportlyPhoneNumber,
+  displayReportlyReporterWalletAddress,
+  displayReportlyWelcome,
+} from "../menus/reportly";
 import {
   displayCharge,
   displayConfirmPayment,
@@ -89,12 +85,17 @@ import {
   displaySelectBank,
   displaySendPayment,
   displayTransactCrypto,
-  displayTransactionProcessing,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { Button, Dialog, DialogContent } from "@mui/material";
-// import { approveAmount, transferTokens } from "../helpers/spende_ether";
-
+import { useChatNavigation } from "../hooks/useChatNavigation";
+import {
+  countWords,
+  getLastReportId,
+  getNextReportID,
+  isValidWalletAddress,
+  makeAReport,
+} from "@/helpers/api_call/reportly_page_calls";
+import { reportData } from "@/types/reportly_types";
 const initialMessages = [
   {
     type: "incoming",
@@ -140,12 +141,12 @@ const ChatBot = () => {
   // CONST VARIABLES
   const account = useAccount();
   const wallet = account.address;
-  const greetings = ["hi", "hello", "hey", "howdy"];
   let walletIsConnected = account.isConnected;
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
   const chatboxRef = useRef<HTMLDivElement>(null);
+  let newReportId;
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -170,7 +171,7 @@ const ChatBot = () => {
       }
     };
   }, []);
-
+  // SHAREDSTATE HOOK
   const {
     sharedRate,
     setSharedRate,
@@ -218,7 +219,22 @@ const ChatBot = () => {
     setSharedTransactionId,
     sharedGiftId,
     setSharedGiftId,
+    sharedReportlyReportType,
+    setSharedReportlyReportType,
   } = useSharedState();
+
+  // USECHATNAVIGATION HOOK
+
+  const {
+    chatMessages,
+    serializedMessages,
+    currentStep,
+    stepHistory,
+    addChatMessages,
+    nextStep,
+    prevStep,
+    goToStep,
+  } = useChatNavigation();
 
   // STATE HOOKS
   const [isOpen, setIsOpen] = useState(true);
@@ -230,6 +246,18 @@ const ChatBot = () => {
   const [chatId, setChatId] = useState("");
   const [merchantRate, setMerchantRate] = useState("");
   const [profitRate, setProfitRate] = useState("");
+  const [reporterName, setReporterName] = useState("");
+  const [reporterPhoneNumber, setReporterPhoneNumber] = useState("");
+  const [reporterWalletAddress, setReporterWalletAddress] = useState("");
+  const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
+  const [descriptionNote, setDescriptionNote] = useState("");
+  const [reportId, setReportId] = useState("");
+  // let reporterName: string;
+  // let reporterPhoneNumber: string;
+  // let reporterWalletAddress: string;
+  // let fraudsterWalletAddress: string;
+  // let descriptionNote = "";
+  // let report_id: string;
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -263,14 +291,14 @@ const ChatBot = () => {
     };
   });
 
-  const [chatMessages, setChatMessages] = useState<MessageType[]>(
-    local.messages
-  );
-  const [serializedMessages, setSerializedMessages] = React.useState(
-    local.serializedMessages
-  );
-  const [currentStep, setCurrentStep] = useState<string>(local.step);
-  const [stepHistory, setStepHistory] = useState<string[]>(local.stepHistory);
+  // const [chatMessages, setChatMessages] = useState<MessageType[]>(
+  //   local.messages
+  // );
+  // const [serializedMessages, setSerializedMessages] = React.useState(
+  //   local.serializedMessages
+  // );
+  // const [currentStep, setCurrentStep] = useState<string>(local.step);
+  // const [stepHistory, setStepHistory] = useState<string[]>(local.stepHistory);
 
   React.useEffect(() => {
     const chatData = {
@@ -302,41 +330,41 @@ const ChatBot = () => {
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
 
-  const addChatMessages = (messages: MessageType[]) => {
-    const serializedMessages = messages.map(serializeMessage);
-    setChatMessages((prevMessages) => [...prevMessages, ...messages]);
-    setSerializedMessages((prevMessages) => [
-      ...prevMessages,
-      ...serializedMessages,
-    ]);
-    scrollToBottom();
-  };
+  // const addChatMessages = (messages: MessageType[]) => {
+  //   const serializedMessages = messages.map(serializeMessage);
+  //   setChatMessages((prevMessages) => [...prevMessages, ...messages]);
+  //   setSerializedMessages((prevMessages) => [
+  //     ...prevMessages,
+  //     ...serializedMessages,
+  //   ]);
+  //   scrollToBottom();
+  // };
 
-  const nextStep = (nextStep: string) => {
-    setStepHistory((prevHistory) => {
-      // Avoid adding "start" twice
-      const newHistory = [...prevHistory, currentStep];
-      // Ensure "start" is not duplicated if it's already the last step
-      if (
-        newHistory[newHistory.length - 2] === "start" &&
-        currentStep === "start"
-      ) {
-        return prevHistory;
-      }
-      return newHistory;
-    });
-    setCurrentStep(nextStep);
-  };
+  // const nextStep = (nextStep: string) => {
+  //   setStepHistory((prevHistory) => {
+  //     // Avoid adding "start" twice
+  //     const newHistory = [...prevHistory, currentStep];
+  //     // Ensure "start" is not duplicated if it's already the last step
+  //     if (
+  //       newHistory[newHistory.length - 2] === "start" &&
+  //       currentStep === "start"
+  //     ) {
+  //       return prevHistory;
+  //     }
+  //     return newHistory;
+  //   });
+  //   setCurrentStep(nextStep);
+  // };
 
-  const prevStep = () => {
-    setStepHistory((prevHistory) => prevHistory.slice(0, -1));
-    setCurrentStep(stepHistory[stepHistory.length - 1] || "start");
-  };
+  // const prevStep = () => {
+  //   setStepHistory((prevHistory) => prevHistory.slice(0, -1));
+  //   setCurrentStep(stepHistory[stepHistory.length - 1] || "start");
+  // };
 
-  const goToStep = (step: string) => {
-    setStepHistory((prevHistory) => [...prevHistory, currentStep]);
-    setCurrentStep(step);
-  };
+  // const goToStep = (step: string) => {
+  //   setStepHistory((prevHistory) => [...prevHistory, currentStep]);
+  //   setCurrentStep(step);
+  // };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -374,7 +402,6 @@ const ChatBot = () => {
     }
   };
   useEffect(() => {
-    // initialize chatId
     initializeChatId();
   }, [chatId]);
 
@@ -414,28 +441,10 @@ const ChatBot = () => {
     fetchData();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("We want to check for the wallet");
-  //   checkERC20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
-  //   checkBEP20Transaction("0x40a766fbb1af4e201fa87aa53b3ad4eb59e83343");
-  // }, [chatMessages]);
-
-  // // SET STATE TO THE START ON WALLET CONNECT
-  // useEffect(() => {
-  //   if (chatInput.trim()) {
-  //     const newMessage: MessageType = {
-  //       type: "outgoing",
-  //       content: <span>{chatInput}</span>,
-  //     };
-  //     addChatMessages([newMessage]);
-  //     setChatInput("");
-  //   }
-  //   helloMenu("hi");
-  // }, [walletIsConnected]);
-
   // OPERATINAL FUNCTIONS
   // ON HI | HELLO | HOWDY | HEY PROMPT
   const helloMenu = (chatInput: string) => {
+    console.log("we are at the start");
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       window.localStorage.setItem("transactionID", "");
       setSharedPaymentMode("");
@@ -755,8 +764,6 @@ const ChatBot = () => {
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput === "0") {
-      // prevStep();
-      // welcomeMenu();
       goToStep("start");
       helloMenu("hi");
     } else if (chatInput === "0") {
@@ -890,14 +897,6 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
-      // const userData = await checkUserExists(sharedChatId);
-      // let userExists = userData.exists;
-
-      // if (userExists) {
-      //   console.log("User exists", chatId);
-      // } else {
-      //   console.log("User doesn't exists", chatId);
-      // }
       setSharedTicker("ETHUSDT");
       setSharedCrypto("ETH");
       setSharedNetwork("ERC20");
@@ -932,14 +931,6 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
-      // const userData = await checkUserExists(sharedChatId);
-      // let userExists = userData.exists;
-
-      // if (userExists) {
-      //   console.log("User exists", chatId);
-      // } else {
-      //   console.log("User doesn't exists", chatId);
-      // }
       setSharedTicker("BNBUSDT");
       setSharedCrypto("BNB");
       setSharedNetwork("BEP20");
@@ -1384,10 +1375,6 @@ const ChatBot = () => {
           );
 
           setSharedBankNames(bankNameList);
-          // Loop through the bank list
-          // bankList.forEach((bank) => {
-          //   console.log(bank);
-          // });
         } else {
           bankList = [];
           console.error(
@@ -1407,7 +1394,6 @@ const ChatBot = () => {
         setSharedBankCodes
       );
     }
-    // console.log("I want to search for bankNames of", chatInput.trim());
   };
 
   //GET USER BANK DATA AFTER COLLECTING ACCOUNT NUMBER
@@ -1468,68 +1454,6 @@ const ChatBot = () => {
       // console.log(chatInput.trim());
 
       if (chatInput === "1" || chatInput === "2") {
-        // let bank_name = "";
-        // let account_name = "";
-        // let account_number = "";
-
-        // setLoading(true);
-
-        // try {
-        //   const bankData = await fetchBankDetails(
-        //     sharedSelectedBankCode,
-        //     chatInput.trim()
-        //   );
-        //   // console.log(
-        //   //   "Bank data: account number is  ",
-        //   //   bankData[0].account_number
-        //   // );
-
-        //   bank_name = bankData[0].bank_name;
-        //   account_name = bankData[0].account_name;
-        //   account_number = bankData[0].account_number;
-
-        //   if (!account_number) {
-        //     const newMessages: MessageType[] = [
-        //       {
-        //         type: "incoming",
-        //         content: <span>Invalid account number. Please try again.</span>,
-        //       },
-        //     ];
-        //     addChatMessages(newMessages);
-        //     setLoading(false);
-        //     return; // Exit the function to let the user try again
-        //   }
-
-        //   setLoading(false);
-        //   updateBankData({
-        //     acct_number: account_number,
-        //     bank_name: sharedSelectedBankName,
-        //     receiver_name: account_name,
-        //   });
-        //   displayContinueToPay(
-        //     addChatMessages,
-        //     nextStep,
-        //     account_name,
-        //     sharedSelectedBankName,
-        //     account_number,
-        //     sharedPaymentMode
-        //   );
-        // } catch (error) {
-        //   console.error("Failed to fetch bank data:", error);
-        //   const errorMessage: MessageType[] = [
-        //     {
-        //       type: "incoming",
-        //       content: (
-        //         <span>
-        //           Failed to fetch bank data. Please check your accouunt number
-        //           and try again.
-        //         </span>
-        //       ),
-        //     },
-        //   ];
-        //   addChatMessages(errorMessage);
-        //   setLoading(false);
-        // }
         displayEnterPhone(addChatMessages, nextStep);
       } else {
         let bank_name = "";
@@ -1543,10 +1467,6 @@ const ChatBot = () => {
             sharedSelectedBankCode,
             chatInput.trim()
           );
-          // console.log(
-          //   "Bank data: account number is  ",
-          //   bankData[0].account_number
-          // );
 
           bank_name = bankData[0].bank_name;
           account_name = bankData[0].account_name;
@@ -1594,24 +1514,6 @@ const ChatBot = () => {
           addChatMessages(errorMessage);
           setLoading(false);
         }
-
-        // displayContinueToPay(
-        //   addChatMessages,
-        //   nextStep,
-        //    account_name,
-
-        //    sharedSelectedBankName,
-
-        //    account_number
-
-        //   sharedPaymentMode
-        // );
-        // addChatMessages([
-        //   {
-        //     type: "incoming",
-        //     content: "Shey you chose 1",
-        //   },
-        // ]);
       }
     }
   };
@@ -1790,26 +1692,6 @@ const ChatBot = () => {
             // Attempt to claim the gift money, use Mongoro from Next app
             await payoutMoney(giftData);
 
-            // // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
-            // await updateGiftTransaction(sharedGiftId, {
-            //   gift_chatID: sharedGiftId,
-            //   acct_number: bankData.acct_number,
-            //   bank_name: bankData.bank_name,
-            //   receiver_name: bankData.receiver_name,
-            //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-            //   gift_status: "Processing",
-            // });
-
-            //     // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
-            // await updateGiftTransaction(sharedGiftId, {
-            //   gift_chatID: sharedGiftId,
-            //   acct_number: bankData.acct_number,
-            //   bank_name: bankData.bank_name,
-            //   receiver_name: bankData.receiver_name,
-            //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-            //   gift_status: "Processing",
-            // });
-
             // Only update the status to "Claimed" if payoutMoney is successful
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
 
@@ -1888,162 +1770,6 @@ const ChatBot = () => {
           ]);
           displayEnterGiftId(addChatMessages, nextStep);
         }
-
-        // try {
-        //   let giftNotClaimed =
-        //     giftStatus?.toLocaleLowerCase() === "not claimed" &&
-        //     transactionStatus?.toLocaleLowerCase() === "successful";
-        //   let giftClaimed =
-        //     giftStatus?.toLocaleLowerCase() === "claimed" &&
-        //     transactionStatus?.toLocaleLowerCase() === "successful";
-        //   let paymentPending =
-        //     giftStatus?.toLocaleLowerCase() === "pending" &&
-        //     transactionStatus?.toLocaleLowerCase() === "processing";
-        //   let giftNotPaid =
-        //     giftStatus?.toLocaleLowerCase() === "pending" &&
-        //     transactionStatus?.toLocaleLowerCase() === "unsuccessful";
-
-        //   if (giftNotClaimed) {
-        //     const giftUpdateDate = {
-        //       gift_chatID: sharedGiftId,
-        //       acct_number: bankData.acct_number,
-        //       bank_name: bankData.bank_name,
-        //       receiver_name: bankData.receiver_name,
-        //       receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-        //       gift_status: "Claimed",
-        //     };
-
-        //     const nairaPayment: string = (
-        //       await getGiftNaira(sharedGiftId)
-        //     ).toString();
-
-        //     const giftData = {
-        //       accountNumber: bankData.acct_number,
-        //       accountBank: sharedSelectedBankCode,
-        //       bankName: bankData.bank_name,
-        //       amount: nairaPayment,
-        //       accountName: bankData.receiver_name,
-        //       narration: narration,
-        //     };
-
-        //     // Update the transaction to "Pending" before making the payment
-        //     await updateGiftTransaction(sharedGiftId, {
-        //       gift_status: "Pending",
-        //     });
-
-        //     // Attempt to claim the gift money
-        //     await payoutMoney(giftData);
-
-        //     // claim gift through googlesheet
-        //     // const data = {
-        //     //   "Gift ID": sharedGiftId.toString(),
-        //     //   "Account Name": bankData.receiver_name || "",
-        //     //   "Account Number": bankData.acct_number || "",
-        //     //   "Bank Name": bankData.bank_name || "",
-        //     //   "Payment Amount": nairaPayment,
-        //     // };
-
-        //     // await appendToGoogleSheet(data);
-
-        //     // If successful, update the transaction status to "Claimed"
-        //     await updateGiftTransaction(sharedGiftId, giftUpdateDate);
-
-        //     // TO UPDATE THE CLAIM GIFT FOR THE SCRIPT TO GET AND SETTLE
-        //     // await updateGiftTransaction(sharedGiftId, {
-        //     //   gift_chatID: sharedGiftId,
-        //     //   acct_number: bankData.acct_number,
-        //     //   bank_name: bankData.bank_name,
-        //     //   receiver_name: bankData.receiver_name,
-        //     //   receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-        //     //   gift_status: "Processing",
-        //     // });
-
-        //     setLoading(false);
-        //     displayGiftFeedbackMessage(addChatMessages, nextStep);
-        //     helloMenu("hi");
-        //     // console.log("User gift data updated", giftUpdateDate);
-        //   } else if (giftClaimed) {
-        //     setLoading(false);
-        //     addChatMessages([
-        //       {
-        //         type: "incoming",
-        //         content: "This gift is already claimed",
-        //       },
-        //     ]);
-        //     helloMenu("hi");
-        //     goToStep("start");
-        //   } else if (paymentPending) {
-        //     setLoading(false);
-        //     addChatMessages([
-        //       {
-        //         type: "incoming",
-        //         content: (
-        //           <span>
-        //             We are yet to confirm the crypto payment <br />
-        //             Please check again in later,
-        //           </span>
-        //         ),
-        //       },
-        //       {
-        //         type: "incoming",
-        //         content:
-        //           "If it persists, it could be that the gifter have not sent the asset yet",
-        //       },
-        //     ]);
-        //     helloMenu("hi");
-        //     goToStep("start");
-        //   } else if (giftNotPaid) {
-        //     setLoading(false);
-        //     addChatMessages([
-        //       {
-        //         type: "incoming",
-        //         content: (
-        //           <span>
-        //             This gift have been canceled <br />
-        //             You have to contact your gifter to do the transaction again
-        //           </span>
-        //         ),
-        //       },
-        //     ]);
-        //     helloMenu("hi");
-        //     goToStep("start");
-        //   } else {
-        //     setLoading(false);
-        //     addChatMessages([
-        //       {
-        //         type: "incoming",
-        //         content: "You have to reach our customer support",
-        //       },
-        //       // {
-        //       //   type: "incoming",
-        //       //   content:
-        //       //     "If it persists, it could be that the gifter have not sent the asset",
-        //       // },
-        //     ]);
-        //     helloMenu("hi");
-        //     goToStep("start");
-        //   }
-        // } catch (error) {
-        //   console.error("Error during gift claim process:", error);
-
-        //   // Rollback or update the transaction to indicate a failure
-        //   await updateGiftTransaction(sharedGiftId, {
-        //     gift_status: giftStatus,
-        //   });
-
-        //   setLoading(false);
-
-        //   // Inform the user that the transaction failed
-        //   addChatMessages([
-        //     {
-        //       type: "incoming",
-        //       content: (
-        //         <span>Sorry, the transaction failed. Please try again</span>
-        //       ),
-        //     },
-        //   ]);
-        //   displayEnterGiftId(addChatMessages, nextStep);
-        // }
       } else if (isGiftTrx) {
         console.log("USER WANTS TO SEND GIFT");
         const transactionID = generateTransactionId();
@@ -2057,31 +1783,6 @@ const ChatBot = () => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-
-        // const isUserAvailable = await checkUserExists(
-        //   formatPhoneNumber(phoneNumber)
-        // );
-        // if (isUserAvailable.user?.phone_number === null) {
-        //   updateUser({
-        //     phone_number: formatPhoneNumber(phoneNumber),
-        //   });
-        // }
-
-        // await asignWallet(
-        //   sharedChatId,
-        //   formatPhoneNumber(phoneNumber),
-        //   sharedNetwork,
-        //   setSharedWallet
-        // );
-
-        // const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
-
-        // const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
-
-        // const trc20AddressPattern = /^T[a-zA-Z0-9]{33}$/;
-
-        // const erc20 = ["erc20", "bep20"];
-
         let userWallet = "";
 
         const availableWallet = await getAvaialableWallet(
@@ -2089,115 +1790,6 @@ const ChatBot = () => {
         );
 
         userWallet = availableWallet;
-        // const userData = await checkUserExists(formatPhoneNumber(phoneNumber));
-        // let userExists = userData.exists;
-        // let hasBTCWallet = btcAddressPattern.test(
-        //   userData.user?.bitcoin_wallet || ""
-        // );
-        // let hasERCWallet = erc20AddressPattern.test(
-        //   userData.user?.eth_bnb_wallet || ""
-        // );
-        // let hasTRCWallet = trc20AddressPattern.test(
-        //   userData.user?.tron_wallet || ""
-        // );
-
-        // // const tronWallet = await generateTronWalletAddress();
-
-        // if (userExists) {
-        //   console.log("This user exists");
-        //   if (sharedNetwork.toLocaleLowerCase() === "btc") {
-        //     if (hasBTCWallet) {
-        //       setSharedWallet(userData.user?.bitcoin_wallet || "");
-        //       userWallet = userData.user?.bitcoin_wallet || "";
-        //     } else {
-        //       const btcWallet = await generateBTCWalletAddress();
-        //       setSharedWallet(btcWallet.bitcoin_wallet);
-        //       userWallet = btcWallet.bitcoin_wallet;
-        //       // update the db
-        //       updateUser({
-        //         phone_number: formatPhoneNumber(phoneNumber),
-        //         bitcoin_wallet: btcWallet.bitcoin_wallet,
-        //         bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-        //       });
-        //       console.log(
-        //         "User exist, new BTC wallet is:",
-        //         btcWallet.bitcoin_wallet
-        //       );
-        //     }
-        //   } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-        //     if (hasERCWallet) {
-        //       setSharedWallet(userData.user?.eth_bnb_wallet || "");
-        //       userWallet = userData.user?.eth_bnb_wallet || "";
-        //     } else {
-        //       const ercWallet = await generateERCWalletAddress();
-        //       setSharedWallet(ercWallet.eth_bnb_wallet);
-        //       userWallet = ercWallet.eth_bnb_wallet;
-        //       // update the db
-        //       updateUser({
-        //         phone_number: formatPhoneNumber(phoneNumber),
-        //         eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-        //         eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
-        //       });
-        //       console.log(
-        //         "User exist, new ERC wallet is:",
-        //         ercWallet.eth_bnb_wallet
-        //       );
-        //     }
-        //   } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-        //     const tronWallet = await generateTronWalletAddress();
-        //     if (hasTRCWallet) {
-        //       setSharedWallet(userData.user?.tron_wallet || "");
-        //       userWallet = userData.user?.tron_wallet || "";
-        //     } else {
-        //       setSharedWallet(tronWallet.tron_wallet);
-        //       userWallet = tronWallet.tron_wallet;
-        //       updateUser({
-        //         phone_number: formatPhoneNumber(phoneNumber),
-        //         tron_wallet: tronWallet.tron_wallet,
-        //         tron_privateKey: tronWallet.tron_privateKey,
-        //       });
-        //       console.log(
-        //         "User exist and new tron wallet is:",
-        //         tronWallet.tron_wallet
-        //       );
-        //     }
-        //   }
-        // } else {
-        //   if (sharedNetwork.toLocaleLowerCase() === "btc") {
-        //     const btcWallet = await generateBTCWalletAddress();
-        //     setSharedWallet(btcWallet.bitcoin_wallet);
-        //     userWallet = btcWallet.bitcoin_wallet;
-        //     await createUser({
-        //       agent_id: sharedChatId,
-        //       phone_number: formatPhoneNumber(phoneNumber),
-        //       bitcoin_wallet: btcWallet.bitcoin_wallet,
-        //       bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-        //     });
-        //     console.log("BTC wallet is:", btcWallet.bitcoin_wallet);
-        //   } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-        //     const ercWallet = await generateERCWalletAddress();
-        //     setSharedWallet(ercWallet.eth_bnb_wallet);
-        //     userWallet = ercWallet.eth_bnb_wallet;
-        //     await createUser({
-        //       agent_id: sharedChatId,
-        //       phone_number: formatPhoneNumber(phoneNumber),
-        //       eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-        //       eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
-        //     });
-        //     console.log("ERC wallet is:", ercWallet.eth_bnb_wallet);
-        //   } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-        //     const tronWallet = await generateTronWalletAddress();
-        //     setSharedWallet(tronWallet.tron_wallet);
-        //     userWallet = tronWallet.tron_wallet;
-        //     await createUser({
-        //       agent_id: sharedChatId,
-        //       phone_number: formatPhoneNumber(phoneNumber),
-        //       tron_wallet: tronWallet.tron_wallet,
-        //       tron_privateKey: tronWallet.tron_privateKey,
-        //     });
-        //     console.log("Tron wallet is:", tronWallet.tron_wallet);
-        //   }
-        // }
 
         displaySendPayment(
           addChatMessages,
@@ -2242,6 +1834,7 @@ const ChatBot = () => {
           profit_rate: profitRate,
           name: null,
           gift_status: "Pending",
+          asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
         };
         await createTransaction(userDate);
 
@@ -2259,18 +1852,6 @@ const ChatBot = () => {
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
 
-        //  displaySendPayment(
-        //    addChatMessages,
-        //    nextStep,
-        //    "userWallet",
-        //    sharedCrypto,
-        //    sharedPaymentAssetEstimate,
-        //    sharedPaymentNairaEstimate,
-        //    transactionID,
-        //    sharedNetwork,
-        //    sharedPaymentMode,
-        //    requestID
-        //  );
         setLoading(false);
         // let's save the transaction details to db
         const userDate = {
@@ -2295,7 +1876,6 @@ const ChatBot = () => {
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
           gift_chatID: null,
-          // giftID.toString(),
           settle_walletLink: null,
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
@@ -2303,6 +1883,7 @@ const ChatBot = () => {
           profit_rate: profitRate,
           name: null,
           gift_status: "Pending",
+          asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
         };
         // await createTransaction(userDate);
 
@@ -2319,30 +1900,6 @@ const ChatBot = () => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-
-        // const isUserAvailable = await checkUserExists(
-        //   formatPhoneNumber(phoneNumber)
-        // );
-        // if (isUserAvailable.user?.phone_number === null) {
-        //   updateUser({
-        //     phone_number: formatPhoneNumber(phoneNumber),
-        //   });
-        // }
-
-        // await asignWallet(
-        //   sharedChatId,
-        //   formatPhoneNumber(phoneNumber),
-        //   sharedNetwork,
-        //   setSharedWallet
-        // );
-
-        // const btcAddressPattern = /^(1|3|bc1)[a-zA-Z0-9]{25,39}$/;
-
-        // const erc20AddressPattern = /^0x[a-fA-F0-9]{40}$/;
-
-        // const trc20AddressPattern = /^T[a-zA-Z0-9]{33}$/;
-
-        // const erc20 = ["erc20", "bep20"];
 
         let userWallet = "";
 
@@ -2394,178 +1951,11 @@ const ChatBot = () => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: "",
+          asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
         };
         await createTransaction(userDate);
 
         console.log("User data created", userDate);
-
-        // const userData = await checkUserExists(formatPhoneNumber(phoneNumber));
-        // let userExists = userData.exists;
-        // let hasBTCWallet = btcAddressPattern.test(
-        //   userData.user?.bitcoin_wallet || ""
-        // );
-        // let hasERCWallet = erc20AddressPattern.test(
-        //   userData.user?.eth_bnb_wallet || ""
-        // );
-        // let hasTRCWallet = trc20AddressPattern.test(
-        //   userData.user?.tron_wallet || ""
-        // );
-
-        // // const tronWallet = await generateTronWalletAddress();
-        //  console.log("This user exists");
-        //  if (sharedNetwork.toLocaleLowerCase() === "btc") {
-        //    if (hasBTCWallet) {
-        //      setSharedWallet(userData.user?.bitcoin_wallet || "");
-        //      userWallet = userData.user?.bitcoin_wallet || "";
-        //    } else {
-        //      const btcWallet = await generateBTCWalletAddress();
-        //      setSharedWallet(btcWallet.bitcoin_wallet);
-        //      userWallet = btcWallet.bitcoin_wallet;
-        //      // update the db
-        //      updateUser({
-        //        phone_number: formatPhoneNumber(phoneNumber),
-        //        bitcoin_wallet: btcWallet.bitcoin_wallet,
-        //        bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-        //      });
-        //      console.log(
-        //        "User exist, new BTC wallet is:",
-        //        btcWallet.bitcoin_wallet
-        //      );
-        //    }
-        //  } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-        //    if (hasERCWallet) {
-        //      setSharedWallet(userData.user?.eth_bnb_wallet || "");
-        //      userWallet = userData.user?.eth_bnb_wallet || "";
-        //    } else {
-        //      const ercWallet = await generateERCWalletAddress();
-        //      setSharedWallet(ercWallet.eth_bnb_wallet);
-        //      userWallet = ercWallet.eth_bnb_wallet;
-        //      // update the db
-        //      updateUser({
-        //        phone_number: formatPhoneNumber(phoneNumber),
-        //        eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-        //        eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
-        //      });
-        //      console.log(
-        //        "User exist, new ERC wallet is:",
-        //        ercWallet.eth_bnb_wallet
-        //      );
-        //    }
-        //  } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-        //    const tronWallet = await generateTronWalletAddress();
-        //    if (hasTRCWallet) {
-        //      setSharedWallet(userData.user?.tron_wallet || "");
-        //      userWallet = userData.user?.tron_wallet || "";
-        //    } else {
-        //      setSharedWallet(tronWallet.tron_wallet);
-        //      userWallet = tronWallet.tron_wallet;
-        //      updateUser({
-        //        phone_number: formatPhoneNumber(phoneNumber),
-        //        tron_wallet: tronWallet.tron_wallet,
-        //        tron_privateKey: tronWallet.tron_privateKey,
-        //      });
-        //      console.log(
-        //        "User exist and new tron wallet is:",
-        //        tronWallet.tron_wallet
-        //      );
-        //    }
-        //  }
-
-        // if (userExists) {
-        //   console.log("This user exists");
-        //   if (sharedNetwork.toLocaleLowerCase() === "btc") {
-        //     if (hasBTCWallet) {
-        //       setSharedWallet(userData.user?.bitcoin_wallet || "");
-        //       userWallet = userData.user?.bitcoin_wallet || "";
-        //     } else {
-        //       const btcWallet = await generateBTCWalletAddress();
-        //       setSharedWallet(btcWallet.bitcoin_wallet);
-        //       userWallet = btcWallet.bitcoin_wallet;
-        //       // update the db
-        //       updateUser({
-        //         phone_number: formatPhoneNumber(phoneNumber),
-        //         bitcoin_wallet: btcWallet.bitcoin_wallet,
-        //         bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-        //       });
-        //       console.log(
-        //         "User exist, new BTC wallet is:",
-        //         btcWallet.bitcoin_wallet
-        //       );
-        //     }
-        //   } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-        //     if (hasERCWallet) {
-        //       setSharedWallet(userData.user?.eth_bnb_wallet || "");
-        //       userWallet = userData.user?.eth_bnb_wallet || "";
-        //     } else {
-        //       const ercWallet = await generateERCWalletAddress();
-        //       setSharedWallet(ercWallet.eth_bnb_wallet);
-        //       userWallet = ercWallet.eth_bnb_wallet;
-        //       // update the db
-        //       updateUser({
-        //         phone_number: formatPhoneNumber(phoneNumber),
-        //         eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-        //         eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
-        //       });
-        //       console.log(
-        //         "User exist, new ERC wallet is:",
-        //         ercWallet.eth_bnb_wallet
-        //       );
-        //     }
-        //   } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-        //     const tronWallet = await generateTronWalletAddress();
-        //     if (hasTRCWallet) {
-        //       setSharedWallet(userData.user?.tron_wallet || "");
-        //       userWallet = userData.user?.tron_wallet || "";
-        //     } else {
-        //       setSharedWallet(tronWallet.tron_wallet);
-        //       userWallet = tronWallet.tron_wallet;
-        //       updateUser({
-        //         phone_number: formatPhoneNumber(phoneNumber),
-        //         tron_wallet: tronWallet.tron_wallet,
-        //         tron_privateKey: tronWallet.tron_privateKey,
-        //       });
-        //       console.log(
-        //         "User exist and new tron wallet is:",
-        //         tronWallet.tron_wallet
-        //       );
-        //     }
-        //   }
-        // } else {
-        //   if (sharedNetwork.toLocaleLowerCase() === "btc") {
-        //     const btcWallet = await generateBTCWalletAddress();
-        //     setSharedWallet(btcWallet.bitcoin_wallet);
-        //     userWallet = btcWallet.bitcoin_wallet;
-        //     await createUser({
-        //       agent_id: sharedChatId,
-        //       phone_number: formatPhoneNumber(phoneNumber),
-        //       bitcoin_wallet: btcWallet.bitcoin_wallet,
-        //       bitcoin_privateKey: btcWallet.bitcoin_privateKey,
-        //     });
-        //     console.log("BTC wallet is:", btcWallet.bitcoin_wallet);
-        //   } else if (erc20.includes(sharedNetwork.toLocaleLowerCase())) {
-        //     const ercWallet = await generateERCWalletAddress();
-        //     setSharedWallet(ercWallet.eth_bnb_wallet);
-        //     userWallet = ercWallet.eth_bnb_wallet;
-        //     await createUser({
-        //       agent_id: sharedChatId,
-        //       phone_number: formatPhoneNumber(phoneNumber),
-        //       eth_bnb_wallet: ercWallet.eth_bnb_wallet,
-        //       eth_bnb_privateKey: ercWallet.eth_bnb_privateKey,
-        //     });
-        //     console.log("ERC wallet is:", ercWallet.eth_bnb_wallet);
-        //   } else if (sharedNetwork.toLocaleLowerCase() === "trc20") {
-        //     const tronWallet = await generateTronWalletAddress();
-        //     setSharedWallet(tronWallet.tron_wallet);
-        //     userWallet = tronWallet.tron_wallet;
-        //     await createUser({
-        //       agent_id: sharedChatId,
-        //       phone_number: formatPhoneNumber(phoneNumber),
-        //       tron_wallet: tronWallet.tron_wallet,
-        //       tron_privateKey: tronWallet.tron_privateKey,
-        //     });
-        //     console.log("Tron wallet is:", tronWallet.tron_wallet);
-        //   }
-        // }
       }
     } catch (error) {
       console.error("Error during transaction", error);
@@ -2618,7 +2008,7 @@ const ChatBot = () => {
     }
   };
 
-  // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
+  // ALLOW USER TO START A NEW TRANSACTION OR CONTACT SUPPORT
   const handleTransactionProcessing = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
@@ -2916,13 +2306,15 @@ const ChatBot = () => {
   };
 
   // CUSTOMER REPORTLY SEQUENCE FUNCTIONS
+
+  // first page for reportly, with 3 options and goBack
   const handleReportlyWelcome = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
     } else if (chatInput.trim() === "00") {
       (() => {
-        // console.log("Going back from handlePayOptions");
+        console.log("Going back from handleReportlyWelcome");
         goToStep("start");
         helloMenu("hi");
       })();
@@ -2932,77 +2324,17 @@ const ChatBot = () => {
         displayTransactIDWelcome(addChatMessages, nextStep);
       })();
     } else if (chatInput === "1") {
-      const gift_id = chatInput.trim();
-      setLoading(true);
-      // setSharedTransactionId(gift_id);
-      let giftExists = true;
-      // (await checkGiftExists(gift_id)).exists;
-
-      // console.log(
-      //   "User phone:",
-      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
-      // );
-
-      setLoading(false);
-      // IF GIFT_ID EXIST IN DB,
-      if (giftExists) {
-        displayReportlyWelcome(addChatMessages, nextStep);
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid transaction_id. Try again",
-          },
-        ]);
-      }
+      setSharedReportlyReportType("Track Transaction");
+      console.log("Omo, na to report Track Transaction, input is: ", chatInput);
+      displayReportlyName(addChatMessages, nextStep);
     } else if (chatInput === "2") {
-      const gift_id = chatInput.trim();
-      setLoading(true);
-      // setSharedTransactionId(gift_id);
-      let giftExists = true;
-      // (await checkGiftExists(gift_id)).exists;
-
-      // console.log(
-      //   "User phone:",
-      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
-      // );
-
-      setLoading(false);
-      // IF GIFT_ID EXIST IN DB,
-      if (giftExists) {
-        displayReportlyWelcome(addChatMessages, nextStep);
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid transaction_id. Try again",
-          },
-        ]);
-      }
+      console.log("Omo, na to report Stolen funds, input is: ", chatInput);
+      setSharedReportlyReportType("Stolen funds | disappear funds");
+      displayReportlyName(addChatMessages, nextStep);
     } else if (chatInput === "3") {
-      const gift_id = chatInput.trim();
-      setLoading(true);
-      // setSharedTransactionId(gift_id);
-      let giftExists = true;
-      // (await checkGiftExists(gift_id)).exists;
-
-      // console.log(
-      //   "User phone:",
-      //   (await checkGiftExists(gift_id)).user?.customer_phoneNumber
-      // );
-
-      setLoading(false);
-      // IF GIFT_ID EXIST IN DB,
-      if (giftExists) {
-        displayReportlyWelcome(addChatMessages, nextStep);
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid transaction_id. Try again",
-          },
-        ]);
-      }
+      console.log("Omo, na to report Fraud, input is: ", chatInput);
+      setSharedReportlyReportType("Fraud");
+      displayReportlyName(addChatMessages, nextStep);
     } else {
       addChatMessages([
         {
@@ -3014,72 +2346,307 @@ const ChatBot = () => {
     }
   };
 
-  // const [amount, setAmount] = useState("");
-  // const [recipient, setRecipient] = useState("");
+  const handleReporterName = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      console.log("Going back to start");
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handleReportlyWelcome");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        prevStep();
+        displayTransactIDWelcome(addChatMessages, nextStep);
+      })();
+    } else if (chatInput === "1") {
+      setSharedReportlyReportType("Track Transaction");
+      console.log("Omo, na to report Track Transaction");
+      displayReportlyName(addChatMessages, nextStep);
+    } else if (chatInput === "2") {
+      console.log("Omo, na to report Stolen funds");
+      setSharedReportlyReportType("Stolen funds | disappear funds");
+      displayReportlyName(addChatMessages, nextStep);
+    } else if (chatInput === "3") {
+      console.log("Omo, na to report Fraud");
 
-  // const handleApprove = async () => {
-  //   try {
-  //     await approveAmount(amount);
-  //     alert("Approval successful!");
-  //   } catch (error) {
-  //     console.error("Error approving amount:", error);
-  //   }
-  // };
+      setSharedReportlyReportType("Fraud");
+      displayReportlyName(addChatMessages, nextStep);
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content:
+            "Invalid choice. You need to choose an action from the options",
+        },
+      ]);
+    }
+  };
+  // Option to allow user tract transaction, enter name or goBack to the very start
+  const handleEnterReporterPhoneNumber = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      console.log("Going back to start");
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handleReportlyWelcome");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        goToStep("reporterName");
+        displayReportlyName(addChatMessages, nextStep);
+      })();
+    } else {
+      const name = chatInput.trim();
 
-  // const handleTransfer = async () => {
-  //   try {
-  //     await transferTokens( recipient, amount);
-  //     alert("Transfer successful!");
-  //   } catch (error) {
-  //     console.error("Error transferring amount:", error);
-  //   }
-  // };
+      if (name === "") {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Please enter a your name. You can not summit an empty space
+              </span>
+            ),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+      setReporterName(chatInput.trim());
+      console.log(`Full name is ${reporterName}`);
+      displayReportlyPhoneNumber(addChatMessages, nextStep);
+    }
+  };
 
-  // // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
-  // const handleConfirmTransaction = async (chatInput: string) => {
-  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
-  //     goToStep("start");
-  //     helloMenu(chatInput);
-  //   } else if (chatInput.trim() === "00") {
-  //     goToStep("start");
-  //     helloMenu(chatInput);
-  //   } else if (chatInput.trim() === "0") {
-  //   } else if (chatInput.trim().length > 3) {
-  //     console.log("Input is:", chatInput.trim());
-  //     const transaction_id = chatInput.trim();
-  //     setLoading(true);
-  //     setSharedTransactionId(transaction_id);
-  //     let transactionExists = (await checkTranscationExists(transaction_id))
-  //       .exists;
+  const handleEnterReporterWalletAddress = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      console.log("Going back to start");
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handleReportlyWelcome");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        goToStep("reporterPhoneNumber");
+        displayReportlyPhoneNumber(addChatMessages, nextStep);
+      })();
+    } else {
+      let phoneNumber = chatInput.trim();
+      if (!phoneNumberPattern.test(phoneNumber)) {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Please enter a valid phone number, <b>{phoneNumber}</b> is not a
+                valid phone number.
+              </span>
+            ),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+      setReporterPhoneNumber(phoneNumber);
+      console.log(`Reporter phone number  is ${reporterPhoneNumber}`);
+      displayReportlyReporterWalletAddress(addChatMessages, nextStep);
+    }
+  };
 
-  //     console.log(
-  //       "User phone:",
-  //       (await checkTranscationExists(transaction_id)).user
-  //         ?.customer_phoneNumber
-  //     );
+  const handleEnterFraudsterWalletAddress = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      console.log("Going back to start");
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handleReportlyWelcome");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        goToStep("reporterWallet");
+        displayReportlyReporterWalletAddress(addChatMessages, nextStep);
+      })();
+    } else {
+      const wallet = chatInput.trim();
+      const lastReportId = async () => {
+        try {
+          const lastReportId = await getLastReportId();
+          const lastId = getNextReportID(lastReportId);
+          const report_id = `Report_${lastId}`;
 
-  //     setLoading(false);
-  //     // IF TRANSACTION_ID EXIST IN DB,
-  //     if (transactionExists) {
-  //       displayConfirmPayment(addChatMessages, nextStep);
-  //     } else {
-  //       addChatMessages([
-  //         {
-  //           type: "incoming",
-  //           content: "Invalid transaction_id. Try again",
-  //         },
-  //       ]);
-  //     }
-  //   } else {
-  //     if (chatInput.trim() === "1") {
-  //       updateTransaction(sharedTransactionId, procesingStatus);
-  //       displayConfirmPayment(addChatMessages, nextStep);
-  //     } else if (chatInput.trim() === "2") {
-  //       updateTransaction(sharedTransactionId, cancelledStatus);
-  //       displayConfirmPayment(addChatMessages, nextStep);
-  //     }
-  //   }
-  // };
+          setReportId(report_id);
+        } catch (e) {
+          console.log("we got into a challenge bro", e);
+        }
+      };
+      lastReportId();
+      if (!isValidWalletAddress(wallet)) {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Please enter a valid wallet address, <b>{wallet}</b> is not a
+                valid wallet address.
+              </span>
+            ),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+      setReporterWalletAddress(wallet);
+
+      displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
+    }
+  };
+  const handleReportlyNote = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      console.log("Going back to start");
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handleReportlyWelcome");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        goToStep("fraudsterWallet");
+
+        displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
+      })();
+    } else if (chatInput.trim() === "1") {
+      (() => {
+        goToStep("reportlyNote");
+        displayReportlyNote(addChatMessages, nextStep);
+      })();
+    } else {
+      const wallet = chatInput.trim();
+      if (!isValidWalletAddress(wallet)) {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Please enter a valid wallet address, <b>{wallet}</b> is not a
+                valid wallet address.
+              </span>
+            ),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+
+      setFraudsterWalletAddress(wallet);
+      displayReportlyNote(addChatMessages, nextStep);
+    }
+  };
+
+  const handleReporterFarwell = async (chatInput: string) => {
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      console.log("Going back to start");
+      goToStep("start");
+      helloMenu(chatInput);
+    } else if (chatInput.trim() === "00") {
+      (() => {
+        console.log("Going back from handleReportlyWelcome");
+        goToStep("start");
+        helloMenu("hi");
+      })();
+    } else if (chatInput.trim() === "0") {
+      (() => {
+        goToStep("reportlyNote");
+        displayReportlyNote(addChatMessages, nextStep);
+      })();
+    } else {
+      const note = chatInput.trim();
+
+      const wordCount = countWords(note);
+
+      if (!(wordCount <= 100)) {
+        console.log("word count is: ", wordCount);
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Please enter a note within the specified word count. Your note
+                is {wordCount} words long. The maximum allowed is 100 words.
+              </span>
+            ),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+
+      setDescriptionNote(note);
+      const reportData: reportData = {
+        name: reporterName,
+        phone_Number: formatPhoneNumber(reporterPhoneNumber),
+        wallet_address: reporterWalletAddress,
+        fraudster_wallet_address: fraudsterWalletAddress,
+        description: note,
+        complaint: sharedReportlyReportType,
+        status: "pending",
+        report_id: reportId,
+        confirmer: "",
+      };
+
+      switch (sharedReportlyReportType) {
+        case "Track Transaction":
+          console.log(`Reporter data is `, reportData);
+
+          await makeAReport(reportData);
+          setReporterName("");
+          setReporterPhoneNumber("");
+          setReporterWalletAddress("");
+          setFraudsterWalletAddress("");
+          setDescriptionNote("");
+          break;
+        case "Stolen funds | disappear funds":
+          console.log("Save data for stolenFunds");
+          await makeAReport(reportData);
+          setReporterName("");
+          setReporterPhoneNumber("");
+          setReporterWalletAddress("");
+          setFraudsterWalletAddress("");
+          setDescriptionNote("");
+          break;
+        case "Fraud":
+          console.log("Save data for fraud");
+          await makeAReport(reportData);
+          setReporterName("");
+          setReporterPhoneNumber("");
+          setReporterWalletAddress("");
+          setFraudsterWalletAddress("");
+          setDescriptionNote("");
+          break;
+        default:
+          console.log("Unknown report type");
+      }
+
+      displayReportlyFarwell(addChatMessages, nextStep);
+      helloMenu("hi");
+    }
+  };
 
   // THE ROOT FUNCTION
 
@@ -3148,11 +2715,7 @@ const ChatBot = () => {
         break;
 
       case "enterBankSearchWord":
-        console.log("Current step is enterBankSearchWord, LEARN ");
-        // () => {
-
-        // };
-
+        console.log("Current step is enterBankSearchWord");
         let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
         let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
         let wantsToRequestPayment =
@@ -3269,15 +2832,46 @@ const ChatBot = () => {
         setChatInput("");
         break;
 
+      case "completetrxWithID":
+        console.log("Current step is trxIDFeedback ");
+        // handleReportlyWelcome(chatInput);
+        setChatInput("");
+        break;
+
       case "makeReport":
         console.log("Current step is makeReport ");
         handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
+      case "reporterName":
+        console.log("Current step is reporterName ");
+        handleReporterName(chatInput);
+        setChatInput("");
+        break;
+      case "reporterPhoneNumber":
+        console.log("Current step is reporterPhoneNumber ");
+        handleEnterReporterPhoneNumber(chatInput);
+        setChatInput("");
+        break;
+      case "reporterWallet":
+        console.log("Current step is reporterWallet");
+        handleEnterReporterWalletAddress(chatInput);
+        setChatInput("");
+        break;
+      case "fraudsterWallet":
+        console.log("Current step is fraudsterWallet");
+        handleEnterFraudsterWalletAddress(chatInput);
+        setChatInput("");
+        break;
+      case "reportlyNote":
+        console.log("Current step is reportlyNote");
+        handleReportlyNote(chatInput);
+        setChatInput("");
+        break;
+      case "reporterFarwell":
+        console.log("Current step is reporterFarwell");
+        handleReporterFarwell(chatInput);
 
-      case "completetrxWithID":
-        console.log("Current step is trxIDFeedback ");
-        handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
 
@@ -3300,7 +2894,7 @@ const ChatBot = () => {
     }
   };
 
-  // // CHATBOT
+  // CHATBOT
 
   return (
     <div

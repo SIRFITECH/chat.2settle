@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { useAccount, useDisconnect } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   Button,
   TextField,
@@ -12,18 +11,23 @@ import {
   IconButton,
   Box,
 } from "@mui/material";
+import { phoneNumberPattern } from "@/utils/utilities";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import React from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import CloseIcon from "@mui/icons-material/Close";
-import { phoneNumberPattern } from "@/utils/utilities";
-import { checkUserHasHistory } from "@/helpers/api_call/history_page_calls";
+import { checkUserReports } from "@/helpers/api_call/reportly_page_calls";
+import { reportData } from "@/types/reportly_types";
+import ShortenedAddress from "./ShortenAddress";
+import TruncatedText from "./TruncatedText";
 
-const Transactions: any[] = [];
+const reports: reportData[] = [];
 
 type ToastType = "success" | "error" | "warning" | "info";
 
-const HistoryPage: React.FC = () => {
+const ReportlyPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,21 +47,18 @@ const HistoryPage: React.FC = () => {
   useEffect(() => {
     if (account.isConnected) {
       handleAuthentication();
-      populateHistory(undefined, wallet);
+      populateReport(undefined, wallet);
     } else {
-      Transactions.length = 0;
+      reports.length = 0;
       setIsAuthenticated(false);
     }
   }, [account.isConnected]);
 
   const handleAuthentication = () => {
     setIsAuthenticated(true);
-    Transactions.length > 0
-      ? showToast("Here is your transaction history 😉 ", "success")
-      : showToast(
-          "You need to do better jare, try do transaction!! 😔 ",
-          "success"
-        );
+    reports.length > 0
+      ? showToast("Here is your report history 😉 ", "success")
+      : showToast("You need to do better jare, try do report!! 😔 ", "success");
   };
 
   const sendOTP = async (e?: React.FormEvent) => {
@@ -68,7 +69,7 @@ const HistoryPage: React.FC = () => {
         showToast("Please enter a valid Phone number.", "error");
         return;
       } else {
-        populateHistory(phoneNumber, "");
+        populateReport(phoneNumber, "");
         const generatedOTP = Math.floor(
           100000 + Math.random() * 900000
         ).toString();
@@ -124,10 +125,10 @@ const HistoryPage: React.FC = () => {
     setPhoneNumber("");
     setOtp("");
     setUserOTPEntry("");
-    Transactions.length = 0;
+    reports.length = 0;
     showToast("Please authenticate again", "info");
   };
-  const populateHistory = async (
+  const populateReport = async (
     phoneNumber?: string,
     walletAddress?: string
   ) => {
@@ -137,53 +138,51 @@ const HistoryPage: React.FC = () => {
     }
 
     try {
-      const userHistory = await checkUserHasHistory(phoneNumber, walletAddress);
+      const userReports = await checkUserReports(phoneNumber, walletAddress);
 
-      if (userHistory.exists && Array.isArray(userHistory.transactions)) {
-        userHistory.transactions.forEach((transaction, index) => {
-          let paymentType = transaction.mode_of_payment;
+      if (userReports.exists && Array.isArray(userReports.reports)) {
+        userReports.reports.forEach((report, index) => {
+          let complaint = report.complaint;
 
-          switch (paymentType) {
-            case "transferMoney":
-              paymentType = "Paid";
+          switch (complaint) {
+            case "Stolen funds | disappear funds":
+              complaint = "Stolen funds | disappear funds";
               break;
-            case "Gift":
-              paymentType = "Gifts Sent";
+            case "Track Transaction":
+              complaint = "Track Transaction";
               break;
-            case "Claim Gift":
-              paymentType = "Gifts Received";
-              break;
-            case "request":
-              paymentType = "Received";
+            case "Fraud":
+              complaint = "Fraud";
               break;
             default:
-              paymentType = transaction.mode_of_payment;
+              complaint = report.complaint;
           }
-          const transformedTransaction = {
+          const transformedreport = {
             id: index + 1,
-            type: paymentType,
-            amount: transaction.Amount,
-            currency: transaction.crypto,
-            date: transaction.Date,
-            status: transaction.status,
+            complaint: report.complaint,
+            wallet_address: report.wallet_address,
+            description: report.description,
+            fraudster_wallet_address: report.fraudster_wallet_address,
+            report_id: report.report_id,
+            status: report.status,
           };
-          Transactions.push(transformedTransaction);
+          reports.push(transformedreport);
         });
       } else {
-        console.log("No transactions found for the user.");
+        console.log("No reports found for the user.");
       }
     } catch (error) {
       console.error("Error fetching user history:", error);
     }
   };
 
-  const filteredTransactions = Transactions.filter((transaction) => {
+  const filteredreports = reports.filter((report) => {
     const matchesSearch =
-      transaction.currency?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.date?.includes(searchTerm) ||
-      transaction.amount?.toString().includes(searchTerm);
+      report.complaint?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.report_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      report.status?.toString().includes(searchTerm.toLowerCase());
     const matchesType =
-      filterType === "all" || transaction.type.toLowerCase() === filterType;
+      filterType === "all" || report.complaint?.toLowerCase() === filterType;
     return matchesSearch && matchesType;
   });
 
@@ -261,12 +260,10 @@ const HistoryPage: React.FC = () => {
     </div>
   );
 
-  const renderTransactionHistory = () => (
+  const renderreportHistory = () => (
     <>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-blue-500">
-          Transaction History
-        </h1>
+        <h1 className="text-3xl font-bold text-blue-500">Reportly History</h1>
         <Button
           variant="outlined"
           onClick={handleSwitchAccount}
@@ -298,61 +295,82 @@ const HistoryPage: React.FC = () => {
               native: true,
             }}
           >
-            <option value="all">All Transactions</option>
-            <option value="paid">Paid</option>
-            <option value="received">Received</option>
-            <option value="gifts sent">Gifts Sent</option>
-            <option value="gifts received">Gifts Received</option>
+            <option value="all">All reports</option>
+            <option value="complaint">complaint</option>
+            <option value="report_id">report_id</option>
+            <option value="status">status</option>
           </TextField>
         </div>
       </div>
       <Card>
         <CardContent>
           <Box sx={{ maxHeight: "400px", overflowY: "auto" }}>
-            {filteredTransactions.length > 0 ? (
+            {filteredreports.length > 0 ? (
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b">
-                    <th className="py-2 px-4 text-left">Type</th>
-                    <th className="py-2 px-4 text-left">Amount</th>
-                    <th className="py-2 px-4 text-left">Crypto</th>
-                    <th className="py-2 px-4 text-left">Date</th>
+                    <th className="py-2 px-4 text-left">Complaint</th>
+                    <th className="py-2 px-4 text-left">Affected Wallet</th>
+                    <th className="py-2 px-4 text-left">Comment</th>
+                    <th className="py-2 px-4 text-left">Fraudster Wallet</th>
+                    <th className="py-2 px-4 text-left">Report ID</th>
                     <th className="py-2 px-4 text-left">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions
-                    .map((transaction) => (
+                  {filteredreports
+                    .map((report) => (
                       <tr
-                        key={transaction.id}
+                        key={report.report_id}
                         className="border-b last:border-b-0"
                       >
                         <td className="py-2 px-4">
                           <div className="flex items-center">
-                            {transaction.type === "Paid" ||
-                            transaction.type === "Gifts Sent" ? (
+                            {report.status === "pending" ? (
                               <ArrowUpwardIcon className="mr-2 h-4 w-4 text-red-500" />
+                            ) : report.status === "processing" ? (
+                              <ArrowUpwardIcon className="mr-2 h-4 w-4 text-yellow-800" />
                             ) : (
                               <ArrowDownwardIcon className="mr-2 h-4 w-4 text-green-500" />
                             )}
-                            {transaction.type}
+                            {report.complaint}
                           </div>
                         </td>
-                        <td className="py-2 px-4">{transaction.amount}</td>
-                        <td className="py-2 px-4">{transaction.currency}</td>
-                        <td className="py-2 px-4">{transaction.date}</td>
+
+                        <td className="py-2 px-4">
+                          {
+                            <ShortenedAddress
+                              wallet={report.wallet_address ?? ""}
+                            />
+                          }
+                        </td>
+                        <td className="py-2 px-4">
+                          {
+                            <TruncatedText
+                              text={report.description ?? ""}
+                              maxLength={30}
+                            />
+                          }
+                        </td>
+                        <td className="py-2 px-4">
+                          {
+                            <ShortenedAddress
+                              wallet={report.wallet_address ?? ""}
+                            />
+                          }
+                        </td>
+                        <td className="py-2 px-4">{report.report_id}</td>
                         <td className="py-2 px-4">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
-                              transaction.status === "Successful"
+                              report.status === "Successful"
                                 ? "bg-green-200 text-green-800"
-                                : transaction.status === "Pending" ||
-                                  transaction.status === "Processing"
+                                : report.status === "processing"
                                 ? "bg-yellow-200 text-yellow-800"
                                 : "bg-red-200 text-red-800"
                             }`}
                           >
-                            {transaction.status}
+                            {report.status}
                           </span>
                         </td>
                       </tr>
@@ -367,7 +385,7 @@ const HistoryPage: React.FC = () => {
                 sx={{ py: 4 }}
                 className="text-blue-500 font-semibold text-lg"
               >
-                No transactions yet.
+                No reports yet.
               </Typography>
             )}
           </Box>
@@ -389,9 +407,7 @@ const HistoryPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-100">
-      {isAuthenticated
-        ? renderTransactionHistory()
-        : renderAuthenticationForm()}
+      {isAuthenticated ? renderreportHistory() : renderAuthenticationForm()}
       <Snackbar
         anchorOrigin={{
           vertical: "top",
@@ -419,5 +435,4 @@ const HistoryPage: React.FC = () => {
   );
 };
 
-export default HistoryPage;
-
+export default ReportlyPage;

@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { getChatId } from "../utils/utilities";
-import { SharedStateContextProps, UserBankData } from "../types/types";
+import { SharedStateContextProps, UserBankData } from "../types/general_types";
 
 const SharedStateContext = createContext<SharedStateContextProps | undefined>(
   undefined
@@ -52,6 +52,8 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
   const [bankData, setBankData] = useState<UserBankData>({});
   const [sharedPhone, setSharedPhone] = useState<string>("");
   const [sharedGiftId, setSharedGiftId] = useState<string>("");
+  const [sharedReportlyReportType, setSharedReportlyReportType] =
+    useState<string>("");
 
   // Function to update the user object
   const updateBankData = (newData: Partial<UserBankData>) => {
@@ -132,6 +134,8 @@ export const SharedStateProvider: React.FC<{ children: ReactNode }> = ({
         setSharedTransactionId,
         sharedGiftId,
         setSharedGiftId,
+        sharedReportlyReportType,
+        setSharedReportlyReportType,
       }}
     >
       {children}

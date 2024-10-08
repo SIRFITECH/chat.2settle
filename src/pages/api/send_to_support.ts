@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { google } from "googleapis";
-import { SheetData } from "../../types/types";
+import { SheetData } from "../../types/general_types";
 
 export default async function handler(
   req: NextApiRequest,

@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageType, Result } from "../types/types";
+import { MessageType, Result } from "../types/general_types";
 import { formatCurrency } from "../helpers/format_currency";
 import { CountdownTimer } from "@/helpers/format_date";
 

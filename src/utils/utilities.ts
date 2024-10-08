@@ -38,4 +38,4 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
 export const phoneNumberPattern = /^[0-9]{11}$/;
 
-
+export const greetings = ["hi", "hello", "hey", "howdy"];

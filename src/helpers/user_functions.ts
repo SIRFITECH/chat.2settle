@@ -5,7 +5,7 @@ import {
   BscTransaction,
   erc20TrxData,
   EtherscanResponse,
-} from "../types/types";
+} from "../types/general_types";
 import {
   checkUserExists,
   createUser,

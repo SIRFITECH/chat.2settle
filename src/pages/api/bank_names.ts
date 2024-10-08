@@ -1,6 +1,6 @@
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
-import { BankName } from "../../types/types";
+import { BankName } from "../../types/general_types";
 
 export default async function handler(
   req: NextApiRequest,
