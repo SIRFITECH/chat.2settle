@@ -252,12 +252,6 @@ const ChatBot = () => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
-  // let reporterName: string;
-  // let reporterPhoneNumber: string;
-  // let reporterWalletAddress: string;
-  // let fraudsterWalletAddress: string;
-  // let descriptionNote = "";
-  // let report_id: string;
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -290,16 +284,6 @@ const ChatBot = () => {
       stepHistory: ["start"],
     };
   });
-
-  // const [chatMessages, setChatMessages] = useState<MessageType[]>(
-  //   local.messages
-  // );
-  // const [serializedMessages, setSerializedMessages] = React.useState(
-  //   local.serializedMessages
-  // );
-  // const [currentStep, setCurrentStep] = useState<string>(local.step);
-  // const [stepHistory, setStepHistory] = useState<string[]>(local.stepHistory);
-
   React.useEffect(() => {
     const chatData = {
       messages: serializedMessages,
@@ -329,43 +313,6 @@ const ChatBot = () => {
     let trxID = window.localStorage.getItem("transactionID");
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
-
-  // const addChatMessages = (messages: MessageType[]) => {
-  //   const serializedMessages = messages.map(serializeMessage);
-  //   setChatMessages((prevMessages) => [...prevMessages, ...messages]);
-  //   setSerializedMessages((prevMessages) => [
-  //     ...prevMessages,
-  //     ...serializedMessages,
-  //   ]);
-  //   scrollToBottom();
-  // };
-
-  // const nextStep = (nextStep: string) => {
-  //   setStepHistory((prevHistory) => {
-  //     // Avoid adding "start" twice
-  //     const newHistory = [...prevHistory, currentStep];
-  //     // Ensure "start" is not duplicated if it's already the last step
-  //     if (
-  //       newHistory[newHistory.length - 2] === "start" &&
-  //       currentStep === "start"
-  //     ) {
-  //       return prevHistory;
-  //     }
-  //     return newHistory;
-  //   });
-  //   setCurrentStep(nextStep);
-  // };
-
-  // const prevStep = () => {
-  //   setStepHistory((prevHistory) => prevHistory.slice(0, -1));
-  //   setCurrentStep(stepHistory[stepHistory.length - 1] || "start");
-  // };
-
-  // const goToStep = (step: string) => {
-  //   setStepHistory((prevHistory) => [...prevHistory, currentStep]);
-  //   setCurrentStep(step);
-  // };
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -763,7 +710,7 @@ const ChatBot = () => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
-    } else if (chatInput === "0") {
+    } else if (chatInput === "00") {
       goToStep("start");
       helloMenu("hi");
     } else if (chatInput === "0") {
@@ -1065,7 +1012,6 @@ const ChatBot = () => {
       helloMenu(chatInput);
     } else if (chatInput === "00") {
       (() => {
-        // console.log("Going back from handlePayOptions");
         goToStep("start");
         helloMenu("hi");
       })();
@@ -2321,7 +2267,7 @@ const ChatBot = () => {
     } else if (chatInput.trim() === "0") {
       (() => {
         prevStep();
-        displayTransactIDWelcome(addChatMessages, nextStep);
+        welcomeMenu();
       })();
     } else if (chatInput === "1") {
       setSharedReportlyReportType("Track Transaction");
@@ -2356,11 +2302,6 @@ const ChatBot = () => {
         console.log("Going back from handleReportlyWelcome");
         goToStep("start");
         helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayTransactIDWelcome(addChatMessages, nextStep);
       })();
     } else if (chatInput === "1") {
       setSharedReportlyReportType("Track Transaction");
@@ -2438,8 +2379,8 @@ const ChatBot = () => {
       })();
     } else if (chatInput.trim() === "0") {
       (() => {
-        goToStep("reporterPhoneNumber");
-        displayReportlyPhoneNumber(addChatMessages, nextStep);
+        prevStep();
+        displayReportlyName(addChatMessages, nextStep);
       })();
     } else {
       let phoneNumber = chatInput.trim();
@@ -2477,8 +2418,8 @@ const ChatBot = () => {
       })();
     } else if (chatInput.trim() === "0") {
       (() => {
-        goToStep("reporterWallet");
-        displayReportlyReporterWalletAddress(addChatMessages, nextStep);
+        prevStep();
+        displayReportlyPhoneNumber(addChatMessages, nextStep);
       })();
     } else {
       const wallet = chatInput.trim();
@@ -2527,9 +2468,8 @@ const ChatBot = () => {
       })();
     } else if (chatInput.trim() === "0") {
       (() => {
-        goToStep("fraudsterWallet");
-
-        displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
+        prevStep();
+        displayReportlyReporterWalletAddress(addChatMessages, nextStep);
       })();
     } else if (chatInput.trim() === "1") {
       (() => {
@@ -2572,8 +2512,8 @@ const ChatBot = () => {
       })();
     } else if (chatInput.trim() === "0") {
       (() => {
-        goToStep("reportlyNote");
-        displayReportlyNote(addChatMessages, nextStep);
+        prevStep();
+        displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
       })();
     } else {
       const note = chatInput.trim();
@@ -2609,42 +2549,68 @@ const ChatBot = () => {
         report_id: reportId,
         confirmer: "",
       };
+      setLoading(true);
+      try {
+        // switch (sharedReportlyReportType) {
+        //   case "Track Transaction":
+        //     console.log(`Reporter data is `, reportData);
 
-      switch (sharedReportlyReportType) {
-        case "Track Transaction":
-          console.log(`Reporter data is `, reportData);
-
-          await makeAReport(reportData);
-          setReporterName("");
-          setReporterPhoneNumber("");
-          setReporterWalletAddress("");
-          setFraudsterWalletAddress("");
-          setDescriptionNote("");
-          break;
-        case "Stolen funds | disappear funds":
-          console.log("Save data for stolenFunds");
-          await makeAReport(reportData);
-          setReporterName("");
-          setReporterPhoneNumber("");
-          setReporterWalletAddress("");
-          setFraudsterWalletAddress("");
-          setDescriptionNote("");
-          break;
-        case "Fraud":
-          console.log("Save data for fraud");
-          await makeAReport(reportData);
-          setReporterName("");
-          setReporterPhoneNumber("");
-          setReporterWalletAddress("");
-          setFraudsterWalletAddress("");
-          setDescriptionNote("");
-          break;
-        default:
-          console.log("Unknown report type");
+        //     await makeAReport(reportData);
+        //     setReporterName("");
+        //     setReporterPhoneNumber("");
+        //     setReporterWalletAddress("");
+        //     setFraudsterWalletAddress("");
+        //     setDescriptionNote("");
+        //     break;
+        //   case "Stolen funds | disappear funds":
+        //     console.log("Save data for stolenFunds");
+        //     await makeAReport(reportData);
+        //     setReporterName("");
+        //     setReporterPhoneNumber("");
+        //     setReporterWalletAddress("");
+        //     setFraudsterWalletAddress("");
+        //     setDescriptionNote("");
+        //     break;
+        //   case "Fraud":
+        //     console.log("Save data for fraud");
+        //     await makeAReport(reportData);
+        //     setReporterName("");
+        //     setReporterPhoneNumber("");
+        //     setReporterWalletAddress("");
+        //     setFraudsterWalletAddress("");
+        //     setDescriptionNote("");
+        //     break;
+        //   default:
+        //     console.log("Unknown report type");
+        // }
+        await makeAReport(reportData);
+        // re write write_report api to throw error if we get any response other than 200
+        setReporterName("");
+        setReporterPhoneNumber("");
+        setReporterWalletAddress("");
+        setFraudsterWalletAddress("");
+        setDescriptionNote("");
+        displayReportlyFarwell(addChatMessages, nextStep);
+        helloMenu("hi");
+        setLoading(false);
+      } catch (error) {
+        setLoading(false);
+        addChatMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Aje!!, there was a issue saving the report.
+                <br />
+                Maybe check your internet and try again or say 'hi' to go to the
+                start of the conversation
+              </span>
+            ),
+          },
+        ]);
+        console.log("Aje!!, there was a issue saving the report", error);
       }
-
-      displayReportlyFarwell(addChatMessages, nextStep);
-      helloMenu("hi");
+      return;
     }
   };
 
