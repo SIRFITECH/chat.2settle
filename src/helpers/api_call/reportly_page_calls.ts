@@ -95,10 +95,4 @@ export function countWords(text: string): number {
     .filter((word) => word !== "").length;
 }
 
-// Example usage:
-const userInput = "0x1234..."; // Replace with actual user input
-if (isValidWalletAddress(userInput)) {
-  console.log("Valid wallet address");
-} else {
-  console.log("Invalid wallet address");
-}
+

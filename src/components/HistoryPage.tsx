@@ -17,7 +17,12 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import CloseIcon from "@mui/icons-material/Close";
 import { phoneNumberPattern } from "@/utils/utilities";
-import { checkUserHasHistory } from "@/helpers/api_call/history_page_calls";
+import {
+  checkUserHasHistory,
+  handlePhoneNumber,
+} from "@/helpers/api_call/history_page_calls";
+// import twilio from "twilio";
+// import { twilioClient } from "@/utils/twilio";
 
 const Transactions: any[] = [];
 
@@ -67,15 +72,16 @@ const HistoryPage: React.FC = () => {
       if (!phoneNumberPattern.test(phoneNumber)) {
         showToast("Please enter a valid Phone number.", "error");
         return;
-      } else {
-        populateHistory(phoneNumber, "");
-        const generatedOTP = Math.floor(
-          100000 + Math.random() * 900000
-        ).toString();
-        setOtp(generatedOTP);
-        setOtpSent(true);
-        showToast(`Use "${generatedOTP}" as your OTP`, "success");
       }
+      populateHistory(phoneNumber, "");
+      const generatedOTP = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
+      setOtp(generatedOTP);
+      setOtpSent(true);
+      // handlePhoneNumber(phoneNumber);
+      showToast(`Use "${generatedOTP}" as your OTP`, "success");
+      // showToast(`OTP is sent to "${phoneNumber}" `, "success");
     } else {
       showToast("You must enter a Phone number.", "error");
     }
@@ -420,4 +426,3 @@ const HistoryPage: React.FC = () => {
 };
 
 export default HistoryPage;
-

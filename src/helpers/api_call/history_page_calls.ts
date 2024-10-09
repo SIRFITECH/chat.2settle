@@ -24,32 +24,54 @@ export const checkUserHasHistory = async (
   }
 };
 
-
+let lastOtpSentTime = 0;
+const OTP_COOLDOWN = 3000;
 
 export const sendOtp = async (
-  phone: string,
-  otp: string
-): Promise<{ sent: boolean }> => {
-  //IF THE SENDING OF THE OTP IS SUCCESSFULL, THEN WE ALLOW FOR DISSPLAY OF HISTORY
-  // 1. Send OTP to user
-  // 2. save the otp in db
-  // 3. block any other call for otp with 3 sec
-  return { sent: true };
-};
+  phone: string
+): Promise<{ sent: boolean; message?: string }> => {
+  const currentTime = Date.now();
 
-export const handlePhoneNumber = async (phoneNumber: string) => {
-  // Check if phone number exists in the database
-  const hasHistory = await checkUserHasHistory(phoneNumber);
-
-  if (!hasHistory) {
-    throw new Error("No history found for " + { phoneNumber });
+  // Check if enough time has passed since the last OTP was sent
+  if (currentTime - lastOtpSentTime < OTP_COOLDOWN) {
+    return {
+      sent: false,
+      message: `Please wait ${Math.ceil(
+        (OTP_COOLDOWN - (currentTime - lastOtpSentTime)) / 1000
+      )} seconds before requesting another OTP.`,
+    };
   }
 
+  try {
+    const response = await axios.post("/api/send-otp", { phoneNumber: phone });
+
+    if (response.data.success) {
+      lastOtpSentTime = currentTime;
+      return { sent: true };
+    } else {
+      return { sent: false, message: "Failed to send OTP. Please try again." };
+    }
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    return {
+      sent: false,
+      message: "An error occurred while sending OTP. Please try again.",
+    };
+  }
+};
+export const handlePhoneNumber = async (phoneNumber: string) => {
+  // Check if phone number exists in the database
+  // const hasHistory = await checkUserHasHistory(phoneNumber);
+
+  // if (!hasHistory) {
+  //   throw new Error("No history found for " + { phoneNumber });
+  // }
+
   // Generate OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  // const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   // Send OTP
-  await sendOtp(phoneNumber, otp);
+  await sendOtp(phoneNumber);
 
-  return otp;
+  // return otp;
 };
