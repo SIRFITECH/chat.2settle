@@ -96,6 +96,7 @@ import {
   makeAReport,
 } from "@/helpers/api_call/reportly_page_calls";
 import { reportData } from "@/types/reportly_types";
+import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 const initialMessages = [
   {
     type: "incoming",
@@ -251,7 +252,7 @@ const ChatBot = () => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
-  const [isButtonClicked, setIsButtonClicked] = useState(false);
+
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -719,7 +720,7 @@ const ChatBot = () => {
     } else if (chatInput === "1") {
       // console.log("The choice is ONE, TRANSACT CRYPTO");
       displayTransactCrypto(addChatMessages);
-      setIsButtonClicked(false);
+
       nextStep("transferMoney");
     } else if (chatInput === "2") {
       // console.log("The choice is TWO, REQUEST PAY CARD");
@@ -1502,7 +1503,6 @@ const ChatBot = () => {
     } else if (chatInput != "0") {
       setLoading(true);
 
-      // Validate phone number
       if (!phoneNumberPattern.test(phoneNumber)) {
         const newMessages: MessageType[] = [
           {
@@ -1526,38 +1526,7 @@ const ChatBot = () => {
       let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
       let requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
-      const handleClick = async () => {
-        console.log("Is buttonClicked? check 1", isButtonClicked);
-        if (isButtonClicked) return;
-
-        setIsButtonClicked(true);
-        setLoading(true);
-        // onClick={async () => {
-        //             if (!isButtonClicked) {
-        //               setIsButtonClicked(true);
-        //               setLoading(true);
-        //               await proceedWithTransaction(phoneNumber);
-        //             }
-        //           }}
-
-        try {
-          console.log("Is buttonClicked? check 2", isButtonClicked);
-          console.log("Is loading? ", loading);
-
-          await proceedWithTransaction(phoneNumber);
-          console.log("Transaction processed");
-        } catch (error) {
-          console.error("Error processing transaction:", error);
-        }
-        // finally {
-        //   setLoading(false);
-        //   // Uncomment the next line if you want to re-enable the button after the operation
-        //   // setIsButtonClicked(false)
-        // }
-      };
-
       if (!isGift && !requestPayment) {
-        // Show prompt to user
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -1567,19 +1536,12 @@ const ChatBot = () => {
                   Do you understand that you need to complete your payment
                   within <b>5 minutes</b>, otherwise you may lose your money.
                 </p>
-
-                <button
-                  className={`bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out ${
-                    isButtonClicked
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-blue-700"
-                  }`}
-                  onClick={handleClick}
-                  disabled={isButtonClicked}
-                >
-                  {/* {isButtonClicked ? "Processing..." : "Confirm and Proceed"} */}
-                  {loading ? "Processing..." : "Confirm and Proceed"}
-                </button>
+                <ConfirmAndProceedButton
+                  phoneNumber={phoneNumber}
+                  setLoading={setLoading}
+                  sharedPaymentMode={sharedPaymentMode}
+                  processTransaction={processTransaction}
+                />
               </div>
             ),
           },
@@ -1599,15 +1561,6 @@ const ChatBot = () => {
       setLoading(false);
       console.log("User input not recognized");
     }
-  };
-
-  const proceedWithTransaction = async (phoneNumber: string) => {
-    setLoading(true);
-    let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-    let requestPayment = sharedPaymentMode.toLowerCase() === "request";
-
-    await processTransaction(phoneNumber, false, isGiftTrx, requestPayment);
-    setLoading(false);
   };
 
   const processTransaction = async (
