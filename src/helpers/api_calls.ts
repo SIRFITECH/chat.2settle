@@ -10,7 +10,6 @@ import {
   userData,
   vendorData,
 } from "../types/general_types";
-import { headers } from "next/headers";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -30,6 +29,25 @@ export const fetchRate = async (): Promise<number> => {
     console.error("Error fetching rates:", error);
     throw error;
   }
+};
+// FETCH CURRENT EXCHANGE RATE FROM DB
+export const fetchTotalVolume = async (): Promise<number> => {
+  // try {
+  //   const response = await axios.get<ServerData>(`${apiURL}/api/rate`);
+  //   const rawRate = response.data.rate.replace(/,/g, ""); // Remove commas
+  //   const rate = parseFloat(rawRate);
+
+  //   if (isNaN(rate)) {
+  //     throw new Error("Invalid rate received");
+  //   }
+
+  //   return rate;
+  // } catch (error) {
+  //   console.error("Error fetching rates:", error);
+  //   throw error;
+  // }
+  const ytdVolume = 800000;
+  return ytdVolume;
 };
 
 // FETCH MERCHANT RATE FROM DB
@@ -126,45 +144,86 @@ export const checkGiftExists = async (
   }
 };
 
+// export const getAvaialableWallet = async (network: string): Promise<string> => {
+//   let walletAddress = "";
+
+//   try {
+//     if (network === "btc") {
+//       const response = await axios.get("/api/get_available_wallet", {
+//         params: { network: "btc" },
+//       });
+//       walletAddress = response.data.walletAddress;
+
+//     } else if (network === "erc20") {
+//       const response = await axios.get("/api/get_available_wallet", {
+//         params: { network: "erc20" },
+//       });
+//       walletAddress = response.data.walletAddress;
+//     } else if (network === "bep20") {
+//       const response = await axios.get("/api/get_available_wallet", {
+//         params: { network: "bep20" },
+//       });
+//       walletAddress = response.data.walletAddress;
+//     } else if (network === "trc20") {
+//       const response = await axios.get("/api/get_available_wallet", {
+//         params: { network: "trc20" },
+//       });
+//       walletAddress = response.data.walletAddress;
+//     }
+
+//     if (!walletAddress) {
+//       throw new Error(`No wallet found for network: ${network}`);
+//     }
+//       console.log(`availaible wallet is for ${network}`, walletAddress);
+
+//     return walletAddress;
+//   } catch (error) {
+//     console.error(`Error fetching wallet for network ${network}:`, error);
+//     throw new Error(`Failed to fetch wallet for network: ${network}`);
+//   }
+// };
+
+// export const getAvaialableWallet = async (network: string): Promise<string> => {
 export const getAvaialableWallet = async (network: string): Promise<string> => {
-  let walletAddress = "";
-
   try {
-    if (network === "btc") {
-      const response = await axios.get("/api/get_available_wallet", {
-        params: { network: "btc" },
-      });
-      walletAddress = response.data.walletAddress;
-    } else if (network === "erc20") {
-      const response = await axios.get("/api/get_available_wallet", {
-        params: { network: "erc20" },
-      });
-      walletAddress = response.data.walletAddress;
-    } else if (network === "bep20") {
-      const response = await axios.get("/api/get_available_wallet", {
-        params: { network: "bep20" },
-      });
-      walletAddress = response.data.walletAddress;
-    } else if (network === "trc20") {
-      const response = await axios.get("/api/get_available_wallet", {
-        params: { network: "trc20" },
-      });
-      walletAddress = response.data.walletAddress;
-    }
+    const response = await axios.get("/api/get_available_wallet", {
+      params: { network: network },
+    });
 
-    if (!walletAddress) {
-      throw new Error(`No wallet found for network: ${network}`);
+    if (response.status === 200 && response.data.activeWallet) {
+      console.log(
+        `Available wallet for ${network}:`,
+        response.data.activeWallet
+      );
+      return response.data.activeWallet;
+    } else {
+      console.log("The error status is:", response.status);
+      throw new Error(
+        `No wallet found for network: ${network} error is ${response.status}`
+      );
     }
-
-    return walletAddress;
   } catch (error) {
-    console.error(`Error fetching wallet for network ${network}:`, error);
-    throw new Error(`Failed to fetch wallet for network: ${network}`);
+    if (axios.isAxiosError(error) && error.response) {
+      // Handle specific API errors
+      if (error.response.status === 404) {
+        console.error(`No active wallet found for network ${network}`);
+        throw new Error(`No active wallet available for network: ${network}`);
+      } else {
+        console.error(
+          `API error for network ${network}:`,
+          error.response.data.message
+        );
+        throw new Error(`API error for network: ${network}`);
+      }
+    } else {
+      // Handle network errors or other issues
+      console.error(`Error fetching wallet for network ${network}:`, error);
+      throw new Error(`Failed to fetch wallet for network: ${network}`);
+    }
   }
 };
 
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
-
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {

@@ -146,7 +146,6 @@ const ChatBot = () => {
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
   const chatboxRef = useRef<HTMLDivElement>(null);
-  let newReportId;
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -252,6 +251,7 @@ const ChatBot = () => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
+  const [isButtonClicked, setIsButtonClicked] = useState(false);
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -719,6 +719,7 @@ const ChatBot = () => {
     } else if (chatInput === "1") {
       // console.log("The choice is ONE, TRANSACT CRYPTO");
       displayTransactCrypto(addChatMessages);
+      setIsButtonClicked(false);
       nextStep("transferMoney");
     } else if (chatInput === "2") {
       // console.log("The choice is TWO, REQUEST PAY CARD");
@@ -1525,6 +1526,36 @@ const ChatBot = () => {
       let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
       let requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
+      const handleClick = async () => {
+        console.log("Is buttonClicked? check 1", isButtonClicked);
+        if (isButtonClicked) return;
+
+        setIsButtonClicked(true);
+        setLoading(true);
+        // onClick={async () => {
+        //             if (!isButtonClicked) {
+        //               setIsButtonClicked(true);
+        //               setLoading(true);
+        //               await proceedWithTransaction(phoneNumber);
+        //             }
+        //           }}
+
+        try {
+          console.log("Is buttonClicked? check 2", isButtonClicked);
+          console.log("Is loading? ", loading);
+
+          await proceedWithTransaction(phoneNumber);
+          console.log("Transaction processed");
+        } catch (error) {
+          console.error("Error processing transaction:", error);
+        }
+        // finally {
+        //   setLoading(false);
+        //   // Uncomment the next line if you want to re-enable the button after the operation
+        //   // setIsButtonClicked(false)
+        // }
+      };
+
       if (!isGift && !requestPayment) {
         // Show prompt to user
         const newMessages: MessageType[] = [
@@ -1536,14 +1567,18 @@ const ChatBot = () => {
                   Do you understand that you need to complete your payment
                   within <b>5 minutes</b>, otherwise you may lose your money.
                 </p>
+
                 <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out"
-                  onClick={async () => {
-                    setLoading(true);
-                    await proceedWithTransaction(phoneNumber);
-                  }}
+                  className={`bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out ${
+                    isButtonClicked
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-blue-700"
+                  }`}
+                  onClick={handleClick}
+                  disabled={isButtonClicked}
                 >
-                  Confirm and Proceed
+                  {/* {isButtonClicked ? "Processing..." : "Confirm and Proceed"} */}
+                  {loading ? "Processing..." : "Confirm and Proceed"}
                 </button>
               </div>
             ),
@@ -1831,11 +1866,6 @@ const ChatBot = () => {
           gift_status: "Pending",
           asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
         };
-        // await createTransaction(userDate);
-
-        console.log("User request data created", userDate);
-        console.log("User requestID is ", requestID);
-        console.log("User transactionID is ", transactionID.toString());
       } else {
         console.log("sharedPaymentMode is", sharedPaymentMode);
         console.log("USER WANTS TO MAKE A REGULAR TRX");
@@ -2551,38 +2581,6 @@ const ChatBot = () => {
       };
       setLoading(true);
       try {
-        // switch (sharedReportlyReportType) {
-        //   case "Track Transaction":
-        //     console.log(`Reporter data is `, reportData);
-
-        //     await makeAReport(reportData);
-        //     setReporterName("");
-        //     setReporterPhoneNumber("");
-        //     setReporterWalletAddress("");
-        //     setFraudsterWalletAddress("");
-        //     setDescriptionNote("");
-        //     break;
-        //   case "Stolen funds | disappear funds":
-        //     console.log("Save data for stolenFunds");
-        //     await makeAReport(reportData);
-        //     setReporterName("");
-        //     setReporterPhoneNumber("");
-        //     setReporterWalletAddress("");
-        //     setFraudsterWalletAddress("");
-        //     setDescriptionNote("");
-        //     break;
-        //   case "Fraud":
-        //     console.log("Save data for fraud");
-        //     await makeAReport(reportData);
-        //     setReporterName("");
-        //     setReporterPhoneNumber("");
-        //     setReporterWalletAddress("");
-        //     setFraudsterWalletAddress("");
-        //     setDescriptionNote("");
-        //     break;
-        //   default:
-        //     console.log("Unknown report type");
-        // }
         await makeAReport(reportData);
         // re write write_report api to throw error if we get any response other than 200
         // if (response.status !== 200) {
