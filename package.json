@@ -42,6 +42,7 @@
     "react-qr-barcode-scanner": "^1.0.6",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
+    "twilio": "^5.3.3",
     "viem": "2.9.31",
     "wagmi": "^2.9.2"
   },

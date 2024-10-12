@@ -96,6 +96,7 @@ import {
   makeAReport,
 } from "@/helpers/api_call/reportly_page_calls";
 import { reportData } from "@/types/reportly_types";
+import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 const initialMessages = [
   {
     type: "incoming",
@@ -146,7 +147,6 @@ const ChatBot = () => {
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
   const chatboxRef = useRef<HTMLDivElement>(null);
-  let newReportId;
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -252,6 +252,7 @@ const ChatBot = () => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
+
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -719,6 +720,7 @@ const ChatBot = () => {
     } else if (chatInput === "1") {
       // console.log("The choice is ONE, TRANSACT CRYPTO");
       displayTransactCrypto(addChatMessages);
+
       nextStep("transferMoney");
     } else if (chatInput === "2") {
       // console.log("The choice is TWO, REQUEST PAY CARD");
@@ -1501,7 +1503,6 @@ const ChatBot = () => {
     } else if (chatInput != "0") {
       setLoading(true);
 
-      // Validate phone number
       if (!phoneNumberPattern.test(phoneNumber)) {
         const newMessages: MessageType[] = [
           {
@@ -1526,7 +1527,6 @@ const ChatBot = () => {
       let requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
       if (!isGift && !requestPayment) {
-        // Show prompt to user
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -1536,15 +1536,12 @@ const ChatBot = () => {
                   Do you understand that you need to complete your payment
                   within <b>5 minutes</b>, otherwise you may lose your money.
                 </p>
-                <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out"
-                  onClick={async () => {
-                    setLoading(true);
-                    await proceedWithTransaction(phoneNumber);
-                  }}
-                >
-                  Confirm and Proceed
-                </button>
+                <ConfirmAndProceedButton
+                  phoneNumber={phoneNumber}
+                  setLoading={setLoading}
+                  sharedPaymentMode={sharedPaymentMode}
+                  processTransaction={processTransaction}
+                />
               </div>
             ),
           },
@@ -1564,15 +1561,6 @@ const ChatBot = () => {
       setLoading(false);
       console.log("User input not recognized");
     }
-  };
-
-  const proceedWithTransaction = async (phoneNumber: string) => {
-    setLoading(true);
-    let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-    let requestPayment = sharedPaymentMode.toLowerCase() === "request";
-
-    await processTransaction(phoneNumber, false, isGiftTrx, requestPayment);
-    setLoading(false);
   };
 
   const processTransaction = async (
@@ -1831,11 +1819,6 @@ const ChatBot = () => {
           gift_status: "Pending",
           asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
         };
-        // await createTransaction(userDate);
-
-        console.log("User request data created", userDate);
-        console.log("User requestID is ", requestID);
-        console.log("User transactionID is ", transactionID.toString());
       } else {
         console.log("sharedPaymentMode is", sharedPaymentMode);
         console.log("USER WANTS TO MAKE A REGULAR TRX");
@@ -2551,38 +2534,6 @@ const ChatBot = () => {
       };
       setLoading(true);
       try {
-        // switch (sharedReportlyReportType) {
-        //   case "Track Transaction":
-        //     console.log(`Reporter data is `, reportData);
-
-        //     await makeAReport(reportData);
-        //     setReporterName("");
-        //     setReporterPhoneNumber("");
-        //     setReporterWalletAddress("");
-        //     setFraudsterWalletAddress("");
-        //     setDescriptionNote("");
-        //     break;
-        //   case "Stolen funds | disappear funds":
-        //     console.log("Save data for stolenFunds");
-        //     await makeAReport(reportData);
-        //     setReporterName("");
-        //     setReporterPhoneNumber("");
-        //     setReporterWalletAddress("");
-        //     setFraudsterWalletAddress("");
-        //     setDescriptionNote("");
-        //     break;
-        //   case "Fraud":
-        //     console.log("Save data for fraud");
-        //     await makeAReport(reportData);
-        //     setReporterName("");
-        //     setReporterPhoneNumber("");
-        //     setReporterWalletAddress("");
-        //     setFraudsterWalletAddress("");
-        //     setDescriptionNote("");
-        //     break;
-        //   default:
-        //     console.log("Unknown report type");
-        // }
         await makeAReport(reportData);
         // re write write_report api to throw error if we get any response other than 200
         // if (response.status !== 200) {
