@@ -8,7 +8,7 @@ import elementToJSXString from "react-element-to-jsx-string";
 import { useAccount } from "wagmi";
 import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType } from "../types/general_types";
+import { MessageType, WalletInfo } from "../types/general_types";
 import {
   appendToGoogleSheet,
   checkGiftExists,
@@ -1536,11 +1536,18 @@ const ChatBot = () => {
                   Do you understand that you need to complete your payment
                   within <b>5 minutes</b>, otherwise you may lose your money.
                 </p>
+                {/* <ConfirmAndProceedButton
+                  phoneNumber={phoneNumber}
+                  setLoading={setLoading}
+                  sharedPaymentMode={sharedPaymentMode}
+                  processTransaction={processTransaction}
+                /> */}
                 <ConfirmAndProceedButton
                   phoneNumber={phoneNumber}
                   setLoading={setLoading}
                   sharedPaymentMode={sharedPaymentMode}
                   processTransaction={processTransaction}
+                  network={sharedNetwork.toLowerCase()}
                 />
               </div>
             ),
@@ -1717,7 +1724,7 @@ const ChatBot = () => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        let userWallet = "";
+        let userWallet: WalletInfo;
         // : { wallet: string; expiresIn?: number | undefined; }
 
         const availableWallet = await getAvaialableWallet(
@@ -1831,7 +1838,8 @@ const ChatBot = () => {
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
 
-        let userWallet = "";
+        // let userWallet = "";
+          let userWallet: WalletInfo;
 
         const availableWallet = await getAvaialableWallet(
           sharedNetwork.toLocaleLowerCase()

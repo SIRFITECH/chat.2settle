@@ -1,7 +1,8 @@
 import React from "react";
-import { MessageType, Result } from "../types/general_types";
+import { MessageType, Result, WalletInfo } from "../types/general_types";
 import { formatCurrency } from "../helpers/format_currency";
 import { CountdownTimer } from "@/helpers/format_date";
+import { getAvaialableWallet } from "@/helpers/api_calls";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -1004,7 +1005,7 @@ export const displayEnterPhone = (
 export const displaySendPayment = async (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
-  wallet: string,
+  wallet: WalletInfo,
   sharedCrypto: string,
   sharedPaymentAssetEstimate: string,
   sharedPaymentNairaEstimate: string,
@@ -1019,6 +1020,9 @@ export const displaySendPayment = async (
     .toString()} ${sharedCrypto} `;
 
   let isGift = sharedPaymentMode.toLowerCase() === "gift";
+  const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
+    sharedNetwork.toLowerCase()
+  );
 
   const allowedTime = 5;
 
@@ -1060,15 +1064,18 @@ export const displaySendPayment = async (
         <span>
           Tap to copy 👉: <br />
           <br />
-          {wallet}
+          {wallet.activeWallet}
           <br />
           <br />
-          <b>This transaction expires in {allowedTime.toString()} minutes</b>
-          <br />
-          <b>
-            You have {<CountdownTimer />} minutes to complete the transaction
+          {/* <b>This transaction expires in {allowedTime.toString()} minutes</b>
+          <br /> */}
+          {/* <b>
+            
+            <CountdownTimer
+              expiryTime={new Date(lastAssignedTime.getTime() + 5 * 60 * 1000)}
+            />
           </b>
-          <br />
+          <br /> */}
           <b>
             This wallet address is only available for {""}
             {allowedTime.toString()} munites

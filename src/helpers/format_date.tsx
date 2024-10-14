@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 
 export function getFormattedDateTime(): string {
   const now = new Date();
@@ -22,18 +22,63 @@ export function getFormattedDateTime(): string {
   return `${time} ${formattedDate}`;
 }
 
-export const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState(5 * 60);
+// export const CountdownTimer = () => {
+//   const [timeLeft, setTimeLeft] = useState(5 * 60);
+
+//   useEffect(() => {
+//     if (timeLeft <= 0) return;
+
+//     const intervalId = setInterval(() => {
+//       setTimeLeft((prevTime) => prevTime - 1);
+//     }, 1000);
+
+//     return () => clearInterval(intervalId);
+//   }, [timeLeft]);
+
+//   const minutes = Math.floor(timeLeft / 60);
+//   const seconds = timeLeft % 60;
+
+//   return (
+//     <span
+//       className={`font-bold text-xl ${
+//         timeLeft > 2 * 60 ? "text-green-600 " : "text-red-600 animate-pulse"
+//       }`}
+//     >
+//       {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+//     </span>
+//   );
+// };
+
+import React, { useState, useEffect } from "react";
+
+interface CountdownTimerProps {
+  expiryTime: Date;
+}
+
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({
+  expiryTime,
+}) => {
+  const [timeLeft, setTimeLeft] = useState(0);
 
   useEffect(() => {
-    if (timeLeft <= 0) return;
+    const calculateTimeLeft = () => {
+      const difference = expiryTime.getTime() - new Date().getTime();
+      return Math.max(0, Math.floor(difference / 1000));
+    };
 
-    const intervalId = setInterval(() => {
-      setTimeLeft((prevTime) => prevTime - 1);
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft();
+      setTimeLeft(newTimeLeft);
+
+      if (newTimeLeft <= 0) {
+        clearInterval(timer);
+      }
     }, 1000);
 
-    return () => clearInterval(intervalId);
-  }, [timeLeft]);
+    return () => clearInterval(timer);
+  }, [expiryTime]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -41,7 +86,7 @@ export const CountdownTimer = () => {
   return (
     <span
       className={`font-bold text-xl ${
-        timeLeft > 2 * 60 ? "text-green-600 " : "text-red-600 animate-pulse"
+        timeLeft > 2 * 60 ? "text-green-600" : "text-red-600 animate-pulse"
       }`}
     >
       {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
