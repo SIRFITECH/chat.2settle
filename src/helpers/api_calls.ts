@@ -144,46 +144,7 @@ export const checkGiftExists = async (
   }
 };
 
-// export const getAvaialableWallet = async (network: string): Promise<string> => {
-//   let walletAddress = "";
-
-//   try {
-//     if (network === "btc") {
-//       const response = await axios.get("/api/get_available_wallet", {
-//         params: { network: "btc" },
-//       });
-//       walletAddress = response.data.walletAddress;
-
-//     } else if (network === "erc20") {
-//       const response = await axios.get("/api/get_available_wallet", {
-//         params: { network: "erc20" },
-//       });
-//       walletAddress = response.data.walletAddress;
-//     } else if (network === "bep20") {
-//       const response = await axios.get("/api/get_available_wallet", {
-//         params: { network: "bep20" },
-//       });
-//       walletAddress = response.data.walletAddress;
-//     } else if (network === "trc20") {
-//       const response = await axios.get("/api/get_available_wallet", {
-//         params: { network: "trc20" },
-//       });
-//       walletAddress = response.data.walletAddress;
-//     }
-
-//     if (!walletAddress) {
-//       throw new Error(`No wallet found for network: ${network}`);
-//     }
-//       console.log(`availaible wallet is for ${network}`, walletAddress);
-
-//     return walletAddress;
-//   } catch (error) {
-//     console.error(`Error fetching wallet for network ${network}:`, error);
-//     throw new Error(`Failed to fetch wallet for network: ${network}`);
-//   }
-// };
-
-// export const getAvaialableWallet = async (network: string): Promise<string> => {
+// GET THE AVAILABLE WALLET FROM DB
 export const getAvaialableWallet = async (network: string): Promise<string> => {
   try {
     const response = await axios.get("/api/get_available_wallet", {
@@ -223,7 +184,6 @@ export const getAvaialableWallet = async (network: string): Promise<string> => {
   }
 };
 
-// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {

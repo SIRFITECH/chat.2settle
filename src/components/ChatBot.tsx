@@ -1718,6 +1718,7 @@ const ChatBot = () => {
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
         let userWallet = "";
+        // : { wallet: string; expiresIn?: number | undefined; }
 
         const availableWallet = await getAvaialableWallet(
           sharedNetwork.toLocaleLowerCase()
@@ -1768,7 +1769,7 @@ const ChatBot = () => {
           profit_rate: profitRate,
           name: null,
           gift_status: "Pending",
-          asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
+          asset_price: formatCurrency(sharedAssetPrice, "USD"),
         };
         await createTransaction(userDate);
 
@@ -1880,7 +1881,7 @@ const ChatBot = () => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: "",
-          asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
+          asset_price: formatCurrency(sharedAssetPrice, "USD"),
         };
         await createTransaction(userDate);
 
