@@ -1005,7 +1005,7 @@ export const displayEnterPhone = (
 export const displaySendPayment = async (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
-  wallet: WalletInfo,
+  wallet: string,
   sharedCrypto: string,
   sharedPaymentAssetEstimate: string,
   sharedPaymentNairaEstimate: string,
@@ -1020,11 +1020,17 @@ export const displaySendPayment = async (
     .toString()} ${sharedCrypto} `;
 
   let isGift = sharedPaymentMode.toLowerCase() === "gift";
-  const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
-    sharedNetwork.toLowerCase()
-  );
-
+  // const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
+  //   sharedNetwork.toLowerCase()
+  // );
+  // Use the ref instead of calling getAvaialableWallet again
+  const activeWallet = wallet;
   const allowedTime = 5;
+
+  // console.log(
+  //   "lets see if DISPLAYSENDPAYMENT get the wallet too",
+  //   sharedWallet
+  // );
 
   const newMessages: MessageType[] = [
     {
@@ -1064,12 +1070,12 @@ export const displaySendPayment = async (
         <span>
           Tap to copy 👉: <br />
           <br />
-          {wallet.activeWallet}
+          {activeWallet}
           <br />
           <br />
-          {/* <b>This transaction expires in {allowedTime.toString()} minutes</b>
-          <br /> */}
-          {/* <b>
+          <b>This transaction expires in {allowedTime.toString()} minutes</b>
+          {/* <br />
+          <b>
             
             <CountdownTimer
               expiryTime={new Date(lastAssignedTime.getTime() + 5 * 60 * 1000)}

@@ -1,95 +1,19 @@
-// "use client";
-
-// import { useState } from "react";
-// import { Button } from "@/components/ui/button";
-// import { CheckCircle } from "lucide-react";
-// import { proceedWithTransaction } from "@/utils/transactCryptoUtils";
-// import { CountdownTimer } from "@/helpers/format_date";
-
-// interface ConfirmAndProceedButtonProps {
-//   phoneNumber: string;
-//   setLoading: (isLoading: boolean) => void;
-//   sharedPaymentMode: string;
-//   processTransaction: (
-//     phoneNumber: string,
-//     isGift: boolean,
-//     isGiftTrx: boolean,
-//     requestPayment: boolean
-//   ) => Promise<void>;
-// }
-
-// export default function ConfirmAndProceedButton({
-//   phoneNumber,
-//   setLoading,
-//   sharedPaymentMode,
-//   processTransaction,
-// }: ConfirmAndProceedButtonProps) {
-//   const [isButtonClicked, setIsButtonClicked] = useState(false);
-//   const [isProcessing, setIsProcessing] = useState(false);
-
-//   const handleClick = async () => {
-//     if (isButtonClicked) return;
-
-//     setIsButtonClicked(true);
-//     setIsProcessing(true);
-
-//     try {
-//       await new Promise((resolve) => setTimeout(resolve, 2000));
-//       console.log(`Transaction processed for phone number: ${phoneNumber}`);
-
-//       const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-//       const requestPayment = sharedPaymentMode.toLowerCase() === "request";
-
-//       setLoading(true);
-//       await processTransaction(phoneNumber, false, isGiftTrx, requestPayment);
-//     } catch (error) {
-//       console.error("Error processing transaction:", error);
-//       setIsButtonClicked(false);
-//     } finally {
-//       setIsProcessing(false);
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col items-center space-y-4">
-//       <Button
-//         onClick={handleClick}
-//         disabled={isButtonClicked}
-//         aria-busy={isProcessing}
-//         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
-//       >
-//         {isProcessing ? (
-//           "Generating wallet for you..."
-//         ) : isButtonClicked ? (
-//           <span className="flex items-center">
-//             Completed <CheckCircle className="ml-2 h-4 w-4" />
-//           </span>
-//         ) : (
-//           "Confirm & Proceed"
-//         )}
-//       </Button>
-//       <p role="status" className="text-sm text-muted-foreground">
-//         {/* {isButtonClicked ? "This wallet expires in " + <CountdownTimer /> : ``} */}
-//         {isButtonClicked ? (
-//           <>
-//             This wallet expires in <CountdownTimer />
-//           </>
-//         ) : null}
-//       </p>
-//     </div>
-//   );
-// }
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
-import { proceedWithTransaction } from "@/utils/transactCryptoUtils";
 import { CountdownTimer } from "@/helpers/format_date";
 import { getAvaialableWallet } from "@/helpers/api_calls";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useSharedState } from "@/context/SharedStateContext";
 interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
   setLoading: (isLoading: boolean) => void;
@@ -112,13 +36,25 @@ export default function ConfirmAndProceedButton({
 }: ConfirmAndProceedButtonProps) {
   const [isButtonClicked, setIsButtonClicked] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const { sharedWallet, setSharedWallet } = useSharedState();
   const [lastAssignedTime, setLastAssignedTime] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [, forceRender] = useState(0);
 
-  const handleClick = async () => {
-    if (isButtonClicked) return;
+  useEffect(() => {
+    setIsDialogOpen(true);
+    // handleConfirm();
+  }, []);
+  useEffect(() => {
+    if (sharedWallet) {
+      console.log("Shared wallet updated:", sharedWallet);
+      forceRender((prev) => prev + 1); // Force a re-render
+    }
+  }, [sharedWallet]);
 
+  const handleConfirm = async () => {
+    setIsDialogOpen(false);
     setIsButtonClicked(true);
     setIsProcessing(true);
     setError(null);
@@ -128,7 +64,7 @@ export default function ConfirmAndProceedButton({
       const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
         network
       );
-      setWalletAddress(activeWallet);
+      setSharedWallet(activeWallet);
       setLastAssignedTime(new Date(lastAssignedTime));
 
       // Process the transaction
@@ -153,11 +89,34 @@ export default function ConfirmAndProceedButton({
 
   return (
     <div className="flex flex-col items-center space-y-4">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Please Note</DialogTitle>
+            <DialogDescription>
+              <span>
+                Make sure you complete the transaction within <b>5 mins</b>
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
+              onClick={handleConfirm}
+            >
+              Okay
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Button
-        onClick={handleClick}
         disabled={isButtonClicked}
         aria-busy={isProcessing}
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
+        onClick={() => setIsDialogOpen(true)}
       >
         {isProcessing ? (
           "Generating wallet for you..."
@@ -170,9 +129,9 @@ export default function ConfirmAndProceedButton({
         )}
       </Button>
       {error && <p className="text-red-500">{error}</p>}
-      {walletAddress && (
+      {sharedWallet && (
         <p className="text-sm">
-          Here is your {network.toUpperCase()} wallet: {walletAddress}
+          Here is your {network.toUpperCase()} wallet: {sharedWallet}
         </p>
       )}
       <p role="status" className="text-sm text-muted-foreground">

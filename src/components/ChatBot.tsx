@@ -44,7 +44,7 @@ import {
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
-import { CountdownTimer, getFormattedDateTime } from "../helpers/format_date";
+import { getFormattedDateTime } from "../helpers/format_date";
 
 import {
   displayKYCInfo,
@@ -147,6 +147,9 @@ const ChatBot = () => {
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
   const chatboxRef = useRef<HTMLDivElement>(null);
+  const activeWalletRef = useRef<string | null>(null);
+
+  const [isTransactionProcessed, setIsTransactionProcessed] = useState(false);
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -252,6 +255,7 @@ const ChatBot = () => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
+  const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -747,6 +751,7 @@ const ChatBot = () => {
 
   // HANDLE TRANSFER MONEY MENU
   const handleTransferMoney = (chatInput: string) => {
+    setSharedWallet('');
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -1536,12 +1541,20 @@ const ChatBot = () => {
                   Do you understand that you need to complete your payment
                   within <b>5 minutes</b>, otherwise you may lose your money.
                 </p>
+
                 {/* <ConfirmAndProceedButton
+                  onConfirm={handleConfirmAndProceed}
+                  isProcessed={isTransactionProcessed}
                   phoneNumber={phoneNumber}
                   setLoading={setLoading}
-                  sharedPaymentMode={sharedPaymentMode}
-                  processTransaction={processTransaction}
-                /> */}
+                />
+                {walletInfo && (
+                  <p className="text-sm">
+                    Use this {sharedNetwork.toUpperCase()} wallet for your
+                    transaction: {walletInfo.activeWallet}
+                  </p>
+                )} */}
+
                 <ConfirmAndProceedButton
                   phoneNumber={phoneNumber}
                   setLoading={setLoading}
@@ -1557,6 +1570,8 @@ const ChatBot = () => {
         setLoading(false);
         addChatMessages(newMessages);
       } else {
+        // await handleConfirmAndProceed(phoneNumber);
+
         await processTransaction(
           phoneNumber,
           isGift,
@@ -1569,6 +1584,352 @@ const ChatBot = () => {
       console.log("User input not recognized");
     }
   };
+
+  // // WE USE THIS TO HANDLE THE PROCESS AND PROCEED BUTTON
+  // const handleConfirmAndProceed = async (phoneNumber: string) => {
+  //   setLoading(true);
+  //   setIsTransactionProcessed(false);
+  //   try {
+  //     // Generate the wallet
+  //     const availableWallet = await getAvaialableWallet(
+  //       sharedNetwork.toLowerCase()
+  //     );
+  //     setWalletInfo(availableWallet);
+
+  //     // Process the transaction
+  //     await processTransaction(
+  //       phoneNumber,
+  //       false,
+  //       false,
+  //       false,
+  //       availableWallet
+  //     );
+
+  //     setIsTransactionProcessed(true);
+  //   } catch (error) {
+  //     console.error("Error processing transaction:", error);
+  //     // Handle error
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  // // WE USE THIS TO HANDLE THE PROCESS AND PROCEED BUTTON THE END PART
+
+  // const processTransaction = async (
+  //   phoneNumber: string,
+  //   isGift: boolean,
+  //   isGiftTrx: boolean,
+  //   requestPayment: boolean,
+  //   walletInfo: WalletInfo
+  // ) => {
+  //   try {
+  //     if (isGift) {
+  //       // UPDATE THE USER GIFT PAYMENT DATA
+  //       // - gift_status = "Not Claimed"> "Claimed"
+  //       // - status = "Uncompleted"> "Pending" > "Processing" > "Successful"/ "Uncessfull"
+
+  //       console.log("USER WANTS TO CLAIM GIFT");
+
+  //       let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
+  //       let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
+
+  //       try {
+  //         let giftNotClaimed =
+  //           giftStatus?.toLocaleLowerCase() === "not claimed" &&
+  //           transactionStatus?.toLocaleLowerCase() === "successful";
+
+  //         let giftClaimed =
+  //           giftStatus?.toLocaleLowerCase() === "claimed" &&
+  //           transactionStatus?.toLocaleLowerCase() === "successful";
+
+  //         let paymentPending =
+  //           giftStatus?.toLocaleLowerCase() === "pending" &&
+  //           transactionStatus?.toLocaleLowerCase() === "processing";
+
+  //         let giftNotPaid =
+  //           giftStatus?.toLocaleLowerCase() === "pending" &&
+  //           transactionStatus?.toLocaleLowerCase() === "unsuccessful";
+
+  //         if (giftNotClaimed) {
+  //           const giftUpdateDate = {
+  //             gift_chatID: sharedGiftId,
+  //             acct_number: bankData.acct_number,
+  //             bank_name: bankData.bank_name,
+  //             receiver_name: bankData.receiver_name,
+  //             receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+  //             gift_status: "Claimed",
+  //           };
+
+  //           const nairaPayment = (await getGiftNaira(sharedGiftId)).toString();
+
+  //           const giftData = {
+  //             accountNumber: bankData.acct_number,
+  //             accountBank: sharedSelectedBankCode,
+  //             bankName: bankData.bank_name,
+  //             amount: nairaPayment,
+  //             accountName: bankData.receiver_name,
+  //             narration: narration,
+  //           };
+
+  //           // Update transaction to "Pending" before making the payment
+  //           await updateGiftTransaction(sharedGiftId, {
+  //             gift_status: "Pending",
+  //           });
+
+  //           // Attempt to claim the gift money, use Mongoro from Next app
+  //           await payoutMoney(giftData);
+
+  //           // Only update the status to "Claimed" if payoutMoney is successful
+  //           await updateGiftTransaction(sharedGiftId, giftUpdateDate);
+
+  //           setLoading(false);
+  //           displayGiftFeedbackMessage(addChatMessages, nextStep);
+  //           helloMenu("hi");
+  //         } else if (giftClaimed) {
+  //           setLoading(false);
+  //           addChatMessages([
+  //             { type: "incoming", content: "This gift is already claimed" },
+  //           ]);
+  //           helloMenu("hi");
+  //           goToStep("start");
+  //         } else if (paymentPending) {
+  //           setLoading(false);
+  //           addChatMessages([
+  //             {
+  //               type: "incoming",
+  //               content: (
+  //                 <span>
+  //                   We are yet to confirm the crypto payment <br />
+  //                   Please check again later.
+  //                 </span>
+  //               ),
+  //             },
+  //             {
+  //               type: "incoming",
+  //               content:
+  //                 "If it persists, it could be that the gifter has not sent the asset yet.",
+  //             },
+  //           ]);
+  //           helloMenu("hi");
+  //           goToStep("start");
+  //         } else if (giftNotPaid) {
+  //           setLoading(false);
+  //           addChatMessages([
+  //             {
+  //               type: "incoming",
+  //               content: (
+  //                 <span>
+  //                   This gift has been canceled. <br />
+  //                   You have to contact your gifter to do the transaction again.
+  //                 </span>
+  //               ),
+  //             },
+  //           ]);
+  //           helloMenu("hi");
+  //           goToStep("start");
+  //         } else {
+  //           setLoading(false);
+  //           addChatMessages([
+  //             {
+  //               type: "incoming",
+  //               content: "You have to reach our customer support.",
+  //             },
+  //           ]);
+  //           helloMenu("hi");
+  //           goToStep("start");
+  //         }
+  //       } catch (error) {
+  //         console.error("Error during gift claim process:", error);
+
+  //         // Rollback or retain the transaction status in case of failure
+  //         await updateGiftTransaction(sharedGiftId, {
+  //           gift_status: giftStatus,
+  //         });
+
+  //         setLoading(false);
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>Sorry, the transaction failed. Please try again.</span>
+  //             ),
+  //           },
+  //         ]);
+  //         displayEnterGiftId(addChatMessages, nextStep);
+  //       }
+  //     } else if (isGiftTrx) {
+  //       console.log("USER WANTS TO SEND GIFT");
+  //       const transactionID = generateTransactionId();
+  //       setSharedTransactionId(transactionID.toString());
+  //       window.localStorage.setItem("transactionID", transactionID.toString());
+  //       const giftID = generateGiftId();
+  //       setSharedGiftId(giftID.toString());
+  //       window.localStorage.setItem("giftID", giftID.toString());
+
+  //       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
+  //         .toFixed(8)
+  //         .toString()} ${sharedCrypto} `;
+  //       const date = getFormattedDateTime();
+
+  //       displaySendPayment(
+  //         addChatMessages,
+  //         nextStep,
+  //         walletInfo,
+  //         sharedCrypto,
+  //         sharedPaymentAssetEstimate,
+  //         sharedPaymentNairaEstimate,
+  //         transactionID,
+  //         sharedNetwork,
+  //         sharedPaymentMode,
+  //         giftID
+  //       );
+
+  //       console.log("User data created", walletInfo?.activeWallet);
+
+  //       setLoading(false);
+  //       // let's save the transaction details to db
+  //       const userDate = {
+  //         crypto: sharedCrypto,
+  //         network: sharedNetwork,
+  //         estimation: sharedEstimateAsset,
+  //         Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
+  //         charges: sharedChargeForDB,
+  //         mode_of_payment: sharedPaymentMode,
+  //         acct_number: null,
+  //         bank_name: null,
+  //         receiver_name: null,
+  //         receiver_amount: formatCurrency(
+  //           sharedPaymentNairaEstimate,
+  //           "NGN",
+  //           "en-NG"
+  //         ),
+  //         crypto_sent: paymentAsset,
+  //         wallet_address: walletInfo?.activeWallet,
+  //         Date: date,
+  //         status: "Processing",
+  //         customer_phoneNumber: formatPhoneNumber(phoneNumber),
+  //         transac_id: transactionID.toString(),
+  //         gift_chatID: giftID.toString(),
+  //         settle_walletLink: null,
+  //         chat_id: chatId,
+  //         current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+  //         merchant_rate: merchantRate,
+  //         profit_rate: profitRate,
+  //         name: null,
+  //         gift_status: "Pending",
+  //         asset_price: formatCurrency(sharedAssetPrice, "USD"),
+  //       };
+  //       await createTransaction(userDate);
+
+  //       console.log("User gift data created", userDate);
+  //     } else if (requestPayment) {
+  //       console.log("USER WANTS TO REQUEST PAYMENT");
+  //       const transactionID = generateTransactionId();
+  //       const requestID = generateTransactionId();
+  //       setSharedTransactionId(transactionID.toString());
+  //       window.localStorage.setItem("transactionID", transactionID.toString());
+  //       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
+  //         .toFixed(8)
+  //         .toString()} ${sharedCrypto} `;
+  //       const date = getFormattedDateTime();
+
+  //       setLoading(false);
+  //       // let's save the transaction details to db
+  //       const userDate = {
+  //         crypto: sharedCrypto,
+  //         network: sharedNetwork,
+  //         estimation: sharedEstimateAsset,
+  //         Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
+  //         charges: sharedChargeForDB,
+  //         mode_of_payment: sharedPaymentMode,
+  //         acct_number: null,
+  //         bank_name: null,
+  //         receiver_name: null,
+  //         receiver_amount: formatCurrency(
+  //           sharedPaymentNairaEstimate,
+  //           "NGN",
+  //           "en-NG"
+  //         ),
+  //         crypto_sent: paymentAsset,
+  //         wallet_address: null,
+  //         Date: date,
+  //         status: "Processing",
+  //         customer_phoneNumber: formatPhoneNumber(phoneNumber),
+  //         transac_id: transactionID.toString(),
+  //         gift_chatID: null,
+  //         settle_walletLink: null,
+  //         chat_id: chatId,
+  //         current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+  //         merchant_rate: merchantRate,
+  //         profit_rate: profitRate,
+  //         name: null,
+  //         gift_status: "Pending",
+  //         asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
+  //       };
+  //     } else {
+  //       console.log("sharedPaymentMode is", sharedPaymentMode);
+  //       console.log("USER WANTS TO MAKE A REGULAR TRX");
+  //       const transactionID = generateTransactionId();
+  //       setSharedTransactionId(transactionID.toString());
+  //       window.localStorage.setItem("transactionID", transactionID.toString());
+  //       const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
+  //         .toFixed(8)
+  //         .toString()} ${sharedCrypto} `;
+  //       const date = getFormattedDateTime();
+
+  //       displaySendPayment(
+  //         addChatMessages,
+  //         nextStep,
+  //         walletInfo,
+  //         sharedCrypto,
+  //         sharedPaymentAssetEstimate,
+  //         sharedPaymentNairaEstimate,
+  //         transactionID,
+  //         sharedNetwork,
+  //         sharedPaymentMode,
+  //         0
+  //       );
+
+  //       console.log("User data created", walletInfo?.activeWallet);
+  //       setLoading(false);
+  //       // let's save the transaction details to db
+  //       const userDate = {
+  //         crypto: sharedCrypto,
+  //         network: sharedNetwork,
+  //         estimation: sharedEstimateAsset,
+  //         Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
+  //         charges: sharedChargeForDB,
+  //         mode_of_payment: sharedPaymentMode,
+  //         acct_number: bankData.acct_number,
+  //         bank_name: bankData.bank_name,
+  //         receiver_name: bankData.receiver_name,
+  //         receiver_amount: formatCurrency(
+  //           sharedPaymentNairaEstimate,
+  //           "NGN",
+  //           "en-NG"
+  //         ),
+  //         crypto_sent: paymentAsset,
+  //         wallet_address: walletInfo?.activeWallet,
+  //         Date: date,
+  //         status: "Processing",
+  //         customer_phoneNumber: formatPhoneNumber(phoneNumber),
+  //         transac_id: transactionID.toString(),
+  //         settle_walletLink: "",
+  //         chat_id: chatId,
+  //         current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+  //         merchant_rate: merchantRate,
+  //         profit_rate: profitRate,
+  //         name: "",
+  //         asset_price: formatCurrency(sharedAssetPrice, "USD"),
+  //       };
+  //       await createTransaction(userDate);
+
+  //       console.log("User data created", userDate);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error during transaction", error);
+  //   }
+  // };
 
   const processTransaction = async (
     phoneNumber: string,
@@ -1724,19 +2085,11 @@ const ChatBot = () => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        let userWallet: WalletInfo;
-        // : { wallet: string; expiresIn?: number | undefined; }
-
-        const availableWallet = await getAvaialableWallet(
-          sharedNetwork.toLocaleLowerCase()
-        );
-
-        userWallet = availableWallet;
 
         displaySendPayment(
           addChatMessages,
           nextStep,
-          userWallet,
+          sharedWallet,
           sharedCrypto,
           sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
@@ -1745,6 +2098,9 @@ const ChatBot = () => {
           sharedPaymentMode,
           giftID
         );
+
+        console.log("User data created", sharedWallet);
+
         setLoading(false);
         // let's save the transaction details to db
         const userDate = {
@@ -1763,7 +2119,7 @@ const ChatBot = () => {
             "en-NG"
           ),
           crypto_sent: paymentAsset,
-          wallet_address: userWallet,
+          wallet_address: sharedWallet,
           Date: date,
           status: "Processing",
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
@@ -1779,8 +2135,6 @@ const ChatBot = () => {
           asset_price: formatCurrency(sharedAssetPrice, "USD"),
         };
         await createTransaction(userDate);
-
-        // set the wallet flag to false
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
@@ -1838,19 +2192,10 @@ const ChatBot = () => {
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
 
-        // let userWallet = "";
-          let userWallet: WalletInfo;
-
-        const availableWallet = await getAvaialableWallet(
-          sharedNetwork.toLocaleLowerCase()
-        );
-
-        userWallet = availableWallet;
-
         displaySendPayment(
           addChatMessages,
           nextStep,
-          userWallet,
+          sharedWallet,
           sharedCrypto,
           sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
@@ -1859,7 +2204,9 @@ const ChatBot = () => {
           sharedPaymentMode,
           0
         );
-        console.log("User data created", userWallet);
+
+        console.log("User data created", walletInfo?.activeWallet);
+        console.log("Just to know that the wallet is available ", sharedWallet);
         setLoading(false);
         // let's save the transaction details to db
         const userDate = {
@@ -1878,7 +2225,7 @@ const ChatBot = () => {
             "en-NG"
           ),
           crypto_sent: paymentAsset,
-          wallet_address: userWallet,
+          wallet_address: sharedWallet,
           Date: date,
           status: "Processing",
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
@@ -1901,6 +2248,7 @@ const ChatBot = () => {
   };
 
   // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
+
   const handleConfirmTransaction = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
