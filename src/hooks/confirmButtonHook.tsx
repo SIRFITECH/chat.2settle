@@ -71,13 +71,13 @@ export default function ConfirmAndProceedButton({
       </Button>
       <p role="status" className="text-sm text-muted-foreground">
         {/* {isButtonClicked ? "This wallet expires in " + <CountdownTimer /> : ``} */}
-        {isButtonClicked ? 
-        (
+        {isButtonClicked ? (
           <>
-            This wallet expires in <CountdownTimer/>
+            This wallet expires in <CountdownTimer />
           </>
         ) : null}
       </p>
     </div>
   );
 }
+
