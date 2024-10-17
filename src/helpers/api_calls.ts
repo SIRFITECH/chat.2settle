@@ -185,9 +185,9 @@ export const checkGiftExists = async (
 //   }
 // };
 
-
-
-export const getAvaialableWallet = async (network: string): Promise<WalletInfo> => {
+export const getAvaialableWallet = async (
+  network: string
+): Promise<WalletInfo> => {
   try {
     const response = await axios.get("/api/get_available_wallet", {
       params: { network: network },
@@ -200,7 +200,7 @@ export const getAvaialableWallet = async (network: string): Promise<WalletInfo> 
       );
       return {
         activeWallet: response.data.activeWallet,
-        lastAssignedTime: response.data.lastAssignedTime
+        lastAssignedTime: response.data.lastAssignedTime,
       };
     } else {
       console.log("The error status is:", response.status);
@@ -217,7 +217,9 @@ export const getAvaialableWallet = async (network: string): Promise<WalletInfo> 
       } else if (error.response.status === 503) {
         // Handle the case when all wallets are in use
         const waitTime = error.response.data.message.match(/\d+/)[0];
-        throw new Error(`All wallets are currently in use. Please try again in ${waitTime} seconds.`);
+        throw new Error(
+          `Oh dear!!, You would have to wait a while for your wallet. Please try again in ${waitTime} seconds.`
+        );
       } else {
         console.error(
           `API error for network ${network}:`,
