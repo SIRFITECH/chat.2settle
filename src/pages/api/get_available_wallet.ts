@@ -143,7 +143,6 @@
 //   }
 // }
 
-
 import { NextApiRequest, NextApiResponse } from "next";
 import mysql, { RowDataPacket } from "mysql2/promise";
 
@@ -216,13 +215,11 @@ export default async function handler(
           0,
           nearestExpiry.getTime() + WALLET_EXPIRY_TIME - Date.now()
         );
-        return res
-          .status(503)
-          .json({
-            message: `All wallets are currently in use for ${network}. Please try again in ${Math.ceil(
-              waitTime / 1000
-            )} seconds.`,
-          });
+        return res.status(503).json({
+          message: `It is an up time for ${network} transactions. You would need to wait and try again in ${Math.ceil(
+            waitTime / 1000
+          )} seconds.`,
+        });
       } else {
         return res
           .status(404)

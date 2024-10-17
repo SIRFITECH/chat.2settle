@@ -1,11 +1,19 @@
 // "use client";
 
-// import { useState } from "react";
+// import React, { useState, useEffect } from "react";
 // import { Button } from "@/components/ui/button";
 // import { CheckCircle } from "lucide-react";
-// import { proceedWithTransaction } from "@/utils/transactCryptoUtils";
 // import { CountdownTimer } from "@/helpers/format_date";
-
+// import { getAvaialableWallet } from "@/helpers/api_calls";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogFooter,
+//   DialogHeader,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import { useSharedState } from "@/context/SharedStateContext";
 // interface ConfirmAndProceedButtonProps {
 //   phoneNumber: string;
 //   setLoading: (isLoading: boolean) => void;
@@ -16,6 +24,7 @@
 //     isGiftTrx: boolean,
 //     requestPayment: boolean
 //   ) => Promise<void>;
+//   network: string;
 // }
 
 // export default function ConfirmAndProceedButton({
@@ -23,27 +32,54 @@
 //   setLoading,
 //   sharedPaymentMode,
 //   processTransaction,
+//   network,
 // }: ConfirmAndProceedButtonProps) {
 //   const [isButtonClicked, setIsButtonClicked] = useState(false);
 //   const [isProcessing, setIsProcessing] = useState(false);
+//   const { sharedWallet, setSharedWallet } = useSharedState();
+//   const [lastAssignedTime, setLastAssignedTime] = useState<Date | null>(null);
+//   const [error, setError] = useState<string | null>(null);
+//   const [isDialogOpen, setIsDialogOpen] = useState(false);
+//   const [, forceRender] = useState(0);
 
-//   const handleClick = async () => {
-//     if (isButtonClicked) return;
+//   useEffect(() => {
+//     setIsDialogOpen(true);
+//     // handleConfirm();
+//   }, []);
+//   useEffect(() => {
+//     if (sharedWallet) {
+//       console.log("Shared wallet updated:", sharedWallet);
+//       forceRender((prev) => prev + 1); // Force a re-render
+//     }
+//   }, [sharedWallet]);
 
+//   const handleConfirm = async () => {
+//     setIsDialogOpen(false);
 //     setIsButtonClicked(true);
 //     setIsProcessing(true);
+//     setError(null);
 
 //     try {
-//       await new Promise((resolve) => setTimeout(resolve, 2000));
-//       console.log(`Transaction processed for phone number: ${phoneNumber}`);
+//       // Get available wallet
+//       const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
+//         network
+//       );
+//       setSharedWallet(activeWallet);
+//       setLastAssignedTime(new Date(lastAssignedTime));
 
+//       // Process the transaction
 //       const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
 //       const requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
 //       setLoading(true);
 //       await processTransaction(phoneNumber, false, isGiftTrx, requestPayment);
+
+//       console.log(`Transaction processed for phone number: ${phoneNumber}`);
 //     } catch (error) {
 //       console.error("Error processing transaction:", error);
+//       setError(
+//         error instanceof Error ? error.message : "An unknown error occurred"
+//       );
 //       setIsButtonClicked(false);
 //     } finally {
 //       setIsProcessing(false);
@@ -53,11 +89,34 @@
 
 //   return (
 //     <div className="flex flex-col items-center space-y-4">
+//       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+//         <DialogContent>
+//           <DialogHeader>
+//             <DialogTitle>Please Note</DialogTitle>
+//             <DialogDescription>
+//               <span>
+//                 Make sure you complete the transaction within <b>5 mins</b>
+//               </span>
+//             </DialogDescription>
+//           </DialogHeader>
+//           <DialogFooter>
+//             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+//               Cancel
+//             </Button>
+//             <Button
+//               className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
+//               onClick={handleConfirm}
+//             >
+//               Okay
+//             </Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
 //       <Button
-//         onClick={handleClick}
 //         disabled={isButtonClicked}
 //         aria-busy={isProcessing}
 //         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
+//         onClick={() => setIsDialogOpen(true)}
 //       >
 //         {isProcessing ? (
 //           "Generating wallet for you..."
@@ -69,13 +128,21 @@
 //           "Confirm & Proceed"
 //         )}
 //       </Button>
+//       {error && <p className="text-red-500">{error}</p>}
+//       {sharedWallet && (
+//         <p className="text-sm">
+//           Here is your {network.toUpperCase()} wallet: {sharedWallet}
+//         </p>
+//       )}
 //       <p role="status" className="text-sm text-muted-foreground">
-//         {/* {isButtonClicked ? "This wallet expires in " + <CountdownTimer /> : ``} */}
-//         {isButtonClicked ? (
+//         {isButtonClicked && lastAssignedTime && (
 //           <>
-//             This wallet expires in <CountdownTimer />
+//             This wallet expires in{" "}
+//             <CountdownTimer
+//               expiryTime={new Date(lastAssignedTime.getTime() + 5 * 60 * 1000)}
+//             />
 //           </>
-//         ) : null}
+//         )}
 //       </p>
 //     </div>
 //   );
@@ -83,12 +150,19 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
-import { proceedWithTransaction } from "@/utils/transactCryptoUtils";
 import { CountdownTimer } from "@/helpers/format_date";
 import { getAvaialableWallet } from "@/helpers/api_calls";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
@@ -98,10 +172,11 @@ interface ConfirmAndProceedButtonProps {
     phoneNumber: string,
     isGift: boolean,
     isGiftTrx: boolean,
-    requestPayment: boolean
+    requestPayment: boolean,
+    activeWallet: string,
+    lastAssignedTime: Date
   ) => Promise<void>;
   network: string;
-  onWalletUpdate?: (wallet: string) => void;
 }
 
 export default function ConfirmAndProceedButton({
@@ -110,17 +185,20 @@ export default function ConfirmAndProceedButton({
   sharedPaymentMode,
   processTransaction,
   network,
-  onWalletUpdate,
 }: ConfirmAndProceedButtonProps) {
   const [isButtonClicked, setIsButtonClicked] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [activeWallet, setActiveWallet] = useState<string | null>(null);
   const [lastAssignedTime, setLastAssignedTime] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleClick = async () => {
-    if (isButtonClicked) return;
+  useEffect(() => {
+    setIsDialogOpen(true);
+  }, []);
 
+  const handleConfirm = async () => {
+    setIsDialogOpen(false);
     setIsButtonClicked(true);
     setIsProcessing(true);
     setError(null);
@@ -129,15 +207,22 @@ export default function ConfirmAndProceedButton({
       const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
         network
       );
-      setWalletAddress(activeWallet);
-      setLastAssignedTime(new Date(lastAssignedTime));
+      const assignedTime = new Date(lastAssignedTime);
+      setActiveWallet(activeWallet);
+      setLastAssignedTime(assignedTime);
 
-      // Process the transaction
       const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
       const requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
       setLoading(true);
-      await processTransaction(phoneNumber, false, isGiftTrx, requestPayment);
+      await processTransaction(
+        phoneNumber,
+        false,
+        isGiftTrx,
+        requestPayment,
+        activeWallet,
+        assignedTime
+      );
 
       console.log(`Transaction processed for phone number: ${phoneNumber}`);
     } catch (error) {
@@ -150,19 +235,7 @@ export default function ConfirmAndProceedButton({
       setIsProcessing(false);
       setLoading(false);
     }
-  }, [
-    isButtonClicked,
-    network,
-    setSharedWallet,
-    sharedPaymentMode,
-    phoneNumber,
-    setLoading,
-    processTransaction,
-    onWalletUpdate,
-  ]);
-
-  // Function to get the latest wallet value
-  const getLatestWallet = useCallback(() => latestWalletRef.current, []);
+  };
 
   return (
     <div className="flex flex-col items-center space-y-4">
@@ -206,10 +279,13 @@ export default function ConfirmAndProceedButton({
         )}
       </Button>
       {error && <p className="text-red-500">{error}</p>}
-      {walletAddress && (
-        <p className="text-sm">
-          Here is your {network.toUpperCase()} wallet: {walletAddress}
-        </p>
+      {activeWallet && (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-sm text-center">
+            Here is a {network.toUpperCase()} wallet for your transaction:{" "}
+            {activeWallet}
+          </p>
+        </div>
       )}
       <p role="status" className="text-sm text-muted-foreground">
         {isButtonClicked && lastAssignedTime && (
