@@ -1023,10 +1023,14 @@ export const displaySendPayment = async (
   // const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
   //   sharedNetwork.toLowerCase()
   // );
-
-  console.log('The wallet is:', wallet);
-
+  // Use the ref instead of calling getAvaialableWallet again
+  const activeWallet = wallet;
   const allowedTime = 5;
+
+  // console.log(
+  //   "lets see if DISPLAYSENDPAYMENT get the wallet too",
+  //   sharedWallet
+  // );
 
   const newMessages: MessageType[] = [
     {
@@ -1066,12 +1070,12 @@ export const displaySendPayment = async (
         <span>
           Tap to copy 👉: <br />
           <br />
-          {wallet}
+          {activeWallet}
           <br />
           <br />
-          {/* <b>This transaction expires in {allowedTime.toString()} minutes</b>
-          <br /> */}
-          {/* <b>
+          <b>This transaction expires in {allowedTime.toString()} minutes</b>
+          {/* <br />
+          <b>
             
             <CountdownTimer
               expiryTime={new Date(lastAssignedTime.getTime() + 5 * 60 * 1000)}

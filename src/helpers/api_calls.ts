@@ -217,9 +217,7 @@ export const getAvaialableWallet = async (
       } else if (error.response.status === 503) {
         // Handle the case when all wallets are in use
         const waitTime = error.response.data.message.match(/\d+/)[0];
-        throw new Error(
-          `Oh dear!!, You would have to wait a while for your wallet. Please try again in ${waitTime} seconds.`
-        );
+        throw new Error(`Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`);
       } else {
         console.error(
           `API error for network ${network}:`,
