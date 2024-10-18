@@ -25,6 +25,7 @@ export const displayTransactCrypto = (
             0. Go back
           </span>
         ),
+        timestamp: new Date(),
       },
     ];
     console.log("Next is howToEstimate");
@@ -52,6 +53,7 @@ export const displayPayAVendor = (
             0. Go back
           </span>
         ),
+        timestamp: new Date(),
       },
     ];
     console.log("Next is howToEstimate");
@@ -88,6 +90,7 @@ export const displayTransferMoney = (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is howToEstimate");
@@ -106,6 +109,7 @@ export const displayHowToEstimation = async (
     {
       type: "incoming",
       content: `How would you like to estimate your ${parsedInput}?`,
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -123,6 +127,7 @@ export const displayHowToEstimation = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
 
@@ -153,6 +158,7 @@ export const displayNetwork = (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
 
@@ -230,6 +236,7 @@ export const displayPayIn = (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
 
@@ -336,6 +343,7 @@ export const displayCharge = async (
                 00. Exit
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -352,6 +360,7 @@ export const displayCharge = async (
                 <br />
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -417,6 +426,7 @@ export const displayCharge = async (
                 00. Exit
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -433,6 +443,7 @@ export const displayCharge = async (
                 <br />
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -499,6 +510,7 @@ export const displayCharge = async (
                 00. Exit
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -515,6 +527,7 @@ export const displayCharge = async (
                 <br />
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -584,6 +597,7 @@ export const displayCharge = async (
                 00. Exit
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -602,6 +616,7 @@ export const displayCharge = async (
                 <br />
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -671,6 +686,7 @@ export const displayCharge = async (
                 00. Exit
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -687,6 +703,7 @@ export const displayCharge = async (
                 <br />
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -754,6 +771,7 @@ export const displayCharge = async (
                 00. Exit
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -770,6 +788,7 @@ export const displayCharge = async (
                 <br />
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -797,6 +816,7 @@ export const displaySearchBank = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is selectBank");
@@ -829,6 +849,7 @@ export const displaySelectBank = (
       {
         type: "incoming",
         content: "No banks matched your input. Please try again:",
+        timestamp: new Date(),
       },
     ];
     addChatMessages(retryMessages);
@@ -852,10 +873,12 @@ export const displaySelectBank = (
     {
       type: "incoming",
       content: "Enter the number of your bank:",
+      timestamp: new Date(),
     },
     {
       type: "incoming",
       content: <>{bankOptions}</>,
+      timestamp: new Date(),
     },
   ];
   console.log("Next is enterAccountNumber");
@@ -889,6 +912,7 @@ export const displayEnterAccountNumber = (
         {
           type: "incoming",
           content: <span>Please make sure you choose from the list</span>,
+          timestamp: new Date(),
         },
       ];
       addChatMessages(newMessages);
@@ -900,6 +924,7 @@ export const displayEnterAccountNumber = (
       {
         type: "incoming",
         content: <span>Please make sure you choose from the list</span>,
+        timestamp: new Date(),
       },
     ];
     addChatMessages(newMessages);
@@ -919,6 +944,7 @@ export const displayEnterAccountNumber = (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is continueToPay");
@@ -951,6 +977,7 @@ export const displayContinueToPay = (
           Account number: {account_number}
         </span>
       ),
+      timestamp: new Date(),
     });
   }
 
@@ -968,6 +995,7 @@ export const displayContinueToPay = (
         00. Exit
       </span>
     ),
+    timestamp: new Date(),
   });
 
   console.log("Next is enterPhone");
@@ -993,6 +1021,7 @@ export const displayEnterPhone = (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
 
@@ -1036,6 +1065,7 @@ export const displaySendPayment = async (
     {
       type: "incoming",
       content: "Phone Number confirmed",
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -1047,6 +1077,7 @@ export const displaySendPayment = async (
           Tap to copy Transaction ID 👉 : {transactionID}
         </span>
       ),
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -1063,6 +1094,7 @@ export const displaySendPayment = async (
           Tap to copy or Scan the wallet address below 👇🏾
         </span>
       ),
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -1088,6 +1120,7 @@ export const displaySendPayment = async (
           </b>
         </span>
       ),
+      timestamp: new Date(),
     },
 
     {
@@ -1103,6 +1136,7 @@ export const displaySendPayment = async (
           2. No, I want to complain
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   if (isGift) {
@@ -1116,6 +1150,7 @@ export const displaySendPayment = async (
           Tap to copy Gift ID 👉 : {giftID}
         </span>
       ),
+      timestamp: new Date(),
     };
   }
 
@@ -1138,6 +1173,7 @@ export const displayConfirmPayment = (
             Your transaction is processing, you'll get your credit soon.
           </span>
         ),
+        timestamp: new Date(),
       },
       {
         type: "incoming",
@@ -1152,6 +1188,7 @@ export const displayConfirmPayment = (
             2. No, I want to complain
           </span>
         ),
+        timestamp: new Date(),
       },
     ];
     console.log("Next is paymentProcessing");
@@ -1174,6 +1211,7 @@ export const displayTransactionProcessing = (
           Your transaction is processing, you'll get your credit soon.
         </span>
       ),
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -1189,6 +1227,7 @@ export const displayTransactionProcessing = (
           2. No, I want to complain
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
 

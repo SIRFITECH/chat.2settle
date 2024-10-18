@@ -5,6 +5,7 @@ import React from "react";
 export type MessageType = {
   type: string;
   content: React.ReactNode;
+  timestamp: Date;
 };
 
 //WALLET
@@ -246,3 +247,4 @@ export interface WalletInfo {
   activeWallet: string;
   lastAssignedTime: string;
 }
+

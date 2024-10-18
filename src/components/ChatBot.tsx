@@ -44,7 +44,7 @@ import {
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
-import { CountdownTimer, getFormattedDateTime } from "../helpers/format_date";
+import { getFormattedDateTime } from "../helpers/format_date";
 
 import {
   displayKYCInfo,
@@ -97,6 +97,8 @@ import {
 } from "@/helpers/api_call/reportly_page_calls";
 import { reportData } from "@/types/reportly_types";
 import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
+// import { format } from "path";
+import { format } from "date-fns";
 const initialMessages = [
   {
     type: "incoming",
@@ -152,7 +154,6 @@ const ChatBot = () => {
     lastAssignedTime: Date;
   } | null>(null);
 
-  let walletForUse: string;
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
@@ -419,6 +420,7 @@ const ChatBot = () => {
                 2. Continue to transact
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
         nextStep("chooseAction");
@@ -440,6 +442,7 @@ const ChatBot = () => {
                 2. To just continue
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
         console.log("Wallet not connected");
@@ -469,6 +472,7 @@ const ChatBot = () => {
               <b> {formattedRate}/$1</b>
             </span>
           ),
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -502,6 +506,7 @@ const ChatBot = () => {
                 Welcome to 2SettleHQ, how can I help you today?
               </span>
             ),
+            timestamp: new Date(),
           },
           {
             type: "incoming",
@@ -520,6 +525,7 @@ const ChatBot = () => {
                 0. Back
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
       }
@@ -550,6 +556,7 @@ const ChatBot = () => {
             {
               type: "incoming",
               content: <ConnectButton />,
+              timestamp: new Date(),
             },
             {
               type: "incoming",
@@ -561,6 +568,7 @@ const ChatBot = () => {
                   <br />
                 </span>
               ),
+              timestamp: new Date(),
             },
           ]);
           nextStep("transactCrypto");
@@ -571,6 +579,7 @@ const ChatBot = () => {
             {
               type: "incoming",
               content: <ConnectButton />,
+              timestamp: new Date(),
             },
             {
               type: "incoming",
@@ -582,6 +591,7 @@ const ChatBot = () => {
                   <br />
                 </span>
               ),
+              timestamp: new Date(),
             },
           ]);
           nextStep("transactCrypto");
@@ -604,6 +614,7 @@ const ChatBot = () => {
                   Welcome to 2SettleHQ, how can I help you today?
                 </span>
               ),
+              timestamp: new Date(),
             },
             {
               type: "incoming",
@@ -622,6 +633,7 @@ const ChatBot = () => {
                   0. Back
                 </span>
               ),
+              timestamp: new Date(),
             },
           ]);
           nextStep("transactCrypto");
@@ -644,6 +656,7 @@ const ChatBot = () => {
                   Welcome to 2SettleHQ, how can I help you today?
                 </span>
               ),
+              timestamp: new Date(),
             },
             {
               type: "incoming",
@@ -662,6 +675,7 @@ const ChatBot = () => {
                   0. Back
                 </span>
               ),
+              timestamp: new Date(),
             },
           ]);
           nextStep("transactCrypto");
@@ -679,6 +693,7 @@ const ChatBot = () => {
               Please Try again, or say 'Hi' or 'Hello' to start over
             </span>
           ),
+          timestamp: new Date(),
         },
       ]);
     }
@@ -719,6 +734,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -750,6 +766,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: "Invalid choice. Say 'Hi' or 'Hello' to start over",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -781,6 +798,7 @@ const ChatBot = () => {
                 0. Go back
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         console.log("Next is howToEstimate");
@@ -804,6 +822,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: `How would you like to estimate your ${parsedInput}?`,
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -821,6 +840,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -838,6 +858,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: `How would you like to estimate your ${parsedInput}?`,
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -855,6 +876,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -872,6 +894,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: `How would you like to estimate your ${parsedInput}?`,
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -889,6 +912,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -896,14 +920,6 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
-      // const userData = await checkUserExists(sharedChatId);
-      // let userExists = userData.exists;
-
-      // if (userExists) {
-      //   console.log("User exists", chatId);
-      // } else {
-      //   console.log("User doesn't exists", chatId);
-      // }
       setSharedTicker("TRXUSDT");
       setSharedCrypto("TRX");
       setSharedNetwork("TRC20");
@@ -925,6 +941,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -937,6 +954,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: "Invalid choice. Choose a valid estimate asset",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -982,6 +1000,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. Choose your prefered network or say Hi if you are stock.",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1044,6 +1063,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: "Invalid choice. Choose your prefered estimate asset.",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1093,6 +1113,8 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. Do you want to include charge in your estimate or not?.",
+
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1134,6 +1156,7 @@ const ChatBot = () => {
             {
               type: "incoming",
               content: "Invalid gift_id. Try again",
+              timestamp: new Date(),
             },
           ]);
         }
@@ -1143,6 +1166,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid choice. You need to choose an action from the options",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1198,6 +1222,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid choice. Please choose with the options or say 'Hi' to start over.",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1253,6 +1278,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid choice. Please choose with the options or say 'Hi' to start over.",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1405,6 +1431,7 @@ const ChatBot = () => {
               {
                 type: "incoming",
                 content: <span>Invalid account number. Please try again.</span>,
+                timestamp: new Date(),
               },
             ];
             addChatMessages(newMessages);
@@ -1437,6 +1464,7 @@ const ChatBot = () => {
                   and try again.
                 </span>
               ),
+              timestamp: new Date(),
             },
           ];
           addChatMessages(errorMessage);
@@ -1469,59 +1497,7 @@ const ChatBot = () => {
   };
 
   // USECALLBACK TO PARSE THE RECIEVED WALLET DATA TO CHATBOT COMPONENT
-  function setWalletForUse(wallet: string) {
-    walletForUse = wallet;
-    console.log("The walletForUse has been set to:", walletForUse);
-    // return walletForUse;
-  }
 
-  const handleWalletReceived = useCallback(
-    (activeWallet: string, lastAssignedTime: Date) => {
-      walletInfoRef.current = { activeWallet, lastAssignedTime };
-      setWalletForUse(activeWallet);
-
-      // walletForUse = activeWallet;
-      console.log(
-        `These are the callback data ${activeWallet} and ${lastAssignedTime}`
-      );
-      console.log("The callback is called");
-
-      console.log("Wallet for use is ", walletForUse);
-
-      setLoading((prevLoading) => !prevLoading);
-    },
-    []
-  );
-
-  // const renderWalletInfo = () => {
-  //   if (walletInfoRef.current) {
-  //     return (
-  //       <>
-  //         <p className="text-sm mt-4">
-  //           Use this {sharedNetwork.toUpperCase()} wallet for your transaction:{" "}
-  //           {walletInfoRef.current.activeWallet}
-  //         </p>
-  //         <p className="text-sm mt-2">
-  //           This wallet expires in{" "}
-  //           <CountdownTimer
-  //             expiryTime={
-  //               new Date(
-  //                 walletInfoRef.current.lastAssignedTime.getTime() +
-  //                   5 * 60 * 1000
-  //               )
-  //             }
-  //           />
-  //         </p>
-  //         <p className="mb-4">
-  //           WE HAVE A WALLET ADDRESS: {walletInfoRef.current.activeWallet}
-  //         </p>
-  //       </>
-  //     );
-  //   }
-  //   return null;
-  // };
-
-  // CREATE USER, UPDATE TRANSACTION
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
 
@@ -1546,6 +1522,7 @@ const ChatBot = () => {
                 valid phone number.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         setLoading(false);
@@ -1584,14 +1561,13 @@ const ChatBot = () => {
                 />
               </div>
             ),
+            timestamp: new Date(),
           },
         ];
 
         setLoading(false);
         addChatMessages(newMessages);
       } else {
-        // await handleConfirmAndProceed(phoneNumber);
-
         await processTransaction(
           phoneNumber,
           isGift,
@@ -1679,7 +1655,11 @@ const ChatBot = () => {
           } else if (giftClaimed) {
             setLoading(false);
             addChatMessages([
-              { type: "incoming", content: "This gift is already claimed" },
+              {
+                type: "incoming",
+                content: "This gift is already claimed",
+                timestamp: new Date(),
+              },
             ]);
             helloMenu("hi");
             goToStep("start");
@@ -1694,11 +1674,13 @@ const ChatBot = () => {
                     Please check again later.
                   </span>
                 ),
+                timestamp: new Date(),
               },
               {
                 type: "incoming",
                 content:
                   "If it persists, it could be that the gifter has not sent the asset yet.",
+                timestamp: new Date(),
               },
             ]);
             helloMenu("hi");
@@ -1714,6 +1696,7 @@ const ChatBot = () => {
                     You have to contact your gifter to do the transaction again.
                   </span>
                 ),
+                timestamp: new Date(),
               },
             ]);
             helloMenu("hi");
@@ -1724,6 +1707,7 @@ const ChatBot = () => {
               {
                 type: "incoming",
                 content: "You have to reach our customer support.",
+                timestamp: new Date(),
               },
             ]);
             helloMenu("hi");
@@ -1744,6 +1728,7 @@ const ChatBot = () => {
               content: (
                 <span>Sorry, the transaction failed. Please try again.</span>
               ),
+              timestamp: new Date(),
             },
           ]);
           displayEnterGiftId(addChatMessages, nextStep);
@@ -1958,6 +1943,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid transaction_id. Try again",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -2014,6 +2000,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2035,6 +2022,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2057,6 +2045,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2085,6 +2074,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2117,6 +2107,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid transaction_id. Try again",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -2126,6 +2117,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2173,6 +2165,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
+            timestamp: new Date(),
           },
         ]);
         helloMenu("hi");
@@ -2184,6 +2177,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid entry, Please enter your message in not more that 100 words",
+            timestamp: new Date(),
           },
         ]);
         return;
@@ -2194,6 +2188,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2254,6 +2249,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid gift_id. Try again",
+            timestamp: new Date(),
           },
         ]);
         setLoading(false);
@@ -2264,6 +2260,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2305,6 +2302,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2340,6 +2338,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2373,6 +2372,7 @@ const ChatBot = () => {
                 Please enter a your name. You can not summit an empty space
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2412,6 +2412,7 @@ const ChatBot = () => {
                 valid phone number.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2463,6 +2464,7 @@ const ChatBot = () => {
                 valid wallet address.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2506,6 +2508,7 @@ const ChatBot = () => {
                 valid wallet address.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2549,6 +2552,7 @@ const ChatBot = () => {
                 is {wordCount} words long. The maximum allowed is 100 words.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2595,6 +2599,7 @@ const ChatBot = () => {
                 start of the conversation
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
         console.log("Aje!!, there was a issue saving the report", error);
@@ -2610,6 +2615,7 @@ const ChatBot = () => {
       const newMessage: MessageType = {
         type: "outgoing",
         content: <span>{chatInput}</span>,
+        timestamp: new Date(),
       };
       addChatMessages([newMessage]);
       setChatInput("");
@@ -2659,7 +2665,6 @@ const ChatBot = () => {
       case "payOptions":
         console.log("Current step is payOptions ");
         handlePayOptions(chatInput);
-
         setChatInput("");
         break;
 
@@ -2798,31 +2803,37 @@ const ChatBot = () => {
         handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
+
       case "reporterName":
         console.log("Current step is reporterName ");
         handleReporterName(chatInput);
         setChatInput("");
         break;
+
       case "reporterPhoneNumber":
         console.log("Current step is reporterPhoneNumber ");
         handleEnterReporterPhoneNumber(chatInput);
         setChatInput("");
         break;
+
       case "reporterWallet":
         console.log("Current step is reporterWallet");
         handleEnterReporterWalletAddress(chatInput);
         setChatInput("");
         break;
+
       case "fraudsterWallet":
         console.log("Current step is fraudsterWallet");
         handleEnterFraudsterWalletAddress(chatInput);
         setChatInput("");
         break;
+
       case "reportlyNote":
         console.log("Current step is reportlyNote");
         handleReportlyNote(chatInput);
         setChatInput("");
         break;
+
       case "reporterFarwell":
         console.log("Current step is reporterFarwell");
         handleReporterFarwell(chatInput);
@@ -2835,6 +2846,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
+            timestamp: new Date(),
           },
         ]);
         setChatInput("");
@@ -2851,6 +2863,107 @@ const ChatBot = () => {
 
   // CHATBOT
 
+  // return (
+  //   <div
+  //     ref={chatboxRef}
+  //     className="fixed right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 ease-in-out"
+  //     style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}
+  //   >
+  //     <header className="py-4 text-center text-white bg-blue-500 shadow">
+  //       <div className="flex items-center justify-between relative">
+  //         <span className="flex-shrink-0 w-8 h-8 ml-8 bg-white rounded">
+  //           <Image
+  //             src="/waaa.png"
+  //             alt="Avatar"
+  //             width={500}
+  //             height={100}
+  //             className="w-full h-full rounded"
+  //           />
+  //         </span>
+  //         <h2 className="text-lg font-bold absolute left-1/2 transform -translate-x-1/2">
+  //           2SettleHQ
+  //         </h2>
+  //       </div>
+  //     </header>
+  //     {isOpen && (
+  //       <ul className="flex-grow p-4 md:p-8 space-y-4 overflow-y-auto">
+  //         {chatMessages.map((msg, index) => (
+  //           <li
+  //             key={index}
+  //             className={`flex ${
+  //               msg.type === "incoming" ? "items-start" : "justify-end"
+  //             }`}
+  //           >
+  //             {msg.type === "incoming" && (
+  //               <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
+  //                 <Image
+  //                   src="/waaa.png"
+  //                   alt="Avatar"
+  //                   width={500}
+  //                   height={100}
+  //                   className="w-full h-full rounded"
+  //                 />
+  //               </span>
+  //             )}
+  //             <div
+  //               className={`p-2 md:p-3 rounded-lg ${
+  //                 msg.type === "incoming"
+  //                   ? "bg-gray-200 text-black rounded-bl-none"
+  //                   : "bg-blue-500 text-white rounded-br-none"
+  //               }`}
+  //             >
+  //               <p className="text-xs md:text-sm">{msg.content}</p>
+  //             </div>
+  //           </li>
+  //         ))}
+  //         {loading && (
+  //           <div className="flex items-center">
+  //             <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+  //               <Image
+  //                 src="/waaa.png"
+  //                 alt="Avatar"
+  //                 width={200}
+  //                 height={100}
+  //                 className="w-full h-full rounded"
+  //               />
+  //             </span>
+  //             <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
+  //               <div className="flex justify-start">
+  //                 <Loader />
+  //               </div>
+  //             </div>
+  //           </div>
+  //         )}
+  //         <div ref={messagesEndRef} />
+  //       </ul>
+  //     )}
+  //     {isOpen && (
+  //       <div className="flex items-center p-3 border-t border-gray-200 bg-white pr-4">
+  //         <textarea
+  //           ref={textareaRef}
+  //           className="flex-1 pl-2 border-none outline-none resize-none h-10"
+  //           placeholder="Enter a message..."
+  //           spellCheck={false}
+  //           required
+  //           value={chatInput}
+  //           onChange={(e) => setChatInput(e.target.value)}
+  //           onKeyDown={handleKeyPress}
+  //           style={{
+  //             lineHeight: "40px", // This matches the height of the textarea
+  //             paddingTop: "0",
+  //             paddingBottom: "0",
+  //           }}
+  //         />
+  //         <span
+  //           className="ml-2 text-blue-500 cursor-pointer material-symbols-rounded"
+  //           onClick={() => handleConversation(chatInput)}
+  //         >
+  //           <SendIcon />
+  //         </span>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
   return (
     <div
       ref={chatboxRef}
@@ -2893,14 +3006,31 @@ const ChatBot = () => {
                   />
                 </span>
               )}
-              <div
-                className={`p-2 md:p-3 rounded-lg ${
-                  msg.type === "incoming"
-                    ? "bg-gray-200 text-black rounded-bl-none"
-                    : "bg-blue-500 text-white rounded-br-none"
-                }`}
-              >
-                <p className="text-xs md:text-sm">{msg.content}</p>
+              <div className="flex flex-col max-w-[75%]">
+                <div
+                  className={`p-2 md:p-3 rounded-lg ${
+                    msg.type === "incoming"
+                      ? "bg-gray-200 text-black rounded-bl-none"
+                      : "bg-blue-500 text-white rounded-br-none"
+                  }`}
+                >
+                  <p className="text-xs md:text-sm">{msg.content}</p>
+                </div>
+                <span
+                  className={`text-xs text-gray-500 mt-1 ${
+                    msg.type === "incoming" ? "self-end" : "self-start"
+                  }`}
+                  aria-label={`Sent at ${format(
+                    new Date(msg.timestamp),
+                    "h:mm a"
+                  )}`}
+                >
+                  {
+                    <div className="text-xs">
+                      {format(new Date(msg.timestamp), "h:mm a")}
+                    </div>
+                  }
+                </span>
               </div>
             </li>
           ))}
@@ -2937,17 +3067,18 @@ const ChatBot = () => {
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={handleKeyPress}
             style={{
-              lineHeight: "40px", // This matches the height of the textarea
+              lineHeight: "40px",
               paddingTop: "0",
               paddingBottom: "0",
             }}
           />
-          <span
+          <button
             className="ml-2 text-blue-500 cursor-pointer material-symbols-rounded"
             onClick={() => handleConversation(chatInput)}
+            aria-label="Send message"
           >
             <SendIcon />
-          </span>
+          </button>
         </div>
       )}
     </div>

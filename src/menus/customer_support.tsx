@@ -20,6 +20,7 @@ export const displayCustomerSupportWelcome = async (
           0. Go back
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is thankForKYCReg");
@@ -35,6 +36,7 @@ export const displayCustomerSupportAssurance = async (
     {
       type: "incoming",
       content: `Thanks for contacting support, please call us on +2349069400430`,
+      timestamp: new Date(),
     },
   ];
   console.log("Next is thankForKYCReg");
@@ -50,6 +52,7 @@ export const displayEnterTransactionId = async (
     {
       type: "incoming",
       content: "Please enter your transaction_id",
+      timestamp: new Date(),
     },
   ];
   console.log("Next is entreTrxId");
@@ -73,6 +76,7 @@ export const displayMakeComplain = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is start");

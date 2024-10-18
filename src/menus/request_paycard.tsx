@@ -21,6 +21,7 @@ export const displayKYCInfo = async (
           Address
         </span>
       ),
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -31,6 +32,7 @@ export const displayKYCInfo = async (
           2. Cancel
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is thankForKYCReg");
@@ -61,6 +63,7 @@ export const displayRegKYC = async (
           </Link>
         </span>
       ),
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -73,6 +76,7 @@ export const displayRegKYC = async (
           2. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is thankForKYCReg");
@@ -93,6 +97,7 @@ export const displayThankForKYCReg = async (
           like to do something else?
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is start");

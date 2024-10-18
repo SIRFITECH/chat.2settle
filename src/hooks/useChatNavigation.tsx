@@ -1,7 +1,7 @@
 import { MessageType } from "@/types/general_types";
 import { ChatNavigationHook } from "@/types/use_navigation_hook_types";
 import parse from "html-react-parser";
-import React from "react";
+import React, { ReactNode } from "react";
 import { useState, useRef, useEffect } from "react";
 import elementToJSXString from "react-element-to-jsx-string";
 
@@ -20,6 +20,7 @@ const initialMessages = [
         Say "Hi" let us start
       </span>
     ),
+    timestamp: new Date(),
   },
 ];
 
@@ -77,8 +78,14 @@ export function useChatNavigation(): ChatNavigationHook {
     };
   });
 
-  const [chatMessages, setChatMessages] = useState<MessageType[]>(
-    local.messages
+  const [chatMessages, setChatMessages] = useState<MessageType[]>(() =>
+    local.messages.map(
+      (msg: { type: string; content: ReactNode; timestamp?: Date }) => ({
+        ...msg,
+        timestamp: msg.timestamp || new Date(),
+        type: msg.type as "incoming" | "outgoing",
+      })
+    )
   );
   const [serializedMessages, setSerializedMessages] = React.useState(
     local.serializedMessages
@@ -86,8 +93,6 @@ export function useChatNavigation(): ChatNavigationHook {
   const [currentStep, setCurrentStep] = useState<string>("start");
   const [stepHistory, setStepHistory] = useState<string[]>(["start"]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
