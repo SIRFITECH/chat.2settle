@@ -1559,6 +1559,11 @@ const ChatBot = () => {
       let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
       let requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
+      let network =
+        sharedCrypto.toLowerCase() === "usdt"
+          ? sharedNetwork.toLowerCase()
+          : sharedCrypto.toLowerCase();
+
       if (!isGift && !requestPayment) {
         const newMessages: MessageType[] = [
           {
@@ -1575,7 +1580,7 @@ const ChatBot = () => {
                   setLoading={setLoading}
                   sharedPaymentMode={sharedPaymentMode}
                   processTransaction={processTransaction}
-                  network={sharedNetwork.toLowerCase()}
+                  network={network}
                 />
               </div>
             ),
