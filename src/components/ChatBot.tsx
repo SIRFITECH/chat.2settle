@@ -3029,9 +3029,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     <div
       ref={chatboxRef}
       className={`fixed ${
-        isMobile ? "inset-0" : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
+        isMobile ? "inset-0 top-10" : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
       } bg-white rounded-lg shadow-lg overflow-hidden flex flex-col`}
-      style={{ height: isMobile ? "100%" : "80vh" }}
+      style={{ height: isMobile ? "150%" : "80vh" }}
     >
       <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
         <div className="flex items-center justify-between px-4">

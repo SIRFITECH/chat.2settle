@@ -156,7 +156,9 @@
 //       <Button
 //         className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
 //           isOpen ? "rotate-90" : ""
-//         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden`}
+//         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
+//           isMobile && isOpen ? "hidden" : ""
+//         }`}
 //         onClick={() => setIsOpen(!isOpen)}
 //         aria-label={isOpen ? "Close chat" : "Open chat"}
 //       >
@@ -173,8 +175,12 @@
 //       </Button>
 
 //       {isOpen && (
-//         <div className="fixed inset-0 z-40">
-//           <ChatBot />
+//         <div
+//           className={`fixed inset-0 z-40 ${
+//             isMobile ? "h-screen w-screen" : ""
+//           }`}
+//         >
+//           <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
 //         </div>
 //       )}
 //     </div>
@@ -261,11 +267,11 @@ export default function Body() {
 
   const getBackgroundImage = () => {
     if (isMobile) {
-      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/phone%20view%20(1)-UxzU0McUQGK7DL2jHh5ybwl9fir4Uv.jpg";
+      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/phone-AfU0CbbR026gFTYfYjbdG5FYYSHKRN.jpg";
     } else if (isTablet) {
-      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tab-aAggeZYF4LHclKlRPxmRfvkKXr3fED.jpg";
+      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web-P134QKh1VxKd5JZdUREkUu8JeEbDQB.jpg";
     } else {
-      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web%20-wDYUWpXeHCSrDTcspSGKQiLTi5cKfy.jpg";
+      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web-P134QKh1VxKd5JZdUREkUu8JeEbDQB.jpg";
     }
   };
 
@@ -277,10 +283,9 @@ export default function Body() {
           backgroundImage: `url('${getBackgroundImage()}')`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "center",
-          backgroundSize: isMobile ? "cover" : "100% auto",
-          height: "calc(100vh - var(--header-height))",
-          width: isMobile ? "100%" : isTablet ? "110%" : "100%",
-          left: isMobile ? "0" : isTablet ? "-5%" : "0",
+          backgroundSize: "cover",
+          height: "100vh",
+          width: "100%",
         }}
       ></div>
 
@@ -358,11 +363,7 @@ export default function Body() {
       </Button>
 
       {isOpen && (
-        <div
-          className={`fixed inset-0 z-40 ${
-            isMobile ? "h-screen w-screen" : ""
-          }`}
-        >
+        <div className="fixed inset-0 z-40">
           <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
         </div>
       )}
