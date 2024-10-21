@@ -1,8 +1,7 @@
-"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Copy, Check } from "lucide-react";
 import { CountdownTimer } from "@/helpers/format_date";
 import { getAvaialableWallet } from "@/helpers/api_calls";
 import {
@@ -42,10 +41,29 @@ export default function ConfirmAndProceedButton({
   const [lastAssignedTime, setLastAssignedTime] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isExpired, setIsExpired] = useState(false);
+  const [hasCopyButtonBeenClicked, setHasCopyButtonBeenClicked] =
+    useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsDialogOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (lastAssignedTime) {
+      timerRef.current = setTimeout(() => {
+        setIsExpired(true);
+      }, 5 * 60 * 1000);
+
+      return () => {
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+      };
+    }
+  }, [lastAssignedTime]);
 
   const handleConfirm = async () => {
     setIsDialogOpen(false);
@@ -87,6 +105,20 @@ export default function ConfirmAndProceedButton({
     }
   };
 
+  const handleCopyWallet = (wallet: string) => {
+    navigator.clipboard.writeText(wallet).then(() => {
+      setIsCopied(true);
+      setHasCopyButtonBeenClicked(true);
+      setTimeout(() => setIsCopied(false), 3000);
+    });
+  };
+
+  const truncateWallet = (wallet: string) => {
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+  };
+
+  const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -113,9 +145,9 @@ export default function ConfirmAndProceedButton({
         </DialogContent>
       </Dialog>
       <Button
+        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
         disabled={isButtonClicked}
         aria-busy={isProcessing}
-        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
         onClick={() => setIsDialogOpen(true)}
       >
         {isProcessing ? (
@@ -130,15 +162,33 @@ export default function ConfirmAndProceedButton({
       </Button>
       {error && <p className="text-red-500">{error}</p>}
       {activeWallet && (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center justify-center space-y-2">
           <p className="text-sm text-center">
             Here is a {network.toUpperCase()} wallet for your transaction:{" "}
-            {activeWallet}
+            {truncateWallet(activeWallet)}
           </p>
+          <Button
+            onClick={() => handleCopyWallet(activeWallet)}
+            disabled={isCopyButtonDisabled}
+            variant="outline"
+            size="sm"
+          >
+            {!isCopyButtonDisabled ? (
+              <>
+                <Copy className="w-4 h-4 mr-2" />
+                <span>Copy Wallet</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                <span>Wallet Copied</span>
+              </>
+            )}
+          </Button>
         </div>
       )}
       <p role="status" className="text-sm text-muted-foreground">
-        {isButtonClicked && lastAssignedTime && (
+        {isButtonClicked && lastAssignedTime && !isExpired && (
           <>
             This wallet expires in{" "}
             <CountdownTimer
@@ -146,6 +196,7 @@ export default function ConfirmAndProceedButton({
             />
           </>
         )}
+        {isExpired && "This wallet has expired."}
       </p>
     </div>
   );

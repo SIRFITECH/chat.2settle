@@ -248,3 +248,8 @@ export interface WalletInfo {
   lastAssignedTime: string;
 }
 
+
+export interface ChatBotProps {
+  isMobile: boolean;
+  onClose: () => void;
+}

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { MessageType, Result, WalletInfo } from "../types/general_types";
 import { formatCurrency } from "../helpers/format_currency";
 import { CountdownTimer } from "@/helpers/format_date";
-import { getAvaialableWallet } from "@/helpers/api_calls";
+
+import { Button } from "@/components/ui/button";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -1041,7 +1042,8 @@ export const displaySendPayment = async (
   transactionID: number,
   sharedNetwork: string,
   sharedPaymentMode: string,
-  giftID: number
+  giftID: number,
+  lastAssignedTime?: Date
 ): Promise<void> => {
   const assetPayment = parseFloat(sharedPaymentAssetEstimate); // naira/$ exchange rate
   const paymentAsset = ` ${assetPayment
@@ -1049,18 +1051,13 @@ export const displaySendPayment = async (
     .toString()} ${sharedCrypto} `;
 
   let isGift = sharedPaymentMode.toLowerCase() === "gift";
-  // const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
-  //   sharedNetwork.toLowerCase()
-  // );
-  // Use the ref instead of calling getAvaialableWallet again
   const activeWallet = wallet;
   const allowedTime = 5;
 
-  // console.log(
-  //   "lets see if DISPLAYSENDPAYMENT get the wallet too",
-  //   sharedWallet
-  // );
-
+  console.log(
+    "The lastAssignedTime?.getTime() is",
+    lastAssignedTime?.getTime()
+  );
   const newMessages: MessageType[] = [
     {
       type: "incoming",
@@ -1106,14 +1103,15 @@ export const displaySendPayment = async (
           <br />
           <br />
           <b>This transaction expires in {allowedTime.toString()} minutes</b>
-          {/* <br />
+          <br />
           <b>
-            
             <CountdownTimer
-              expiryTime={new Date(lastAssignedTime.getTime() + 5 * 60 * 1000)}
+              expiryTime={
+                new Date(lastAssignedTime?.getTime() ?? "" + 5 * 60 * 1000)
+              }
             />
           </b>
-          <br /> */}
+          <br />
           <b>
             This wallet address is only available for {""}
             {allowedTime.toString()} munites
@@ -1153,12 +1151,129 @@ export const displaySendPayment = async (
       timestamp: new Date(),
     };
   }
-
-  // confirmTransaction
-  // nextStep("confirmTransaction");
   nextStep("paymentProcessing");
   addChatMessages(newMessages);
 };
+
+// export const displaySendPayment = (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   nextStep: (step: string) => void,
+//   wallet: string,
+//   sharedCrypto: string,
+//   sharedPaymentAssetEstimate: string,
+//   sharedPaymentNairaEstimate: string,
+//   transactionID: number,
+//   sharedNetwork: string,
+//   sharedPaymentMode: string,
+//   giftID: number,
+//   lastAssignedTime?: Date
+// ): void => {
+//   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+//   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+//   const isGift = sharedPaymentMode.toLowerCase() === "gift";
+//   const activeWallet = wallet;
+//   const allowedTime = 5;
+//   const [isWalletCopyDisabled, setIsWalletCopyDisabled] = useState(false);
+
+//   const handleExpire = () => {
+//     setIsWalletCopyDisabled(true);
+//   };
+
+//   const truncateWallet = (wallet: string) => {
+//     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+//   };
+
+//   const newMessages: MessageType[] = [
+//     {
+//       type: "incoming",
+//       content: "Phone Number confirmed",
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <div className="flex items-center space-x-2">
+//           <span>
+//             {isGift ? "You are sending" : "You are receiving"}{" "}
+//             <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+//             <br />
+//             Tap to copy {isGift ? "Gift" : "Transaction"} ID 👉 :
+//           </span>
+//           <CopyButton
+//             text={isGift ? giftID.toString() : transactionID.toString()}
+//           />
+//         </div>
+//       ),
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Send <b>{paymentAsset}</b> to our wallet address. <br /> <br />
+//           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
+//           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
+//           <b>So we expect to receive not less than {paymentAsset}.</b>
+//           <br />
+//           Tap to copy or Scan the wallet address below 👇🏾
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <div className="space-y-2">
+//           <div className="flex items-center space-x-2">
+//             <span>Wallet address: {truncateWallet(activeWallet)}</span>
+//             <CopyButton text={activeWallet} disabled={isWalletCopyDisabled} />
+//           </div>
+//           <p>
+//             <b>This transaction expires in {allowedTime.toString()} minutes</b>
+//           </p>
+//           <p>
+//             <b>
+//               <CountdownTimer
+//                 expiryTime={
+//                   new Date(
+//                     (lastAssignedTime?.getTime() ?? Date.now()) +
+//                       allowedTime * 60 * 1000
+//                   )
+//                 }
+//                 onExpire={handleExpire}
+//               />
+//             </b>
+//           </p>
+//           <p>
+//             <b>
+//               This wallet address is only available for {allowedTime.toString()}{" "}
+//               minutes
+//             </b>
+//           </p>
+//         </div>
+//       ),
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Thank you for transacting with me, <br />
+//           Wait a little while and check if you have received your funds.
+//           <br />
+//           <br />
+//           1. Start another transaction
+//           <br />
+//           2. No, I want to complain
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//   ];
+
+//   nextStep("paymentProcessing");
+//   addChatMessages(newMessages);
+// };
 // USER CONFIRM TO SHOW THEY HAVE SENT THE CRYPTO
 export const displayConfirmPayment = (
   addChatMessages: (messages: MessageType[]) => void,

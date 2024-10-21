@@ -97,7 +97,14 @@ import {
 } from "@/helpers/api_call/reportly_page_calls";
 import { reportData } from "@/types/reportly_types";
 import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
-import { differenceInHours, format, isToday, isYesterday } from "date-fns";
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMonths,
+  format,
+  isToday,
+  isYesterday,
+} from "date-fns";
 const initialMessages = [
   {
     type: "incoming",
@@ -157,6 +164,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     activeWallet: string;
     lastAssignedTime: Date;
   } | null>(null);
+  const [visibleDateSeparators, setVisibleDateSeparators] = useState<
+    Set<string>
+  >(new Set());
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -262,6 +272,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
@@ -399,6 +410,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const dateSeparators = document.querySelectorAll(".date-separator");
+    dateSeparators.forEach((separator) => {
+      if (observerRef.current) {
+        observerRef.current.observe(separator);
+      }
+    });
+  }, [chatMessages]);
 
   // OPERATINAL FUNCTIONS
   // ON HI | HELLO | HOWDY | HEY PROMPT
@@ -1630,29 +1650,30 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               bank_name: bankData.bank_name,
               receiver_name: bankData.receiver_name,
               receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-              gift_status: "Claimed",
+              gift_status: "Processing",
             };
 
-            const nairaPayment = (await getGiftNaira(sharedGiftId)).toString();
+            // const nairaPayment = (await getGiftNaira(sharedGiftId)).toString();
 
-            const giftData = {
-              accountNumber: bankData.acct_number,
-              accountBank: sharedSelectedBankCode,
-              bankName: bankData.bank_name,
-              amount: nairaPayment,
-              accountName: bankData.receiver_name,
-              narration: narration,
-            };
+            // const giftData = {
+            //   accountNumber: bankData.acct_number,
+            //   accountBank: sharedSelectedBankCode,
+            //   bankName: bankData.bank_name,
+            //   amount: nairaPayment,
+            //   accountName: bankData.receiver_name,
+            //   narration: narration,
+            // };
 
-            // Update transaction to "Pending" before making the payment
-            await updateGiftTransaction(sharedGiftId, {
-              gift_status: "Pending",
-            });
+            // // Update transaction to "Pending" before making the payment
+            // await updateGiftTransaction(sharedGiftId, {
+            //   gift_status: "Pending",
+            // });
 
-            // Attempt to claim the gift money, use Mongoro from Next app
-            await payoutMoney(giftData);
+            // // Attempt to claim the gift money, use Mongoro from Next app
+            // await payoutMoney(giftData);
 
             // Only update the status to "Claimed" if payoutMoney is successful
+            // update the status to "Processing" and for the user to claim his gift
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
 
             setLoading(false);
@@ -1763,7 +1784,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          giftID
+          giftID,
+          lastAssignedTime
         );
 
         console.log("User data created", activeWallet);
@@ -1871,7 +1893,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          0
+          0,
+          lastAssignedTime
         );
 
         console.log("Just to know that the wallet is available ", activeWallet);
@@ -2867,136 +2890,22 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     }
   };
 
-  // CHATBOT
-
-  // return (
-  //   <div
-  //     ref={chatboxRef}
-  //     className="fixed right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 ease-in-out"
-  //     style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}
-  //   >
-  //     <header className="py-4 text-center text-white bg-blue-500 shadow">
-  //       <div className="flex items-center justify-between relative">
-  //         <span className="flex-shrink-0 w-8 h-8 ml-8 bg-white rounded">
-  //           <Image
-  //             src="/waaa.png"
-  //             alt="Avatar"
-  //             width={500}
-  //             height={100}
-  //             className="w-full h-full rounded"
-  //           />
-  //         </span>
-  //         <h2 className="text-lg font-bold absolute left-1/2 transform -translate-x-1/2">
-  //           2SettleHQ
-  //         </h2>
-  //       </div>
-  //     </header>
-  //     {isOpen && (
-  //       <ul className="flex-grow p-4 md:p-8 space-y-4 overflow-y-auto">
-  //         {chatMessages.map((msg, index) => (
-  //           <li
-  //             key={index}
-  //             className={`flex ${
-  //               msg.type === "incoming" ? "items-start" : "justify-end"
-  //             }`}
-  //           >
-  //             {msg.type === "incoming" && (
-  //               <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
-  //                 <Image
-  //                   src="/waaa.png"
-  //                   alt="Avatar"
-  //                   width={500}
-  //                   height={100}
-  //                   className="w-full h-full rounded"
-  //                 />
-  //               </span>
-  //             )}
-  //             <div className="flex flex-col max-w-[75%]">
-  //               <div
-  //                 className={`p-2 md:p-3 rounded-lg ${
-  //                   msg.type === "incoming"
-  //                     ? "bg-gray-200 text-black rounded-bl-none"
-  //                     : "bg-blue-500 text-white rounded-br-none"
-  //                 }`}
-  //               >
-  //                 <p className="text-xs md:text-sm">{msg.content}</p>
-  //               </div>
-  //               <span
-  //                 className={`text-xs text-gray-500 mt-1 ${
-  //                   msg.type === "incoming" ? "self-end" : "self-start"
-  //                 }`}
-  //                 aria-label={`Sent at ${format(
-  //                   new Date(msg.timestamp),
-  //                   "h:mm a"
-  //                 )}`}
-  //               >
-  //                 {
-  //                   <div className="text-xs">
-  //                     {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
-  //                   </div>
-  //                 }
-  //               </span>
-  //             </div>
-  //           </li>
-  //         ))}
-  //         {loading && (
-  //           <div className="flex items-center">
-  //             <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
-  //               <Image
-  //                 src="/waaa.png"
-  //                 alt="Avatar"
-  //                 width={200}
-  //                 height={100}
-  //                 className="w-full h-full rounded"
-  //               />
-  //             </span>
-  //             <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
-  //               <div className="flex justify-start">
-  //                 <Loader />
-  //               </div>
-  //             </div>
-  //           </div>
-  //         )}
-  //         <div ref={messagesEndRef} />
-  //       </ul>
-  //     )}
-  //     {isOpen && (
-  //       <div className="flex items-center p-3 border-t border-gray-200 bg-white pr-4">
-  //         <textarea
-  //           ref={textareaRef}
-  //           className="flex-1 pl-2 border-none outline-none resize-none h-10"
-  //           placeholder="Enter a message..."
-  //           spellCheck={false}
-  //           required
-  //           value={chatInput}
-  //           onChange={(e) => setChatInput(e.target.value)}
-  //           onKeyDown={handleKeyPress}
-  //           style={{
-  //             lineHeight: "40px",
-  //             paddingTop: "0",
-  //             paddingBottom: "0",
-  //           }}
-  //         />
-  //         <button
-  //           className="ml-2 text-blue-500 cursor-pointer material-symbols-rounded"
-  //           onClick={() => handleConversation(chatInput)}
-  //           aria-label="Send message"
-  //         >
-  //           <SendIcon />
-  //         </button>
-  //       </div>
-  //     )}
-  //   </div>
-  // );
   const renderDateSeparator = (date: Date) => {
+    const now = new Date();
+    const hoursDiff = differenceInHours(now, date);
+    const daysDiff = differenceInDays(now, date);
+    const monthsDiff = differenceInMonths(now, date);
+
     if (isToday(date)) {
       return "Today";
     } else if (isYesterday(date)) {
       return "Yesterday";
-    } else if (differenceInHours(new Date(), date) <= 48) {
-      return format(date, "MMMM d, yyyy");
+    } else if (daysDiff < 7) {
+      return format(date, "EEEE");
+    } else if (monthsDiff < 6) {
+      return format(date, "EEE. d MMM");
     } else {
-      return format(date, "EEEE"); // Returns the full name of the day (e.g., Monday, Tuesday)
+      return format(date, "d MMM, yyyy");
     }
   };
 
@@ -3009,7 +2918,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
       const timer = setTimeout(() => {
         setShowDateDropdown(false);
-      }, 15000); // 15 seconds
+      }, 3000); // 3 seconds
 
       return () => clearTimeout(timer);
     }
@@ -3025,11 +2934,151 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     return groups;
   }, {} as Record<string, MessageType[]>);
 
-  return (
+  // CHATBOT
+  return isMobile ? (
+    <div className="fixed inset-0 flex flex-col bg-white">
+      <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
+        <div className="flex items-center justify-between px-4">
+          <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
+            <Image
+              src="/waaa.png"
+              alt="Avatar"
+              width={32}
+              height={32}
+              className="rounded"
+            />
+          </span>
+          <h2 className="text-lg font-bold">2SettleHQ</h2>
+          <button
+            onClick={onClose}
+            className="text-white"
+            aria-label="Close chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        {showDateDropdown && currentDate && (
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
+            {currentDate}
+          </div>
+        )}
+      </header>
+      <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
+        <ul className="p-4 space-y-4">
+          {Object.entries(groupedMessages).map(([dateString, messages]) => (
+            <React.Fragment key={dateString}>
+              <li
+                className={`date-separator text-center text-sm text-gray-500 my-2 ${
+                  visibleDateSeparators.has(dateString) ? "" : "hidden"
+                }`}
+                data-date={dateString}
+              >
+                {renderDateSeparator(new Date(dateString))}
+              </li>
+              {chatMessages.map((msg, index) => (
+                <li
+                  key={`${dateString}-${index}`}
+                  className={`flex ${
+                    msg.type === "incoming" ? "items-start" : "justify-end"
+                  }`}
+                >
+                  {msg.type === "incoming" && (
+                    <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
+                      <Image
+                        src="/waaa.png"
+                        alt="Avatar"
+                        width={32}
+                        height={32}
+                        className="rounded"
+                      />
+                    </span>
+                  )}
+                  <div className="flex flex-col max-w-[75%]">
+                    <div
+                      className={`p-2 md:p-3 rounded-lg ${
+                        msg.type === "incoming"
+                          ? "bg-gray-200 text-black rounded-bl-none"
+                          : "bg-blue-500 text-white rounded-br-none"
+                      }`}
+                    >
+                      <p className="text-xs md:text-sm">{msg.content}</p>
+                    </div>
+                    <span
+                      className={`text-xs text-gray-500 mt-1 ${
+                        msg.type === "incoming" ? "self-end" : "self-start"
+                      }`}
+                    >
+                      {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </React.Fragment>
+          ))}
+          {loading && (
+            <div className="flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+                <Image
+                  src="/waaa.png"
+                  alt="Avatar"
+                  width={32}
+                  height={32}
+                  className="rounded"
+                />
+              </span>
+              <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
+                <div className="flex justify-start">
+                  <Loader />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </ul>
+      </div>
+      <div className="p-3 border-t border-gray-200 bg-white">
+        <div className="flex items-center">
+          <textarea
+            ref={textareaRef}
+            className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
+            placeholder="Enter a message..."
+            rows={1}
+            spellCheck={false}
+            required
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+          />
+          <button
+            className="ml-2 text-blue-500 cursor-pointer"
+            onClick={() => handleConversation(chatInput)}
+            aria-label="Send message"
+          >
+            <SendIcon />
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : (
     <div
       ref={chatboxRef}
       className={`fixed ${
-        isMobile ? "inset-0 top-10" : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
+        isMobile
+          ? "inset-0 top-10"
+          : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
       } bg-white rounded-lg shadow-lg overflow-hidden flex flex-col`}
       style={{ height: isMobile ? "150%" : "80vh" }}
     >
@@ -3079,14 +3128,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           </div>
         )}
       </header>
-      <div className="flex-grow overflow-y-auto">
-        <ul className="p-4 md:p-8 space-y-4">
+      <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
+        <ul className="p-4 space-y-4">
           {Object.entries(groupedMessages).map(([dateString, messages]) => (
             <React.Fragment key={dateString}>
-              <li className="text-center text-sm text-gray-500 my-2">
+              <li
+                className={`date-separator text-center text-sm text-gray-500 my-2 ${
+                  visibleDateSeparators.has(dateString) ? "" : "hidden"
+                }`}
+                data-date={dateString}
+              >
                 {renderDateSeparator(new Date(dateString))}
               </li>
-              {messages.map((msg, index) => (
+              {chatMessages.map((msg, index) => (
                 <li
                   key={`${dateString}-${index}`}
                   className={`flex ${
@@ -3118,10 +3172,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
                       className={`text-xs text-gray-500 mt-1 ${
                         msg.type === "incoming" ? "self-end" : "self-start"
                       }`}
-                      aria-label={`Sent at ${format(
-                        new Date(msg.timestamp),
-                        "h:mm a"
-                      )}`}
                     >
                       {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
                     </span>
