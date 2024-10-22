@@ -10,7 +10,6 @@ import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType, WalletInfo } from "../types/general_types";
 import {
-  appendToGoogleSheet,
   checkGiftExists,
   checkTranscationExists,
   checkUserExists,
@@ -120,8 +119,40 @@ const initialMessages = [
         Say "Hi" let us start
       </span>
     ),
+    timestamp: new Date(),
+    isComponent: false,
   },
 ];
+
+// const sanitizeSerializedContent = (content: string) => {
+//   return content
+//     .replace(/\{['"]\s*['"]\}/g, "")
+//     .replace(/\s+/g, " ")
+//     .trim();
+// };
+
+// const serializeMessage = (message: {
+//   type: string;
+//   content: React.ReactNode;
+// }) => {
+//   return {
+//     ...message,
+//     content: sanitizeSerializedContent(elementToJSXString(message.content)),
+//   };
+// };
+// const deserializeMessage = (message: { type: string; content: string }) => {
+//   return {
+//     ...message,
+//     content: parse(message.content),
+//   };
+// };
+
+// Component mapping
+
+const componentMap: { [key: string]: React.ComponentType<any> } = {
+  ConnectButton: ConnectButton,
+  // Add other components here as needed
+};
 
 const sanitizeSerializedContent = (content: string) => {
   return content
@@ -130,22 +161,39 @@ const sanitizeSerializedContent = (content: string) => {
     .trim();
 };
 
-const serializeMessage = (message: {
-  type: string;
-  content: React.ReactNode;
-}) => {
+const serializeMessage = (message: MessageType) => {
+  if (message.isComponent && message.componentName) {
+    return {
+      ...message,
+      content: elementToJSXString(message.content),
+    };
+  }
   return {
     ...message,
     content: sanitizeSerializedContent(elementToJSXString(message.content)),
   };
 };
-const deserializeMessage = (message: { type: string; content: string }) => {
+
+const deserializeMessage = (message: MessageType): MessageType => {
+  if (message.isComponent && message.componentName) {
+    const Component = componentMap[message.componentName];
+    if (Component) {
+      return {
+        ...message,
+        content: <Component />,
+      };
+    }
+    // Fallback if component is not found
+    return {
+      ...message,
+      content: <span>Unknown component: {message.componentName}</span>,
+    };
+  }
   return {
     ...message,
-    content: parse(message.content),
+    content: parse(message.content as string),
   };
 };
-
 interface ChatBotProps {
   isMobile: boolean;
   onClose: () => void;
@@ -279,9 +327,39 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [local, setLocal] = React.useState<{
-    messages: { type: string; content: React.ReactNode }[];
-    serializedMessages: { type: string; content: string }[];
+  // const [local, setLocal] = React.useState<{
+  //   messages: { type: string; content: React.ReactNode }[];
+  //   serializedMessages: { type: string; content: string }[];
+  //   step: string;
+  //   stepHistory: string[];
+  // }>(() => {
+  //   if (typeof window !== "undefined") {
+  //     const fromLocalStorage = window.localStorage.getItem("chat_data");
+  //     if (fromLocalStorage) {
+  //       const parsedData = JSON.parse(fromLocalStorage);
+  //       const deserializedMessages =
+  //         parsedData.messages.map(deserializeMessage);
+  //       const { currentStep, stepHistory = ["start"] } = parsedData;
+  //       return {
+  //         messages: deserializedMessages,
+  //         serializedMessages: parsedData.messages,
+  //         step: currentStep,
+  //         stepHistory: parsedData.stepHistory || ["start"],
+  //       };
+  //     }
+  //   }
+  //   const serializedInitialMessages = initialMessages.map(serializeMessage);
+  //   return {
+  //     messages: initialMessages,
+  //     serializedMessages: serializedInitialMessages,
+  //     step: "start",
+  //     stepHistory: ["start"],
+  //   };
+  // });
+
+    const [local, setLocal] = useState<{
+    messages: MessageType[];
+    serializedMessages: { type: string; content: string; timestamp: string; isComponent?: boolean; componentName?: string }[];
     step: string;
     stepHistory: string[];
   }>(() => {
@@ -289,8 +367,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       const fromLocalStorage = window.localStorage.getItem("chat_data");
       if (fromLocalStorage) {
         const parsedData = JSON.parse(fromLocalStorage);
-        const deserializedMessages =
-          parsedData.messages.map(deserializeMessage);
+        const deserializedMessages = parsedData.messages.map((msg: any) => ({
+          ...deserializeMessage(msg),
+          timestamp: new Date(msg.timestamp)
+        }));
         const { currentStep, stepHistory = ["start"] } = parsedData;
         return {
           messages: deserializedMessages,
@@ -300,7 +380,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         };
       }
     }
-    const serializedInitialMessages = initialMessages.map(serializeMessage);
+    const serializedInitialMessages = initialMessages.map(msg => ({
+      ...serializeMessage(msg),
+      timestamp: msg.timestamp.toISOString()
+    }));
     return {
       messages: initialMessages,
       serializedMessages: serializedInitialMessages,
@@ -308,6 +391,31 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       stepHistory: ["start"],
     };
   });
+
+  useEffect(() => {
+    const chatData = {
+      messages: local.serializedMessages,
+      currentStep: local.step,
+      stepHistory: local.stepHistory,
+    };
+    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
+  }, [local.serializedMessages, local.step, local.stepHistory]);
+
+  const addChatMessage = (newMessage: MessageType) => {
+    setLocal(prev => {
+      const updatedMessages = [...prev.messages, newMessage];
+      const serializedNewMessage = {
+        ...serializeMessage(newMessage),
+        timestamp: newMessage.timestamp.toISOString()
+      };
+      const updatedSerializedMessages = [...prev.serializedMessages, serializedNewMessage];
+      return {
+        ...prev,
+        messages: updatedMessages,
+        serializedMessages: updatedSerializedMessages,
+      };
+    });
+  };
   React.useEffect(() => {
     const chatData = {
       messages: serializedMessages,
@@ -354,6 +462,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   useEffect(() => {
     () => setIsOpen(isOpen);
   });
+
   const initializeChatId = () => {
     const existingChatId = getChatId();
     setSharedChatId(`${existingChatId}`);
@@ -371,6 +480,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       }
     }
   };
+
   useEffect(() => {
     initializeChatId();
   }, [chatId]);
@@ -559,14 +669,174 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   };
 
   // TRANSACT CRYPTO SEQUENCE FUNCTIONS
+  // const choiceMenu = (chatInput: string) => {
+  //   /* conversations handled here
+  //       1. Transact
+  //       2. Request Paycard
+  //       3. Customer support
+  //       4. Transaction Id
+  //       5. Reportly
+  //   */
+  //   const choice = chatInput.trim();
+  //   if (greetings.includes(choice.toLowerCase())) {
+  //     helloMenu(choice);
+  //     goToStep("start");
+  //   } else if (choice === "0") {
+  //     prevStep();
+  //     helloMenu("hi");
+  //   } else if (choice.toLowerCase() === "1") {
+  //     // connect wallet to the bot
+  //     if (!walletIsConnected) {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: <ConnectButton />,
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 Type to go back:
+  //                 <br />
+  //                 0. Go Back
+  //                 <br />
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     } else {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: <ConnectButton />,
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 Type to go back:
+  //                 <br />
+  //                 0. Go Back
+  //                 <br />
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     }
+  //   } else if (choice.toLowerCase() === "2") {
+  //     // user continue without connecting wallet
+  //     if (!walletIsConnected) {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 You continued <b>without connecting your wallet</b>
+  //                 <br />
+  //                 <br />
+  //                 Today Rate: <b>{formattedRate}/$1</b> <br />
+  //                 <br />
+  //                 Welcome to 2SettleHQ, how can I help you today?
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 1. Transact Crypto
+  //                 <br />
+  //                 2. Request for paycard
+  //                 <br />
+  //                 3. Customer support
+  //                 <br />
+  //                 4. Transaction ID
+  //                 <br />
+  //                 5. Reportly
+  //                 <br />
+  //                 0. Back
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     } else {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 You continued as{" "}
+  //                 <b>
+  //                   <ShortenedAddress wallet={wallet} />
+  //                 </b>
+  //                 <br />
+  //                 <br />
+  //                 Today Rate: <b>{formattedRate}/$1</b> <br />
+  //                 <br />
+  //                 Welcome to 2SettleHQ, how can I help you today?
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 1. Transact Crypto
+  //                 <br />
+  //                 2. Request for paycard
+  //                 <br />
+  //                 3. Customer support
+  //                 <br />
+  //                 4. Transaction ID
+  //                 <br />
+  //                 5. Reportly
+  //                 <br />
+  //                 0. Back
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     }
+  //   } else {
+  //     addChatMessages([
+  //       {
+  //         type: "incoming",
+  //         content: (
+  //           <span>
+  //             You need to make a valid choice
+  //             <br />
+  //             <br />
+  //             Please Try again, or say 'Hi' or 'Hello' to start over
+  //           </span>
+  //         ),
+  //         timestamp: new Date(),
+  //       },
+  //     ]);
+  //   }
+  //   setChatInput("");
+  // };
+
   const choiceMenu = (chatInput: string) => {
-    /* conversations handled here
-        1. Transact
-        2. Request Paycard
-        3. Customer support
-        4. Transaction Id
-        5. Reportly
-    */
     const choice = chatInput.trim();
     if (greetings.includes(choice.toLowerCase())) {
       helloMenu(choice);
@@ -575,137 +845,131 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       prevStep();
       helloMenu("hi");
     } else if (choice.toLowerCase() === "1") {
-      // connect wallet to the bot
       if (!walletIsConnected) {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: <ConnectButton />,
-              timestamp: new Date(),
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  Type to go back:
-                  <br />
-                  0. Go Back
-                  <br />
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: <ConnectButton />,
+            timestamp: new Date(),
+            isComponent: true,
+            componentName: "ConnectButton",
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Type to go back:
+                <br />
+                0. Go Back
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       } else {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: <ConnectButton />,
-              timestamp: new Date(),
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  Type to go back:
-                  <br />
-                  0. Go Back
-                  <br />
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: <ConnectButton />,
+            timestamp: new Date(),
+            isComponent: true,
+            componentName: "ConnectButton",
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Type to go back:
+                <br />
+                0. Go Back
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       }
     } else if (choice.toLowerCase() === "2") {
-      // user continue without connecting wallet
       if (!walletIsConnected) {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  You continued <b>without connecting your wallet</b>
-                  <br />
-                  <br />
-                  Today Rate: <b>{formattedRate}/$1</b> <br />
-                  <br />
-                  Welcome to 2SettleHQ, how can I help you today?
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  1. Transact Crypto
-                  <br />
-                  2. Request for paycard
-                  <br />
-                  3. Customer support
-                  <br />
-                  4. Transaction ID
-                  <br />
-                  5. Reportly
-                  <br />
-                  0. Back
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                You continued <b>without connecting your wallet</b>
+                <br />
+                <br />
+                Today Rate: <b>{formattedRate}/$1</b> <br />
+                <br />
+                Welcome to 2SettleHQ, how can I help you today?
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                1. Transact Crypto
+                <br />
+                2. Request for paycard
+                <br />
+                3. Customer support
+                <br />
+                4. Transaction ID
+                <br />
+                5. Reportly
+                <br />
+                0. Back
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       } else {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  You continued as{" "}
-                  <b>
-                    <ShortenedAddress wallet={wallet} />
-                  </b>
-                  <br />
-                  <br />
-                  Today Rate: <b>{formattedRate}/$1</b> <br />
-                  <br />
-                  Welcome to 2SettleHQ, how can I help you today?
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  1. Transact Crypto
-                  <br />
-                  2. Request for paycard
-                  <br />
-                  3. Customer support
-                  <br />
-                  4. Transaction ID
-                  <br />
-                  5. Reportly
-                  <br />
-                  0. Back
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                You continued as{" "}
+                <b>
+                  <ShortenedAddress wallet={wallet} />
+                </b>
+                <br />
+                <br />
+                Today Rate: <b>{formattedRate}/$1</b> <br />
+                <br />
+                Welcome to 2SettleHQ, how can I help you today?
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                1. Transact Crypto
+                <br />
+                2. Request for paycard
+                <br />
+                3. Customer support
+                <br />
+                4. Transaction ID
+                <br />
+                5. Reportly
+                <br />
+                0. Back
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       }
     } else {
       addChatMessages([
@@ -2504,6 +2768,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
     }
   };
+
   const handleReportlyNote = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       console.log("Going back to start");

@@ -2,10 +2,17 @@ import { RowDataPacket } from "mysql2/promise";
 import React from "react";
 
 // MESSAGE TYPE FOR CHAT
+// export type MessageType = {
+//   type: string;
+//   content: React.ReactNode;
+//   timestamp: Date;
+// };
 export type MessageType = {
   type: string;
   content: React.ReactNode;
   timestamp: Date;
+  isComponent?: boolean;
+  componentName?: string;
 };
 
 //WALLET
@@ -247,7 +254,6 @@ export interface WalletInfo {
   activeWallet: string;
   lastAssignedTime: string;
 }
-
 
 export interface ChatBotProps {
   isMobile: boolean;

@@ -35,7 +35,7 @@
     "html-react-parser": "^5.1.12",
     "lucide-react": "^0.439.0",
     "mysql2": "^3.10.3",
-    "next": "^14.2.3",
+    "next": "^14.2.5",
     "next-auth": "^4.24.7",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
