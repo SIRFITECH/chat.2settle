@@ -1372,7 +1372,12 @@ export const displaySendPayment = async (
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={handleConfirm}>Okay, I've sent the payment</Button>
+            <Button
+              className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
+              onClick={handleConfirm}
+            >
+              Okay, I've sent the payment
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
