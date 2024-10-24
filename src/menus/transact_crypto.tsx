@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MessageType, Result, WalletInfo } from "../types/general_types";
 import { formatCurrency } from "../helpers/format_currency";
 import { CountdownTimer } from "@/helpers/format_date";
@@ -1041,200 +1041,6 @@ export const displayEnterPhone = (
 };
 
 // FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
-// export const displaySendPayment = async (
-//   addChatMessages: (messages: MessageType[]) => void,
-//   nextStep: (step: string) => void,
-//   wallet: string,
-//   sharedCrypto: string,
-//   sharedPaymentAssetEstimate: string,
-//   sharedPaymentNairaEstimate: string,
-//   transactionID: number,
-//   sharedNetwork: string,
-//   sharedPaymentMode: string,
-//   giftID: number,
-//   lastAssignedTime?: Date
-// ): Promise<void> => {
-//   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-//   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
-//   const isGift = sharedPaymentMode.toLowerCase() === "gift";
-//   const activeWallet = wallet;
-//   const allowedTime = 5;
-
-//   const CopyableText: React.FC<{
-//     text: string;
-//     label: string;
-//     isWallet?: boolean;
-//   }> = ({ text, label, isWallet = false }) => {
-//     const [isCopied, setIsCopied] = useState(false);
-//     const [isExpired, setIsExpired] = useState(false);
-//     const [timeLeft, setTimeLeft] = useState("");
-
-//     useEffect(() => {
-//       if (isWallet && lastAssignedTime) {
-//         const timer = setInterval(() => {
-//           const now = new Date().getTime();
-//           const distance =
-//             new Date(
-//               lastAssignedTime.getTime() + allowedTime * 60 * 1000
-//             ).getTime() - now;
-
-//           if (distance < 0) {
-//             clearInterval(timer);
-//             setTimeLeft("00:00");
-//             setIsExpired(true);
-//           } else {
-//             const minutes = Math.floor(
-//               (distance % (1000 * 60 * 60)) / (1000 * 60)
-//             );
-//             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-//             setTimeLeft(
-//               `${minutes.toString().padStart(2, "0")}:${seconds
-//                 .toString()
-//                 .padStart(2, "0")}`
-//             );
-//           }
-//         }, 1000);
-
-//         return () => clearInterval(timer);
-//       }
-//     }, [isWallet, lastAssignedTime]);
-
-//     const handleCopy = () => {
-//       navigator.clipboard.writeText(text).then(() => {
-//         setIsCopied(true);
-//         setTimeout(() => setIsCopied(false), 3000);
-//       });
-//     };
-
-//     const truncateText = (text: string) => {
-//       return `${text.slice(0, 6)}...${text.slice(-4)}`;
-//     };
-
-//     return (
-//       <div className="flex flex-col items-start space-y-2">
-//         <span>{truncateText(text)}</span>
-//         <Button
-//           onClick={handleCopy}
-//           variant="outline"
-//           size="sm"
-//           disabled={isWallet && isExpired}
-//         >
-//           {!isCopied ? (
-//             <>
-//               <Copy className="w-4 h-4 mr-2" />
-//               <span>Copy {label}</span>
-//             </>
-//           ) : (
-//             <>
-//               <Check className="w-4 h-4 mr-2" />
-//               <span>{label} Copied</span>
-//             </>
-//           )}
-//         </Button>
-//         {isWallet && (
-//           <span className={isExpired ? "text-red-500" : "text-green-500"}>
-//             {isExpired ? "Wallet expired" : timeLeft}
-//           </span>
-//         )}
-//       </div>
-//     );
-//   };
-
-//   const newMessages: MessageType[] = [
-//     {
-//       type: "incoming",
-//       content: "Phone Number confirmed",
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           You are receiving
-//           <br />
-//           Tap to copy Transaction ID 👉 :{" "}
-//           <CopyableText
-//             text={transactionID.toString()}
-//             label="Transaction ID"
-//           />
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Send <b>{paymentAsset}</b> to our wallet address. <br /> <br />
-//           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
-//           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
-//           <b>So we expect to receive not less than {paymentAsset}.</b>
-//           <br />
-//           Tap to copy or Scan the wallet address below 👇🏾
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Tap to copy 👉: <br />
-//           <br />
-//           <CopyableText
-//             text={activeWallet}
-//             label="Wallet address"
-//             isWallet={true}
-//           />
-//           <br />
-//           <br />
-//           <b>This transaction expires in {allowedTime.toString()} minutes</b>
-//           <br />
-//           <b>
-//             This wallet address is only available for {allowedTime.toString()}{" "}
-//             minutes
-//           </b>
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Thank you for transaction with me, <br />
-//           Wait a little while and check if you have received your funds.
-//           <br />
-//           <br />
-//           1. Start another transaction
-//           <br />
-//           2. No, I want to complain
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//   ];
-
-//   if (isGift) {
-//     newMessages[1] = {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           You are sending
-//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
-//           <br />
-//           Tap to copy Gift ID 👉 :{" "}
-//           <CopyableText text={giftID.toString()} label="Gift ID" />
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     };
-//   }
-
-//   nextStep("paymentProcessing");
-//   addChatMessages(newMessages);
-// };
-
 export const displaySendPayment = async (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
@@ -1265,6 +1071,7 @@ export const displaySendPayment = async (
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [walletCopied, setWalletCopied] = useState(false);
     const [dialogMessage, setDialogMessage] = useState("");
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
       if (isWallet && lastAssignedTime) {
@@ -1281,7 +1088,7 @@ export const displaySendPayment = async (
             setIsExpired(true);
             if (!walletCopied) {
               setDialogMessage(
-                "You can not use this wallet again. Please start a new transaction."
+                "This wallet is no longer available. Please start a new transaction."
               );
               setIsDialogOpen(true);
             }
@@ -1338,14 +1145,51 @@ export const displaySendPayment = async (
       nextStep("paymentProcessing");
     };
 
+    const handleClose = () => {
+      setIsDialogOpen(false);
+      addChatMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              It appears you did not go through with the transaction again,{" "}
+              <br />
+              Thanks anyway for your time. Feel free to
+              <br />
+              <br />
+              1. Start another transaction
+              <br />
+              2. Tell us what went wrong
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("paymentProcessing");
+    };
+
     const truncateText = (text: string) => {
       return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
+    };
+
+    const getButtonText = () => {
+      if (dialogMessage === "Have you sent the payment?") {
+        return "Yes, I've sent the payment";
+      } else if (
+        dialogMessage ===
+        "This wallet is no longer available. Please start a new transaction."
+      ) {
+        return "Start a new transaction";
+      } else {
+        return "Okay, I understand";
+      }
     };
 
     return (
       <div className="flex flex-col items-start space-y-2">
         <span>{truncateText(text)}</span>
         <Button
+          ref={buttonRef}
           onClick={handleCopy}
           variant="outline"
           size="sm"
@@ -1366,15 +1210,23 @@ export const displaySendPayment = async (
         {isWallet && (
           <span
             className={
-              timeLeft === "02:00" || isExpired
-                ? "text-red-500"
+              timeLeft < "02:01" || isExpired
+                ? "text-red-500 animate-pulse"
                 : "text-green-500"
             }
           >
             {isExpired ? "Wallet expired" : timeLeft}
           </span>
         )}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              buttonRef.current?.focus();
+            }
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Transaction Confirmation</DialogTitle>
@@ -1383,9 +1235,15 @@ export const displaySendPayment = async (
             <DialogFooter>
               <Button
                 className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
-                onClick={handleConfirm}
+                onClick={() => {
+                  if (walletCopied) {
+                    handleConfirm();
+                  } else {
+                    handleClose();
+                  }
+                }}
               >
-                Okay, I understand
+                {getButtonText()}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1473,310 +1331,6 @@ export const displaySendPayment = async (
   // Send initial messages
   addChatMessages(initialMessages);
 };
-
-// // Persist data to local storage
-// const persistData = (key: string, data: any) => {
-//   localStorage.setItem(key, JSON.stringify(data));
-// };
-
-// // Retrieve data from local storage
-// const retrieveData = (key: string) => {
-//   const data = localStorage.getItem(key);
-//   return data ? JSON.parse(data) : null;
-// };
-
-// export const displaySendPayment = async (
-//   addChatMessages: (messages: MessageType[]) => void,
-//   nextStep: (step: string) => void,
-//   wallet: string,
-//   sharedCrypto: string,
-//   sharedPaymentAssetEstimate: string,
-//   sharedPaymentNairaEstimate: string,
-//   transactionID: number,
-//   sharedNetwork: string,
-//   sharedPaymentMode: string,
-//   giftID: number,
-//   lastAssignedTime?: Date
-// ): Promise<void> => {
-//   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-//   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
-//   const isGift = sharedPaymentMode.toLowerCase() === "gift";
-//   const activeWallet = wallet;
-//   const allowedTime = 5;
-
-//   const CopyableText: React.FC<{
-//     text: string;
-//     label: string;
-//     isWallet?: boolean;
-//   }> = ({ text, label, isWallet = false }) => {
-//     const [isCopied, setIsCopied] = useState(false);
-//     const [isExpired, setIsExpired] = useState(false);
-//     const [timeLeft, setTimeLeft] = useState("");
-
-//     useEffect(() => {
-//       if (isWallet && lastAssignedTime) {
-//         const timer = setInterval(() => {
-//           const now = new Date().getTime();
-//           const distance =
-//             new Date(
-//               lastAssignedTime.getTime() + allowedTime * 60 * 1000
-//             ).getTime() - now;
-
-//           if (distance < 0) {
-//             clearInterval(timer);
-//             setTimeLeft("00:00");
-//             setIsExpired(true);
-//           } else {
-//             const minutes = Math.floor(
-//               (distance % (1000 * 60 * 60)) / (1000 * 60)
-//             );
-//             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-//             setTimeLeft(
-//               `${minutes.toString().padStart(2, "0")}:${seconds
-//                 .toString()
-//                 .padStart(2, "0")}`
-//             );
-
-//           }
-//         }, 1000);
-
-//         return () => clearInterval(timer);
-//       }
-//     }, [isWallet, lastAssignedTime]);
-
-//     const handleCopy = () => {
-//       navigator.clipboard.writeText(text).then(() => {
-//         setIsCopied(true);
-//         setTimeout(() => setIsCopied(false), 3000);
-//       });
-//     };
-
-//     const truncateText = (text: string) => {
-//       return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
-//     };
-
-//     return (
-//       <div className="flex flex-col items-start space-y-2">
-//         <span>{truncateText(text)}</span>
-//         <Button
-//           onClick={handleCopy}
-//           variant="outline"
-//           size="sm"
-//           disabled={isWallet && isExpired}
-//         >
-//           {!isCopied ? (
-//             <>
-//               <Copy className="w-4 h-4 mr-2" />
-//               <span>Copy {label}</span>
-//             </>
-//           ) : (
-//             <>
-//               <Check className="w-4 h-4 mr-2" />
-//               <span>{label} Copied</span>
-//             </>
-//           )}
-//         </Button>
-//         {isWallet && (
-//           <span className={isExpired ? "text-red-500" : "text-green-500"}>
-//             {isExpired ? "Wallet expired" : timeLeft}
-//           </span>
-//         )}
-//       </div>
-//     );
-//   };
-
-//   const ConfirmationDialog: React.FC<{ onConfirm: () => void }> = ({
-//     onConfirm,
-//   }) => {
-//     const [isOpen, setIsOpen] = useState(true);
-
-//     useEffect(() => {
-//       // Persist dialog state
-//       persistData("confirmationDialogOpen", isOpen);
-//     }, [isOpen]);
-
-//     const handleConfirm = () => {
-//       setIsOpen(false);
-//       persistData("confirmationDialogOpen", false);
-//       onConfirm();
-//     };
-
-//     return (
-//       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-//         <DialogContent>
-//           <DialogHeader>
-//             <DialogTitle>Transaction Confirmation</DialogTitle>
-//             <DialogDescription>
-//               Your transaction has been initiated. Please confirm that you have
-//               sent the payment.
-//             </DialogDescription>
-//           </DialogHeader>
-//           <DialogFooter>
-//             <Button
-//               className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
-//               onClick={handleConfirm}
-//             >
-//               Okay, I've sent the payment
-//             </Button>
-//           </DialogFooter>
-//         </DialogContent>
-//       </Dialog>
-//     );
-//   };
-
-//   const initialMessages: MessageType[] = [
-//     {
-//       type: "incoming",
-//       content: "Phone Number confirmed",
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           You are receiving
-//           <br />
-//           Tap to copy Transaction ID 👉 :{" "}
-//           <CopyableText
-//             text={transactionID.toString()}
-//             label="Transaction ID"
-//           />
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Send <b>{paymentAsset}</b> to our wallet address. <br /> <br />
-//           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
-//           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
-//           <b>So we expect to receive not less than {paymentAsset}.</b>
-//           <br />
-//           Tap to copy or Scan the wallet address below 👇🏾
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Tap to copy 👉: <br />
-//           <br />
-//           <CopyableText
-//             text={activeWallet}
-//             label="Wallet address"
-//             isWallet={true}
-//           />
-//           <br />
-//           <br />
-//           <b>This transaction expires in {allowedTime.toString()} minutes</b>
-//           <br />
-//           <b>
-//             This wallet address is only available for {allowedTime.toString()}{" "}
-//             minutes
-//           </b>
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//   ];
-
-//   if (isGift) {
-//     initialMessages[1] = {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           You are sending
-//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
-//           <br />
-//           Tap to copy Gift ID 👉 :{" "}
-//           <CopyableText text={giftID.toString()} label="Gift ID" />
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     };
-//   }
-
-//   // Persist initial messages
-//   persistData("initialMessages", initialMessages);
-
-//   // Send initial messages
-//   addChatMessages(initialMessages);
-
-//   // Check if confirmation dialog was previously open
-//   const wasDialogOpen = retrieveData("confirmationDialogOpen");
-
-//   if (wasDialogOpen !== false) {
-//     // Display confirmation dialog
-//     const confirmationPromise = new Promise<void>((resolve) => {
-//       addChatMessages([
-//         {
-//           type: "incoming",
-//           content: <ConfirmationDialog onConfirm={resolve} />,
-//           timestamp: new Date(),
-//         },
-//       ]);
-//     });
-
-//     // Wait for user confirmation
-//     await confirmationPromise;
-//   }
-
-//   // Send final message and proceed
-//   const finalMessage: MessageType = {
-//     type: "incoming",
-//     content: (
-//       <span>
-//         Thank you for transaction with me, <br />
-//         Wait a little while and check if you have received your funds.
-//         <br />
-//         <br />
-//         1. Start another transaction
-//         <br />
-//         2. No, I want to complain
-//       </span>
-//     ),
-//     timestamp: new Date(),
-//   };
-
-//   // Persist final message
-//   persistData("finalMessage", finalMessage);
-
-//   addChatMessages([finalMessage]);
-//   nextStep("paymentProcessing");
-// };
-
-// export const PersistentPaymentFlow: React.FC = () => {
-//   const [messages, setMessages] = useState<MessageType[]>([]);
-
-//   useEffect(() => {
-//     // Retrieve persisted data on component mount
-//     const initialMessages = retrieveData("initialMessages") || [];
-//     const finalMessage = retrieveData("finalMessage");
-//     const wasDialogOpen = retrieveData("confirmationDialogOpen");
-
-//     setMessages([...initialMessages]);
-
-//     if (wasDialogOpen !== false && finalMessage) {
-//       setMessages((prevMessages) => [...prevMessages, finalMessage]);
-//     }
-//   }, []);
-
-//   return (
-//     <div>
-//       {messages.map((message, index) => (
-//         <div key={index}>{message.content}</div>
-//       ))}
-//     </div>
-//   );
-// };
-
-// export default function Component() {
-//   return <PersistentPaymentFlow />;
-// }
 
 export const displayConfirmPayment = (
   addChatMessages: (messages: MessageType[]) => void,
