@@ -134,9 +134,9 @@ export const displayGiftFeedbackMessage = (
       type: "incoming",
       content: (
         <span>
-          Gift claim confirmed!
+          Your gift claim confirm is Successful!
           <br />
-          This transaction is Processing
+          Wait while we process your transaction...
         </span>
       ),
       timestamp: new Date(),
@@ -147,7 +147,7 @@ export const displayGiftFeedbackMessage = (
         <span>
           You would recieve your credit in at most the next 15 mins,
           <br />
-          If not contact support in '3. Customer support'
+          If not contact support in '3. Customer support' above
           <br />
           <b>
             Please make sure you check your balance before contacting support,
