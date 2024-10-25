@@ -357,9 +357,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   //   };
   // });
 
-    const [local, setLocal] = useState<{
+  const [local, setLocal] = useState<{
     messages: MessageType[];
-    serializedMessages: { type: string; content: string; timestamp: string; isComponent?: boolean; componentName?: string }[];
+    serializedMessages: {
+      type: string;
+      content: string;
+      timestamp: string;
+      isComponent?: boolean;
+      componentName?: string;
+    }[];
     step: string;
     stepHistory: string[];
   }>(() => {
@@ -369,7 +375,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         const parsedData = JSON.parse(fromLocalStorage);
         const deserializedMessages = parsedData.messages.map((msg: any) => ({
           ...deserializeMessage(msg),
-          timestamp: new Date(msg.timestamp)
+          timestamp: new Date(msg.timestamp),
         }));
         const { currentStep, stepHistory = ["start"] } = parsedData;
         return {
@@ -380,9 +386,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         };
       }
     }
-    const serializedInitialMessages = initialMessages.map(msg => ({
+    const serializedInitialMessages = initialMessages.map((msg) => ({
       ...serializeMessage(msg),
-      timestamp: msg.timestamp.toISOString()
+      timestamp: msg.timestamp.toISOString(),
     }));
     return {
       messages: initialMessages,
@@ -402,13 +408,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   }, [local.serializedMessages, local.step, local.stepHistory]);
 
   const addChatMessage = (newMessage: MessageType) => {
-    setLocal(prev => {
+    setLocal((prev) => {
       const updatedMessages = [...prev.messages, newMessage];
       const serializedNewMessage = {
         ...serializeMessage(newMessage),
-        timestamp: newMessage.timestamp.toISOString()
+        timestamp: newMessage.timestamp.toISOString(),
       };
-      const updatedSerializedMessages = [...prev.serializedMessages, serializedNewMessage];
+      const updatedSerializedMessages = [
+        ...prev.serializedMessages,
+        serializedNewMessage,
+      ];
       return {
         ...prev,
         messages: updatedMessages,
@@ -2084,7 +2093,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: null,
-          gift_status: "Pending",
+          gift_status: "Not Claimed",
           asset_price:
             sharedCrypto.toLowerCase() != "usdt"
               ? formatCurrency(sharedAssetPrice, "USD")
