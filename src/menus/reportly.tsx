@@ -21,6 +21,7 @@ export const displayReportlyWelcome = async (
           0. Go back
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is reporterName");
@@ -41,6 +42,7 @@ export const displayReportlyName = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is reporterPhoneNumber");
@@ -63,6 +65,7 @@ export const displayReportlyPhoneNumber = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is reporterWallet");
@@ -85,6 +88,7 @@ export const displayReportlyReporterWalletAddress = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is fraudsterWallet");
@@ -109,6 +113,7 @@ export const displayReportlyFraudsterWalletAddress = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is reportlyNote");
@@ -131,6 +136,7 @@ export const displayReportlyNote = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is reporterFarwell");
@@ -151,6 +157,7 @@ export const displayReportlyFarwell = async (
           We get back to you shortly
         </span>
       ),
+      timestamp: new Date(),
     },
     // go to home back
   ];

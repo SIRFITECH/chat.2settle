@@ -9,6 +9,7 @@ import {
   trcWalletData,
   userData,
   vendorData,
+  WalletInfo,
 } from "../types/general_types";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -145,7 +146,10 @@ export const checkGiftExists = async (
 };
 
 // GET THE AVAILABLE WALLET FROM DB
-export const getAvaialableWallet = async (network: string): Promise<string> => {
+
+export const getAvaialableWallet = async (
+  network: string
+): Promise<WalletInfo> => {
   try {
     const response = await axios.get("/api/get_available_wallet", {
       params: { network: network },
@@ -156,7 +160,10 @@ export const getAvaialableWallet = async (network: string): Promise<string> => {
         `Available wallet for ${network}:`,
         response.data.activeWallet
       );
-      return response.data.activeWallet;
+      return {
+        activeWallet: response.data.activeWallet,
+        lastAssignedTime: response.data.lastAssignedTime,
+      };
     } else {
       console.log("The error status is:", response.status);
       throw new Error(
@@ -165,10 +172,14 @@ export const getAvaialableWallet = async (network: string): Promise<string> => {
     }
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      // Handle specific API errors
       if (error.response.status === 404) {
         console.error(`No active wallet found for network ${network}`);
         throw new Error(`No active wallet available for network: ${network}`);
+      } else if (error.response.status === 503) {
+        const waitTime = error.response.data.message.match(/\d+/)[0];
+        throw new Error(
+          `Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`
+        );
       } else {
         console.error(
           `API error for network ${network}:`,
@@ -177,13 +188,11 @@ export const getAvaialableWallet = async (network: string): Promise<string> => {
         throw new Error(`API error for network: ${network}`);
       }
     } else {
-      // Handle network errors or other issues
       console.error(`Error fetching wallet for network ${network}:`, error);
       throw new Error(`Failed to fetch wallet for network: ${network}`);
     }
   }
 };
-
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {

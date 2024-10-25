@@ -21,6 +21,7 @@ export const displayTransactIDWelcome = (
           0. Go back
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is thankForKYCReg");
@@ -49,6 +50,7 @@ export const displayCompleteTransaction = (
           0. Go back
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is thankForKYCReg");
@@ -73,6 +75,7 @@ export const displayEnterCompleteTransactionId = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is entreTrxId");
@@ -88,6 +91,7 @@ export const displayCompleteTrxFeedbackMessage = (
     {
       type: "incoming",
       content: "This transaction is Processing",
+      timestamp: new Date(),
     },
   ];
   console.log("Next is entreTrxId");
@@ -112,6 +116,7 @@ export const displayEnterGiftId = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is giftFeedBack");
@@ -134,6 +139,7 @@ export const displayGiftFeedbackMessage = (
           This transaction is Processing
         </span>
       ),
+      timestamp: new Date(),
     },
     {
       type: "incoming",
@@ -149,6 +155,7 @@ export const displayGiftFeedbackMessage = (
           </b>
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is start");
@@ -173,6 +180,7 @@ export const displayEnterRequestId = async (
           00. Exit
         </span>
       ),
+      timestamp: new Date(),
     },
   ];
   console.log("Next is giftFeedBack");
@@ -188,6 +196,7 @@ export const displayRequestFeedbackMessage = (
     {
       type: "incoming",
       content: "This transaction is Processing",
+      timestamp: new Date(),
     },
   ];
   console.log("Next is start");

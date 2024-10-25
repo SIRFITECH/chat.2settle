@@ -10,6 +10,8 @@ const pool = mysql.createPool({
   database: process.env.database,
 });
 
+const WALLET_EXPIRY_TIME = 5 * 60 * 1000;
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -35,7 +37,9 @@ export default async function handler(
       `SELECT
         bitcoin_wallet, eth_bnb_wallet, tron_wallet,
         bitcoin_flag, ethereum_flag, binance_flag, tron_flag,
-        erc20_flag, trc20_flag, bep20_flag
+        erc20_flag, trc20_flag, bep20_flag,
+        bitcoin_last_assigned, ethereum_last_assigned, binance_last_assigned,
+        tron_last_assigned, erc20_last_assigned, bep20_last_assigned, trc20_last_assigned
       FROM 2Settle_walletAddress
       WHERE ${getFlagColumn(network)} = 'true'
       LIMIT 1
@@ -43,29 +47,60 @@ export default async function handler(
     );
 
     if (rows.length === 0) {
+      const [lastAssignedRows] = await connection.query<RowDataPacket[]>(
+        `SELECT
+          MIN(CASE WHEN bitcoin_flag = 'false' THEN bitcoin_last_assigned END) as btc_last_assigned,
+          MIN(CASE WHEN ethereum_flag = 'false' THEN ethereum_last_assigned END) as eth_last_assigned,
+          MIN(CASE WHEN binance_flag = 'false' THEN binance_last_assigned END) as bnb_last_assigned,
+          MIN(CASE WHEN erc20_flag = 'false' THEN erc20_last_assigned END) as erc20_last_assigned,
+          MIN(CASE WHEN bep20_flag = 'false' THEN bep20_last_assigned END) as bep20_last_assigned,
+          MIN(CASE WHEN tron_flag = 'false' THEN tron_last_assigned END) as trx_last_assigned,
+          MIN(CASE WHEN trc20_flag = 'false' THEN trc20_last_assigned END) as trc20_last_assigned
+        FROM 2Settle_walletAddress`
+      );
+
+      const nearestExpiry = getNearestExpiry(lastAssignedRows[0], network);
+
       await connection.rollback();
       connection.release();
-      return res
-        .status(404)
-        .json({ message: `No active wallet found for ${network}` });
+
+      if (nearestExpiry) {
+        const waitTime = Math.max(
+          0,
+          nearestExpiry.getTime() + WALLET_EXPIRY_TIME - Date.now()
+        );
+        const waitTimeMinutes = Math.ceil(waitTime / (60 * 1000));
+        return res.status(503).json({
+          message: `It is an up time for ${network} transactions. You would need to wait and try again in ${waitTimeMinutes} minute${
+            waitTimeMinutes !== 1 ? "s" : ""
+          }.`,
+        });
+      } else {
+        return res
+          .status(404)
+          .json({ message: `No active wallet found for ${network}` });
+      }
     }
 
     const wallet = rows[0];
     const activeWallet = getWalletForNetwork(wallet, network);
     const flagToUpdate = getFlagColumn(network);
+    const lastAssignedColumn = getLastAssignedColumn(network);
 
     if (activeWallet) {
+      const lastAssignedTime = new Date();
+
       await connection.query(
-        `UPDATE 2Settle_walletAddress SET ${flagToUpdate} = 'false' WHERE ${getWalletColumn(
+        `UPDATE 2Settle_walletAddress SET ${flagToUpdate} = 'false', ${lastAssignedColumn} = ? WHERE ${getWalletColumn(
           network
         )} = ?`,
-        [activeWallet]
+        [lastAssignedTime, activeWallet]
       );
 
       await connection.commit();
       connection.release();
 
-      return res.status(200).json({ activeWallet });
+      return res.status(200).json({ activeWallet, lastAssignedTime });
     } else {
       await connection.rollback();
       connection.release();
@@ -123,6 +158,25 @@ function getWalletColumn(network: Network): string {
   }
 }
 
+function getLastAssignedColumn(network: Network): string {
+  switch (network) {
+    case "btc":
+      return "bitcoin_last_assigned";
+    case "eth":
+      return "ethereum_last_assigned";
+    case "bnb":
+      return "binance_last_assigned";
+    case "trx":
+      return "tron_last_assigned";
+    case "erc20":
+      return "erc20_last_assigned";
+    case "bep20":
+      return "bep20_last_assigned";
+    case "trc20":
+      return "trc20_last_assigned";
+  }
+}
+
 function getWalletForNetwork(
   wallet: RowDataPacket,
   network: Network
@@ -141,4 +195,37 @@ function getWalletForNetwork(
     default:
       return null;
   }
+}
+
+function getNearestExpiry(
+  lastAssignedData: RowDataPacket,
+  network: Network
+): Date | null {
+  let relevantLastAssigned: Date | null = null;
+
+  switch (network) {
+    case "btc":
+      relevantLastAssigned = lastAssignedData.btc_last_assigned;
+      break;
+    case "eth":
+      relevantLastAssigned = lastAssignedData.eth_last_assigned;
+      break;
+    case "bnb":
+      relevantLastAssigned = lastAssignedData.bnb_last_assigned;
+      break;
+    case "erc20":
+      relevantLastAssigned = lastAssignedData.erc20_last_assigned;
+      break;
+    case "bep20":
+      relevantLastAssigned = lastAssignedData.bep20_last_assigned;
+      break;
+    case "trx":
+      relevantLastAssigned = lastAssignedData.trx_last_assigned;
+      break;
+    case "trc20":
+      relevantLastAssigned = lastAssignedData.trc20_last_assigned;
+      break;
+  }
+
+  return relevantLastAssigned ? new Date(relevantLastAssigned) : null;
 }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
 import Loader from "./Loader";
@@ -8,28 +8,21 @@ import elementToJSXString from "react-element-to-jsx-string";
 import { useAccount } from "wagmi";
 import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType } from "../types/general_types";
+import { MessageType, WalletInfo } from "../types/general_types";
 import {
-  appendToGoogleSheet,
   checkGiftExists,
   checkTranscationExists,
-  checkUserExists,
   createComplain,
   createTransaction,
-  createUser,
   fetchBankDetails,
   fetchBankNames,
   fetchCoinPrice,
   fetchMerchantRate,
   fetchProfitRate,
   fetchRate,
-  getAvaialableWallet,
-  getGiftNaira,
   isGiftValid,
-  payoutMoney,
   updateGiftTransaction,
   updateTransaction,
-  updateUser,
 } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import {
@@ -44,7 +37,7 @@ import {
   saveChatId,
 } from "../utils/utilities";
 import { useSharedState } from "../context/SharedStateContext";
-import { CountdownTimer, getFormattedDateTime } from "../helpers/format_date";
+import { getFormattedDateTime } from "../helpers/format_date";
 
 import {
   displayKYCInfo,
@@ -79,7 +72,6 @@ import {
   displayEnterAccountNumber,
   displayEnterPhone,
   displayHowToEstimation,
-  displayPayAVendor,
   displayPayIn,
   displaySearchBank,
   displaySelectBank,
@@ -97,6 +89,14 @@ import {
 } from "@/helpers/api_call/reportly_page_calls";
 import { reportData } from "@/types/reportly_types";
 import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
+import {
+  differenceInDays,
+  differenceInHours,
+  differenceInMonths,
+  format,
+  isToday,
+  isYesterday,
+} from "date-fns";
 const initialMessages = [
   {
     type: "incoming",
@@ -112,8 +112,15 @@ const initialMessages = [
         Say "Hi" let us start
       </span>
     ),
+    timestamp: new Date(),
+    isComponent: false,
   },
 ];
+
+const componentMap: { [key: string]: React.ComponentType<any> } = {
+  ConnectButton: ConnectButton,
+  // Add other components here as needed
+};
 
 const sanitizeSerializedContent = (content: string) => {
   return content
@@ -122,23 +129,45 @@ const sanitizeSerializedContent = (content: string) => {
     .trim();
 };
 
-const serializeMessage = (message: {
-  type: string;
-  content: React.ReactNode;
-}) => {
+const serializeMessage = (message: MessageType) => {
+  if (message.isComponent && message.componentName) {
+    return {
+      ...message,
+      content: elementToJSXString(message.content),
+    };
+  }
   return {
     ...message,
     content: sanitizeSerializedContent(elementToJSXString(message.content)),
   };
 };
-const deserializeMessage = (message: { type: string; content: string }) => {
+
+const deserializeMessage = (message: MessageType): MessageType => {
+  if (message.isComponent && message.componentName) {
+    const Component = componentMap[message.componentName];
+    if (Component) {
+      return {
+        ...message,
+        content: <Component />,
+      };
+    }
+    // Fallback if component is not found
+    return {
+      ...message,
+      content: <span>Unknown component: {message.componentName}</span>,
+    };
+  }
   return {
     ...message,
-    content: parse(message.content),
+    content: parse(message.content as string),
   };
 };
+interface ChatBotProps {
+  isMobile: boolean;
+  onClose: () => void;
+}
 
-const ChatBot = () => {
+const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // CONST VARIABLES
   const account = useAccount();
   const wallet = account.address;
@@ -147,6 +176,9 @@ const ChatBot = () => {
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
   const chatboxRef = useRef<HTMLDivElement>(null);
+  const [visibleDateSeparators, setVisibleDateSeparators] = useState<
+    Set<string>
+  >(new Set());
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -252,13 +284,22 @@ const ChatBot = () => {
   const [fraudsterWalletAddress, setFraudsterWalletAddress] = useState("");
   const [descriptionNote, setDescriptionNote] = useState("");
   const [reportId, setReportId] = useState("");
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [showDateDropdown, setShowDateDropdown] = useState(false);
+  const [currentDate, setCurrentDate] = useState<string | null>(null);
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [local, setLocal] = React.useState<{
-    messages: { type: string; content: React.ReactNode }[];
-    serializedMessages: { type: string; content: string }[];
+  const [local, setLocal] = useState<{
+    messages: MessageType[];
+    serializedMessages: {
+      type: string;
+      content: string;
+      timestamp: string;
+      isComponent?: boolean;
+      componentName?: string;
+    }[];
     step: string;
     stepHistory: string[];
   }>(() => {
@@ -266,8 +307,10 @@ const ChatBot = () => {
       const fromLocalStorage = window.localStorage.getItem("chat_data");
       if (fromLocalStorage) {
         const parsedData = JSON.parse(fromLocalStorage);
-        const deserializedMessages =
-          parsedData.messages.map(deserializeMessage);
+        const deserializedMessages = parsedData.messages.map((msg: any) => ({
+          ...deserializeMessage(msg),
+          timestamp: new Date(msg.timestamp),
+        }));
         const { currentStep, stepHistory = ["start"] } = parsedData;
         return {
           messages: deserializedMessages,
@@ -277,7 +320,10 @@ const ChatBot = () => {
         };
       }
     }
-    const serializedInitialMessages = initialMessages.map(serializeMessage);
+    const serializedInitialMessages = initialMessages.map((msg) => ({
+      ...serializeMessage(msg),
+      timestamp: msg.timestamp.toISOString(),
+    }));
     return {
       messages: initialMessages,
       serializedMessages: serializedInitialMessages,
@@ -285,6 +331,16 @@ const ChatBot = () => {
       stepHistory: ["start"],
     };
   });
+
+  useEffect(() => {
+    const chatData = {
+      messages: local.serializedMessages,
+      currentStep: local.step,
+      stepHistory: local.stepHistory,
+    };
+    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
+  }, [local.serializedMessages, local.step, local.stepHistory]);
+
   React.useEffect(() => {
     const chatData = {
       messages: serializedMessages,
@@ -314,6 +370,7 @@ const ChatBot = () => {
     let trxID = window.localStorage.getItem("transactionID");
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -349,6 +406,7 @@ const ChatBot = () => {
       }
     }
   };
+
   useEffect(() => {
     initializeChatId();
   }, [chatId]);
@@ -389,6 +447,15 @@ const ChatBot = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const dateSeparators = document.querySelectorAll(".date-separator");
+    dateSeparators.forEach((separator) => {
+      if (observerRef.current) {
+        observerRef.current.observe(separator);
+      }
+    });
+  }, [chatMessages]);
+
   // OPERATINAL FUNCTIONS
   // ON HI | HELLO | HOWDY | HEY PROMPT
   const helloMenu = (chatInput: string) => {
@@ -415,6 +482,7 @@ const ChatBot = () => {
                 2. Continue to transact
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
         nextStep("chooseAction");
@@ -436,6 +504,7 @@ const ChatBot = () => {
                 2. To just continue
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
         console.log("Wallet not connected");
@@ -465,6 +534,7 @@ const ChatBot = () => {
               <b> {formattedRate}/$1</b>
             </span>
           ),
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -498,6 +568,7 @@ const ChatBot = () => {
                 Welcome to 2SettleHQ, how can I help you today?
               </span>
             ),
+            timestamp: new Date(),
           },
           {
             type: "incoming",
@@ -516,6 +587,7 @@ const ChatBot = () => {
                 0. Back
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
       }
@@ -523,14 +595,174 @@ const ChatBot = () => {
   };
 
   // TRANSACT CRYPTO SEQUENCE FUNCTIONS
+  // const choiceMenu = (chatInput: string) => {
+  //   /* conversations handled here
+  //       1. Transact
+  //       2. Request Paycard
+  //       3. Customer support
+  //       4. Transaction Id
+  //       5. Reportly
+  //   */
+  //   const choice = chatInput.trim();
+  //   if (greetings.includes(choice.toLowerCase())) {
+  //     helloMenu(choice);
+  //     goToStep("start");
+  //   } else if (choice === "0") {
+  //     prevStep();
+  //     helloMenu("hi");
+  //   } else if (choice.toLowerCase() === "1") {
+  //     // connect wallet to the bot
+  //     if (!walletIsConnected) {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: <ConnectButton />,
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 Type to go back:
+  //                 <br />
+  //                 0. Go Back
+  //                 <br />
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     } else {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: <ConnectButton />,
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 Type to go back:
+  //                 <br />
+  //                 0. Go Back
+  //                 <br />
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     }
+  //   } else if (choice.toLowerCase() === "2") {
+  //     // user continue without connecting wallet
+  //     if (!walletIsConnected) {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 You continued <b>without connecting your wallet</b>
+  //                 <br />
+  //                 <br />
+  //                 Today Rate: <b>{formattedRate}/$1</b> <br />
+  //                 <br />
+  //                 Welcome to 2SettleHQ, how can I help you today?
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 1. Transact Crypto
+  //                 <br />
+  //                 2. Request for paycard
+  //                 <br />
+  //                 3. Customer support
+  //                 <br />
+  //                 4. Transaction ID
+  //                 <br />
+  //                 5. Reportly
+  //                 <br />
+  //                 0. Back
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     } else {
+  //       {
+  //         addChatMessages([
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 You continued as{" "}
+  //                 <b>
+  //                   <ShortenedAddress wallet={wallet} />
+  //                 </b>
+  //                 <br />
+  //                 <br />
+  //                 Today Rate: <b>{formattedRate}/$1</b> <br />
+  //                 <br />
+  //                 Welcome to 2SettleHQ, how can I help you today?
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //           {
+  //             type: "incoming",
+  //             content: (
+  //               <span>
+  //                 1. Transact Crypto
+  //                 <br />
+  //                 2. Request for paycard
+  //                 <br />
+  //                 3. Customer support
+  //                 <br />
+  //                 4. Transaction ID
+  //                 <br />
+  //                 5. Reportly
+  //                 <br />
+  //                 0. Back
+  //               </span>
+  //             ),
+  //             timestamp: new Date(),
+  //           },
+  //         ]);
+  //         nextStep("transactCrypto");
+  //       }
+  //     }
+  //   } else {
+  //     addChatMessages([
+  //       {
+  //         type: "incoming",
+  //         content: (
+  //           <span>
+  //             You need to make a valid choice
+  //             <br />
+  //             <br />
+  //             Please Try again, or say 'Hi' or 'Hello' to start over
+  //           </span>
+  //         ),
+  //         timestamp: new Date(),
+  //       },
+  //     ]);
+  //   }
+  //   setChatInput("");
+  // };
+
   const choiceMenu = (chatInput: string) => {
-    /* conversations handled here
-        1. Transact
-        2. Request Paycard
-        3. Customer support
-        4. Transaction Id
-        5. Reportly
-    */
     const choice = chatInput.trim();
     if (greetings.includes(choice.toLowerCase())) {
       helloMenu(choice);
@@ -539,129 +771,131 @@ const ChatBot = () => {
       prevStep();
       helloMenu("hi");
     } else if (choice.toLowerCase() === "1") {
-      // connect wallet to the bot
       if (!walletIsConnected) {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: <ConnectButton />,
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  Type to go back:
-                  <br />
-                  0. Go Back
-                  <br />
-                </span>
-              ),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: <ConnectButton />,
+            timestamp: new Date(),
+            isComponent: true,
+            componentName: "ConnectButton",
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Type to go back:
+                <br />
+                0. Go Back
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       } else {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: <ConnectButton />,
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  Type to go back:
-                  <br />
-                  0. Go Back
-                  <br />
-                </span>
-              ),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: <ConnectButton />,
+            timestamp: new Date(),
+            isComponent: true,
+            componentName: "ConnectButton",
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Type to go back:
+                <br />
+                0. Go Back
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       }
     } else if (choice.toLowerCase() === "2") {
-      // user continue without connecting wallet
       if (!walletIsConnected) {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  You continued <b>without connecting your wallet</b>
-                  <br />
-                  <br />
-                  Today Rate: <b>{formattedRate}/$1</b> <br />
-                  <br />
-                  Welcome to 2SettleHQ, how can I help you today?
-                </span>
-              ),
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  1. Transact Crypto
-                  <br />
-                  2. Request for paycard
-                  <br />
-                  3. Customer support
-                  <br />
-                  4. Transaction ID
-                  <br />
-                  5. Reportly
-                  <br />
-                  0. Back
-                </span>
-              ),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                You continued <b>without connecting your wallet</b>
+                <br />
+                <br />
+                Today Rate: <b>{formattedRate}/$1</b> <br />
+                <br />
+                Welcome to 2SettleHQ, how can I help you today?
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                1. Transact Crypto
+                <br />
+                2. Request for paycard
+                <br />
+                3. Customer support
+                <br />
+                4. Transaction ID
+                <br />
+                5. Reportly
+                <br />
+                0. Back
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       } else {
-        {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  You continued as{" "}
-                  <b>
-                    <ShortenedAddress wallet={wallet} />
-                  </b>
-                  <br />
-                  <br />
-                  Today Rate: <b>{formattedRate}/$1</b> <br />
-                  <br />
-                  Welcome to 2SettleHQ, how can I help you today?
-                </span>
-              ),
-            },
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  1. Transact Crypto
-                  <br />
-                  2. Request for paycard
-                  <br />
-                  3. Customer support
-                  <br />
-                  4. Transaction ID
-                  <br />
-                  5. Reportly
-                  <br />
-                  0. Back
-                </span>
-              ),
-            },
-          ]);
-          nextStep("transactCrypto");
-        }
+        addChatMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                You continued as{" "}
+                <b>
+                  <ShortenedAddress wallet={wallet} />
+                </b>
+                <br />
+                <br />
+                Today Rate: <b>{formattedRate}/$1</b> <br />
+                <br />
+                Welcome to 2SettleHQ, how can I help you today?
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                1. Transact Crypto
+                <br />
+                2. Request for paycard
+                <br />
+                3. Customer support
+                <br />
+                4. Transaction ID
+                <br />
+                5. Reportly
+                <br />
+                0. Back
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        nextStep("transactCrypto");
       }
     } else {
       addChatMessages([
@@ -675,35 +909,11 @@ const ChatBot = () => {
               Please Try again, or say 'Hi' or 'Hello' to start over
             </span>
           ),
+          timestamp: new Date(),
         },
       ]);
     }
     setChatInput("");
-  };
-
-  // HANDLE THE CHOICE OF HOW TO PAY
-  const handlePayVendor = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "0") {
-      prevStep();
-      helloMenu("hi");
-    } else if (chatInput === "1") {
-      displayPayAVendor(addChatMessages);
-      nextStep("transferMoney");
-    } else if (chatInput === "2") {
-      displayPayAVendor(addChatMessages);
-      nextStep("transferMoney");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-        },
-      ]);
-    }
   };
 
   // HANDLE THE CHOICE FROM ABOVE
@@ -740,6 +950,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -747,6 +958,7 @@ const ChatBot = () => {
 
   // HANDLE TRANSFER MONEY MENU
   const handleTransferMoney = (chatInput: string) => {
+    setSharedWallet("");
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -770,6 +982,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: "Invalid choice. Say 'Hi' or 'Hello' to start over",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -801,6 +1014,7 @@ const ChatBot = () => {
                 0. Go back
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         console.log("Next is howToEstimate");
@@ -824,6 +1038,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: `How would you like to estimate your ${parsedInput}?`,
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -841,6 +1056,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -858,6 +1074,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: `How would you like to estimate your ${parsedInput}?`,
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -875,6 +1092,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -892,6 +1110,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: `How would you like to estimate your ${parsedInput}?`,
+          timestamp: new Date(),
         },
         {
           type: "incoming",
@@ -909,6 +1128,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -916,14 +1136,6 @@ const ChatBot = () => {
 
       addChatMessages(newMessages);
 
-      // const userData = await checkUserExists(sharedChatId);
-      // let userExists = userData.exists;
-
-      // if (userExists) {
-      //   console.log("User exists", chatId);
-      // } else {
-      //   console.log("User doesn't exists", chatId);
-      // }
       setSharedTicker("TRXUSDT");
       setSharedCrypto("TRX");
       setSharedNetwork("TRC20");
@@ -945,6 +1157,7 @@ const ChatBot = () => {
               00. Exit
             </span>
           ),
+          timestamp: new Date(),
         },
       ];
 
@@ -957,6 +1170,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: "Invalid choice. Choose a valid estimate asset",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1002,6 +1216,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. Choose your prefered network or say Hi if you are stock.",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1064,6 +1279,7 @@ const ChatBot = () => {
         {
           type: "incoming",
           content: "Invalid choice. Choose your prefered estimate asset.",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1113,6 +1329,8 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. Do you want to include charge in your estimate or not?.",
+
+          timestamp: new Date(),
         },
       ]);
     }
@@ -1154,6 +1372,7 @@ const ChatBot = () => {
             {
               type: "incoming",
               content: "Invalid gift_id. Try again",
+              timestamp: new Date(),
             },
           ]);
         }
@@ -1163,6 +1382,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid choice. You need to choose an action from the options",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1218,6 +1438,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid choice. Please choose with the options or say 'Hi' to start over.",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1273,6 +1494,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid choice. Please choose with the options or say 'Hi' to start over.",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1425,6 +1647,7 @@ const ChatBot = () => {
               {
                 type: "incoming",
                 content: <span>Invalid account number. Please try again.</span>,
+                timestamp: new Date(),
               },
             ];
             addChatMessages(newMessages);
@@ -1457,6 +1680,7 @@ const ChatBot = () => {
                   and try again.
                 </span>
               ),
+              timestamp: new Date(),
             },
           ];
           addChatMessages(errorMessage);
@@ -1488,7 +1712,8 @@ const ChatBot = () => {
     }
   };
 
-  // CREATE USER, UPDATE TRANSACTION
+  // USECALLBACK TO PARSE THE RECIEVED WALLET DATA TO CHATBOT COMPONENT
+
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
 
@@ -1513,6 +1738,7 @@ const ChatBot = () => {
                 valid phone number.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         setLoading(false);
@@ -1522,9 +1748,14 @@ const ChatBot = () => {
 
       setSharedPhone(phoneNumber);
 
-      let isGift = sharedPaymentMode.toLowerCase() === "claim gift";
-      let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-      let requestPayment = sharedPaymentMode.toLowerCase() === "request";
+      const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
+      const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+      const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+
+      const network =
+        sharedCrypto.toLowerCase() === "usdt"
+          ? sharedNetwork.toLowerCase()
+          : sharedCrypto.toLowerCase();
 
       if (!isGift && !requestPayment) {
         const newMessages: MessageType[] = [
@@ -1536,14 +1767,17 @@ const ChatBot = () => {
                   Do you understand that you need to complete your payment
                   within <b>5 minutes</b>, otherwise you may lose your money.
                 </p>
+
                 <ConfirmAndProceedButton
                   phoneNumber={phoneNumber}
                   setLoading={setLoading}
                   sharedPaymentMode={sharedPaymentMode}
                   processTransaction={processTransaction}
+                  network={network}
                 />
               </div>
             ),
+            timestamp: new Date(),
           },
         ];
 
@@ -1567,7 +1801,9 @@ const ChatBot = () => {
     phoneNumber: string,
     isGift: boolean,
     isGiftTrx: boolean,
-    requestPayment: boolean
+    requestPayment: boolean,
+    activeWallet?: string,
+    lastAssignedTime?: Date
   ) => {
     try {
       if (isGift) {
@@ -1577,24 +1813,25 @@ const ChatBot = () => {
 
         console.log("USER WANTS TO CLAIM GIFT");
 
-        let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
-        let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
+        const giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
+        const transactionStatus = (await isGiftValid(sharedGiftId)).user
+          ?.status;
 
         try {
-          let giftNotClaimed =
+          const giftNotClaimed =
             giftStatus?.toLocaleLowerCase() === "not claimed" &&
             transactionStatus?.toLocaleLowerCase() === "successful";
 
-          let giftClaimed =
+          const giftClaimed =
             giftStatus?.toLocaleLowerCase() === "claimed" &&
             transactionStatus?.toLocaleLowerCase() === "successful";
 
-          let paymentPending =
-            giftStatus?.toLocaleLowerCase() === "pending" &&
+          const paymentPending =
+            giftStatus?.toLocaleLowerCase() === "not claimed" &&
             transactionStatus?.toLocaleLowerCase() === "processing";
 
-          let giftNotPaid =
-            giftStatus?.toLocaleLowerCase() === "pending" &&
+          const giftNotPaid =
+            giftStatus?.toLocaleLowerCase() === "cancel" &&
             transactionStatus?.toLocaleLowerCase() === "unsuccessful";
 
           if (giftNotClaimed) {
@@ -1604,29 +1841,11 @@ const ChatBot = () => {
               bank_name: bankData.bank_name,
               receiver_name: bankData.receiver_name,
               receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-              gift_status: "Claimed",
+              gift_status: "Processing",
             };
-
-            const nairaPayment = (await getGiftNaira(sharedGiftId)).toString();
-
-            const giftData = {
-              accountNumber: bankData.acct_number,
-              accountBank: sharedSelectedBankCode,
-              bankName: bankData.bank_name,
-              amount: nairaPayment,
-              accountName: bankData.receiver_name,
-              narration: narration,
-            };
-
-            // Update transaction to "Pending" before making the payment
-            await updateGiftTransaction(sharedGiftId, {
-              gift_status: "Pending",
-            });
-
-            // Attempt to claim the gift money, use Mongoro from Next app
-            await payoutMoney(giftData);
 
             // Only update the status to "Claimed" if payoutMoney is successful
+            // update the status to "Processing" and for the user to claim his gift
             await updateGiftTransaction(sharedGiftId, giftUpdateDate);
 
             setLoading(false);
@@ -1635,7 +1854,11 @@ const ChatBot = () => {
           } else if (giftClaimed) {
             setLoading(false);
             addChatMessages([
-              { type: "incoming", content: "This gift is already claimed" },
+              {
+                type: "incoming",
+                content: "This gift is already claimed",
+                timestamp: new Date(),
+              },
             ]);
             helloMenu("hi");
             goToStep("start");
@@ -1650,11 +1873,13 @@ const ChatBot = () => {
                     Please check again later.
                   </span>
                 ),
+                timestamp: new Date(),
               },
               {
                 type: "incoming",
                 content:
                   "If it persists, it could be that the gifter has not sent the asset yet.",
+                timestamp: new Date(),
               },
             ]);
             helloMenu("hi");
@@ -1670,6 +1895,7 @@ const ChatBot = () => {
                     You have to contact your gifter to do the transaction again.
                   </span>
                 ),
+                timestamp: new Date(),
               },
             ]);
             helloMenu("hi");
@@ -1679,7 +1905,14 @@ const ChatBot = () => {
             addChatMessages([
               {
                 type: "incoming",
-                content: "You have to reach our customer support.",
+                content: (
+                  <span>
+                    We have an issue determining this gift status.
+                    <br />
+                    You have to reach our customer support.
+                  </span>
+                ),
+                timestamp: new Date(),
               },
             ]);
             helloMenu("hi");
@@ -1700,6 +1933,7 @@ const ChatBot = () => {
               content: (
                 <span>Sorry, the transaction failed. Please try again.</span>
               ),
+              timestamp: new Date(),
             },
           ]);
           displayEnterGiftId(addChatMessages, nextStep);
@@ -1717,27 +1951,23 @@ const ChatBot = () => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        let userWallet = "";
-        // : { wallet: string; expiresIn?: number | undefined; }
-
-        const availableWallet = await getAvaialableWallet(
-          sharedNetwork.toLocaleLowerCase()
-        );
-
-        userWallet = availableWallet;
 
         displaySendPayment(
           addChatMessages,
           nextStep,
-          userWallet,
+          activeWallet ?? "",
           sharedCrypto,
           sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          giftID
+          giftID,
+          lastAssignedTime
         );
+
+        console.log("User data created", activeWallet);
+
         setLoading(false);
         // let's save the transaction details to db
         const userDate = {
@@ -1756,7 +1986,7 @@ const ChatBot = () => {
             "en-NG"
           ),
           crypto_sent: paymentAsset,
-          wallet_address: userWallet,
+          wallet_address: activeWallet,
           Date: date,
           status: "Processing",
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
@@ -1768,12 +1998,13 @@ const ChatBot = () => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: null,
-          gift_status: "Pending",
-          asset_price: formatCurrency(sharedAssetPrice, "USD"),
+          gift_status: "Not Claimed",
+          asset_price:
+            sharedCrypto.toLowerCase() != "usdt"
+              ? formatCurrency(sharedAssetPrice, "USD")
+              : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
         await createTransaction(userDate);
-
-        // set the wallet flag to false
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
@@ -1821,7 +2052,6 @@ const ChatBot = () => {
           asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
         };
       } else {
-        console.log("sharedPaymentMode is", sharedPaymentMode);
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());
@@ -1831,27 +2061,21 @@ const ChatBot = () => {
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
 
-        let userWallet = "";
-
-        const availableWallet = await getAvaialableWallet(
-          sharedNetwork.toLocaleLowerCase()
-        );
-
-        userWallet = availableWallet;
-
         displaySendPayment(
           addChatMessages,
           nextStep,
-          userWallet,
+          activeWallet ?? "",
           sharedCrypto,
           sharedPaymentAssetEstimate,
           sharedPaymentNairaEstimate,
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          0
+          0,
+          lastAssignedTime
         );
-        console.log("User data created", userWallet);
+
+        console.log("Just to know that the wallet is available ", activeWallet);
         setLoading(false);
         // let's save the transaction details to db
         const userDate = {
@@ -1870,7 +2094,7 @@ const ChatBot = () => {
             "en-NG"
           ),
           crypto_sent: paymentAsset,
-          wallet_address: userWallet,
+          wallet_address: activeWallet,
           Date: date,
           status: "Processing",
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
@@ -1881,7 +2105,10 @@ const ChatBot = () => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: "",
-          asset_price: formatCurrency(sharedAssetPrice, "USD"),
+          asset_price:
+            sharedCrypto.toLowerCase() != "usdt"
+              ? formatCurrency(sharedAssetPrice, "USD")
+              : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
         await createTransaction(userDate);
 
@@ -1892,7 +2119,6 @@ const ChatBot = () => {
     }
   };
 
-  // ALLOW USER TO CONFIRM IF THEY HAVE MADE THE TRANSFER OR NOT
   const handleConfirmTransaction = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
@@ -1924,6 +2150,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid transaction_id. Try again",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -1980,6 +2207,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2001,6 +2229,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2023,6 +2252,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2051,6 +2281,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2065,7 +2296,7 @@ const ChatBot = () => {
       const transaction_id = chatInput.trim();
       setLoading(true);
       setSharedTransactionId(transaction_id);
-      let transactionExists = (await checkTranscationExists(transaction_id))
+      const transactionExists = (await checkTranscationExists(transaction_id))
         .exists;
 
       console.log(
@@ -2083,6 +2314,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid transaction_id. Try again",
+            timestamp: new Date(),
           },
         ]);
       }
@@ -2092,6 +2324,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2139,6 +2372,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
+            timestamp: new Date(),
           },
         ]);
         helloMenu("hi");
@@ -2150,6 +2384,7 @@ const ChatBot = () => {
             type: "incoming",
             content:
               "Invalid entry, Please enter your message in not more that 100 words",
+            timestamp: new Date(),
           },
         ]);
         return;
@@ -2160,6 +2395,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2220,6 +2456,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid gift_id. Try again",
+            timestamp: new Date(),
           },
         ]);
         setLoading(false);
@@ -2230,6 +2467,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2271,6 +2509,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2306,6 +2545,7 @@ const ChatBot = () => {
           type: "incoming",
           content:
             "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
         },
       ]);
     }
@@ -2339,6 +2579,7 @@ const ChatBot = () => {
                 Please enter a your name. You can not summit an empty space
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2378,6 +2619,7 @@ const ChatBot = () => {
                 valid phone number.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2429,6 +2671,7 @@ const ChatBot = () => {
                 valid wallet address.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2439,6 +2682,7 @@ const ChatBot = () => {
       displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
     }
   };
+
   const handleReportlyNote = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       console.log("Going back to start");
@@ -2472,6 +2716,7 @@ const ChatBot = () => {
                 valid wallet address.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2515,6 +2760,7 @@ const ChatBot = () => {
                 is {wordCount} words long. The maximum allowed is 100 words.
               </span>
             ),
+            timestamp: new Date(),
           },
         ];
         addChatMessages(newMessages);
@@ -2561,6 +2807,7 @@ const ChatBot = () => {
                 start of the conversation
               </span>
             ),
+            timestamp: new Date(),
           },
         ]);
         console.log("Aje!!, there was a issue saving the report", error);
@@ -2576,6 +2823,7 @@ const ChatBot = () => {
       const newMessage: MessageType = {
         type: "outgoing",
         content: <span>{chatInput}</span>,
+        timestamp: new Date(),
       };
       addChatMessages([newMessage]);
       setChatInput("");
@@ -2625,7 +2873,6 @@ const ChatBot = () => {
       case "payOptions":
         console.log("Current step is payOptions ");
         handlePayOptions(chatInput);
-
         setChatInput("");
         break;
 
@@ -2764,31 +3011,37 @@ const ChatBot = () => {
         handleReportlyWelcome(chatInput);
         setChatInput("");
         break;
+
       case "reporterName":
         console.log("Current step is reporterName ");
         handleReporterName(chatInput);
         setChatInput("");
         break;
+
       case "reporterPhoneNumber":
         console.log("Current step is reporterPhoneNumber ");
         handleEnterReporterPhoneNumber(chatInput);
         setChatInput("");
         break;
+
       case "reporterWallet":
         console.log("Current step is reporterWallet");
         handleEnterReporterWalletAddress(chatInput);
         setChatInput("");
         break;
+
       case "fraudsterWallet":
         console.log("Current step is fraudsterWallet");
         handleEnterFraudsterWalletAddress(chatInput);
         setChatInput("");
         break;
+
       case "reportlyNote":
         console.log("Current step is reportlyNote");
         handleReportlyNote(chatInput);
         setChatInput("");
         break;
+
       case "reporterFarwell":
         console.log("Current step is reporterFarwell");
         handleReporterFarwell(chatInput);
@@ -2801,6 +3054,7 @@ const ChatBot = () => {
           {
             type: "incoming",
             content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
+            timestamp: new Date(),
           },
         ]);
         setChatInput("");
@@ -2815,60 +3069,143 @@ const ChatBot = () => {
     }
   };
 
-  // CHATBOT
+  const renderDateSeparator = (date: Date) => {
+    const now = new Date();
+    const hoursDiff = differenceInHours(now, date);
+    const daysDiff = differenceInDays(now, date);
+    const monthsDiff = differenceInMonths(now, date);
 
-  return (
-    <div
-      ref={chatboxRef}
-      className="fixed right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12 bg-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 ease-in-out"
-      style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}
-    >
-      <header className="py-4 text-center text-white bg-blue-500 shadow">
-        <div className="flex items-center justify-between relative">
-          <span className="flex-shrink-0 w-8 h-8 ml-8 bg-white rounded">
+    if (isToday(date)) {
+      return "Today";
+    } else if (isYesterday(date)) {
+      return "Yesterday";
+    } else if (daysDiff < 7) {
+      return format(date, "EEEE");
+    } else if (monthsDiff < 6) {
+      return format(date, "EEE. d MMM");
+    } else {
+      return format(date, "d MMM, yyyy");
+    }
+  };
+
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      const latestMessage = chatMessages[chatMessages.length - 1];
+      const dateString = renderDateSeparator(new Date(latestMessage.timestamp));
+      setCurrentDate(dateString);
+      setShowDateDropdown(true);
+
+      const timer = setTimeout(() => {
+        setShowDateDropdown(false);
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [chatMessages]);
+
+  const groupedMessages = chatMessages.reduce((groups, message) => {
+    const date = new Date(message.timestamp);
+    const dateString = format(date, "yyyy-MM-dd");
+    if (!groups[dateString]) {
+      groups[dateString] = [];
+    }
+    groups[dateString].push(message);
+    return groups;
+  }, {} as Record<string, MessageType[]>);
+
+  // CHATBOT
+  return isMobile ? (
+    <div className="fixed inset-0 flex flex-col bg-white">
+      <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
+        <div className="flex items-center justify-between px-4">
+          <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
             <Image
               src="/waaa.png"
               alt="Avatar"
-              width={500}
-              height={100}
-              className="w-full h-full rounded"
+              width={32}
+              height={32}
+              className="rounded"
             />
           </span>
-          <h2 className="text-lg font-bold absolute left-1/2 transform -translate-x-1/2">
-            2SettleHQ
-          </h2>
-        </div>
-      </header>
-      {isOpen && (
-        <ul className="flex-grow p-4 md:p-8 space-y-4 overflow-y-auto">
-          {chatMessages.map((msg, index) => (
-            <li
-              key={index}
-              className={`flex ${
-                msg.type === "incoming" ? "items-start" : "justify-end"
-              }`}
+          <h2 className="text-lg font-bold">2SettleHQ</h2>
+          <button
+            onClick={onClose}
+            className="text-white"
+            aria-label="Close chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              {msg.type === "incoming" && (
-                <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
-                  <Image
-                    src="/waaa.png"
-                    alt="Avatar"
-                    width={500}
-                    height={100}
-                    className="w-full h-full rounded"
-                  />
-                </span>
-              )}
-              <div
-                className={`p-2 md:p-3 rounded-lg ${
-                  msg.type === "incoming"
-                    ? "bg-gray-200 text-black rounded-bl-none"
-                    : "bg-blue-500 text-white rounded-br-none"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        {showDateDropdown && currentDate && (
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
+            {currentDate}
+          </div>
+        )}
+      </header>
+      <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
+        <ul className="p-4 space-y-4">
+          {Object.entries(groupedMessages).map(([dateString, messages]) => (
+            <React.Fragment key={dateString}>
+              <li
+                className={`date-separator text-center text-sm text-gray-500 my-2 ${
+                  visibleDateSeparators.has(dateString) ? "" : "hidden"
                 }`}
+                data-date={dateString}
               >
-                <p className="text-xs md:text-sm">{msg.content}</p>
-              </div>
-            </li>
+                {renderDateSeparator(new Date(dateString))}
+              </li>
+              {chatMessages.map((msg, index) => (
+                <li
+                  key={`${dateString}-${index}`}
+                  className={`flex ${
+                    msg.type === "incoming" ? "items-start" : "justify-end"
+                  }`}
+                >
+                  {msg.type === "incoming" && (
+                    <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
+                      <Image
+                        src="/waaa.png"
+                        alt="Avatar"
+                        width={32}
+                        height={32}
+                        className="rounded"
+                      />
+                    </span>
+                  )}
+                  <div className="flex flex-col max-w-[75%]">
+                    <div
+                      className={`p-2 md:p-3 rounded-lg ${
+                        msg.type === "incoming"
+                          ? "bg-gray-200 text-black rounded-bl-none"
+                          : "bg-blue-500 text-white rounded-br-none"
+                      }`}
+                    >
+                      <p className="text-xs md:text-sm">{msg.content}</p>
+                    </div>
+                    <span
+                      className={`text-xs text-gray-500 mt-1 ${
+                        msg.type === "incoming" ? "self-end" : "self-start"
+                      }`}
+                    >
+                      {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </React.Fragment>
           ))}
           {loading && (
             <div className="flex items-center">
@@ -2876,9 +3213,9 @@ const ChatBot = () => {
                 <Image
                   src="/waaa.png"
                   alt="Avatar"
-                  width={200}
-                  height={100}
-                  className="w-full h-full rounded"
+                  width={32}
+                  height={32}
+                  className="rounded"
                 />
               </span>
               <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
@@ -2890,32 +3227,174 @@ const ChatBot = () => {
           )}
           <div ref={messagesEndRef} />
         </ul>
-      )}
-      {isOpen && (
-        <div className="flex items-center p-3 border-t border-gray-200 bg-white pr-4">
+      </div>
+      <div className="p-3 border-t border-gray-200 bg-white">
+        <div className="flex items-center">
           <textarea
             ref={textareaRef}
-            className="flex-1 pl-2 border-none outline-none resize-none h-10"
+            className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
             placeholder="Enter a message..."
+            rows={1}
             spellCheck={false}
             required
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            style={{
-              lineHeight: "40px", // This matches the height of the textarea
-              paddingTop: "0",
-              paddingBottom: "0",
-            }}
           />
-          <span
-            className="ml-2 text-blue-500 cursor-pointer material-symbols-rounded"
+          <button
+            className="ml-2 text-blue-500 cursor-pointer"
             onClick={() => handleConversation(chatInput)}
+            aria-label="Send message"
           >
             <SendIcon />
-          </span>
+          </button>
         </div>
-      )}
+      </div>
+    </div>
+  ) : (
+    <div
+      ref={chatboxRef}
+      className={`fixed ${
+        isMobile
+          ? "inset-0 top-10"
+          : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
+      } bg-white rounded-lg shadow-lg overflow-hidden flex flex-col`}
+      style={{ height: isMobile ? "150%" : "80vh" }}
+    >
+      <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
+        <div className="flex items-center justify-between px-4">
+          <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
+            <Image
+              src="/waaa.png"
+              alt="Avatar"
+              width={32}
+              height={32}
+              className="rounded"
+            />
+          </span>
+          <h2 className="text-lg font-bold">2SettleHQ</h2>
+          <button
+            onClick={onClose}
+            className="text-white"
+            aria-label="Close chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+        {showDateDropdown && currentDate && (
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
+            {currentDate}
+          </div>
+        )}
+      </header>
+      <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
+        <ul className="p-4 space-y-4">
+          {Object.entries(groupedMessages).map(([dateString, messages]) => (
+            <React.Fragment key={dateString}>
+              <li
+                className={`date-separator text-center text-sm text-gray-500 my-2 ${
+                  visibleDateSeparators.has(dateString) ? "" : "hidden"
+                }`}
+                data-date={dateString}
+              >
+                {renderDateSeparator(new Date(dateString))}
+              </li>
+              {chatMessages.map((msg, index) => (
+                <li
+                  key={`${dateString}-${index}`}
+                  className={`flex ${
+                    msg.type === "incoming" ? "items-start" : "justify-end"
+                  }`}
+                >
+                  {msg.type === "incoming" && (
+                    <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
+                      <Image
+                        src="/waaa.png"
+                        alt="Avatar"
+                        width={32}
+                        height={32}
+                        className="rounded"
+                      />
+                    </span>
+                  )}
+                  <div className="flex flex-col max-w-[75%]">
+                    <div
+                      className={`p-2 md:p-3 rounded-lg ${
+                        msg.type === "incoming"
+                          ? "bg-gray-200 text-black rounded-bl-none"
+                          : "bg-blue-500 text-white rounded-br-none"
+                      }`}
+                    >
+                      <p className="text-xs md:text-sm">{msg.content}</p>
+                    </div>
+                    <span
+                      className={`text-xs text-gray-500 mt-1 ${
+                        msg.type === "incoming" ? "self-end" : "self-start"
+                      }`}
+                    >
+                      {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </React.Fragment>
+          ))}
+          {loading && (
+            <div className="flex items-center">
+              <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+                <Image
+                  src="/waaa.png"
+                  alt="Avatar"
+                  width={32}
+                  height={32}
+                  className="rounded"
+                />
+              </span>
+              <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
+                <div className="flex justify-start">
+                  <Loader />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </ul>
+      </div>
+      <div className="p-3 border-t border-gray-200 bg-white">
+        <div className="flex items-center">
+          <textarea
+            ref={textareaRef}
+            className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
+            placeholder="Enter a message..."
+            rows={1}
+            spellCheck={false}
+            required
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+          />
+          <button
+            className="ml-2 text-blue-500 cursor-pointer"
+            onClick={() => handleConversation(chatInput)}
+            aria-label="Send message"
+          >
+            <SendIcon />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
