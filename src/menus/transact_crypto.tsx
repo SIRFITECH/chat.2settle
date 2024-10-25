@@ -1187,7 +1187,8 @@ export const displaySendPayment = async (
 
     return (
       <div className="flex flex-col items-start space-y-2">
-        <span>{truncateText(text)}</span>
+        {isWallet ? <span>{truncateText(text)}</span> : ""}
+
         <Button
           ref={buttonRef}
           onClick={handleCopy}
@@ -1262,9 +1263,10 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          You are receiving
+          You are receiving{" "}
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
           <br />
-          Tap to copy Transaction ID 👉 :{" "}
+          Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
           <CopyableText
             text={transactionID.toString()}
             label="Transaction ID"
@@ -1277,7 +1279,12 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          Send <b>{paymentAsset}</b> to our wallet address. <br /> <br />
+          Send <b>{paymentAsset}</b> to our wallet address. <br />
+          <CopyableText
+            text={`${assetPayment.toFixed(8)}`}
+            label={`${sharedCrypto} amount`}
+          />
+          <br />
           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
           <b>So we expect to receive not less than {paymentAsset}.</b>
@@ -1299,13 +1306,16 @@ export const displaySendPayment = async (
             isWallet={true}
           />
           <br />
-          <br />
           <b>This transaction expires in {allowedTime.toString()} minutes</b>
           <br />
           <b>
             This wallet address is only available for {allowedTime.toString()}{" "}
             minutes
           </b>
+          <br />
+          There would be a pop up later on this page,
+          <br />
+          But if you miss it, you can <b>say 'Hi'</b> to start a new transaction
         </span>
       ),
       timestamp: new Date(),
@@ -1317,10 +1327,10 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          You are sending
+          You are sending{" "}
           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
           <br />
-          Tap to copy Gift ID 👉 :{" "}
+          Tap to copy Gift ID 👇🏾 : {giftID.toString()}
           <CopyableText text={giftID.toString()} label="Gift ID" />
         </span>
       ),
