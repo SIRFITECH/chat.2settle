@@ -12,23 +12,17 @@ import { MessageType, WalletInfo } from "../types/general_types";
 import {
   checkGiftExists,
   checkTranscationExists,
-  checkUserExists,
   createComplain,
   createTransaction,
-  createUser,
   fetchBankDetails,
   fetchBankNames,
   fetchCoinPrice,
   fetchMerchantRate,
   fetchProfitRate,
   fetchRate,
-  getAvaialableWallet,
-  getGiftNaira,
   isGiftValid,
-  payoutMoney,
   updateGiftTransaction,
   updateTransaction,
-  updateUser,
 } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import {
@@ -78,7 +72,6 @@ import {
   displayEnterAccountNumber,
   displayEnterPhone,
   displayHowToEstimation,
-  displayPayAVendor,
   displayPayIn,
   displaySearchBank,
   displaySelectBank,
@@ -123,31 +116,6 @@ const initialMessages = [
     isComponent: false,
   },
 ];
-
-// const sanitizeSerializedContent = (content: string) => {
-//   return content
-//     .replace(/\{['"]\s*['"]\}/g, "")
-//     .replace(/\s+/g, " ")
-//     .trim();
-// };
-
-// const serializeMessage = (message: {
-//   type: string;
-//   content: React.ReactNode;
-// }) => {
-//   return {
-//     ...message,
-//     content: sanitizeSerializedContent(elementToJSXString(message.content)),
-//   };
-// };
-// const deserializeMessage = (message: { type: string; content: string }) => {
-//   return {
-//     ...message,
-//     content: parse(message.content),
-//   };
-// };
-
-// Component mapping
 
 const componentMap: { [key: string]: React.ComponentType<any> } = {
   ConnectButton: ConnectButton,
@@ -208,10 +176,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
   const chatboxRef = useRef<HTMLDivElement>(null);
-  const walletInfoRef = useRef<{
-    activeWallet: string;
-    lastAssignedTime: Date;
-  } | null>(null);
   const [visibleDateSeparators, setVisibleDateSeparators] = useState<
     Set<string>
   >(new Set());
@@ -327,36 +291,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // const [local, setLocal] = React.useState<{
-  //   messages: { type: string; content: React.ReactNode }[];
-  //   serializedMessages: { type: string; content: string }[];
-  //   step: string;
-  //   stepHistory: string[];
-  // }>(() => {
-  //   if (typeof window !== "undefined") {
-  //     const fromLocalStorage = window.localStorage.getItem("chat_data");
-  //     if (fromLocalStorage) {
-  //       const parsedData = JSON.parse(fromLocalStorage);
-  //       const deserializedMessages =
-  //         parsedData.messages.map(deserializeMessage);
-  //       const { currentStep, stepHistory = ["start"] } = parsedData;
-  //       return {
-  //         messages: deserializedMessages,
-  //         serializedMessages: parsedData.messages,
-  //         step: currentStep,
-  //         stepHistory: parsedData.stepHistory || ["start"],
-  //       };
-  //     }
-  //   }
-  //   const serializedInitialMessages = initialMessages.map(serializeMessage);
-  //   return {
-  //     messages: initialMessages,
-  //     serializedMessages: serializedInitialMessages,
-  //     step: "start",
-  //     stepHistory: ["start"],
-  //   };
-  // });
-
   const [local, setLocal] = useState<{
     messages: MessageType[];
     serializedMessages: {
@@ -407,24 +341,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     window.localStorage.setItem("chat_data", JSON.stringify(chatData));
   }, [local.serializedMessages, local.step, local.stepHistory]);
 
-  const addChatMessage = (newMessage: MessageType) => {
-    setLocal((prev) => {
-      const updatedMessages = [...prev.messages, newMessage];
-      const serializedNewMessage = {
-        ...serializeMessage(newMessage),
-        timestamp: newMessage.timestamp.toISOString(),
-      };
-      const updatedSerializedMessages = [
-        ...prev.serializedMessages,
-        serializedNewMessage,
-      ];
-      return {
-        ...prev,
-        messages: updatedMessages,
-        serializedMessages: updatedSerializedMessages,
-      };
-    });
-  };
   React.useEffect(() => {
     const chatData = {
       messages: serializedMessages,
@@ -454,6 +370,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     let trxID = window.localStorage.getItem("transactionID");
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -1831,11 +1748,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
       setSharedPhone(phoneNumber);
 
-      let isGift = sharedPaymentMode.toLowerCase() === "claim gift";
-      let isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-      let requestPayment = sharedPaymentMode.toLowerCase() === "request";
+      const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
+      const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+      const requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
-      let network =
+      const network =
         sharedCrypto.toLowerCase() === "usdt"
           ? sharedNetwork.toLowerCase()
           : sharedCrypto.toLowerCase();
@@ -1896,24 +1813,25 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
         console.log("USER WANTS TO CLAIM GIFT");
 
-        let giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
-        let transactionStatus = (await isGiftValid(sharedGiftId)).user?.status;
+        const giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
+        const transactionStatus = (await isGiftValid(sharedGiftId)).user
+          ?.status;
 
         try {
-          let giftNotClaimed =
+          const giftNotClaimed =
             giftStatus?.toLocaleLowerCase() === "not claimed" &&
             transactionStatus?.toLocaleLowerCase() === "successful";
 
-          let giftClaimed =
+          const giftClaimed =
             giftStatus?.toLocaleLowerCase() === "claimed" &&
             transactionStatus?.toLocaleLowerCase() === "successful";
 
-          let paymentPending =
-            giftStatus?.toLocaleLowerCase() === "pending" &&
+          const paymentPending =
+            giftStatus?.toLocaleLowerCase() === "not claimed" &&
             transactionStatus?.toLocaleLowerCase() === "processing";
 
-          let giftNotPaid =
-            giftStatus?.toLocaleLowerCase() === "pending" &&
+          const giftNotPaid =
+            giftStatus?.toLocaleLowerCase() === "cancel" &&
             transactionStatus?.toLocaleLowerCase() === "unsuccessful";
 
           if (giftNotClaimed) {
@@ -1925,25 +1843,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               receiver_phoneNumber: formatPhoneNumber(phoneNumber),
               gift_status: "Processing",
             };
-
-            // const nairaPayment = (await getGiftNaira(sharedGiftId)).toString();
-
-            // const giftData = {
-            //   accountNumber: bankData.acct_number,
-            //   accountBank: sharedSelectedBankCode,
-            //   bankName: bankData.bank_name,
-            //   amount: nairaPayment,
-            //   accountName: bankData.receiver_name,
-            //   narration: narration,
-            // };
-
-            // // Update transaction to "Pending" before making the payment
-            // await updateGiftTransaction(sharedGiftId, {
-            //   gift_status: "Pending",
-            // });
-
-            // // Attempt to claim the gift money, use Mongoro from Next app
-            // await payoutMoney(giftData);
 
             // Only update the status to "Claimed" if payoutMoney is successful
             // update the status to "Processing" and for the user to claim his gift
@@ -2006,7 +1905,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             addChatMessages([
               {
                 type: "incoming",
-                content: "You have to reach our customer support.",
+                content: (
+                  <span>
+                    We have an issue determining this gift status.
+                    <br />
+                    You have to reach our customer support.
+                  </span>
+                ),
                 timestamp: new Date(),
               },
             ]);
@@ -2391,7 +2296,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       const transaction_id = chatInput.trim();
       setLoading(true);
       setSharedTransactionId(transaction_id);
-      let transactionExists = (await checkTranscationExists(transaction_id))
+      const transactionExists = (await checkTranscationExists(transaction_id))
         .exists;
 
       console.log(
@@ -3368,36 +3273,29 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             />
           </span>
           <h2 className="text-lg font-bold">2SettleHQ</h2>
-          {isMobile && (
-            <button
-              onClick={onClose}
-              className="text-white"
-              aria-label="Close chat"
+          <button
+            onClick={onClose}
+            className="text-white"
+            aria-label="Close chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
         </div>
         {showDateDropdown && currentDate && (
-          <div
-            className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-500 ease-in-out"
-            style={{
-              animation: "dropDown 0.5s ease-out",
-            }}
-          >
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
             {currentDate}
           </div>
         )}
