@@ -1285,7 +1285,6 @@ export const displaySendPayment = async (
             label={`${sharedCrypto} amount`}
           />
           <br />
-          <br />
           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
           <b>So we expect to receive not less than {paymentAsset}.</b>
@@ -1306,7 +1305,6 @@ export const displaySendPayment = async (
             label="Wallet address"
             isWallet={true}
           />
-          <br />
           <br />
           <b>This transaction expires in {allowedTime.toString()} minutes</b>
           <br />
@@ -1329,7 +1327,7 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          You are sending {" "}
+          You are sending{" "}
           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
           <br />
           Tap to copy Gift ID 👇🏾 : {giftID.toString()}
