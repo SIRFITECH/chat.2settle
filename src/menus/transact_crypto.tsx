@@ -1332,6 +1332,325 @@ export const displaySendPayment = async (
   addChatMessages(initialMessages);
 };
 
+// export const displaySendPayment = async (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   nextStep: (step: string) => void,
+//   wallet: string,
+//   sharedCrypto: string,
+//   sharedPaymentAssetEstimate: string,
+//   sharedPaymentNairaEstimate: string,
+//   transactionID: number,
+//   sharedNetwork: string,
+//   sharedPaymentMode: string,
+//   giftID: number,
+//   lastAssignedTime?: Date
+// ): Promise<void> => {
+//   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+//   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+//   const isGift = sharedPaymentMode.toLowerCase() === "gift";
+//   const activeWallet = wallet;
+//   const allowedTime = 5;
+
+//   // Save payment data to Service Worker
+//   if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+//     navigator.serviceWorker.controller.postMessage({
+//       type: "SAVE_PAYMENT_DATA",
+//       payload: {
+//         wallet,
+//         transactionID,
+//         giftID,
+//         lastAssignedTime: lastAssignedTime?.toISOString(),
+//         allowedTime,
+//         isGift,
+//         paymentAsset,
+//         sharedCrypto,
+//         sharedNetwork,
+//         sharedPaymentNairaEstimate,
+//         walletCopied: false,
+//       },
+//     });
+//   }
+
+//   const CopyableText: React.FC<{
+//     text: string;
+//     label: string;
+//     isWallet?: boolean;
+//   }> = ({ text, label, isWallet = false }) => {
+//     const [isCopied, setIsCopied] = useState(false);
+//     const [isExpired, setIsExpired] = useState(false);
+//     const [timeLeft, setTimeLeft] = useState("");
+//     const [isDialogOpen, setIsDialogOpen] = useState(false);
+//     const [walletCopied, setWalletCopied] = useState(false);
+//     const [dialogMessage, setDialogMessage] = useState("");
+//     const buttonRef = useRef<HTMLButtonElement>(null);
+
+//     useEffect(() => {
+//       if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
+//         navigator.serviceWorker.addEventListener("message", (event) => {
+//           if (event.data.type === "PAYMENT_DATA_UPDATED") {
+//             const data = event.data.payload;
+//             setTimeLeft(data.timeLeft);
+//             setIsExpired(data.isExpired);
+//             setWalletCopied(data.walletCopied);
+//             if (data.isExpired) {
+//               if (!data.walletCopied) {
+//                 setDialogMessage(
+//                   "This wallet is no longer available. Please start a new transaction."
+//                 );
+//               } else {
+//                 setDialogMessage("Have you sent the payment?");
+//               }
+//               setIsDialogOpen(true);
+//             }
+//           }
+//         });
+
+//         // Request initial data from Service Worker
+//         const channel = new MessageChannel();
+//         channel.port1.onmessage = (event) => {
+//           const data = event.data;
+//           if (data) {
+//             setTimeLeft(data.timeLeft || "");
+//             setIsExpired(data.isExpired || false);
+//             setWalletCopied(data.walletCopied || false);
+//           }
+//         };
+//         navigator.serviceWorker.controller.postMessage(
+//           { type: "GET_PAYMENT_DATA" },
+//           [channel.port2]
+//         );
+//       }
+//     }, []);
+
+//     const handleCopy = () => {
+//       navigator.clipboard.writeText(text).then(() => {
+//         setIsCopied(true);
+//         setTimeout(() => setIsCopied(false), 3000);
+//         if (isWallet) {
+//           setWalletCopied(true);
+//           // Update wallet copied status in Service Worker
+//           if (
+//             "serviceWorker" in navigator &&
+//             navigator.serviceWorker.controller
+//           ) {
+//             navigator.serviceWorker.controller.postMessage({
+//               type: "SAVE_PAYMENT_DATA",
+//               payload: { walletCopied: true },
+//             });
+//           }
+//         }
+//       });
+//     };
+
+//     const handleConfirm = () => {
+//       setIsDialogOpen(false);
+//       addChatMessages([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               Thank you for your transaction, <br />
+//               Wait a little while and check if you have received your funds.
+//               <br />
+//               <br />
+//               1. Start another transaction
+//               <br />
+//               2. No, I want to complain
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       nextStep("paymentProcessing");
+//     };
+
+//     const handleClose = () => {
+//       setIsDialogOpen(false);
+//       addChatMessages([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               It appears you did not go through with the transaction again,{" "}
+//               <br />
+//               Thanks anyway for your time. Feel free to
+//               <br />
+//               <br />
+//               1. Start another transaction
+//               <br />
+//               2. Tell us what went wrong
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       nextStep("paymentProcessing");
+//     };
+
+//     const truncateText = (text: string) => {
+//       return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
+//     };
+
+//     const getButtonText = () => {
+//       if (dialogMessage === "Have you sent the payment?") {
+//         return "Yes, I've sent the payment";
+//       } else if (
+//         dialogMessage ===
+//         "This wallet is no longer available. Please start a new transaction."
+//       ) {
+//         return "Start a new transaction";
+//       } else {
+//         return "Okay, I understand";
+//       }
+//     };
+
+//     return (
+//       <div className="flex flex-col items-start space-y-2">
+//         <span>{truncateText(text)}</span>
+//         <Button
+//           ref={buttonRef}
+//           onClick={handleCopy}
+//           variant="outline"
+//           size="sm"
+//           disabled={isWallet && isExpired}
+//         >
+//           {!isCopied ? (
+//             <>
+//               <Copy className="w-4 h-4 mr-2" />
+//               <span>Copy {label}</span>
+//             </>
+//           ) : (
+//             <>
+//               <Check className="w-4 h-4 mr-2" />
+//               <span>{label} Copied</span>
+//             </>
+//           )}
+//         </Button>
+//         {isWallet && (
+//           <span
+//             className={
+//               timeLeft < "02:01" || isExpired
+//                 ? "text-red-500 animate-pulse"
+//                 : "text-green-500"
+//             }
+//           >
+//             {isExpired ? "Wallet expired" : timeLeft}
+//           </span>
+//         )}
+//         <Dialog
+//           open={isDialogOpen}
+//           onOpenChange={(open) => {
+//             setIsDialogOpen(open);
+//             if (!open) {
+//               buttonRef.current?.focus();
+//             }
+//           }}
+//         >
+//           <DialogContent>
+//             <DialogHeader>
+//               <DialogTitle>Transaction Confirmation</DialogTitle>
+//               <DialogDescription>{dialogMessage}</DialogDescription>
+//             </DialogHeader>
+//             <DialogFooter>
+//               <Button
+//                 className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
+//                 onClick={() => {
+//                   if (walletCopied) {
+//                     handleConfirm();
+//                   } else {
+//                     handleClose();
+//                   }
+//                 }}
+//               >
+//                 {getButtonText()}
+//               </Button>
+//             </DialogFooter>
+//           </DialogContent>
+//         </Dialog>
+//       </div>
+//     );
+//   };
+
+//    const initialMessages: MessageType[] = [
+//      {
+//        type: "incoming",
+//        content: "Phone Number confirmed",
+//        timestamp: new Date(),
+//      },
+//      {
+//        type: "incoming",
+//        content: (
+//          <span>
+//            You are receiving
+//            <br />
+//            Tap to copy Transaction ID 👉 :{" "}
+//            <CopyableText
+//              text={transactionID.toString()}
+//              label="Transaction ID"
+//            />
+//          </span>
+//        ),
+//        timestamp: new Date(),
+//      },
+//      {
+//        type: "incoming",
+//        content: (
+//          <span>
+//            Send <b>{paymentAsset}</b> to our wallet address. <br /> <br />
+//            Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
+//            {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
+//            <b>So we expect to receive not less than {paymentAsset}.</b>
+//            <br />
+//            Tap to copy or Scan the wallet address below 👇🏾
+//          </span>
+//        ),
+//        timestamp: new Date(),
+//      },
+//      {
+//        type: "incoming",
+//        content: (
+//          <span>
+//            Tap to copy 👉: <br />
+//            <br />
+//            <CopyableText
+//              text={activeWallet}
+//              label="Wallet address"
+//              isWallet={true}
+//            />
+//            <br />
+//            <br />
+//            <b>This transaction expires in {allowedTime.toString()} minutes</b>
+//            <br />
+//            <b>
+//              This wallet address is only available for {allowedTime.toString()}{" "}
+//              minutes
+//            </b>
+//          </span>
+//        ),
+//        timestamp: new Date(),
+//      },
+//    ];
+
+//    if (isGift) {
+//      initialMessages[1] = {
+//        type: "incoming",
+//        content: (
+//          <span>
+//            You are sending
+//            <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+//            <br />
+//            Tap to copy Gift ID 👉 :{" "}
+//            <CopyableText text={giftID.toString()} label="Gift ID" />
+//          </span>
+//        ),
+//        timestamp: new Date(),
+//      };
+//    }
+
+//    // Send initial messages
+//    addChatMessages(initialMessages);
+// };
+
 export const displayConfirmPayment = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void
