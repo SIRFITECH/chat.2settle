@@ -8,10 +8,26 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import { config } from "../wagmi";
 import { SharedStateProvider } from "../context/SharedStateContext";
+import { useEffect } from "react";
 
 const client = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/payment-sw.js").then(
+        function (registration) {
+          console.log(
+            "Payment Service Worker registered successfully:",
+            registration.scope
+          );
+        },
+        function (err) {
+          console.error("Payment Service Worker registration failed:", err);
+        }
+      );
+    }
+  }, []);
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>

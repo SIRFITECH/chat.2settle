@@ -1,5 +1,6 @@
 import { userData } from "@/types/general_types";
 import axios from "axios";
+import twilio from "twilio";
 
 // CHECK IF USER HAS HISTORY IN OUR DB RECORDS USING PHONE NUMBER OR WALLET, SO WE CAN POPULATE THEIR TRANSACTIONS ARRAY
 export const checkUserHasHistory = async (
@@ -57,6 +58,31 @@ export const sendOtp = async (
       sent: false,
       message: "An error occurred while sending OTP. Please try again.",
     };
+  }
+};
+
+// SEND OTP TO THE USER AS SMSs
+export const sendOTPWithTwilio = async (
+  phoneNumber: string
+): Promise<string> => {
+  try {
+    const response = await fetch("/api/send_otp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phoneNumber }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send OTP");
+    }
+
+    const data = await response.json();
+    return data.otp;
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    throw new Error("Failed to send OTP");
   }
 };
 export const handlePhoneNumber = async (phoneNumber: string) => {
