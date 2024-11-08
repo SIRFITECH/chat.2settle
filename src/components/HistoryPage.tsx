@@ -1,4 +1,6 @@
-// import React, { useState, useEffect } from "react";
+// "use client";
+
+// import React, { useState, useEffect, useCallback } from "react";
 // import { useRouter } from "next/router";
 // import { useAccount, useDisconnect } from "wagmi";
 // import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -19,12 +21,21 @@
 // import { phoneNumberPattern } from "@/utils/utilities";
 // import {
 //   checkUserHasHistory,
-//   handlePhoneNumber,
+//   sendOTPWithTwilio,
 // } from "@/helpers/api_call/history_page_calls";
+// import { Skeleton } from "./ui/skeleton";
 
-// const Transactions: any[] = [];
+// type Transaction = {
+//   id: number;
+//   type: string;
+//   amount: number;
+//   currency: string;
+//   date: string;
+//   status: string;
+// };
 
 // type ToastType = "success" | "error" | "warning" | "info";
+// type AuthMethod = "wallet" | "phone";
 
 // const HistoryPage: React.FC = () => {
 //   const [searchTerm, setSearchTerm] = useState("");
@@ -37,30 +48,162 @@
 //   const [toastOpen, setToastOpen] = useState(false);
 //   const [toastMessage, setToastMessage] = useState("");
 //   const [toastType, setToastType] = useState<ToastType>("info");
+//   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
+//   const [transactions, setTransactions] = useState<Transaction[]>([]);
+//   const [isLoading, setIsLoading] = useState(true);
 
 //   const router = useRouter();
 //   const account = useAccount();
 //   const { disconnect } = useDisconnect();
 //   const wallet = account.address;
 
-//   useEffect(() => {
-//     if (account.isConnected) {
-//       handleAuthentication();
-//       populateHistory(undefined, wallet);
-//     } else {
-//       Transactions.length = 0;
-//       setIsAuthenticated(false);
-//     }
-//   }, [account.isConnected]);
-
-//   const handleAuthentication = () => {
-//     setIsAuthenticated(true);
-//     Transactions.length > 0
-//       ? showToast("Here is your transaction history 😉 ", "success")
-//       : showToast(
-//           "You need to do better jare, try do transaction!! 😔 ",
-//           "success"
+//   const populateHistory = useCallback(
+//     async (phoneNumber?: string, walletAddress?: string) => {
+//       if (!phoneNumber && !walletAddress) {
+//         console.error(
+//           "Either phone number or wallet address must be provided."
 //         );
+//         return;
+//       }
+
+//       try {
+//         setIsLoading(true);
+//         const userHistory = await checkUserHasHistory(
+//           phoneNumber,
+//           walletAddress
+//         );
+
+//         if (userHistory.exists && Array.isArray(userHistory.transactions)) {
+//           const newTransactions = userHistory.transactions.map(
+//             (transaction, index) => ({
+//               id: index + 1,
+//               type: transaction.mode_of_payment,
+//               amount: transaction.Amount,
+//               currency: transaction.crypto,
+//               date: transaction.Date,
+//               status: transaction.status,
+//             })
+//           );
+//           setTransactions(newTransactions);
+//           setIsLoading(false);
+//         } else {
+//           console.log("No transactions found for the user.");
+//           setTransactions([]);
+//           setIsLoading(false);
+//         }
+//       } catch (error) {
+//         setIsLoading(false);
+//         console.error("Error fetching user history:", error);
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     },
+//     []
+//   );
+
+//   const checkAuthentication = useCallback(async () => {
+//     const storedAuth = localStorage.getItem("isAuthenticated");
+//     const storedAuthMethod = localStorage.getItem(
+//       "authMethod"
+//     ) as AuthMethod | null;
+//     const storedPhone = localStorage.getItem("phoneNumber");
+//     const storedWallet = localStorage.getItem("walletAddress");
+
+//     if (storedAuth === "true" && storedAuthMethod) {
+//       setIsAuthenticated(true);
+//       setAuthMethod(storedAuthMethod);
+//       if (storedAuthMethod === "phone" && storedPhone) {
+//         setPhoneNumber(storedPhone);
+//         await populateHistory(storedPhone, undefined);
+//       } else if (storedAuthMethod === "wallet" && storedWallet) {
+//         await populateHistory(undefined, storedWallet);
+//       }
+//     } else if (account.isConnected) {
+//       await handleWalletAuthentication();
+//     } else {
+//       setTransactions([]);
+//       setIsAuthenticated(false);
+//       setAuthMethod(null);
+//     }
+//     setIsLoading(false);
+//   }, [account.isConnected, populateHistory]);
+
+//   useEffect(() => {
+//     const loadTransactions = async () => {
+//       const storedAuth = localStorage.getItem("isAuthenticated");
+//       const storedAuthMethod = localStorage.getItem(
+//         "authMethod"
+//       ) as AuthMethod | null;
+//       const storedPhone = localStorage.getItem("phoneNumber");
+//       const storedWallet = localStorage.getItem("walletAddress");
+
+//       if (storedAuth === "true" && storedAuthMethod) {
+//         setIsAuthenticated(true);
+//         setAuthMethod(storedAuthMethod);
+//         if (storedAuthMethod === "phone" && storedPhone) {
+//           setPhoneNumber(storedPhone);
+//           await populateHistory(storedPhone, undefined);
+//         } else if (storedAuthMethod === "wallet" && storedWallet) {
+//           await populateHistory(undefined, storedWallet);
+//         }
+//       } else if (account.isConnected && account.address) {
+//         setIsAuthenticated(true);
+//         setAuthMethod("wallet");
+//         await populateHistory(undefined, account.address);
+//       } else {
+//         setTransactions([]);
+//         setIsAuthenticated(false);
+//         setAuthMethod(null);
+//       }
+//     };
+
+//     loadTransactions();
+//   }, [account.isConnected, account.address, populateHistory]);
+
+//   useEffect(() => {
+//     let intervalId: NodeJS.Timeout;
+
+//     if (isAuthenticated) {
+//       intervalId = setInterval(() => {
+//         if (authMethod === "phone") {
+//           populateHistory(phoneNumber, undefined);
+//         } else if (authMethod === "wallet" && wallet) {
+//           populateHistory(undefined, wallet);
+//         }
+//       }, 30000); // Update every 30 seconds
+//     }
+
+//     return () => {
+//       if (intervalId) {
+//         clearInterval(intervalId);
+//       }
+//     };
+//   }, [isAuthenticated, authMethod, phoneNumber, wallet, populateHistory]);
+
+//   const handleAuthentication = async (method: AuthMethod) => {
+//     setIsAuthenticated(true);
+//     setAuthMethod(method);
+//     localStorage.setItem("isAuthenticated", "true");
+//     localStorage.setItem("authMethod", method);
+//     if (method === "phone") {
+//       localStorage.setItem("phoneNumber", phoneNumber);
+//       await populateHistory(phoneNumber, undefined);
+//     } else if (method === "wallet" && wallet) {
+//       localStorage.setItem("walletAddress", wallet);
+//       await populateHistory(undefined, wallet);
+//     }
+//     showToast(
+//       transactions.length > 0
+//         ? "Here is your transaction history 😉 "
+//         : "You need to do better jare, try do transaction!! 😔 ",
+//       "success"
+//     );
+//   };
+
+//   const handleWalletAuthentication = async () => {
+//     if (account.isConnected && wallet) {
+//       await handleAuthentication("wallet");
+//     }
 //   };
 
 //   const sendOTP = async (e?: React.FormEvent) => {
@@ -71,15 +214,15 @@
 //         showToast("Please enter a valid Phone number.", "error");
 //         return;
 //       }
-//       populateHistory(phoneNumber, "");
-//       const generatedOTP = Math.floor(
-//         100000 + Math.random() * 900000
-//       ).toString();
-//       setOtp(generatedOTP);
-//       setOtpSent(true);
-//       // handlePhoneNumber(phoneNumber);
-//       showToast(`Use "${generatedOTP}" as your OTP`, "success");
-//       // showToast(`OTP is sent to "${phoneNumber}" `, "success");
+//       try {
+//         const generatedOTP = await sendOTPWithTwilio(phoneNumber);
+//         setOtp(generatedOTP);
+//         setOtpSent(true);
+//         showToast(`OTP sent to ${phoneNumber}`, "success");
+//       } catch (error) {
+//         console.error("Error sending OTP:", error);
+//         showToast("Failed to send OTP. Please try again.", "error");
+//       }
 //     } else {
 //       showToast("You must enter a Phone number.", "error");
 //     }
@@ -91,7 +234,7 @@
 //       if (otpSent) {
 //         setUserOTPEntry("");
 //       }
-//       handleAuthentication();
+//       await handleAuthentication("phone");
 //     } else {
 //       showToast("Invalid OTP. Please try again.", "error");
 //     }
@@ -128,60 +271,16 @@
 //     setPhoneNumber("");
 //     setOtp("");
 //     setUserOTPEntry("");
-//     Transactions.length = 0;
+//     setAuthMethod(null);
+//     setTransactions([]);
+//     localStorage.removeItem("isAuthenticated");
+//     localStorage.removeItem("authMethod");
+//     localStorage.removeItem("phoneNumber");
+//     localStorage.removeItem("walletAddress");
 //     showToast("Please authenticate again", "info");
 //   };
-//   const populateHistory = async (
-//     phoneNumber?: string,
-//     walletAddress?: string
-//   ) => {
-//     if (!phoneNumber && !walletAddress) {
-//       console.error("Either phone number or wallet address must be provided.");
-//       return;
-//     }
 
-//     try {
-//       const userHistory = await checkUserHasHistory(phoneNumber, walletAddress);
-
-//       if (userHistory.exists && Array.isArray(userHistory.transactions)) {
-//         userHistory.transactions.forEach((transaction, index) => {
-//           let paymentType = transaction.mode_of_payment;
-
-//           switch (paymentType) {
-//             case "transferMoney":
-//               paymentType = "Paid";
-//               break;
-//             case "Gift":
-//               paymentType = "Gifts Sent";
-//               break;
-//             case "Claim Gift":
-//               paymentType = "Gifts Received";
-//               break;
-//             case "request":
-//               paymentType = "Received";
-//               break;
-//             default:
-//               paymentType = transaction.mode_of_payment;
-//           }
-//           const transformedTransaction = {
-//             id: index + 1,
-//             type: paymentType,
-//             amount: transaction.Amount,
-//             currency: transaction.crypto,
-//             date: transaction.Date,
-//             status: transaction.status,
-//           };
-//           Transactions.push(transformedTransaction);
-//         });
-//       } else {
-//         console.log("No transactions found for the user.");
-//       }
-//     } catch (error) {
-//       console.error("Error fetching user history:", error);
-//     }
-//   };
-
-//   const filteredTransactions = Transactions.filter((transaction) => {
+//   const filteredTransactions = transactions.filter((transaction) => {
 //     const matchesSearch =
 //       transaction.currency?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //       transaction.date?.includes(searchTerm) ||
@@ -265,6 +364,26 @@
 //     </div>
 //   );
 
+//   const LoadingSkeleton = () => (
+//     <tr className="border-b last:border-b-0">
+//       <td className="py-2 px-4">
+//         <Skeleton className="h-6 w-24" />
+//       </td>
+//       <td className="py-2 px-4">
+//         <Skeleton className="h-6 w-20" />
+//       </td>
+//       <td className="py-2 px-4">
+//         <Skeleton className="h-6 w-16" />
+//       </td>
+//       <td className="py-2 px-4">
+//         <Skeleton className="h-6 w-24" />
+//       </td>
+//       <td className="py-2 px-4">
+//         <Skeleton className="h-6 w-20" />
+//       </td>
+//     </tr>
+//   );
+
 //   const renderTransactionHistory = () => (
 //     <>
 //       <div className="flex justify-between items-center mb-6">
@@ -313,7 +432,86 @@
 //       <Card>
 //         <CardContent>
 //           <Box sx={{ maxHeight: "400px", overflowY: "auto" }}>
-//             {filteredTransactions.length > 0 ? (
+//             {/* {filteredTransactions.length > 0 ? (
+//               <table className="w-full">
+//                 <thead>
+//                   <tr className="bg-gray-50 border-b">
+//                     <th className="py-2 px-4 text-left">Type</th>
+//                     <th className="py-2 px-4 text-left">Amount</th>
+//                     <th className="py-2 px-4 text-left">Crypto</th>
+//                     <th className="py-2 px-4 text-left">Date</th>
+//                     <th className="py-2 px-4 text-left">Status</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {filteredTransactions
+//                     .map((transaction) => (
+//                       <tr
+//                         key={transaction.id}
+//                         className="border-b last:border-b-0"
+//                       >
+//                         <td className="py-2 px-4">
+//                           <div className="flex items-center">
+//                             {transaction.type === "Paid" ||
+//                             transaction.type === "Gifts Sent" ? (
+//                               <ArrowUpwardIcon className="mr-2 h-4 w-4 text-red-500" />
+//                             ) : (
+//                               <ArrowDownwardIcon className="mr-2 h-4 w-4 text-green-500" />
+//                             )}
+//                             {transaction.type}
+//                           </div>
+//                         </td>
+//                         <td className="py-2 px-4">{transaction.amount}</td>
+//                         <td className="py-2 px-4">{transaction.currency}</td>
+//                         <td className="py-2 px-4">{transaction.date}</td>
+//                         <td className="py-2 px-4">
+//                           <span
+//                             className={`px-2 py-1 rounded-full text-xs ${
+//                               transaction.status === "Successful"
+//                                 ? "bg-green-200 text-green-800"
+//                                 : transaction.status === "Pending" ||
+//                                   transaction.status === "Processing"
+//                                 ? "bg-yellow-200 text-yellow-800"
+//                                 : "bg-red-200 text-red-800"
+//                             }`}
+//                           >
+//                             {transaction.status}
+//                           </span>
+//                         </td>
+//                       </tr>
+//                     ))
+//                     .reverse()}
+//                 </tbody>
+//               </table>
+//             ) : (
+//               <Typography
+//                 variant="body1"
+//                 align="center"
+//                 sx={{ py: 4 }}
+//                 className="text-blue-500 font-semibold text-lg"
+//               >
+//                 No transactions yet.
+//               </Typography>
+//             )} */}
+
+//             {isLoading ? (
+//               <table className="w-full">
+//                 <thead>
+//                   <tr className="bg-gray-50 border-b">
+//                     <th className="py-2 px-4 text-left">Type</th>
+//                     <th className="py-2 px-4 text-left">Amount</th>
+//                     <th className="py-2 px-4 text-left">Crypto</th>
+//                     <th className="py-2 px-4 text-left">Date</th>
+//                     <th className="py-2 px-4 text-left">Status</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {[...Array(5)].map((_, index) => (
+//                     <LoadingSkeleton key={index} />
+//                   ))}
+//                 </tbody>
+//               </table>
+//             ) : filteredTransactions.length > 0 ? (
 //               <table className="w-full">
 //                 <thead>
 //                   <tr className="bg-gray-50 border-b">
@@ -390,7 +588,6 @@
 //       </div>
 //     </>
 //   );
-
 //   return (
 //     <div className="container mx-auto p-4 min-h-screen bg-gray-100">
 //       {isAuthenticated
@@ -428,8 +625,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/router";
-import { useAccount, useDisconnect } from "wagmi";
+import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   Button,
@@ -450,7 +647,23 @@ import {
   checkUserHasHistory,
   sendOTPWithTwilio,
 } from "@/helpers/api_call/history_page_calls";
-import Loader from "./Loader";
+import { Skeleton } from "./ui/skeleton";
+import { PaginationInfo } from "@/types/history_types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "./ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Transaction = {
   id: number;
@@ -464,7 +677,7 @@ type Transaction = {
 type ToastType = "success" | "error" | "warning" | "info";
 type AuthMethod = "wallet" | "phone";
 
-const HistoryPage: React.FC = () => {
+export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -478,11 +691,58 @@ const HistoryPage: React.FC = () => {
   const [authMethod, setAuthMethod] = useState<AuthMethod | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [paginationInfo, setPaginationInfo] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+  });
 
   const router = useRouter();
   const account = useAccount();
-  const { disconnect } = useDisconnect();
   const wallet = account.address;
+
+  // const populateHistory = useCallback(
+  //   async (phoneNumber?: string, walletAddress?: string) => {
+  //     if (!phoneNumber && !walletAddress) {
+  //       console.error(
+  //         "Either phone number or wallet address must be provided."
+  //       );
+  //       return;
+  //     }
+
+  //     try {
+  //       setIsLoading(true);
+  //       const userHistory = await checkUserHasHistory(
+  //         phoneNumber,
+  //         walletAddress
+  //       );
+
+  //       if (userHistory.exists && Array.isArray(userHistory.transactions)) {
+  //         const newTransactions = userHistory.transactions.map(
+  //           (transaction, index) => ({
+  //             id: index + 1,
+  //             type: transaction.mode_of_payment,
+  //             amount: transaction.Amount,
+  //             currency: transaction.crypto,
+  //             date: transaction.Date,
+  //             status: transaction.status,
+  //           })
+  //         );
+  //         setTransactions(newTransactions);
+  //       } else {
+  //         console.log("No transactions found for the user.");
+  //         setTransactions([]);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching user history:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   },
+  //   []
+  // );
 
   const populateHistory = useCallback(
     async (phoneNumber?: string, walletAddress?: string) => {
@@ -494,9 +754,12 @@ const HistoryPage: React.FC = () => {
       }
 
       try {
+        setIsLoading(true);
         const userHistory = await checkUserHasHistory(
           phoneNumber,
-          walletAddress
+          walletAddress,
+          currentPage,
+          itemsPerPage
         );
 
         if (userHistory.exists && Array.isArray(userHistory.transactions)) {
@@ -511,18 +774,26 @@ const HistoryPage: React.FC = () => {
             })
           );
           setTransactions(newTransactions);
+          setPaginationInfo(userHistory.pagination);
         } else {
           console.log("No transactions found for the user.");
           setTransactions([]);
+          setPaginationInfo({
+            currentPage: 1,
+            totalPages: 0,
+            totalItems: 0,
+          });
         }
       } catch (error) {
         console.error("Error fetching user history:", error);
+      } finally {
+        setIsLoading(false);
       }
     },
-    []
+    [currentPage, itemsPerPage]
   );
 
-  const checkAuthentication = useCallback(async () => {
+  const loadTransactions = useCallback(async () => {
     const storedAuth = localStorage.getItem("isAuthenticated");
     const storedAuthMethod = localStorage.getItem(
       "authMethod"
@@ -539,39 +810,35 @@ const HistoryPage: React.FC = () => {
       } else if (storedAuthMethod === "wallet" && storedWallet) {
         await populateHistory(undefined, storedWallet);
       }
-    } else if (account.isConnected) {
-      await handleWalletAuthentication();
+    } else if (account.isConnected && account.address) {
+      setIsAuthenticated(true);
+      setAuthMethod("wallet");
+      await populateHistory(undefined, account.address);
     } else {
       setTransactions([]);
       setIsAuthenticated(false);
       setAuthMethod(null);
     }
     setIsLoading(false);
-  }, [account.isConnected, populateHistory]);
+  }, [account.isConnected, account.address, populateHistory]);
 
   useEffect(() => {
-    checkAuthentication();
-  }, [checkAuthentication]);
+    loadTransactions();
+  }, [loadTransactions]);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
-
-    if (isAuthenticated) {
-      intervalId = setInterval(() => {
-        if (authMethod === "phone") {
-          populateHistory(phoneNumber, undefined);
-        } else if (authMethod === "wallet" && wallet) {
-          populateHistory(undefined, wallet);
-        }
-      }, 30000); // Update every 30 seconds
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadTransactions();
       }
     };
-  }, [isAuthenticated, authMethod, phoneNumber, wallet, populateHistory]);
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [loadTransactions]);
 
   const handleAuthentication = async (method: AuthMethod) => {
     setIsAuthenticated(true);
@@ -658,7 +925,6 @@ const HistoryPage: React.FC = () => {
   };
 
   const handleSwitchAccount = () => {
-    disconnect();
     setIsAuthenticated(false);
     setOtpSent(false);
     setPhoneNumber("");
@@ -671,6 +937,37 @@ const HistoryPage: React.FC = () => {
     localStorage.removeItem("phoneNumber");
     localStorage.removeItem("walletAddress");
     showToast("Please authenticate again", "info");
+  };
+
+  const LoadingSkeleton = () => (
+    <tr className="border-b last:border-b-0">
+      <td className="py-2 px-4">
+        <Skeleton className="h-6 w-24" />
+      </td>
+      <td className="py-2 px-4">
+        <Skeleton className="h-6 w-20" />
+      </td>
+      <td className="py-2 px-4">
+        <Skeleton className="h-6 w-16" />
+      </td>
+      <td className="py-2 px-4">
+        <Skeleton className="h-6 w-24" />
+      </td>
+      <td className="py-2 px-4">
+        <Skeleton className="h-6 w-20" />
+      </td>
+    </tr>
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (
+    event: React.ChangeEvent<{ value: unknown }>
+  ) => {
+    setItemsPerPage(event.target.value as number);
+    setCurrentPage(1);
   };
 
   const filteredTransactions = transactions.filter((transaction) => {
@@ -805,7 +1102,24 @@ const HistoryPage: React.FC = () => {
       <Card>
         <CardContent>
           <Box sx={{ maxHeight: "400px", overflowY: "auto" }}>
-            {filteredTransactions.length > 0 ? (
+            {isLoading ? (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b">
+                    <th className="py-2 px-4 text-left">Type</th>
+                    <th className="py-2 px-4 text-left">Amount</th>
+                    <th className="py-2 px-4 text-left">Crypto</th>
+                    <th className="py-2 px-4 text-left">Date</th>
+                    <th className="py-2 px-4 text-left">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...Array(5)].map((_, index) => (
+                    <LoadingSkeleton key={index} />
+                  ))}
+                </tbody>
+              </table>
+            ) : filteredTransactions.length > 0 ? (
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b">
@@ -869,6 +1183,7 @@ const HistoryPage: React.FC = () => {
           </Box>
         </CardContent>
       </Card>
+      {renderPagination()}
       <div className="mt-6 flex justify-center mb-30">
         <Button
           variant="contained"
@@ -883,13 +1198,83 @@ const HistoryPage: React.FC = () => {
     </>
   );
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-4 min-h-screen bg-gray-100 flex items-center justify-center">
-        <Loader />
+  const renderPagination = () => (
+    <div className="mt-4 flex justify-between items-center">
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              aria-disabled={currentPage === 1}
+              className={
+                currentPage === 1 ? "pointer-events-none opacity-50" : ""
+              }
+            />
+          </PaginationItem>
+          {Array.from(
+            { length: paginationInfo.totalPages },
+            (_, i) => i + 1
+          ).map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href="#"
+                onClick={() => handlePageChange(page)}
+                isActive={currentPage === page}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() =>
+                handlePageChange(
+                  Math.min(paginationInfo.totalPages, currentPage + 1)
+                )
+              }
+              aria-disabled={currentPage === paginationInfo.totalPages}
+              className={
+                currentPage === paginationInfo.totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
+              }
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+      {/* <TextField
+        select
+        value={itemsPerPage}
+        onChange={handleItemsPerPageChange}
+        label="Items per page"
+        variant="outlined"
+        size="small"
+      >
+        <option value={10}>10</option>
+        <option value={20}>20</option>
+        <option value={50}>50</option>
+      </TextField> */}
+      <div className="mt-4 flex justify-end">
+        <Select
+          value={itemsPerPage.toString()}
+          onValueChange={(value) => {
+            setItemsPerPage(parseInt(value));
+            setCurrentPage(1);
+            // fetchTransactions(1, parseInt(value));
+          }}
+        >
+          <SelectTrigger className="w-[100px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10 / page</SelectItem>
+            <SelectItem value="20">20 / page</SelectItem>
+            <SelectItem value="50">50 / page</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-100">
@@ -921,6 +1306,4 @@ const HistoryPage: React.FC = () => {
       />
     </div>
   );
-};
-
-export default HistoryPage;
+}

@@ -1,12 +1,41 @@
 import { userData } from "@/types/general_types";
+import { PaginationInfo } from "@/types/history_types";
 import axios from "axios";
 import twilio from "twilio";
 
 // CHECK IF USER HAS HISTORY IN OUR DB RECORDS USING PHONE NUMBER OR WALLET, SO WE CAN POPULATE THEIR TRANSACTIONS ARRAY
+// export const checkUserHasHistory = async (
+//   phone?: string,
+//   walletAddress?: string
+// ): Promise<{ exists: boolean; transactions?: userData }> => {
+//   if (!phone && !walletAddress) {
+//     throw new Error("Either phone number or wallet address must be provided.");
+//   }
+
+//   try {
+//     const response = await axios.get("/api/check_user", {
+//       params: {
+//         phoneNumber: phone || undefined,
+//         walletAddress: walletAddress || undefined,
+//       },
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error checking user existence:", error);
+//     throw error;
+//   }
+// };
+
 export const checkUserHasHistory = async (
   phone?: string,
-  walletAddress?: string
-): Promise<{ exists: boolean; transactions?: userData }> => {
+  walletAddress?: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  exists: boolean;
+  transactions?: userData;
+  pagination: PaginationInfo;
+}> => {
   if (!phone && !walletAddress) {
     throw new Error("Either phone number or wallet address must be provided.");
   }
@@ -16,6 +45,8 @@ export const checkUserHasHistory = async (
       params: {
         phoneNumber: phone || undefined,
         walletAddress: walletAddress || undefined,
+        page,
+        limit,
       },
     });
     return response.data;
