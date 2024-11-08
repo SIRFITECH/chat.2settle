@@ -652,6 +652,7 @@ import { PaginationInfo } from "@/types/history_types";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -1198,83 +1199,224 @@ export default function HistoryPage() {
     </>
   );
 
-  const renderPagination = () => (
-    <div className="mt-4 flex justify-between items-center">
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-              aria-disabled={currentPage === 1}
-              className={
-                currentPage === 1 ? "pointer-events-none opacity-50" : ""
-              }
-            />
+  // const renderPagination = () => (
+  //   <div className="mt-4 flex justify-between items-center">
+  //     <Pagination>
+  //       <PaginationContent>
+  //         <PaginationItem>
+  //           <PaginationPrevious
+  //             onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+  //             aria-disabled={currentPage === 1}
+  //             className={
+  //               currentPage === 1 ? "pointer-events-none opacity-50" : ""
+  //             }
+  //           />
+  //         </PaginationItem>
+  //         {Array.from(
+  //           { length: paginationInfo.totalPages },
+  //           (_, i) => i + 1
+  //         ).map((page) => (
+  //           <PaginationItem key={page}>
+  //             <PaginationLink
+  //               href="#"
+  //               onClick={() => handlePageChange(page)}
+  //               isActive={currentPage === page}
+  //             >
+  //               {page}
+  //             </PaginationLink>
+  //           </PaginationItem>
+  //         ))}
+  //         <PaginationItem>
+  //           <PaginationNext
+  //             onClick={() =>
+  //               handlePageChange(
+  //                 Math.min(paginationInfo.totalPages, currentPage + 1)
+  //               )
+  //             }
+  //             aria-disabled={currentPage === paginationInfo.totalPages}
+  //             className={
+  //               currentPage === paginationInfo.totalPages
+  //                 ? "pointer-events-none opacity-50"
+  //                 : ""
+  //             }
+  //           />
+  //         </PaginationItem>
+  //       </PaginationContent>
+  //     </Pagination>
+  //     {/* <TextField
+  //       select
+  //       value={itemsPerPage}
+  //       onChange={handleItemsPerPageChange}
+  //       label="Items per page"
+  //       variant="outlined"
+  //       size="small"
+  //     >
+  //       <option value={10}>10</option>
+  //       <option value={20}>20</option>
+  //       <option value={50}>50</option>
+  //     </TextField> */}
+  //     <div className="mt-4 flex justify-end">
+  //       <Select
+  //         value={itemsPerPage.toString()}
+  //         onValueChange={(value) => {
+  //           setItemsPerPage(parseInt(value));
+  //           setCurrentPage(1);
+  //           // fetchTransactions(1, parseInt(value));
+  //         }}
+  //       >
+  //         <SelectTrigger className="w-[100px]">
+  //           <SelectValue />
+  //         </SelectTrigger>
+  //         <SelectContent>
+  //           <SelectItem value="10">10 / page</SelectItem>
+  //           <SelectItem value="20">20 / page</SelectItem>
+  //           <SelectItem value="50">50 / page</SelectItem>
+  //         </SelectContent>
+  //       </Select>
+  //     </div>
+  //   </div>
+  // );
+
+  const renderPagination = () => {
+    const items = [];
+    const maxVisiblePages = 5;
+    const ellipsis = <PaginationEllipsis />;
+
+    // const handlePageChange = (page) => {
+    //   if (page !== currentPage) {
+    //     setCurrentPage(page);
+    //     // fetchTransactions(page, itemsPerPage);
+    //   }
+    // };
+
+    if (paginationInfo.totalPages <= maxVisiblePages) {
+      // If total pages are less than max visible pages, show all
+      for (let i = 1; i <= paginationInfo.totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
           </PaginationItem>
-          {Array.from(
-            { length: paginationInfo.totalPages },
-            (_, i) => i + 1
-          ).map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                href="#"
-                onClick={() => handlePageChange(page)}
-                isActive={currentPage === page}
-              >
-                {page}
-              </PaginationLink>
+        );
+      }
+    } else {
+      // Add first page
+      items.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            href="#"
+            onClick={() => handlePageChange(1)}
+            isActive={currentPage === 1}
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Start ellipsis
+      if (currentPage > 3) {
+        items.push(
+          <PaginationItem key="start-ellipsis">{ellipsis}</PaginationItem>
+        );
+      }
+
+      // Dynamic range in the middle
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(paginationInfo.totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // End ellipsis
+      if (currentPage < paginationInfo.totalPages - 2) {
+        items.push(
+          <PaginationItem key="end-ellipsis">{ellipsis}</PaginationItem>
+        );
+      }
+
+      // Add last page
+      items.push(
+        <PaginationItem key={paginationInfo.totalPages}>
+          <PaginationLink
+            href="#"
+            onClick={() => handlePageChange(paginationInfo.totalPages)}
+            isActive={currentPage === paginationInfo.totalPages}
+          >
+            {paginationInfo.totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return (
+      <div className="mt-4 flex flex-col items-end"> 
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                aria-disabled={currentPage === 1}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-50" : ""
+                }
+              />
             </PaginationItem>
-          ))}
-          <PaginationItem>
-            <PaginationNext
-              onClick={() =>
-                handlePageChange(
-                  Math.min(paginationInfo.totalPages, currentPage + 1)
-                )
-              }
-              aria-disabled={currentPage === paginationInfo.totalPages}
-              className={
-                currentPage === paginationInfo.totalPages
-                  ? "pointer-events-none opacity-50"
-                  : ""
-              }
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-      {/* <TextField
-        select
-        value={itemsPerPage}
-        onChange={handleItemsPerPageChange}
-        label="Items per page"
-        variant="outlined"
-        size="small"
-      >
-        <option value={10}>10</option>
-        <option value={20}>20</option>
-        <option value={50}>50</option>
-      </TextField> */}
-      <div className="mt-4 flex justify-end">
-        <Select
-          value={itemsPerPage.toString()}
-          onValueChange={(value) => {
-            setItemsPerPage(parseInt(value));
-            setCurrentPage(1);
-            // fetchTransactions(1, parseInt(value));
-          }}
-        >
-          <SelectTrigger className="w-[100px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10 / page</SelectItem>
-            <SelectItem value="20">20 / page</SelectItem>
-            <SelectItem value="50">50 / page</SelectItem>
-          </SelectContent>
-        </Select>
+            {items}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() =>
+                  handlePageChange(
+                    Math.min(paginationInfo.totalPages, currentPage + 1)
+                  )
+                }
+                aria-disabled={currentPage === paginationInfo.totalPages}
+                className={
+                  currentPage === paginationInfo.totalPages
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+
+        <div className="mt-4 flex justify-end">
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(parseInt(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10 / page</SelectItem>
+              <SelectItem value="20">20 / page</SelectItem>
+              <SelectItem value="50">50 / page</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="container mx-auto p-4 min-h-screen bg-gray-100">
