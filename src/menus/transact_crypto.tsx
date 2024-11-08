@@ -324,7 +324,10 @@ export const displayCharge = async (
         const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        ); // this is the charge in naira
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
         setSharedChargeForDB(
           `${formatCurrency(
             cryptoPaymentEstimate.toString(),
@@ -407,7 +410,10 @@ export const displayCharge = async (
         const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
         setSharedChargeForDB(
           `${formatCurrency(
             cryptoPaymentEstimate.toString(),
@@ -491,7 +497,10 @@ export const displayCharge = async (
           parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
         setSharedChargeForDB(
           `${formatCurrency(
             cryptoPaymentEstimate.toString(),
@@ -577,7 +586,10 @@ export const displayCharge = async (
           parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
         setSharedChargeForDB(
           `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
             charge.toString(),
@@ -664,7 +676,10 @@ export const displayCharge = async (
         const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
         setSharedChargeForDB(
           `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
             charge.toString(),
@@ -751,7 +766,10 @@ export const displayCharge = async (
           parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
         setSharedChargeForDB(
           `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
             charge.toString(),
