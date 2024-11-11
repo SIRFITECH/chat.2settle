@@ -1,58 +1,62 @@
+// import type { NextApiRequest, NextApiResponse } from "next";
 // import mysql, { RowDataPacket } from "mysql2/promise";
-// import { NextApiRequest, NextApiResponse } from "next";
+// import { formatPhoneNumber } from "@/utils/utilities";
+
+// const db = mysql.createPool({
+//   host: process.env.host,
+//   user: process.env.user,
+//   password: process.env.password,
+//   database: process.env.database,
+// });
 
 // export default async function handler(
 //   req: NextApiRequest,
 //   res: NextApiResponse
 // ) {
-//   if (req.method !== "GET") {
-//     res.setHeader("Allow", ["GET"]);
-//     return res.status(405).end(`Method ${req.method} Not Allowed`);
-//   }
+//   const { query } = req;
+//   const { phoneNumber, walletAddress } = query;
 
-//   const dbHost = process.env.host;
-//   const dbUser = process.env.user;
-//   const dbPassword = process.env.password;
-//   const dbName = process.env.database;
-//   const { phone_number } = req.query;
-
-//   if (!phone_number) {
-//     return res.status(400).json({ message: "phone_number is required" });
+//   if (!phoneNumber && !walletAddress) {
+//     return res.status(400).json({
+//       error: "At least one of phone number or wallet address is required",
+//     });
 //   }
 
 //   try {
-//     const connection = await mysql.createConnection({
-//       host: dbHost,
-//       user: dbUser,
-//       password: dbPassword,
-//       database: dbName,
-//     });
+//     let queryStr = `
+//       SELECT * FROM settle_database.2settle_transaction_table 
+//       WHERE 1=1
+//     `;
+//     const queryParams: (string | null)[] = [];
 
-//     const [rows] = await connection.query<RowDataPacket[]>(
-//       "SELECT * FROM `2Settle_walletAddress` WHERE `phone_number` = ?",
-//       [phone_number]
-//     );
-//     // `settle_database`.
-
-//     await connection.end();
-
-//     if (rows.length > 0) {
-//       res.status(200).json({ exists: true, user: rows[0] });
-//     } else {
-//       res.status(200).json({ exists: false });
+//     if (phoneNumber) {
+//       const phoneNo = formatPhoneNumber(phoneNumber as string);
+//       queryStr += " AND customer_phoneNumber = ?";
+//       queryParams.push(phoneNo);
 //     }
-//   } catch (err) {
-//     console.error("Error querying the database:", err);
-//     res.status(500).send("Server error");
+
+//     if (walletAddress) {
+//       queryStr += " AND send_from = ?";
+//       queryParams.push(walletAddress as string);
+//     }
+
+//     const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
+
+//     // Return the rows (transactions) in the "transactions" field
+//     if (rows.length > 0) {
+//       return res.status(200).json({ exists: true, transactions: rows });
+//     } else {
+//       return res.status(404).json({ exists: false, transactions: [] });
+//     }
+//   } catch (error) {
+//     console.error("Error checking user in database:", error);
+//     return res.status(500).json({ error: "Internal server error" });
 //   }
 // }
 
-// FOR TRANSACTION TABLE
-
 import type { NextApiRequest, NextApiResponse } from "next";
-import mysql, { RowDataPacket } from "mysql2/promise"; 
+import mysql, { RowDataPacket } from "mysql2/promise";
 import { formatPhoneNumber } from "@/utils/utilities";
-
 
 const db = mysql.createPool({
   host: process.env.host,
@@ -61,13 +65,12 @@ const db = mysql.createPool({
   database: process.env.database,
 });
 
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const { query } = req;
-  const { phoneNumber, walletAddress } = query;
+  const { phoneNumber, walletAddress, page = "1", limit = "10" } = query;
 
   if (!phoneNumber && !walletAddress) {
     return res.status(400).json({
@@ -75,12 +78,16 @@ export default async function handler(
     });
   }
 
+  const pageNumber = parseInt(page as string, 10);
+  const limitNumber = parseInt(limit as string, 10);
+  const offset = (pageNumber - 1) * limitNumber;
+
   try {
     let queryStr = `
-      SELECT * FROM settle_database.2settle_transaction_table 
+      SELECT SQL_CALC_FOUND_ROWS * FROM settle_database.2settle_transaction_table 
       WHERE 1=1
     `;
-    const queryParams: (string | null)[] = [];
+    const queryParams: (string | number | null)[] = [];
 
     if (phoneNumber) {
       const phoneNo = formatPhoneNumber(phoneNumber as string);
@@ -93,13 +100,35 @@ export default async function handler(
       queryParams.push(walletAddress as string);
     }
 
-    const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
+    queryStr += " LIMIT ? OFFSET ?";
+    queryParams.push(limitNumber, offset);
 
-    // Return the rows (transactions) in the "transactions" field
+    const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
+    const [countResult] = await db.query<RowDataPacket[]>(
+      "SELECT FOUND_ROWS() as total"
+    );
+    const total = countResult[0].total;
+
     if (rows.length > 0) {
-      return res.status(200).json({ exists: true, transactions: rows });
+      return res.status(200).json({
+        exists: true,
+        transactions: rows,
+        pagination: {
+          currentPage: pageNumber,
+          totalPages: Math.ceil(total / limitNumber),
+          totalItems: total,
+        },
+      });
     } else {
-      return res.status(404).json({ exists: false, transactions: [] });
+      return res.status(404).json({
+        exists: false,
+        transactions: [],
+        pagination: {
+          currentPage: pageNumber,
+          totalPages: 0,
+          totalItems: 0,
+        },
+      });
     }
   } catch (error) {
     console.error("Error checking user in database:", error);
