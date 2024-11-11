@@ -97,6 +97,9 @@ import {
   isToday,
   isYesterday,
 } from "date-fns";
+
+import WebApp from "@twa-dev/sdk";
+import { telegramUser } from "@/types/telegram_types";
 const initialMessages = [
   {
     type: "incoming",
@@ -175,6 +178,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
+  const telFirstName = WebApp.initDataUnsafe.user
+    ? WebApp.initDataUnsafe.user?.first_name
+    : "";
   const chatboxRef = useRef<HTMLDivElement>(null);
   const [visibleDateSeparators, setVisibleDateSeparators] = useState<
     Set<string>
@@ -287,6 +293,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
+  const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -331,6 +338,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       stepHistory: ["start"],
     };
   });
+
+  useEffect(() => {
+    if (WebApp.initDataUnsafe.user) {
+      setTelegramUser(WebApp.initDataUnsafe.user as telegramUser);
+    }
+  }, []);
 
   useEffect(() => {
     const chatData = {
@@ -390,19 +403,22 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   });
 
   const initializeChatId = () => {
-    const existingChatId = getChatId();
+    // we now set the telegram chatId to the chatId if it a telegram user
+    const existingChatId = WebApp.initDataUnsafe.user
+      ? WebApp.initDataUnsafe.user?.id.toLocaleString()
+      : getChatId();
     setSharedChatId(`${existingChatId}`);
 
     if (!existingChatId) {
-      const newChatId = generateChatId();
+      const newChatId = WebApp.initDataUnsafe.user
+        ? WebApp.initDataUnsafe.user?.id.toLocaleString()
+        : generateChatId();
 
       saveChatId(newChatId);
       setChatId(newChatId.toString());
-      // setSession(newChatId.toString(), {});
     } else {
       if (existingChatId !== chatId) {
         setChatId(existingChatId);
-        // getSession(existingChatId);
       }
     }
   };
@@ -469,7 +485,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             type: "incoming",
             content: (
               <span>
-                How far 👋
+                How far {telFirstName} 👋
                 <br />
                 <br />
                 You are connected as{" "}
@@ -495,8 +511,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
                 How far 👋
                 <br />
                 <br />
-                Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
-                assistance, <br />
+                Welcome to 2SettleHQ {telFirstName}!, my name is Wálé, I am
+                2settle virtual assistance, <br />
                 <b>Your wallet is not connected,</b> reply with:
                 <br />
                 <br />
@@ -521,7 +537,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           type: "incoming",
           content: (
             <span>
-              How far 👋
+              How far {telFirstName} 👋
               <br />
               <br />
               You are connected as
@@ -565,7 +581,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
                 <br />
                 Today Rate: <b>{formattedRate}/$1</b> <br />
                 <br />
-                Welcome to 2SettleHQ, how can I help you today?
+                Welcome to 2SettleHQ {telFirstName}, how can I help you today?
               </span>
             ),
             timestamp: new Date(),

@@ -7,8 +7,8 @@ const nextConfig = {
     }
     return config;
   },
+  swcMinify: true,
+  output: "export",
 };
 
 module.exports = nextConfig;
-
-
