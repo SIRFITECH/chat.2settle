@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
@@ -99,7 +100,9 @@ import {
 } from "date-fns";
 
 import WebApp from "@twa-dev/sdk";
+
 import { telegramUser } from "@/types/telegram_types";
+
 const initialMessages = [
   {
     type: "incoming",
@@ -170,6 +173,10 @@ interface ChatBotProps {
   onClose: () => void;
 }
 
+interface TelegramWebAppProps {
+  children: (user: telegramUser | null) => React.ReactNode;
+}
+
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // CONST VARIABLES
   const account = useAccount();
@@ -178,9 +185,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
-  const telFirstName = WebApp.initDataUnsafe.user
-    ? WebApp.initDataUnsafe.user?.first_name
-    : "";
+
   const chatboxRef = useRef<HTMLDivElement>(null);
   const [visibleDateSeparators, setVisibleDateSeparators] = useState<
     Set<string>
@@ -294,6 +299,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [currentDate, setCurrentDate] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
+  const [isTelUser, setIsTelUser] = useState(false);
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -339,11 +345,34 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     };
   });
 
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     if (WebApp.initDataUnsafe.user) {
+  //       setTelegramUser(WebApp.initDataUnsafe.user as telegramUser);
+  //       setIsTelUser(true);
+  //     }
+  //   }
+  // }, []);
+
   useEffect(() => {
-    if (WebApp.initDataUnsafe.user) {
-      setTelegramUser(WebApp.initDataUnsafe.user as telegramUser);
-    }
+    const loadTelegramWebApp = async () => {
+      if (typeof window !== "undefined") {
+        try {
+          const twa = await import("@twa-dev/sdk");
+          if (twa.default.initDataUnsafe.user) {
+            setTelegramUser(twa.default.initDataUnsafe.user as telegramUser);
+            setIsTelUser(true);
+          }
+        } catch (error) {
+          console.error("Failed to load Telegram Web App SDK:", error);
+        }
+      }
+    };
+
+    loadTelegramWebApp();
   }, []);
+
+  const telFirstName = isTelUser ? telegramUser?.first_name : "";
 
   useEffect(() => {
     const chatData = {
@@ -404,18 +433,35 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
   const initializeChatId = () => {
     // we now set the telegram chatId to the chatId if it a telegram user
-    const existingChatId = WebApp.initDataUnsafe.user
-      ? WebApp.initDataUnsafe.user?.id.toLocaleString()
+    const existingChatId = isTelUser
+      ? telegramUser?.id.toString()
       : getChatId();
     setSharedChatId(`${existingChatId}`);
 
+    // if (!existingChatId) {
+    //   const newChatId = isTelUser ? telegramUser?.id : generateChatId();
+
+    //   saveChatId(newChatId);
+    //   setChatId(newChatId.toString());
+    // } else {
+    //   if (existingChatId !== chatId) {
+    //     setChatId(existingChatId);
+    //   }
+    // }
+
     if (!existingChatId) {
-      const newChatId = WebApp.initDataUnsafe.user
-        ? WebApp.initDataUnsafe.user?.id.toLocaleString()
+      const newChatId = isTelUser
+        ? // ? telegramUser?.id ?? generateChatId()
+          telegramUser?.id.toString()
         : generateChatId();
 
-      saveChatId(newChatId);
-      setChatId(newChatId.toString());
+      if (newChatId !== undefined) {
+        // Ensure newChatId is defined
+        saveChatId(newChatId);
+        setChatId(newChatId.toString());
+      } else {
+        console.warn("Failed to generate a new chat ID.");
+      }
     } else {
       if (existingChatId !== chatId) {
         setChatId(existingChatId);

@@ -4,9 +4,13 @@ export const checkChatId = () => {
 };
 
 // Save chatId to localStorage
-export const saveChatId = (id: { toString: () => string }) => {
-  console.log("ID before saving", id);
-  localStorage.setItem("chatId", id.toString());
+export const saveChatId = (id: string | number | undefined) => {
+  if (id !== undefined) {
+    console.log("ID before saving", id);
+    localStorage.setItem("chatId", id.toString());
+  } else {
+    console.warn("Attempted to save undefined chat ID");
+  }
 };
 
 export const getChatId = () => {
