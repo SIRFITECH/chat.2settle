@@ -12,16 +12,26 @@ export default async function handler(
       .json({ success: false, message: "Method Not Allowed" });
   }
 
-  const { phoneNumber, transactionAmount, transactionId } = req.body;
+  const {
+    phoneNumber,
+    transactionAmount,
+    bankName,
+    accountName,
+    accountNumber,
+  } = req.body;
 
-  if (!phoneNumber || !transactionAmount || !transactionId) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message:
-          "Phone number, transaction amount, and transaction ID are required",
-      });
+  if (
+    !phoneNumber ||
+    !transactionAmount ||
+    !bankName ||
+    !accountName ||
+    !accountNumber
+  ) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "All fields (phoneNumber, transactionAmount, transactionId, bankName, accountName, accountNumber) are required",
+    });
   }
 
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -39,7 +49,7 @@ export default async function handler(
 
   try {
     const message = await client.messages.create({
-      body: `Transaction initiated: ${transactionAmount} (ID: ${transactionId}). If this wasn't you, please contact support immediately on 09038880228.`,
+      body: `We have credited ${transactionAmount} to: \nBank Name: ${bankName}, \nAccount Name : ${accountName} \nBank Number :  ${accountNumber} \nFor help, please contact support on 09038880228.`,
       from: "2SettleHQ",
       to: formatPhoneNumber(phoneNumber),
     });
