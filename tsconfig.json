@@ -22,6 +22,6 @@
     "types": ["jest", "@testing-library/jest-dom", "node"],
     "module": "esnext"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "public/payment-sw.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
