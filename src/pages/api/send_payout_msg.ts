@@ -49,7 +49,7 @@ export default async function handler(
 
   try {
     const message = await client.messages.create({
-      body: `We have credited ${transactionAmount} to: \nBank Name: ${bankName}, \nAccount Name : ${accountName} \nBank Number :  ${accountNumber} \nFor help, please contact support on 09038880228.`,
+      body: `We have credited ${transactionAmount} to: \nBank Name: ${bankName}, \nAccount Name : ${accountName} \nBank Number :  ${accountNumber} \nFor help or complain, please contact support on 09038880228.`,
       from: "2SettleHQ",
       to: formatPhoneNumber(phoneNumber),
     });
