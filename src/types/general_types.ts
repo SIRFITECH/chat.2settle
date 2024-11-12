@@ -1,12 +1,6 @@
 import { RowDataPacket } from "mysql2/promise";
 import React from "react";
 
-// MESSAGE TYPE FOR CHAT
-// export type MessageType = {
-//   type: string;
-//   content: React.ReactNode;
-//   timestamp: Date;
-// };
 export type MessageType = {
   type: string;
   content: React.ReactNode;

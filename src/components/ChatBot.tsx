@@ -99,8 +99,6 @@ import {
   isYesterday,
 } from "date-fns";
 
-import WebApp from "@twa-dev/sdk";
-
 import { telegramUser } from "@/types/telegram_types";
 
 const initialMessages = [
@@ -108,7 +106,7 @@ const initialMessages = [
     type: "incoming",
     content: (
       <span>
-        How far 👋
+        How far👋
         <br />
         <br />
         Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual assistance,{" "}
@@ -172,11 +170,6 @@ interface ChatBotProps {
   isMobile: boolean;
   onClose: () => void;
 }
-
-interface TelegramWebAppProps {
-  children: (user: telegramUser | null) => React.ReactNode;
-}
-
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // CONST VARIABLES
   const account = useAccount();
@@ -333,6 +326,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         };
       }
     }
+    // serialize messages before saving
     const serializedInitialMessages = initialMessages.map((msg) => ({
       ...serializeMessage(msg),
       timestamp: msg.timestamp.toISOString(),
@@ -344,16 +338,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       stepHistory: ["start"],
     };
   });
-
-  // useEffect(() => {
-  //   if (typeof window !== "undefined") {
-  //     if (WebApp.initDataUnsafe.user) {
-  //       setTelegramUser(WebApp.initDataUnsafe.user as telegramUser);
-  //       setIsTelUser(true);
-  //     }
-  //   }
-  // }, []);
-
+  // Load telegram data
   useEffect(() => {
     const loadTelegramWebApp = async () => {
       if (typeof window !== "undefined") {
@@ -437,17 +422,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       ? telegramUser?.id.toString()
       : getChatId();
     setSharedChatId(`${existingChatId}`);
-
-    // if (!existingChatId) {
-    //   const newChatId = isTelUser ? telegramUser?.id : generateChatId();
-
-    //   saveChatId(newChatId);
-    //   setChatId(newChatId.toString());
-    // } else {
-    //   if (existingChatId !== chatId) {
-    //     setChatId(existingChatId);
-    //   }
-    // }
 
     if (!existingChatId) {
       const newChatId = isTelUser
@@ -554,11 +528,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             type: "incoming",
             content: (
               <span>
-                How far 👋
+                How far {telFirstName}👋
                 <br />
                 <br />
-                Welcome to 2SettleHQ {telFirstName}!, my name is Wálé, I am
-                2settle virtual assistance, <br />
+                Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
+                assistance, <br />
                 <b>Your wallet is not connected,</b> reply with:
                 <br />
                 <br />
@@ -657,173 +631,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   };
 
   // TRANSACT CRYPTO SEQUENCE FUNCTIONS
-  // const choiceMenu = (chatInput: string) => {
-  //   /* conversations handled here
-  //       1. Transact
-  //       2. Request Paycard
-  //       3. Customer support
-  //       4. Transaction Id
-  //       5. Reportly
-  //   */
-  //   const choice = chatInput.trim();
-  //   if (greetings.includes(choice.toLowerCase())) {
-  //     helloMenu(choice);
-  //     goToStep("start");
-  //   } else if (choice === "0") {
-  //     prevStep();
-  //     helloMenu("hi");
-  //   } else if (choice.toLowerCase() === "1") {
-  //     // connect wallet to the bot
-  //     if (!walletIsConnected) {
-  //       {
-  //         addChatMessages([
-  //           {
-  //             type: "incoming",
-  //             content: <ConnectButton />,
-  //             timestamp: new Date(),
-  //           },
-  //           {
-  //             type: "incoming",
-  //             content: (
-  //               <span>
-  //                 Type to go back:
-  //                 <br />
-  //                 0. Go Back
-  //                 <br />
-  //               </span>
-  //             ),
-  //             timestamp: new Date(),
-  //           },
-  //         ]);
-  //         nextStep("transactCrypto");
-  //       }
-  //     } else {
-  //       {
-  //         addChatMessages([
-  //           {
-  //             type: "incoming",
-  //             content: <ConnectButton />,
-  //             timestamp: new Date(),
-  //           },
-  //           {
-  //             type: "incoming",
-  //             content: (
-  //               <span>
-  //                 Type to go back:
-  //                 <br />
-  //                 0. Go Back
-  //                 <br />
-  //               </span>
-  //             ),
-  //             timestamp: new Date(),
-  //           },
-  //         ]);
-  //         nextStep("transactCrypto");
-  //       }
-  //     }
-  //   } else if (choice.toLowerCase() === "2") {
-  //     // user continue without connecting wallet
-  //     if (!walletIsConnected) {
-  //       {
-  //         addChatMessages([
-  //           {
-  //             type: "incoming",
-  //             content: (
-  //               <span>
-  //                 You continued <b>without connecting your wallet</b>
-  //                 <br />
-  //                 <br />
-  //                 Today Rate: <b>{formattedRate}/$1</b> <br />
-  //                 <br />
-  //                 Welcome to 2SettleHQ, how can I help you today?
-  //               </span>
-  //             ),
-  //             timestamp: new Date(),
-  //           },
-  //           {
-  //             type: "incoming",
-  //             content: (
-  //               <span>
-  //                 1. Transact Crypto
-  //                 <br />
-  //                 2. Request for paycard
-  //                 <br />
-  //                 3. Customer support
-  //                 <br />
-  //                 4. Transaction ID
-  //                 <br />
-  //                 5. Reportly
-  //                 <br />
-  //                 0. Back
-  //               </span>
-  //             ),
-  //             timestamp: new Date(),
-  //           },
-  //         ]);
-  //         nextStep("transactCrypto");
-  //       }
-  //     } else {
-  //       {
-  //         addChatMessages([
-  //           {
-  //             type: "incoming",
-  //             content: (
-  //               <span>
-  //                 You continued as{" "}
-  //                 <b>
-  //                   <ShortenedAddress wallet={wallet} />
-  //                 </b>
-  //                 <br />
-  //                 <br />
-  //                 Today Rate: <b>{formattedRate}/$1</b> <br />
-  //                 <br />
-  //                 Welcome to 2SettleHQ, how can I help you today?
-  //               </span>
-  //             ),
-  //             timestamp: new Date(),
-  //           },
-  //           {
-  //             type: "incoming",
-  //             content: (
-  //               <span>
-  //                 1. Transact Crypto
-  //                 <br />
-  //                 2. Request for paycard
-  //                 <br />
-  //                 3. Customer support
-  //                 <br />
-  //                 4. Transaction ID
-  //                 <br />
-  //                 5. Reportly
-  //                 <br />
-  //                 0. Back
-  //               </span>
-  //             ),
-  //             timestamp: new Date(),
-  //           },
-  //         ]);
-  //         nextStep("transactCrypto");
-  //       }
-  //     }
-  //   } else {
-  //     addChatMessages([
-  //       {
-  //         type: "incoming",
-  //         content: (
-  //           <span>
-  //             You need to make a valid choice
-  //             <br />
-  //             <br />
-  //             Please Try again, or say 'Hi' or 'Hello' to start over
-  //           </span>
-  //         ),
-  //         timestamp: new Date(),
-  //       },
-  //     ]);
-  //   }
-  //   setChatInput("");
-  // };
-
   const choiceMenu = (chatInput: string) => {
     const choice = chatInput.trim();
     if (greetings.includes(choice.toLowerCase())) {
@@ -1029,15 +836,17 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       welcomeMenu();
     } else if (chatInput === "1") {
       setSharedPaymentMode("transferMoney");
-      displayTransferMoney(addChatMessages);
+      displayTransferMoney(addChatMessages, sharedPaymentMode);
       nextStep("estimateAsset");
     } else if (chatInput === "2") {
       console.log("The choice is TWO, SEND GIFT ");
-      displayTransferMoney(addChatMessages);
+      displayTransferMoney(addChatMessages, sharedPaymentMode);
       setSharedPaymentMode("Gift");
       nextStep("estimateAsset");
     } else if (chatInput === "3") {
-      displaySearchBank(addChatMessages, nextStep);
+      displayHowToEstimation(addChatMessages, "", "request");
+      nextStep("payOptions");
+      // displaySearchBank(addChatMessages, nextStep);
       setSharedPaymentMode("request");
     } else {
       addChatMessages([
@@ -1059,6 +868,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       (() => {
         prevStep();
         // displayTransactCrypto(addChatMessages, nextStep);
+        // if sharedPaymentMode === 'request'
+        // go back to handleTransferMoney()
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -1087,7 +898,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       helloMenu("hi");
     } else if (chatInput === "1") {
       // console.log("How to display estimation, NOW PAY OPTIONS");
-      displayHowToEstimation(addChatMessages, "Bitcoin (BTC)");
+      displayHowToEstimation(
+        addChatMessages,
+        "Bitcoin (BTC)",
+        sharedPaymentMode
+      );
       setSharedTicker("BTCUSDT");
       setSharedCrypto("BTC");
       setSharedNetwork("BTC");
@@ -1251,23 +1066,35 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } else if (chatInput === "0") {
       (() => {
         prevStep();
-        displayTransferMoney(addChatMessages);
+        displayTransferMoney(addChatMessages, sharedPaymentMode);
       })();
     } else if (chatInput === "1") {
-      displayHowToEstimation(addChatMessages, "USDT (ERC20)");
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (ERC20)",
+        sharedPaymentMode
+      );
 
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("ERC20");
       nextStep("payOptions");
     } else if (chatInput === "2") {
-      displayHowToEstimation(addChatMessages, "USDT (TRC20)");
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (TRC20)",
+        sharedPaymentMode
+      );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
-      displayHowToEstimation(addChatMessages, "USDT (BEP20)");
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (BEP20)",
+        sharedPaymentMode
+      );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
@@ -1300,7 +1127,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         prevStep();
         displayHowToEstimation(
           addChatMessages,
-          `${sharedCrypto} (${sharedNetwork})`
+          `${sharedCrypto} (${sharedNetwork})`,
+          sharedPaymentMode
         );
       })();
     } else if (chatInput === "1") {
@@ -1313,7 +1141,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedCrypto
       );
       setSharedEstimateAsset("Naira");
-      nextStep("charge");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     } else if (chatInput === "2") {
       displayPayIn(
         addChatMessages,
@@ -1324,7 +1154,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedCrypto
       );
       setSharedEstimateAsset("Dollar");
-      nextStep("charge");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     } else if (chatInput === "3") {
       displayPayIn(
         addChatMessages,
@@ -1335,7 +1167,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedCrypto
       );
       setSharedEstimateAsset(sharedCrypto);
-      nextStep("charge");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     } else {
       addChatMessages([
         {
@@ -1364,7 +1198,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         prevStep();
         displayHowToEstimation(
           addChatMessages,
-          `${sharedCrypto} (${sharedNetwork})`
+          `${sharedCrypto} (${sharedNetwork})`,
+          sharedPaymentMode
         );
       })();
     } else if (chatInput != "0") {
@@ -1404,6 +1239,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     let wantsToClaimGift =
       sharedPaymentMode.toLowerCase().trim() === "claim gift";
     let wantsToSendGift = sharedPaymentMode.toLowerCase().trim() === "gift";
+    let wantsToRequestPayment =
+      sharedPaymentMode.toLowerCase().trim() === "request";
 
     if (wantsToClaimGift) {
       console.log("USER WANTS TO CLAIM GIFT");
@@ -1503,6 +1340,31 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             timestamp: new Date(),
           },
         ]);
+      }
+    } else if (wantsToRequestPayment) {
+      console.log("USER WANTS TO REQUEST PAYMENT");
+      if (greetings.includes(chatInput.trim().toLowerCase())) {
+        goToStep("start");
+        helloMenu(chatInput);
+      } else if (chatInput === "00") {
+        (() => {
+          goToStep("start");
+          helloMenu("hi");
+        })();
+      } else if (chatInput === "0") {
+        (() => {
+          prevStep();
+          displayPayIn(
+            addChatMessages,
+            sharedEstimateAsset,
+            sharedRate,
+            sharedCrypto,
+            sharedAssetPrice,
+            sharedCrypto
+          );
+        })();
+      } else {
+        displaySearchBank(addChatMessages, nextStep);
       }
     } else {
       console.log("USER WANTS TO TRANSACT CRYPTO");
@@ -1774,8 +1636,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     }
   };
 
-  // USECALLBACK TO PARSE THE RECIEVED WALLET DATA TO CHATBOT COMPONENT
-
+  // final part to finish transaction
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
 
@@ -1867,12 +1728,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     activeWallet?: string,
     lastAssignedTime?: Date
   ) => {
+    // one last che is for USER WANT TO PAY REQUEST
     try {
       if (isGift) {
         // UPDATE THE USER GIFT PAYMENT DATA
-        // - gift_status = "Not Claimed"> "Claimed"
-        // - status = "Uncompleted"> "Pending" > "Processing" > "Successful"/ "Uncessfull"
-
         console.log("USER WANTS TO CLAIM GIFT");
 
         const giftStatus = (await isGiftValid(sharedGiftId)).user?.gift_status;
@@ -2071,48 +1930,52 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
         console.log("USER WANTS TO REQUEST PAYMENT");
+
+        // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
         const transactionID = generateTransactionId();
         const requestID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
-        const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
-          .toFixed(8)
-          .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
 
         setLoading(false);
         // let's save the transaction details to db
         const userDate = {
-          crypto: sharedCrypto,
-          network: sharedNetwork,
+          crypto: null,
+          network: null,
           estimation: sharedEstimateAsset,
-          Amount: parseFloat(sharedPaymentAssetEstimate).toFixed(8).toString(),
-          charges: sharedChargeForDB,
+          Amount: null,
+          charges: null,
           mode_of_payment: sharedPaymentMode,
-          acct_number: null,
-          bank_name: null,
-          receiver_name: null,
+          acct_number: bankData.acct_number,
+          bank_name: bankData.bank_name,
+          receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
-            sharedPaymentNairaEstimate,
+            // sharedPaymentNairaEstimate,
+            "200000",
             "NGN",
             "en-NG"
           ),
-          crypto_sent: paymentAsset,
+          crypto_sent: null,
           wallet_address: null,
           Date: date,
-          status: "Processing",
+          status: "Successful",
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
-          gift_chatID: null,
-          settle_walletLink: null,
+          settle_walletLink: "",
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
           merchant_rate: merchantRate,
           profit_rate: profitRate,
-          name: null,
-          gift_status: "Pending",
-          asset_price: formatCurrency(sharedAssetPrice, "NGN", "en-NG"),
+          name: "",
+          asset_price:
+            sharedCrypto.toLowerCase() != "usdt"
+              ? formatCurrency(sharedAssetPrice, "USD")
+              : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
+        await createTransaction(userDate);
+
+        console.log("request payment data created", userDate);
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
