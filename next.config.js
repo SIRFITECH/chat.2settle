@@ -8,7 +8,7 @@ const nextConfig = {
     return config;
   },
   swcMinify: true,
-  output: "export",
+  // output: "export",
   images: {
     unoptimized: true,
   },
