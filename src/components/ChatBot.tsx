@@ -836,17 +836,25 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       welcomeMenu();
     } else if (chatInput === "1") {
       setSharedPaymentMode("transferMoney");
-      displayTransferMoney(addChatMessages, sharedPaymentMode);
+      displayTransferMoney(addChatMessages);
       nextStep("estimateAsset");
     } else if (chatInput === "2") {
-      console.log("The choice is TWO, SEND GIFT ");
-      displayTransferMoney(addChatMessages, sharedPaymentMode);
+      displayTransferMoney(addChatMessages);
       setSharedPaymentMode("Gift");
+
       nextStep("estimateAsset");
     } else if (chatInput === "3") {
-      displayHowToEstimation(addChatMessages, "", "request");
-      nextStep("payOptions");
-      // displaySearchBank(addChatMessages, nextStep);
+      displayPayIn(
+        addChatMessages,
+        "Naira",
+        sharedRate,
+        "",
+        "",
+        sharedPaymentMode
+      );
+      setSharedEstimateAsset("Naira");
+      nextStep("enterBankSearchWord");
+
       setSharedPaymentMode("request");
     } else {
       addChatMessages([
@@ -867,9 +875,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } else if (chatInput === "0") {
       (() => {
         prevStep();
-        // displayTransactCrypto(addChatMessages, nextStep);
-        // if sharedPaymentMode === 'request'
-        // go back to handleTransferMoney()
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -897,7 +902,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       goToStep("chooseAction");
       helloMenu("hi");
     } else if (chatInput === "1") {
-      // console.log("How to display estimation, NOW PAY OPTIONS");
       displayHowToEstimation(
         addChatMessages,
         "Bitcoin (BTC)",
@@ -908,7 +912,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("BTC");
       nextStep("payOptions");
     } else if (chatInput === "2") {
-      // displayHowToEstimation(addChatMessages, "Ethereum (ETH)");
       const parsedInput = "Ethereum (ETH)";
 
       const newMessages: MessageType[] = [
@@ -944,7 +947,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("ERC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
-      // displayHowToEstimation(addChatMessages, "BINANCE (BNB)");
       const parsedInput = "BINANCE (BNB)";
 
       const newMessages: MessageType[] = [
@@ -980,7 +982,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("BEP20");
       nextStep("payOptions");
     } else if (chatInput === "4") {
-      // displayHowToEstimation(addChatMessages, "TRON (TRX)");
       const parsedInput = "TRON (TRX)";
 
       const newMessages: MessageType[] = [
@@ -1018,7 +1019,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "5") {
-      // displayNetwork(addChatMessages, nextStep, "USDT");
       const newMessages: MessageType[] = [
         {
           type: "incoming",
@@ -1066,7 +1066,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } else if (chatInput === "0") {
       (() => {
         prevStep();
-        displayTransferMoney(addChatMessages, sharedPaymentMode);
+        displayTransferMoney(addChatMessages);
       })();
     } else if (chatInput === "1") {
       displayHowToEstimation(
@@ -1123,7 +1123,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       })();
     } else if (chatInput === "0") {
       (() => {
-        // console.log("Going back from handlePayOptions");
         prevStep();
         displayHowToEstimation(
           addChatMessages,
@@ -1138,7 +1137,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedRate,
         sharedTicker,
         sharedAssetPrice,
-        sharedCrypto
+        sharedPaymentMode
       );
       setSharedEstimateAsset("Naira");
       sharedPaymentMode === "request"
@@ -1151,7 +1150,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedRate,
         sharedTicker,
         chatInput,
-        sharedCrypto
+        sharedPaymentMode
       );
       setSharedEstimateAsset("Dollar");
       sharedPaymentMode === "request"
@@ -1164,20 +1163,25 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedRate,
         sharedTicker,
         sharedAssetPrice,
-        sharedCrypto
+        sharedPaymentMode
       );
       setSharedEstimateAsset(sharedCrypto);
       sharedPaymentMode === "request"
         ? nextStep("enterBankSearchWord")
         : nextStep("charge");
     } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: "Invalid choice. Choose your prefered estimate asset.",
-          timestamp: new Date(),
-        },
-      ]);
+      displayPayIn(
+        addChatMessages,
+        "Naira",
+        sharedRate,
+        "",
+        "",
+        sharedPaymentMode
+      );
+      setSharedEstimateAsset("Naira");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     }
   };
 
@@ -1364,7 +1368,25 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           );
         })();
       } else {
-        displaySearchBank(addChatMessages, nextStep);
+        if (Number(chatInput) > 20000 && Number(chatInput) < 2000000) {
+          setSharedPaymentNairaEstimate(chatInput);
+          displaySearchBank(addChatMessages, nextStep);
+        } else {
+          addChatMessages([
+            {
+              type: "incoming",
+              content: (
+                <span>
+                  You can only recieve <br />
+                  <b>Min: {formatCurrency("20000", "NGN", "en-NG")}</b> and{" "}
+                  <br />
+                  <b>Max: {formatCurrency("2000000", "NGN", "en-NG")}</b>
+                </span>
+              ),
+              timestamp: new Date(),
+            },
+          ]);
+        }
       }
     } else {
       console.log("USER WANTS TO TRANSACT CRYPTO");
@@ -1929,7 +1951,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
-        console.log("USER WANTS TO REQUEST PAYMENT");
+        console.log("USER WANTS TO DO A REQUEST TRANSACTION");
 
         // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
         const transactionID = generateTransactionId();
@@ -1951,8 +1973,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           bank_name: bankData.bank_name,
           receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
-            // sharedPaymentNairaEstimate,
-            "200000",
+            sharedPaymentNairaEstimate,
+            // "200000",
             "NGN",
             "en-NG"
           ),
@@ -1976,6 +1998,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         await createTransaction(userDate);
 
         console.log("request payment data created", userDate);
+        nextStep("start");
+        helloMenu("hi");
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
