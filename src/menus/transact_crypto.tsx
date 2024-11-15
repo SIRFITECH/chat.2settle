@@ -278,7 +278,7 @@ export const displayPayIn = (
   }
 
   const rangeMessage = (
-    <div style={{ margin: 0, padding: 0 }}>
+    <span style={{ margin: 0, padding: 0 }}>
       {sharedEstimateAsset.toLowerCase() === "naira" ? (
         <>
           Min. = {formatCurrency("20000", "NGN", "en-NG")}
@@ -300,7 +300,7 @@ export const displayPayIn = (
       ) : (
         ""
       )}
-    </div>
+    </span>
   );
   console.log("Just to see what sharedPaymentMode is:", sharedPaymentMode);
   const paymentMode =
@@ -312,18 +312,18 @@ export const displayPayIn = (
     {
       type: "incoming",
       content: (
-        <span>
+        <>
           Enter the amount you want to {paymentMode} in {sharedEstimateAsset}{" "}
           value
           <br />
           <br />
           NOTE:
-          <b> {rangeMessage}.</b>
+          <b> {rangeMessage}</b>
           <br />
           0. Go back
           <br />
           00. Exit
-        </span>
+        </>
       ),
       timestamp: new Date(),
     },

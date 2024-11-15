@@ -53,12 +53,14 @@ export interface userData {
   bank_name?: string | null;
   receiver_name?: string | null;
   receiver_amount?: string | null;
+  receiver_phoneNumber?: string | null;
   crypto_sent?: string | null;
   wallet_address?: string | null;
   Date?: string | null;
   status?: string | null;
   customer_phoneNumber?: string | null;
   transac_id?: string | null;
+  request_id?: string | null;
   settle_walletLink?: string | null;
   chat_id?: string | null;
   current_rate?: string | null;

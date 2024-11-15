@@ -1952,6 +1952,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
         console.log("USER WANTS TO DO A REQUEST TRANSACTION");
+        console.log("Naira rate", sharedRate);
+        console.log("Asset price", sharedAssetPrice);
+        console.log("sharedCrypto", sharedCrypto);
 
         // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
         const transactionID = generateTransactionId();
@@ -1974,7 +1977,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
             sharedPaymentNairaEstimate,
-            // "200000",
             "NGN",
             "en-NG"
           ),
@@ -1982,8 +1984,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           wallet_address: null,
           Date: date,
           status: "Successful",
-          customer_phoneNumber: formatPhoneNumber(phoneNumber),
+          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
+          request_id: requestID.toString(),
           settle_walletLink: "",
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
@@ -1991,9 +1994,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           profit_rate: profitRate,
           name: "",
           asset_price:
-            sharedCrypto.toLowerCase() != "usdt"
-              ? formatCurrency(sharedAssetPrice, "USD")
-              : formatCurrency(sharedRate, "NGN", "en-NG"),
+            !sharedCrypto || sharedCrypto.toLowerCase() !== "usdt"
+              ? formatCurrency(sharedRate, "NGN", "en-NG")
+              : formatCurrency(sharedAssetPrice, "USD"),
         };
         await createTransaction(userDate);
 
