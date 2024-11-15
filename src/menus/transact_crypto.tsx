@@ -107,71 +107,6 @@ export const displayTransferMoney = (
   addChatMessages(newMessages);
 };
 
-// export const displayTransferMoney = (
-//   addChatMessages: (messages: MessageType[]) => void,
-//   sharedPaymentMode: string
-// ) => {
-//   console.log("Let's start with selecting an action");
-
-//   const newMessages: MessageType[] =
-//     sharedPaymentMode === "request"
-//       ? [
-//           {
-//             type: "incoming",
-//             content: (
-//               <span>
-//                 I would like to estimate my payment request in:
-//                 <br />
-//                 <br />
-//                 1. Bitcoin (BTC)
-//                 <br />
-//                 2. Ethereum (ETH)
-//                 <br />
-//                 3. BINANCE (BNB)
-//                 <br />
-//                 4. TRON (TRX)
-//                 <br />
-//                 0. Go back
-//                 <br />
-//                 00. Exit
-//               </span>
-//             ),
-//             timestamp: new Date(),
-//           },
-//         ]
-//       : [
-//           {
-//             type: "incoming",
-//             content: (
-//               <span>
-//                 Pay with:
-//                 <br />
-//                 <br />
-//                 1. Bitcoin (BTC)
-//                 <br />
-//                 2. Ethereum (ETH)
-//                 <br />
-//                 3. BINANCE (BNB)
-//                 <br />
-//                 4. TRON (TRX)
-//                 <br />
-//                 5. USDT
-//                 <br />
-//                 0. Go back
-//                 <br />
-//                 00. Exit
-//               </span>
-//             ),
-//             timestamp: new Date(),
-//           },
-//         ];
-
-//   console.log("Next is howToEstimate");
-
-//   addChatMessages(newMessages);
-// };
-
-// USE CHOOSE WHICH WAY THEY WANT TO ESTIMATE THE PAY
 export const displayHowToEstimation = async (
   addChatMessages: (messages: MessageType[]) => void,
   input: string,
@@ -223,7 +158,8 @@ export const displayHowToEstimation = async (
 export const displayNetwork = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
-  input: string
+  input: string,
+  sharedPaymentMode: string
 ) => {
   const parsedInput = input.trim();
   const newMessages: MessageType[] = [
@@ -246,7 +182,9 @@ export const displayNetwork = (
   ];
 
   console.log("Next is payOptions");
-  nextStep("payOptions");
+  sharedPaymentMode !== "request"
+    ? nextStep("payOptions")
+    : nextStep("continueToPay");
   addChatMessages(newMessages);
 };
 

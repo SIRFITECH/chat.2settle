@@ -14,10 +14,10 @@ export default async function handler(
   const dbUser = process.env.user;
   const dbPassword = process.env.password;
   const dbName = process.env.database;
-  const { gift_id } = req.query;
+  const { request_id } = req.query;
 
-  if (!gift_id) {
-    return res.status(400).json({ message: "gift_id is required" });
+  if (!request_id) {
+    return res.status(400).json({ message: "request_id is required" });
   }
 
   try {
@@ -34,14 +34,12 @@ export default async function handler(
       FROM
         \`settle_database\`.\`2settle_transaction_table\`
       WHERE
-        \`gift_chatID\` = ?
+        \`request_id\` = ?
       AND
         \`status\` IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
-      AND
-        \`gift_status\` IN ('pending', 'Not claimed', 'Claimed')
     `;
 
-    const [rows] = await connection.query<RowDataPacket[]>(query, [gift_id]);
+    const [rows] = await connection.query<RowDataPacket[]>(query, [request_id]);
 
     await connection.end();
 
@@ -49,7 +47,7 @@ export default async function handler(
       // If there are rows, return them along with their statuses
       const result = rows.map((row) => ({
         status: row.status,
-        gift_status: row.gift_status,
+        request_id: row.request_id,
         transaction: row,
       }));
 

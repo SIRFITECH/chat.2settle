@@ -103,6 +103,19 @@ export const checkUserExists = async (
     throw error;
   }
 };
+export const checkRequestExists = async (
+  requestID: string
+): Promise<{ exists: boolean; user?: userData }> => {
+  try {
+    const response = await axios.get("/api/confirm_request", {
+      params: { request_id: requestID },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error checking request existence:", error);
+    throw error;
+  }
+};
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
 export const checkTranscationExists = async (
   transac_id: string
@@ -286,35 +299,6 @@ export const updateGiftTransaction = async (
 
 const payoutQueue: (() => Promise<void>)[] = [];
 let isProcessingQueue = false;
-
-// export function addToPayoutQueue(call: () => Promise<void>) {
-//   payoutQueue.push(call);
-
-//   // If the queue is not currently processing, start processing
-//   if (!isProcessingQueue) {
-//     processPayoutQueue();
-//   }
-// }
-
-// export async function processPayoutQueue() {
-//   isProcessingQueue = true;
-
-//   while (payoutQueue.length > 0) {
-//     const nextCall = payoutQueue.shift();
-//     const pendingInQueue = payoutQueue.length;
-
-//     if (nextCall) {
-//       console.log(`We have ${pendingInQueue} pending tranactions`);
-//       // Execute the next API call
-//       await nextCall();
-
-//       // Introduce a 3-second delay between calls
-//       await new Promise((resolve) => setTimeout(resolve, 3000));
-//     }
-//   }
-
-//   isProcessingQueue = false;
-// }
 
 export function addToPayoutQueue(call: () => Promise<void>) {
   payoutQueue.push(call);
