@@ -75,6 +75,7 @@ import {
   displayEnterPhone,
   displayHowToEstimation,
   displayPayIn,
+  displayRequestPaymentSummary,
   displaySearchBank,
   displaySelectBank,
   displaySendPayment,
@@ -1094,15 +1095,28 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
-      displayHowToEstimation(
-        addChatMessages,
-        "USDT (BEP20)",
-        sharedPaymentMode
-      );
+      // sharedGiftId
+
+      console.log("This is the requestID:", sharedGiftId);
+      sharedPaymentMode.toLowerCase() === "request"
+        ? displayRequestPaymentSummary(
+            addChatMessages,
+            "",
+            sharedPaymentMode,
+            "738920"
+          )
+        : displayHowToEstimation(
+            addChatMessages,
+            "USDT (BEP20)",
+            sharedPaymentMode
+          );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
-      nextStep("payOptions");
+      console.log("sharedPaymentMode:", sharedPaymentMode);
+      // sharedPaymentMode.toLowerCase() === "request"
+      //   ? nextStep("charge")
+      //   : nextStep("payOptions");
     } else {
       addChatMessages([
         {
@@ -1144,9 +1158,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedPaymentMode
       );
       setSharedEstimateAsset("Naira");
-      sharedPaymentMode === "request"
-        ? nextStep("enterBankSearchWord")
-        : nextStep("charge");
+      nextStep("charge");
     } else if (chatInput === "2") {
       displayPayIn(
         addChatMessages,
@@ -1157,9 +1169,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedPaymentMode
       );
       setSharedEstimateAsset("Dollar");
-      sharedPaymentMode === "request"
-        ? nextStep("enterBankSearchWord")
-        : nextStep("charge");
+      nextStep("charge");
     } else if (chatInput === "3") {
       displayPayIn(
         addChatMessages,
@@ -1170,9 +1180,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedPaymentMode
       );
       setSharedEstimateAsset(sharedCrypto);
-      sharedPaymentMode === "request"
-        ? nextStep("enterBankSearchWord")
-        : nextStep("charge");
+      nextStep("charge");
     } else {
       displayPayIn(
         addChatMessages,
@@ -1183,9 +1191,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedPaymentMode
       );
       setSharedEstimateAsset("Naira");
-      sharedPaymentMode === "request"
-        ? nextStep("enterBankSearchWord")
-        : nextStep("charge");
+      nextStep("charge");
     }
   };
 

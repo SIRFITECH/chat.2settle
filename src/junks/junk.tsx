@@ -556,3 +556,5 @@ export default ChatComponent;
 //         return permittedAddresses[recipient];
 //     }
 // }
+
+

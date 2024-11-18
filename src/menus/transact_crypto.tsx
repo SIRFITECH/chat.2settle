@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { checkRequestExists } from "@/helpers/api_calls";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -115,42 +116,62 @@ export const displayHowToEstimation = async (
   const parsedInput = input.trim();
 
   const newMessages: MessageType[] =
-    sharedPaymentMode === "request"
-      ? [
-          {
-            type: "incoming",
-            content: `How much payment are you requesting for (in Naira)?`,
-            timestamp: new Date(),
-          },
-        ]
-      : [
-          {
-            type: "incoming",
-            content: `How would you like to estimate your ${parsedInput}?`,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                1. Naira
-                <br />
-                2. Dollar
-                <br />
-                3. Crypto
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
+    [
+      {
+        type: "incoming",
+        content: `How would you like to estimate your ${parsedInput}?`,
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Here is your menu:
+            <br />
+            <br />
+            1. Naira
+            <br />
+            2. Dollar
+            <br />
+            3. Crypto
+            <br />
+            00. Exit
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ];
 
   console.log("Next is estimationAmount");
-  // nextStep("payOptions"); // Uncomment if needed
+  addChatMessages(newMessages);
+};
+export const displayRequestPaymentSummary = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  input: string,
+  sharedPaymentMode: string,
+  requestId: string
+) => {
+  const parsedInput = input.trim();
+  const request = (await checkRequestExists(requestId)).user;
+  const requestAmount = request?.receiver_amount;
+  const requestReciever = request?.receiver_name;
+
+  const requestStatus = (await checkRequestExists(requestId)).exists;
+  console.log("Does request exist:", request?.receiver_amount);
+
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: `You are paying ${requestAmount} worth of {BTC} to ${requestReciever}`,
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: `To complete this ${sharedPaymentMode} payment, you need to pay {0.005 BTC} to our wallet (charge included)`,
+      timestamp: new Date(),
+    },
+  ];
+  console.log("Next is estimationAmount");
   addChatMessages(newMessages);
 };
 
@@ -313,6 +334,9 @@ export const displayCharge = async (
    * - input > 1,000,000 == NGN 1,500
    */
   if (sharedCrypto.toLowerCase() === "usdt") {
+    // if (sharedPaymentMode.toLowerCase() === 'request') {
+    // } else
+
     if (sharedEstimateAsset.toLowerCase() === "naira") {
       max = 2000000;
       min = 20000;
