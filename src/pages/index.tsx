@@ -2,14 +2,29 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Layout from "../components/Layout";
 import PageBody from "../components/Body";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 const Home: NextPage = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const { ref, category } = router.query;
+    if (ref && category) {
+      // Store the referral information in localStorage or send it to your backend
+      localStorage.setItem("referralCode", ref as string);
+      localStorage.setItem("referralCategory", category as string);
+
+      // Remove the referral parameters from the URL
+      router.replace("/", undefined, { shallow: true });
+    }
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-custom-blue via-custom-pink to-pink-500">
       <Head>
         <title>2Settle Livechat</title>
         <meta content="2Settle Livechat" name="spend,send,integrate" />
-        {/* <link href="/favicon.ico" rel="icon" /> */}
         <link
           rel="apple-touch-icon"
           sizes="180x180"

@@ -38,7 +38,34 @@
 //   const isMobile = useMediaQuery("(max-width: 767px)");
 //   const isTablet = useMediaQuery("(min-width: 768px) and (max-width: 1365px)");
 //   const isDesktop = useMediaQuery("(min-width: 1366px)");
+//   const [referralCode, setReferralCode] = useState<string | null>(null);
+//   const [referralCategory, setReferralCategory] = useState<string | null>(null);
 
+//   useEffect(() => {
+//     const code = localStorage.getItem("referralCode");
+//     const category = localStorage.getItem("referralCategory");
+
+//     if (code && category) {
+//       setReferralCode(code);
+//       setReferralCategory(category);
+
+//       // // Send the referral information to your API
+//       // fetch("/api/referral", {
+//       //   method: "POST",
+//       //   headers: {
+//       //     "Content-Type": "application/json",
+//       //   },
+//       //   body: JSON.stringify({
+//       //     referralCode: code,
+//       //     referralCategory: category,
+//       //   }),
+//       // });
+
+//       // Clear the referral information from localStorage
+//       localStorage.removeItem("referralCode");
+//       localStorage.removeItem("referralCategory");
+//     }
+//   }, []);
 //   useEffect(() => {
 //     setIsClient(true);
 //     fetchData();
@@ -78,11 +105,11 @@
 
 //   const getBackgroundImage = () => {
 //     if (isMobile) {
-//       return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/phone%20view%20(1)-UxzU0McUQGK7DL2jHh5ybwl9fir4Uv.jpg";
+//       return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/phone-AfU0CbbR026gFTYfYjbdG5FYYSHKRN.jpg";
 //     } else if (isTablet) {
-//       return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/tab-aAggeZYF4LHclKlRPxmRfvkKXr3fED.jpg";
+//       return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web-P134QKh1VxKd5JZdUREkUu8JeEbDQB.jpg";
 //     } else {
-//       return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web%20-wDYUWpXeHCSrDTcspSGKQiLTi5cKfy.jpg";
+//       return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web-P134QKh1VxKd5JZdUREkUu8JeEbDQB.jpg";
 //     }
 //   };
 
@@ -94,10 +121,9 @@
 //           backgroundImage: `url('${getBackgroundImage()}')`,
 //           backgroundRepeat: "no-repeat",
 //           backgroundPosition: "center",
-//           backgroundSize: isMobile ? "cover" : "100% auto",
-//           height: "calc(100vh - var(--header-height))",
-//           width: isMobile ? "100%" : isTablet ? "110%" : "100%",
-//           left: isMobile ? "0" : isTablet ? "-5%" : "0",
+//           backgroundSize: "cover",
+//           height: "100vh",
+//           width: "100%",
 //         }}
 //       ></div>
 
@@ -173,13 +199,14 @@
 //           )}
 //         </span>
 //       </Button>
-
+//       {referralCode && referralCategory && (
+//         <p className="text-black font-medium">
+//           Thank you for honoring our{" "}
+//           {referralCategory === "amb" ? "brand ambassador" : "marketer"}.
+//         </p>
+//       )}
 //       {isOpen && (
-//         <div
-//           className={`fixed inset-0 z-40 ${
-//             isMobile ? "h-screen w-screen" : ""
-//           }`}
-//         >
+//         <div className="fixed inset-0 z-40">
 //           <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
 //         </div>
 //       )}
@@ -191,13 +218,11 @@ import React, { useEffect, useState } from "react";
 import ChatBot from "./ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
-
 import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
 import { useAccount } from "wagmi";
 import { fetchRate, fetchTotalVolume } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
-
 import { Button } from "@/components/ui/button";
 
 const useMediaQuery = (query: string) => {
@@ -227,11 +252,25 @@ export default function Body() {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const isTablet = useMediaQuery("(min-width: 768px) and (max-width: 1365px)");
   const isDesktop = useMediaQuery("(min-width: 1366px)");
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralCategory, setReferralCategory] = useState<string | null>(null);
 
   useEffect(() => {
     setIsClient(true);
     fetchData();
     fetchTVT();
+
+    const code = localStorage.getItem("referralCode");
+    const category = localStorage.getItem("referralCategory");
+
+    if (code && category) {
+      setReferralCode(code);
+      setReferralCategory(category);
+
+      // Clear the referral information from localStorage
+      localStorage.removeItem("referralCode");
+      localStorage.removeItem("referralCategory");
+    }
   }, []);
 
   const fetchData = async () => {
@@ -339,6 +378,14 @@ export default function Body() {
             </h3>
           </div>
         )}
+        {referralCode && referralCategory && (
+          <div className="mt-4 text-center bg-white bg-opacity-80 p-4 rounded-lg shadow-lg">
+            <p className="text-black font-medium">
+              Thank you for honoring our{" "}
+              {referralCategory === "amb" ? "brand ambassador" : "marketer"}.
+            </p>
+          </div>
+        )}
       </div>
 
       <Button
@@ -361,7 +408,6 @@ export default function Body() {
           )}
         </span>
       </Button>
-
       {isOpen && (
         <div className="fixed inset-0 z-40">
           <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
