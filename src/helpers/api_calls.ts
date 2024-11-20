@@ -1,12 +1,12 @@
 import axios from "axios";
 import {
   BankName,
-  btcWalletData,
-  ercWalletData,
-  PayoutData,
+  // btcWalletData,
+  // ercWalletData,
+  // PayoutData,
+  ReferralUser,
   ServerData,
-  SheetData,
-  trcWalletData,
+  // trcWalletData,
   userData,
   vendorData,
   WalletInfo,
@@ -116,7 +116,20 @@ export const checkRequestExists = async (
     throw error;
   }
 };
-// CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
+
+export const checkReferralExists = async (
+  referralCode: string
+): Promise<{ exists: boolean; user?: ReferralUser }> => {
+  try {
+    const response = await axios.post("/api/referral", {
+      referralCode: referralCode,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error checking referral existence:", error);
+    throw error;
+  }
+};
 export const checkTranscationExists = async (
   transac_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
@@ -297,154 +310,6 @@ export const updateGiftTransaction = async (
   }
 };
 
-const payoutQueue: (() => Promise<void>)[] = [];
-let isProcessingQueue = false;
-
-export function addToPayoutQueue(call: () => Promise<void>) {
-  payoutQueue.push(call);
-
-  // If the queue is not currently processing, start processing
-  if (!isProcessingQueue) {
-    processPayoutQueue();
-  }
-}
-
-async function processPayoutQueue() {
-  isProcessingQueue = true;
-  let isFirstCall = true; // To track if it's the first call
-
-  while (payoutQueue.length > 0) {
-    console.log(`We have ${payoutQueue.length} transaction(s) to start with`);
-    const nextCall = payoutQueue.shift();
-    const pendingInQueue = payoutQueue.length;
-
-    if (nextCall) {
-      console.log(`We have ${pendingInQueue} pending transactions`);
-
-      // Execute the next API call
-      await nextCall();
-
-      // Add a 3-second delay after every call except the first one
-      if (!isFirstCall && pendingInQueue > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      }
-
-      // After the first call, set the flag to false to allow delay for the next calls
-      isFirstCall = false;
-    }
-  }
-
-  isProcessingQueue = false;
-}
-
-export async function payoutMoney(data: PayoutData) {
-  return new Promise((resolve, reject) => {
-    addToPayoutQueue(async () => {
-      try {
-        const response = await axios.post("/api/payout_gift", data, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        console.log("Transaction successful:", response.data);
-        resolve(response.data); // Resolve when the transaction is successful
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          if (error.response) {
-            console.error("Error response from API:", error.response.data);
-            reject(
-              new Error(error.response.data.message || "Transaction failed")
-            ); // Reject in case of error
-          } else {
-            console.error("Network or other error:", error.message);
-            reject(new Error("Internal Server Error"));
-          }
-        } else {
-          console.error("Unexpected error:", error);
-          reject(new Error("Unexpected Error"));
-        }
-      }
-    });
-  });
-}
-
-export async function appendToGoogleSheet(data: SheetData) {
-  try {
-    const response = await axios.post("/api/send_to_support", data);
-    console.log("Response from server:", response.data);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error appending to Google Sheet:", error.response?.data);
-    } else {
-      console.error("Unexpected error:", error);
-    }
-  }
-}
-
-// export async function appendToGoogleSheet(data: SheetData) {
-//   try {
-//     const response = await fetch("/api/send_to_support", {
-//       method: "POST",
-//       headers: {
-//         Accept: "application/json",
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(data),
-//     });
-
-//     // Ensure that the response is OK
-//     if (!response.ok) {
-//       console.error(
-//         "Server returned an error:",
-//         response.status,
-//         response.statusText
-//       );
-//       const errorText = await response.text(); // Get the full response
-//       console.error("Full response:", errorText);
-//       throw new Error("Failed to append data to Google Sheet");
-//     }
-
-//     // Parse the response as JSON
-//     const content = await response.json();
-//     console.log("Content is ", content);
-//   } catch (error) {
-//     console.error("Error during fetch operation:", error);
-//   }
-// }
-
-export const getGiftNaira = async (gift_id: string): Promise<number> => {
-  try {
-    // Log the URL and params before making the request
-    console.log("Requesting gift naira with:", `${apiURL}/api/user_naira`, {
-      gift_id,
-    });
-
-    const response = await axios.get<userData>(`${apiURL}/api/user_naira`, {
-      params: { gift_id },
-    });
-
-    const rawGiftNaira = response.data.receiver_amount
-      // .replace("₦", "");
-      ?.replace(/[^\d.]/g, "");
-    /[^\d.]/g;
-
-    // 831683;
-    // 0177367583
-
-    const giftNaira = parseFloat(rawGiftNaira || "");
-    const giftNairaRounded = Math.round(giftNaira);
-    if (isNaN(giftNairaRounded)) {
-      throw new Error("Invalid giftNaira received");
-    }
-
-    return giftNairaRounded;
-  } catch (error) {
-    console.error("Error fetching gift naira:", error);
-    throw error;
-  }
-};
-
 // WRITE A USER TO THE WALLET TABLE
 export const createUser = async (user: any): Promise<any> => {
   try {
@@ -484,49 +349,6 @@ export const createComplain = async (complainData: any): Promise<any> => {
   } catch (error) {
     console.error("Error storing user data:", error);
     throw new Error("Failed to store user data");
-  }
-};
-
-// GENERATE BTC WALLET FROM OUR HD WALLET
-export const generateBTCWalletAddress = async (): Promise<btcWalletData> => {
-  try {
-    const response = await axios.get(`${apiURL}/api/generate_btc_wallet`);
-    const { address: bitcoin_wallet, private_key: bitcoin_privateKey } =
-      response.data;
-    return { bitcoin_wallet, bitcoin_privateKey };
-    // return data;
-  } catch (error) {
-    console.error("Error generating BTC wallet:", error);
-    throw error;
-  }
-};
-
-// GENERATE ERC20 WALLET FROM OUR HD WALLET
-export const generateERCWalletAddress = async (): Promise<ercWalletData> => {
-  try {
-    const response = await axios.get(`${apiURL}/api/generate_erc_wallet`);
-
-    const { address: eth_bnb_wallet, private_key: eth_bnb_privateKey } =
-      response.data;
-
-    return { eth_bnb_wallet, eth_bnb_privateKey };
-  } catch (error) {
-    console.error("Error generating BTC wallet:", error);
-    throw error;
-  }
-};
-
-// GENERATE TRC20 WALLET FROM OUR HD WALLET
-export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
-  try {
-    const response = await axios.get(`${apiURL}/api/generate_tron_wallet`);
-    const { address: tron_wallet, private_key: tron_privateKey } =
-      response.data;
-
-    return { tron_wallet, tron_privateKey };
-  } catch (error) {
-    console.error("Error generating BTC wallet:", error);
-    throw error;
   }
 };
 
@@ -589,3 +411,197 @@ export const fetchBankDetails = async (
     return null;
   }
 };
+
+// export async function payoutMoney(data: PayoutData) {
+//   return new Promise((resolve, reject) => {
+//     addToPayoutQueue(async () => {
+//       try {
+//         const response = await axios.post("/api/payout_gift", data, {
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//         });
+
+//         console.log("Transaction successful:", response.data);
+//         resolve(response.data); // Resolve when the transaction is successful
+//       } catch (error) {
+//         if (axios.isAxiosError(error)) {
+//           if (error.response) {
+//             console.error("Error response from API:", error.response.data);
+//             reject(
+//               new Error(error.response.data.message || "Transaction failed")
+//             ); // Reject in case of error
+//           } else {
+//             console.error("Network or other error:", error.message);
+//             reject(new Error("Internal Server Error"));
+//           }
+//         } else {
+//           console.error("Unexpected error:", error);
+//           reject(new Error("Unexpected Error"));
+//         }
+//       }
+//     });
+//   });
+// }
+
+// export async function appendToGoogleSheet(data: SheetData) {
+//   try {
+//     const response = await axios.post("/api/send_to_support", data);
+//     console.log("Response from server:", response.data);
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error("Error appending to Google Sheet:", error.response?.data);
+//     } else {
+//       console.error("Unexpected error:", error);
+//     }
+//   }
+// }
+
+// export async function appendToGoogleSheet(data: SheetData) {
+//   try {
+//     const response = await fetch("/api/send_to_support", {
+//       method: "POST",
+//       headers: {
+//         Accept: "application/json",
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(data),
+//     });
+
+//     // Ensure that the response is OK
+//     if (!response.ok) {
+//       console.error(
+//         "Server returned an error:",
+//         response.status,
+//         response.statusText
+//       );
+//       const errorText = await response.text(); // Get the full response
+//       console.error("Full response:", errorText);
+//       throw new Error("Failed to append data to Google Sheet");
+//     }
+
+//     // Parse the response as JSON
+//     const content = await response.json();
+//     console.log("Content is ", content);
+//   } catch (error) {
+//     console.error("Error during fetch operation:", error);
+//   }
+// }
+
+// // GENERATE BTC WALLET FROM OUR HD WALLET
+// export const generateBTCWalletAddress = async (): Promise<btcWalletData> => {
+//   try {
+//     const response = await axios.get(`${apiURL}/api/generate_btc_wallet`);
+//     const { address: bitcoin_wallet, private_key: bitcoin_privateKey } =
+//       response.data;
+//     return { bitcoin_wallet, bitcoin_privateKey };
+//     // return data;
+//   } catch (error) {
+//     console.error("Error generating BTC wallet:", error);
+//     throw error;
+//   }
+// };
+
+// // GENERATE ERC20 WALLET FROM OUR HD WALLET
+// export const generateERCWalletAddress = async (): Promise<ercWalletData> => {
+//   try {
+//     const response = await axios.get(`${apiURL}/api/generate_erc_wallet`);
+
+//     const { address: eth_bnb_wallet, private_key: eth_bnb_privateKey } =
+//       response.data;
+
+//     return { eth_bnb_wallet, eth_bnb_privateKey };
+//   } catch (error) {
+//     console.error("Error generating BTC wallet:", error);
+//     throw error;
+//   }
+// };
+
+// // GENERATE TRC20 WALLET FROM OUR HD WALLET
+// export const generateTronWalletAddress = async (): Promise<trcWalletData> => {
+//   try {
+//     const response = await axios.get(`${apiURL}/api/generate_tron_wallet`);
+//     const { address: tron_wallet, private_key: tron_privateKey } =
+//       response.data;
+
+//     return { tron_wallet, tron_privateKey };
+//   } catch (error) {
+//     console.error("Error generating BTC wallet:", error);
+//     throw error;
+//   }
+// };
+
+
+
+
+// const payoutQueue: (() => Promise<void>)[] = [];
+// let isProcessingQueue = false;
+
+// export function addToPayoutQueue(call: () => Promise<void>) {
+//   payoutQueue.push(call);
+
+//   // If the queue is not currently processing, start processing
+//   if (!isProcessingQueue) {
+//     processPayoutQueue();
+//   }
+// }
+
+// async function processPayoutQueue() {
+//   isProcessingQueue = true;
+//   let isFirstCall = true; // To track if it's the first call
+
+//   while (payoutQueue.length > 0) {
+//     console.log(`We have ${payoutQueue.length} transaction(s) to start with`);
+//     const nextCall = payoutQueue.shift();
+//     const pendingInQueue = payoutQueue.length;
+
+//     if (nextCall) {
+//       console.log(`We have ${pendingInQueue} pending transactions`);
+
+//       // Execute the next API call
+//       await nextCall();
+
+//       // Add a 3-second delay after every call except the first one
+//       if (!isFirstCall && pendingInQueue > 0) {
+//         await new Promise((resolve) => setTimeout(resolve, 3000));
+//       }
+
+//       // After the first call, set the flag to false to allow delay for the next calls
+//       isFirstCall = false;
+//     }
+//   }
+
+//   isProcessingQueue = false;
+// }
+
+// export const getGiftNaira = async (gift_id: string): Promise<number> => {
+//   try {
+//     // Log the URL and params before making the request
+//     console.log("Requesting gift naira with:", `${apiURL}/api/user_naira`, {
+//       gift_id,
+//     });
+
+//     const response = await axios.get<userData>(`${apiURL}/api/user_naira`, {
+//       params: { gift_id },
+//     });
+
+//     const rawGiftNaira = response.data.receiver_amount
+//       // .replace("₦", "");
+//       ?.replace(/[^\d.]/g, "");
+//     /[^\d.]/g;
+
+//     // 831683;
+//     // 0177367583
+
+//     const giftNaira = parseFloat(rawGiftNaira || "");
+//     const giftNairaRounded = Math.round(giftNaira);
+//     if (isNaN(giftNairaRounded)) {
+//       throw new Error("Invalid giftNaira received");
+//     }
+
+//     return giftNairaRounded;
+//   } catch (error) {
+//     console.error("Error fetching gift naira:", error);
+//     throw error;
+//   }
+// };

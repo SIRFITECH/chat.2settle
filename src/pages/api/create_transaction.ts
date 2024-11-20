@@ -43,6 +43,7 @@ export default async function handler(
     gift_status,
     gift_chatID,
     asset_price,
+    ref_code,
   } = req.body;
 
   const userData = {
@@ -73,6 +74,7 @@ export default async function handler(
     gift_status,
     gift_chatID,
     asset_price,
+    ref_code,
   };
 
   try {

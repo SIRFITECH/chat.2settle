@@ -295,6 +295,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const [currentDate, setCurrentDate] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
   const [isTelUser, setIsTelUser] = useState(false);
+  const code = localStorage.getItem("referralCode") ?? "";
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -525,6 +526,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         ]);
         nextStep("chooseAction");
       } else {
+        setSharedPaymentMode("");
         addChatMessages([
           {
             type: "incoming",
@@ -1889,7 +1891,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               timestamp: new Date(),
             },
           ]);
-          displayEnterId(addChatMessages, nextStep, "Claim Gift");
+          displayEnterId(addChatMessages, nextStep, sharedPaymentMode);
         }
       } else if (isGiftTrx) {
         console.log("USER WANTS TO SEND GIFT");
@@ -1904,6 +1906,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
+        console.log("sharedPaymentNairaEstimate", sharedPaymentNairaEstimate);
 
         displaySendPayment(
           addChatMessages,
@@ -1961,11 +1964,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
-        console.log("USER WANTS TO DO A REQUEST TRANSACTION");
-        const requestStatus = (await checkRequestExists("864389")).exists;
+        console.log("USER WANTS TO REQUEST PAYMENT");
 
-        if (requestStatus) {
-        }
         // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
         const transactionID = generateTransactionId();
         const requestID = generateTransactionId();
@@ -1986,7 +1986,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           bank_name: bankData.bank_name,
           receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
-            sharedPaymentNairaEstimate,
+            // sharedPaymentNairaEstimate,
+            "200000",
             "NGN",
             "en-NG"
           ),
@@ -1994,9 +1995,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           wallet_address: null,
           Date: date,
           status: "Successful",
-          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+          customer_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
-          request_id: requestID.toString(),
           settle_walletLink: "",
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
@@ -2004,15 +2004,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           profit_rate: profitRate,
           name: "",
           asset_price:
-            !sharedCrypto || sharedCrypto.toLowerCase() !== "usdt"
-              ? formatCurrency(sharedRate, "NGN", "en-NG")
-              : formatCurrency(sharedAssetPrice, "USD"),
+            sharedCrypto.toLowerCase() != "usdt"
+              ? formatCurrency(sharedAssetPrice, "USD")
+              : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
         await createTransaction(userDate);
 
         console.log("request payment data created", userDate);
-        nextStep("start");
-        helloMenu("hi");
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
