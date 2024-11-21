@@ -891,4 +891,73 @@ export default ChatComponent;
   //   }
   // };
 
+  // // HANDLE NETWORK FOR DOLLAR TRANSFER
+  // const handleNetwork = async (chatInput: string) => {
+  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
+  //     goToStep("start");
+  //     helloMenu(chatInput);
+  //   } else if (chatInput === "00") {
+  //     (() => {
+  //       goToStep("start");
+  //       helloMenu("hi");
+  //     })();
+  //   } else if (chatInput === "0") {
+  //     (() => {
+  //       prevStep();
+  //       displayTransferMoney(addChatMessages);
+  //     })();
+  //   } else if (chatInput === "1") {
+  //     displayHowToEstimation(
+  //       addChatMessages,
+  //       "USDT (ERC20)",
+  //       sharedPaymentMode
+  //     );
 
+  //     setSharedTicker("USDT");
+  //     setSharedCrypto("USDT");
+  //     setSharedNetwork("ERC20");
+  //     nextStep("payOptions");
+  //   } else if (chatInput === "2") {
+  //     displayHowToEstimation(
+  //       addChatMessages,
+  //       "USDT (TRC20)",
+  //       sharedPaymentMode
+  //     );
+  //     setSharedTicker("USDT");
+  //     setSharedCrypto("USDT");
+  //     setSharedNetwork("TRC20");
+  //     nextStep("payOptions");
+  //   } else if (chatInput === "3") {
+  //     // sharedGiftId
+
+  //     console.log("This is the requestID:", sharedGiftId);
+  //     sharedPaymentMode.toLowerCase() === "request"
+  //       ? displayRequestPaymentSummary(
+  //           addChatMessages,
+  //           "",
+  //           sharedPaymentMode,
+  //           "738920"
+  //         )
+  //       : displayHowToEstimation(
+  //           addChatMessages,
+  //           "USDT (BEP20)",
+  //           sharedPaymentMode
+  //         );
+  //     setSharedTicker("USDT");
+  //     setSharedCrypto("USDT");
+  //     setSharedNetwork("BEP20");
+  //     console.log("sharedPaymentMode:", sharedPaymentMode);
+  //     // sharedPaymentMode.toLowerCase() === "request"
+  //     //   ? nextStep("charge")
+  //     //   : nextStep("payOptions");
+  //   } else {
+  //     addChatMessages([
+  //       {
+  //         type: "incoming",
+  //         content:
+  //           "Invalid choice. Choose your prefered network or say Hi if you are stock.",
+  //         timestamp: new Date(),
+  //       },
+  //     ]);
+  //   }
+  // };

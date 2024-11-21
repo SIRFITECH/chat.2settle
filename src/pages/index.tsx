@@ -32,6 +32,17 @@ const Home: NextPage = () => {
               { shallow: true }
             );
           } else {
+            // Remove the referral parameters from the URL either way
+            const { ref, ...restQuery } = router.query;
+            await router.replace(
+              {
+                pathname: router.pathname,
+                query: restQuery,
+              },
+
+              undefined,
+              { shallow: true }
+            );
             console.warn("Invalid referral data received");
           }
         } catch (error) {
