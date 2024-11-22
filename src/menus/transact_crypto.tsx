@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { checkRequestExists } from "@/helpers/api_calls";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -72,106 +73,41 @@ export const displayPayAVendor = (
 };
 
 // IF USER CHOOSE TRANSFER MONEY THEY SEE THIS NEXT
-// export const displayTransferMoney = (
-//   addChatMessages: (messages: MessageType[]) => void
-// ) => {
-//   console.log("Let's start with selecting an actions");
-//   const newMessages: MessageType[] = [
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Pay with:
-//           <br />
-//           <br />
-//           1. Bitcoin (BTC)
-//           <br />
-//           2. Ethereum (ETH)
-//           <br />
-//           3. BINANCE (BNB)
-//           <br />
-//           4. TRON (TRX)
-//           <br />
-//           5. USDT
-//           <br />
-//           0. Go back
-//           <br />
-//           00. Exit
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//   ];
-//   console.log("Next is howToEstimate");
-
-//   addChatMessages(newMessages);
-// };
-
 export const displayTransferMoney = (
-  addChatMessages: (messages: MessageType[]) => void,
-  sharedPaymentMode: string
+  addChatMessages: (messages: MessageType[]) => void
 ) => {
-  console.log("Let's start with selecting an action");
-
-  const newMessages: MessageType[] =
-    sharedPaymentMode === "request"
-      ? [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                I would like to estimate my payment request in:
-                <br />
-                <br />
-                1. Bitcoin (BTC)
-                <br />
-                2. Ethereum (ETH)
-                <br />
-                3. BINANCE (BNB)
-                <br />
-                4. TRON (TRX)
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]
-      : [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Pay with:
-                <br />
-                <br />
-                1. Bitcoin (BTC)
-                <br />
-                2. Ethereum (ETH)
-                <br />
-                3. BINANCE (BNB)
-                <br />
-                4. TRON (TRX)
-                <br />
-                5. USDT
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
+  console.log("Let's start with selecting an actions");
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Pay with:
+          <br />
+          <br />
+          1. Bitcoin (BTC)
+          <br />
+          2. Ethereum (ETH)
+          <br />
+          3. BINANCE (BNB)
+          <br />
+          4. TRON (TRX)
+          <br />
+          5. USDT
+          <br />
+          0. Go back
+          <br />
+          00. Exit
+        </span>
+      ),
+      timestamp: new Date(),
+    },
+  ];
   console.log("Next is howToEstimate");
 
   addChatMessages(newMessages);
 };
 
-// USE CHOOSE WHICH WAY THEY WANT TO ESTIMATE THE PAY
 export const displayHowToEstimation = async (
   addChatMessages: (messages: MessageType[]) => void,
   input: string,
@@ -179,61 +115,62 @@ export const displayHowToEstimation = async (
 ) => {
   const parsedInput = input.trim();
 
-  const newMessages: MessageType[] =
-    sharedPaymentMode === "request"
-      ? [
-          {
-            type: "incoming",
-            content: `How would you like to request this payment?`,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                I would like to request the payment in:
-                <br />
-                <br />
-                1. Naira
-                <br />
-                2. Dollar
-                <br />
-                3. Crypto
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]
-      : [
-          {
-            type: "incoming",
-            content: `How would you like to estimate your ${parsedInput}?`,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                1. Naira
-                <br />
-                2. Dollar
-                <br />
-                3. Crypto
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: `How would you like to estimate your ${parsedInput}?`,
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Here is your menu:
+          <br />
+          <br />
+          1. Naira
+          <br />
+          2. Dollar
+          <br />
+          3. Crypto
+          <br />
+          00. Exit
+        </span>
+      ),
+      timestamp: new Date(),
+    },
+  ];
 
   console.log("Next is estimationAmount");
-  // nextStep("payOptions"); // Uncomment if needed
+  addChatMessages(newMessages);
+};
+export const displayRequestPaymentSummary = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  input: string,
+  sharedPaymentMode: string,
+  requestId: string
+) => {
+  const parsedInput = input.trim();
+  const request = (await checkRequestExists(requestId)).user;
+  const requestAmount = request?.receiver_amount;
+  const requestReciever = request?.receiver_name;
+
+  const requestStatus = (await checkRequestExists(requestId)).exists;
+  console.log("Does request exist:", request?.receiver_amount);
+
+  const newMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: `You are paying ${requestAmount} worth of {BTC} to ${requestReciever}`,
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: `To complete this ${sharedPaymentMode} payment, you need to pay {0.005 BTC} to our wallet (charge included)`,
+      timestamp: new Date(),
+    },
+  ];
+  console.log("Next is estimationAmount");
   addChatMessages(newMessages);
 };
 
@@ -241,7 +178,8 @@ export const displayHowToEstimation = async (
 export const displayNetwork = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
-  input: string
+  input: string,
+  sharedPaymentMode: string
 ) => {
   const parsedInput = input.trim();
   const newMessages: MessageType[] = [
@@ -264,7 +202,9 @@ export const displayNetwork = (
   ];
 
   console.log("Next is payOptions");
-  nextStep("payOptions");
+  sharedPaymentMode !== "request"
+    ? nextStep("payOptions")
+    : nextStep("continueToPay");
   addChatMessages(newMessages);
 };
 
@@ -275,7 +215,7 @@ export const displayPayIn = (
   sharedRate: string,
   sharedTicker: string,
   sharedAssetPrice: string,
-  sharedCrypto: string
+  sharedPaymentMode: string
 ) => {
   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
   const dollar = ["usdt"];
@@ -296,7 +236,7 @@ export const displayPayIn = (
   }
 
   const rangeMessage = (
-    <div style={{ margin: 0, padding: 0 }}>
+    <span style={{ margin: 0, padding: 0 }}>
       {sharedEstimateAsset.toLowerCase() === "naira" ? (
         <>
           Min. = {formatCurrency("20000", "NGN", "en-NG")}
@@ -318,24 +258,30 @@ export const displayPayIn = (
       ) : (
         ""
       )}
-    </div>
+    </span>
   );
+  console.log("Just to see what sharedPaymentMode is:", sharedPaymentMode);
+  const paymentMode =
+    sharedPaymentMode === "transferMoney" || sharedPaymentMode === "Gift"
+      ? "send"
+      : "request";
 
   const newMessages: MessageType[] = [
     {
       type: "incoming",
       content: (
-        <span>
-          Enter the amount you want to send in {sharedEstimateAsset} value
+        <>
+          Enter the amount you want to {paymentMode} in {sharedEstimateAsset}{" "}
+          value
           <br />
           <br />
           NOTE:
-          <b> {rangeMessage}.</b>
+          <b> {rangeMessage}</b>
           <br />
           0. Go back
           <br />
           00. Exit
-        </span>
+        </>
       ),
       timestamp: new Date(),
     },
@@ -387,6 +333,9 @@ export const displayCharge = async (
    * - input > 1,000,000 == NGN 1,500
    */
   if (sharedCrypto.toLowerCase() === "usdt") {
+    // if (sharedPaymentMode.toLowerCase() === 'request') {
+    // } else
+
     if (sharedEstimateAsset.toLowerCase() === "naira") {
       max = 2000000;
       min = 20000;
@@ -417,8 +366,7 @@ export const displayCharge = async (
         setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
         setSharedNairaCharge(
           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        ); // this is the charge in naira
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        );
         setSharedChargeForDB(
           `${formatCurrency(
             cryptoPaymentEstimate.toString(),
@@ -1151,6 +1099,308 @@ export const displayEnterPhone = (
   nextStep("sendPayment");
   addChatMessages(newMessages);
 };
+
+// // FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
+// export const displaySendPayment = async (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   nextStep: (step: string) => void,
+//   wallet: string,
+//   sharedCrypto: string,
+//   sharedPaymentAssetEstimate: string,
+//   sharedPaymentNairaEstimate: string,
+//   transactionID: number,
+//   sharedNetwork: string,
+//   sharedPaymentMode: string,
+//   giftID: number,
+//   lastAssignedTime?: Date
+// ): Promise<void> => {
+//   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+//   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+//   const isGift = sharedPaymentMode.toLowerCase() === "gift";
+//   const activeWallet = wallet;
+//   const allowedTime = 5;
+
+//   const CopyableText: React.FC<{
+//     text: string;
+//     label: string;
+//     isWallet?: boolean;
+//   }> = ({ text, label, isWallet = false }) => {
+//     const [isCopied, setIsCopied] = useState(false);
+//     const [isExpired, setIsExpired] = useState(false);
+//     const [timeLeft, setTimeLeft] = useState("");
+//     const [isDialogOpen, setIsDialogOpen] = useState(false);
+//     const [walletCopied, setWalletCopied] = useState(false);
+//     const [dialogMessage, setDialogMessage] = useState("");
+//     const buttonRef = useRef<HTMLButtonElement>(null);
+
+//     useEffect(() => {
+//       if (isWallet && lastAssignedTime) {
+//         const timer = setInterval(() => {
+//           const now = new Date().getTime();
+//           const distance =
+//             new Date(
+//               lastAssignedTime.getTime() + allowedTime * 60 * 1000
+//             ).getTime() - now;
+
+//           if (distance < 0) {
+//             clearInterval(timer);
+//             setTimeLeft("00:00");
+//             setIsExpired(true);
+//             if (!walletCopied) {
+//               setDialogMessage(
+//                 "This wallet is no longer available. Please start a new transaction."
+//               );
+//               setIsDialogOpen(true);
+//             }
+//           } else {
+//             const minutes = Math.floor(
+//               (distance % (1000 * 60 * 60)) / (1000 * 60)
+//             );
+//             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+//             const timeString = `${minutes.toString().padStart(2, "0")}:${seconds
+//               .toString()
+//               .padStart(2, "0")}`;
+//             setTimeLeft(timeString);
+
+//             if (timeString === "02:00" && walletCopied) {
+//               setDialogMessage("Have you sent the payment?");
+//               setIsDialogOpen(true);
+//             }
+//           }
+//         }, 1000);
+
+//         return () => clearInterval(timer);
+//       }
+//     }, [isWallet, lastAssignedTime, walletCopied]);
+
+//     const handleCopy = () => {
+//       navigator.clipboard.writeText(text).then(() => {
+//         setIsCopied(true);
+//         setTimeout(() => setIsCopied(false), 3000);
+//         if (isWallet) {
+//           setWalletCopied(true);
+//         }
+//       });
+//     };
+
+//     const handleConfirm = () => {
+//       setIsDialogOpen(false);
+//       addChatMessages([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               Thank you for your transaction, <br />
+//               Wait a little while and check if you have received your funds.
+//               <br />
+//               <br />
+//               1. Start another transaction
+//               <br />
+//               2. No, I want to complain
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       nextStep("paymentProcessing");
+//     };
+
+//     const handleClose = () => {
+//       setIsDialogOpen(false);
+//       addChatMessages([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               It appears you did not go through with the transaction again,{" "}
+//               <br />
+//               Thanks anyway for your time. Feel free to
+//               <br />
+//               <br />
+//               1. Start another transaction
+//               <br />
+//               2. Tell us what went wrong
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       nextStep("paymentProcessing");
+//     };
+
+//     const truncateText = (text: string) => {
+//       return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
+//     };
+
+//     const getButtonText = () => {
+//       if (dialogMessage === "Have you sent the payment?") {
+//         return "Yes, I've sent the payment";
+//       } else if (
+//         dialogMessage ===
+//         "This wallet is no longer available. Please start a new transaction."
+//       ) {
+//         return "Start a new transaction";
+//       } else {
+//         return "Okay, I understand";
+//       }
+//     };
+
+//     return (
+//       <div className="flex flex-col items-start space-y-2">
+//         {isWallet ? <span>{truncateText(text)}</span> : ""}
+
+//         <Button
+//           ref={buttonRef}
+//           onClick={handleCopy}
+//           variant="outline"
+//           size="sm"
+//           disabled={isWallet && isExpired}
+//         >
+//           {!isCopied ? (
+//             <>
+//               <Copy className="w-4 h-4 mr-2" />
+//               <span>Copy {label}</span>
+//             </>
+//           ) : (
+//             <>
+//               <Check className="w-4 h-4 mr-2" />
+//               <span>{label} Copied</span>
+//             </>
+//           )}
+//         </Button>
+//         {isWallet && (
+//           <span
+//             className={
+//               timeLeft < "02:01" || isExpired
+//                 ? "text-red-500 animate-pulse"
+//                 : "text-green-500"
+//             }
+//           >
+//             {isExpired ? "Wallet expired" : timeLeft}
+//           </span>
+//         )}
+//         <Dialog
+//           open={isDialogOpen}
+//           onOpenChange={(open) => {
+//             setIsDialogOpen(open);
+//             if (!open) {
+//               buttonRef.current?.focus();
+//             }
+//           }}
+//         >
+//           <DialogContent>
+//             <DialogHeader>
+//               <DialogTitle>Transaction Confirmation</DialogTitle>
+//               <DialogDescription>{dialogMessage}</DialogDescription>
+//             </DialogHeader>
+//             <DialogFooter>
+//               <Button
+//                 className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
+//                 onClick={() => {
+//                   if (walletCopied) {
+//                     handleConfirm();
+//                   } else {
+//                     handleClose();
+//                   }
+//                 }}
+//               >
+//                 {getButtonText()}
+//               </Button>
+//             </DialogFooter>
+//           </DialogContent>
+//         </Dialog>
+//       </div>
+//     );
+//   };
+
+//   const initialMessages: MessageType[] = [
+//     {
+//       type: "incoming",
+//       content: "Phone Number confirmed",
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           You are receiving{" "}
+//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+//           <br />
+//           Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+//           <CopyableText
+//             text={transactionID.toString()}
+//             label="Transaction ID"
+//           />
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Send <b>{paymentAsset}</b> to our wallet address. <br />
+//           <CopyableText
+//             text={`${assetPayment.toFixed(8)}`}
+//             label={`${sharedCrypto} amount`}
+//           />
+//           <br />
+//           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
+//           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
+//           <b>So we expect to receive not less than {paymentAsset}.</b>
+//           <br />
+//           Tap to copy or Scan the wallet address below 👇🏾
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Tap to copy 👉: <br />
+//           <br />
+//           <CopyableText
+//             text={activeWallet}
+//             label="Wallet address"
+//             isWallet={true}
+//           />
+//           <br />
+//           <b>This transaction expires in {allowedTime.toString()} minutes</b>
+//           <br />
+//           <b>
+//             This wallet address is only available for {allowedTime.toString()}{" "}
+//             minutes
+//           </b>
+//           <br />
+//           There would be a pop up later on this page,
+//           <br />
+//           But if you miss it, you can <b>say 'Hi'</b> to start a new transaction
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//   ];
+
+//   if (isGift) {
+//     initialMessages[1] = {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           You are sending{" "}
+//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+//           <br />
+//           Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+//           <CopyableText text={giftID.toString()} label="Gift ID" />
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     };
+//   }
+
+//   // Send initial messages
+//   addChatMessages(initialMessages);
+// };
 
 // FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
 export const displaySendPayment = async (

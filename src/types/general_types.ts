@@ -53,12 +53,14 @@ export interface userData {
   bank_name?: string | null;
   receiver_name?: string | null;
   receiver_amount?: string | null;
+  receiver_phoneNumber?: string | null;
   crypto_sent?: string | null;
   wallet_address?: string | null;
   Date?: string | null;
   status?: string | null;
   customer_phoneNumber?: string | null;
   transac_id?: string | null;
+  request_id?: string | null;
   settle_walletLink?: string | null;
   chat_id?: string | null;
   current_rate?: string | null;
@@ -68,90 +70,17 @@ export interface userData {
   gift_status?: string | null;
   gift_chatID?: string | null;
   asset_price?: string | null;
-}
-export interface SheetData {
-  "Gift ID": string;
-  "Account Name": string;
-  "Account Number": string;
-  "Bank Name": string;
-  "Payment Amount": string;
-}
-export interface erc20TrxData {
-  blockHash: string;
-  blockNumber: string;
-  confirmations: string;
-  contractAddress: string;
-  cumulativeGasUsed: string;
-  from: string;
-  functionName: string;
-  gas: string;
-  gasPrice: string;
-  gasUsed: string;
-  hash: string;
-  input: string;
-  isError: string;
-  methodId: string;
-  nonce: string;
-  timeStamp: string;
-  to: string;
-  transactionIndex: string;
-  txreceipt_status: string;
-  value: string;
+  ref_code?: string | null;
 }
 
-//ETHERSCAN RESPONSE
-export interface EtherscanResponse {
-  status: string;
-  message: string;
-  result: erc20TrxData[];
-}
-
-export interface BscTransaction {
-  blockNumber: string;
-  timeStamp: string;
-  hash: string;
-  nonce: string;
-  blockHash: string;
-  from: string;
-  contractAddress: string;
-  to: string;
-  value: string;
-  tokenName: string;
-  tokenSymbol: string;
-  tokenDecimal: string;
-  transactionIndex: string;
-  gas: string;
-  gasPrice: string;
-  gasUsed: string;
-  cumulativeGasUsed: string;
-  input: string;
-  confirmations: string;
-}
-
-export interface BscScanResponse {
-  status: string;
-  message: string;
-  result: BscTransaction[];
-}
-
-// BTC WALLET FORM VENDOR TABLE WALLET DATA
-export interface btcWalletData {
-  // address: string;
-  // private_key: string;
-  bitcoin_wallet: string;
-  bitcoin_privateKey: string;
-}
-
-// TRC20 WALLET FORM VENDOR TABLE WALLET DATA
-export interface trcWalletData {
-  tron_wallet: string;
-  tron_privateKey: string;
-}
-
-// ERC20 WALLET FORM VENDOR TABLE WALLET DATA
-export interface ercWalletData {
-  eth_bnb_wallet: string;
-  eth_bnb_privateKey: string;
+export interface ReferralUser {
+  id: number;
+  name: string;
+  ref_code: string;
+  responsibility: string;
+  category: string;
+  commission: string;
+  phone_number: string;
 }
 
 // BANK DATA FROM NUBAN
@@ -180,17 +109,6 @@ export interface UserBankData {
   receiver_name?: string;
 }
 
-export interface PayoutData {
-  accountNumber: string | undefined;
-  accountBank: string | undefined;
-  bankName: string | undefined;
-  accountName: string | undefined;
-  amount: string | undefined;
-  narration: string | undefined;
-  //  "BwB quiz price",
-}
-
-// SHARED STATE VARIABLE FROM SHARED CONTEXT
 export interface SharedStateContextProps {
   sharedState: string;
   setSharedState: React.Dispatch<React.SetStateAction<string>>;
@@ -253,3 +171,100 @@ export interface ChatBotProps {
   isMobile: boolean;
   onClose: () => void;
 }
+
+// export interface SheetData {
+//   "Gift ID": string;
+//   "Account Name": string;
+//   "Account Number": string;
+//   "Bank Name": string;
+//   "Payment Amount": string;
+// }
+// export interface erc20TrxData {
+//   blockHash: string;
+//   blockNumber: string;
+//   confirmations: string;
+//   contractAddress: string;
+//   cumulativeGasUsed: string;
+//   from: string;
+//   functionName: string;
+//   gas: string;
+//   gasPrice: string;
+//   gasUsed: string;
+//   hash: string;
+//   input: string;
+//   isError: string;
+//   methodId: string;
+//   nonce: string;
+//   timeStamp: string;
+//   to: string;
+//   transactionIndex: string;
+//   txreceipt_status: string;
+//   value: string;
+// }
+
+// //ETHERSCAN RESPONSE
+// export interface EtherscanResponse {
+//   status: string;
+//   message: string;
+//   result: erc20TrxData[];
+// }
+
+// export interface BscTransaction {
+//   blockNumber: string;
+//   timeStamp: string;
+//   hash: string;
+//   nonce: string;
+//   blockHash: string;
+//   from: string;
+//   contractAddress: string;
+//   to: string;
+//   value: string;
+//   tokenName: string;
+//   tokenSymbol: string;
+//   tokenDecimal: string;
+//   transactionIndex: string;
+//   gas: string;
+//   gasPrice: string;
+//   gasUsed: string;
+//   cumulativeGasUsed: string;
+//   input: string;
+//   confirmations: string;
+// }
+
+// export interface BscScanResponse {
+//   status: string;
+//   message: string;
+//   result: BscTransaction[];
+// }
+
+// // BTC WALLET FORM VENDOR TABLE WALLET DATA
+// export interface btcWalletData {
+//   // address: string;
+//   // private_key: string;
+//   bitcoin_wallet: string;
+//   bitcoin_privateKey: string;
+// }
+
+// // TRC20 WALLET FORM VENDOR TABLE WALLET DATA
+// export interface trcWalletData {
+//   tron_wallet: string;
+//   tron_privateKey: string;
+// }
+
+// // ERC20 WALLET FORM VENDOR TABLE WALLET DATA
+// export interface ercWalletData {
+//   eth_bnb_wallet: string;
+//   eth_bnb_privateKey: string;
+// }
+
+// export interface PayoutData {
+//   accountNumber: string | undefined;
+//   accountBank: string | undefined;
+//   bankName: string | undefined;
+//   accountName: string | undefined;
+//   amount: string | undefined;
+//   narration: string | undefined;
+//   //  "BwB quiz price",
+// }
+
+// SHARED STATE VARIABLE FROM SHARED CONTEXT
