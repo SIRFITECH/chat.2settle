@@ -4,8 +4,9 @@ export const formatCurrency = (
   locale: string = "en-US"
 ): string => {
   const number = parseFloat(value);
-
+  console.log('this is the value:', value)
   if (isNaN(number)) {
+      console.log('what is the number:', number)
     throw new Error("Invalid number");
   }
 

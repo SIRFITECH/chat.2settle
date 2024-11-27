@@ -1365,7 +1365,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             sharedCrypto
           );
         })();
-      } else {
+      } else {  
+        // chatInput.trim()
+        // CLEAN THE STRING HERE
+           chatInput = chatInput.replace(/[^0-9.]/g, '');
         if (Number(chatInput) > 20000 && Number(chatInput) < 2000000) {
           setSharedPaymentNairaEstimate(chatInput);
           displaySearchBank(addChatMessages, nextStep);
@@ -1567,8 +1570,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } else if (chatInput !== "0") {
       if (chatInput === "1" || chatInput === "2") {
         displayEnterPhone(addChatMessages, nextStep);
-      } else if (sharedPaymentMode === "request") {
-        displayEnterPhone(addChatMessages, nextStep);
       } else {
         let bank_name = "";
         let account_name = "";
@@ -1748,7 +1749,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     activeWallet?: string,
     lastAssignedTime?: Date
   ) => {
-    // one last che is for USER WANT TO PAY REQUEST
+    // one last check is for USER WANT TO PAY REQUEST
     try {
       if (isGift) {
         // UPDATE THE USER GIFT PAYMENT DATA
@@ -1911,6 +1912,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         console.log("User data created", activeWallet);
 
         setLoading(false);
+        console.log('testing for gift:', sharedPaymentNairaEstimate)
         // let's save the transaction details to db
         const userDate = {
           crypto: sharedCrypto,
@@ -1956,16 +1958,25 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
-        console.log("USER WANTS TO REQUEST PAYMENT");
+        console.log("USER WANTS TO DO A REQUEST TRANSACTION");
+        if (sharedGiftId) {
+          const requestStatus = (await checkRequestExists(sharedGiftId)).exists;
+          if (requestStatus) {
+              
+        }
+        }
+       
 
+      
         // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
         const transactionID = generateTransactionId();
         const requestID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
         const date = getFormattedDateTime();
-
+        
         setLoading(false);
+        console.log('testing for request crypto:', sharedPaymentNairaEstimate)
         // let's save the transaction details to db
         const userDate = {
           crypto: null,
@@ -1986,8 +1997,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           crypto_sent: null,
           wallet_address: null,
           Date: date,
-          status: "Successful",
-          customer_phoneNumber: formatPhoneNumber(phoneNumber),
+          status: "Processing",
+          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
           settle_walletLink: "",
           chat_id: chatId,
@@ -1995,11 +2006,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: "",
-          asset_price:
-            sharedCrypto.toLowerCase() != "usdt"
-              ? formatCurrency(sharedAssetPrice, "USD")
-              : formatCurrency(sharedRate, "NGN", "en-NG"),
-          ref_code: code,
         };
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
@@ -2009,6 +2015,24 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         });
 
         console.log("request payment data created", userDate);
+        // nextStep("start");
+        // helloMenu("hi");
+           displaySendPayment(
+          addChatMessages,
+          nextStep,
+          activeWallet ?? "",
+          sharedCrypto,
+          sharedPaymentAssetEstimate,
+          sharedPaymentNairaEstimate,
+          transactionID,
+          sharedNetwork,
+          sharedPaymentMode,
+          requestID,
+          lastAssignedTime
+           );
+        setLoading(false);
+        nextStep('start')
+        helloMenu('hi')
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
@@ -2042,6 +2066,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         console.log("sharedAssetPrice is", sharedAssetPrice);
         console.log("sharedRate is", sharedRate);
         setLoading(false);
+        console.log('testing for transact crypto:', sharedPaymentNairaEstimate)
         // let's save the transaction details to db
         const userDate = {
           crypto: sharedCrypto,
