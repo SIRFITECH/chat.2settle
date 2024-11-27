@@ -294,8 +294,10 @@ export const displayCharge = async (
   const upperDollar = 2000000 / rate;
   const lowerDollar = 20000 / rate;
   const assetPrice = parseFloat(sharedAssetPrice);
-  const parsedInput = input.replace(/[^\d.]/g, "");
-  // input.trim();
+  const parsedInput = input.trim().replace(/[^\d.]/g, "");
+  //  input.trim();
+  console.log('this is the input massive baby..', parsedInput)
+  console.log('this is the raw input', parsedInput)
   const dollarValue = parseFloat(parsedInput) * rate;
   const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
   let charge = 0;
@@ -351,7 +353,7 @@ export const displayCharge = async (
             "en-NG"
           )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
         );
-
+      console.log("Lets see what the setSharedPaymentNairaEstimate is for naira", parsedInput)
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -437,6 +439,9 @@ export const displayCharge = async (
             "en-NG"
           )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
         );
+
+        console.log("Lets see what the setSharedPaymentNairaEstimate is for dollar", parsedInput)
+
 
         const newMessages: MessageType[] = [
           {
@@ -524,6 +529,7 @@ export const displayCharge = async (
             "en-NG"
           )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
         );
+        console.log("Lets see what the setSharedPaymentNairaEstimate is for crypto", parsedInput)
 
         const newMessages: MessageType[] = [
           {
@@ -1093,10 +1099,11 @@ export const displaySendPayment = async (
 ): Promise<void> => {
   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
-  const isGift = sharedPaymentMode.toLowerCase() === "gift";
+  const isGift = sharedPaymentMode.toLowerCase() === "gift" ;
+  const request = sharedPaymentMode.toLowerCase() === "request";
   const activeWallet = wallet;
   const allowedTime = 5;
-
+  console.log(isGift)
   const CopyableText: React.FC<{
     text: string;
     label: string;
@@ -1289,8 +1296,31 @@ export const displaySendPayment = async (
       </div>
     );
   };
-
-  const initialMessages: MessageType[] = [
+  console.log('request working mad.',request)
+  console.log('this is working......',sharedPaymentNairaEstimate)
+  const initialMessages: MessageType[] =  request ?[
+    {
+      type: "incoming",
+      content: "Phone Number confirmed",
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          You are receiving{" "}
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+          <br />
+          Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+          <CopyableText
+            text={transactionID.toString()}
+            label="Transaction ID"
+          />
+        </span>
+      ),
+      timestamp: new Date(),
+    },
+  ]: [
     {
       type: "incoming",
       content: "Phone Number confirmed",
@@ -1369,6 +1399,21 @@ export const displaySendPayment = async (
           <br />
           Tap to copy Gift ID 👇🏾 : {giftID.toString()}
           <CopyableText text={giftID.toString()} label="Gift ID" />
+        </span>
+      ),
+      timestamp: new Date(),
+    };
+  } else if (request) {
+     console.log('request working........')
+    initialMessages[1] = {
+      type: "incoming",
+      content: (
+        <span>
+          You are recieving{" "}
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+          <br />
+          Tap to copy REQUEST ID 👇🏾 : {giftID.toString()}
+          <CopyableText text={giftID.toString()} label="REQUEST ID" />
         </span>
       ),
       timestamp: new Date(),
