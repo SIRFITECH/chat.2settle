@@ -205,4 +205,4 @@ export default function Body() {
     </div>
   );
 }
-// http://localhost:3000?ref=mosnyik
+// http://localhost:3000/?ref=mosnyik&category=amb

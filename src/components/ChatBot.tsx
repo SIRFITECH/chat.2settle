@@ -858,6 +858,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       );
       setSharedEstimateAsset("Naira");
       nextStep("enterBankSearchWord");
+
       setSharedPaymentMode("request");
     } else if (sharedPaymentMode.toLowerCase() === "request") {
       displayTransferMoney(addChatMessages);
@@ -1096,21 +1097,28 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
-      displayHowToEstimation(
-        addChatMessages,
-        "USDT (BEP20)",
-        sharedPaymentMode
-      );
-      displayHowToEstimation(
-        addChatMessages,
-        "USDT (BEP20)",
-        sharedPaymentMode
-      );
+      // sharedGiftId
+
+      console.log("This is the requestID:", sharedGiftId);
+      sharedPaymentMode.toLowerCase() === "request"
+        ? displayRequestPaymentSummary(
+            addChatMessages,
+            "",
+            sharedPaymentMode,
+            "738920"
+          )
+        : displayHowToEstimation(
+            addChatMessages,
+            "USDT (BEP20)",
+            sharedPaymentMode
+          );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
-      nextStep("payOptions");
-      nextStep("payOptions");
+      console.log("sharedPaymentMode:", sharedPaymentMode);
+      // sharedPaymentMode.toLowerCase() === "request"
+      //   ? nextStep("charge")
+      //   : nextStep("payOptions");
     } else {
       addChatMessages([
         {
@@ -1895,6 +1903,27 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         setSharedGiftId(giftID.toString());
         window.localStorage.setItem("giftID", giftID.toString());
 
+        // Add validation
+        if (
+          !sharedPaymentAssetEstimate ||
+          isNaN(parseFloat(sharedPaymentAssetEstimate))
+        ) {
+          console.error(
+            "Invalid sharedPaymentAssetEstimate:",
+            sharedPaymentAssetEstimate
+          );
+          setLoading(false);
+          addChatMessages([
+            {
+              type: "incoming",
+              content:
+                "There was an error calculating the payment amount. Please try again.",
+              timestamp: new Date(),
+            },
+          ]);
+          setLoading(false);
+          return;
+        }
         const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
@@ -1953,7 +1982,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             sharedCrypto.toLowerCase() != "usdt"
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
-          ref_code: code,
         };
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
@@ -2000,8 +2028,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           bank_name: bankData.bank_name,
           receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
-            // sharedPaymentNairaEstimate,
-            "200000",
+            sharedPaymentNairaEstimate,
+            // "200000",
             "NGN",
             "en-NG"
           ),
@@ -2010,6 +2038,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           Date: date,
           status: "Processing",
           receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+          customer_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
           request_id: requestID.toString(),
           settle_walletLink: "",
@@ -2022,7 +2051,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             sharedCrypto.toLowerCase() != "usdt"
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
-          ref_code: code,
         };
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
@@ -2061,6 +2089,27 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         const transactionID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
+        if (
+          !sharedPaymentAssetEstimate ||
+          isNaN(parseFloat(sharedPaymentAssetEstimate))
+        ) {
+          console.error(
+            "Invalid sharedPaymentAssetEstimate:",
+            sharedPaymentAssetEstimate
+          );
+          setLoading(false);
+          addChatMessages([
+            {
+              type: "incoming",
+              content:
+                "There was an error calculating the payment amount. Please try again.",
+              timestamp: new Date(),
+            },
+          ]);
+          setLoading(false);
+          return;
+        }
+
         const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
@@ -2129,7 +2178,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             sharedCrypto.toLowerCase() != "usdt"
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
-          ref_code: code,
         };
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
@@ -3029,6 +3077,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
       case "sendPayment":
         console.log("Current step is sendPayment ");
+        console.log(
+          `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+        );
         await handleCryptoPayment(chatInput);
         setChatInput("");
         break;
