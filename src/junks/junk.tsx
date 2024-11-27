@@ -891,6 +891,7 @@ export default ChatComponent;
   //   }
   // };
 
+<<<<<<< HEAD
   // // HANDLE NETWORK FOR DOLLAR TRANSFER
   // const handleNetwork = async (chatInput: string) => {
   //   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -961,3 +962,6 @@ export default ChatComponent;
   //     ]);
   //   }
   // };
+=======
+
+>>>>>>> 3daf55b (Buggy code to add url for referal)
