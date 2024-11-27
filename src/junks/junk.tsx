@@ -892,6 +892,9 @@ export default ChatComponent;
   // };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1d0c983 (Bug addressed)
   // // HANDLE NETWORK FOR DOLLAR TRANSFER
   // const handleNetwork = async (chatInput: string) => {
   //   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -961,7 +964,11 @@ export default ChatComponent;
   //       },
   //     ]);
   //   }
+<<<<<<< HEAD
   // };
 =======
 
 >>>>>>> 3daf55b (Buggy code to add url for referal)
+=======
+  // };
+>>>>>>> 1d0c983 (Bug addressed)

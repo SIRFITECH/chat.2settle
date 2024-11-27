@@ -32,7 +32,6 @@ const Home: NextPage = () => {
               { shallow: true }
             );
           } else {
-<<<<<<< HEAD
             // Remove the referral parameters from the URL either way
             const { ref, ...restQuery } = router.query;
             await router.replace(
@@ -44,8 +43,6 @@ const Home: NextPage = () => {
               undefined,
               { shallow: true }
             );
-=======
->>>>>>> 3daf55b (Buggy code to add url for referal)
             console.warn("Invalid referral data received");
           }
         } catch (error) {

@@ -1101,9 +1101,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         "USDT (BEP20)",
         sharedPaymentMode
       );
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (BEP20)",
+        sharedPaymentMode
+      );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
+      nextStep("payOptions");
       nextStep("payOptions");
     } else {
       addChatMessages([
@@ -1955,6 +1961,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           localStorage.removeItem("referralCode");
           localStorage.removeItem("referralCategory");
         });
+        await createTransaction(userDate).then(() => {
+          // clear the ref code from the cleint
+
+          localStorage.removeItem("referralCode");
+          localStorage.removeItem("referralCategory");
+        });
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
@@ -2006,11 +2018,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           merchant_rate: merchantRate,
           profit_rate: profitRate,
           name: "",
-          // asset_price:
-          //   sharedCrypto.toLowerCase() != "usdt"
-          //     ? formatCurrency(sharedAssetPrice, "USD")
-          //     : formatCurrency(sharedRate, "NGN", "en-NG"),
+          asset_price:
+            sharedCrypto.toLowerCase() != "usdt"
+              ? formatCurrency(sharedAssetPrice, "USD")
+              : formatCurrency(sharedRate, "NGN", "en-NG"),
+          ref_code: code,
         };
+        await createTransaction(userDate).then(() => {
+          // clear the ref code from the cleint
+
+          localStorage.removeItem("referralCode");
+          localStorage.removeItem("referralCategory");
+        });
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
 
@@ -2069,6 +2088,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         );
         console.log("sharedAssetPrice is", sharedAssetPrice);
         console.log("sharedRate is", sharedRate);
+        console.log("The ref code for this transaction is", code);
+        console.log(
+          "sharedPaymentNairaEstimate is",
+          sharedPaymentNairaEstimate
+        );
+        console.log("sharedAssetPrice is", sharedAssetPrice);
+        console.log("sharedRate is", sharedRate);
         setLoading(false);
         console.log("testing for transact crypto:", sharedPaymentNairaEstimate);
         // let's save the transaction details to db
@@ -2105,6 +2131,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               : formatCurrency(sharedRate, "NGN", "en-NG"),
           ref_code: code,
         };
+        await createTransaction(userDate).then(() => {
+          // clear the ref code from the cleint
+
+          localStorage.removeItem("referralCode");
+          localStorage.removeItem("referralCategory");
+        });
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
 
