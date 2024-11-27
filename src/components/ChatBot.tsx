@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
 import Loader from "./Loader";
@@ -450,35 +456,71 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     initializeChatId();
   }, [chatId]);
 
+  // const fetchData = async () => {
+  //   try {
+  //     const fetchedRate = await fetchRate();
+  //     const fetchedMerchantRate = await fetchMerchantRate();
+  //     const fetchedProfitRate = await fetchProfitRate();
+  //     setRate(fetchedRate.toString());
+  //     const formattedRate = formatCurrency(
+  //       fetchedRate.toString(),
+  //       "NGN",
+  //       "en-NG"
+  //     );
+  //     const formattedMerchantRate = formatCurrency(
+  //       fetchedMerchantRate.toString(),
+  //       "NGN",
+  //       "en-NG"
+  //     );
+  //     const formattedProfitRate = formatCurrency(
+  //       fetchedProfitRate.toString(),
+  //       "NGN",
+  //       "en-NG"
+  //     );
+
+  //     console.log("formattedRate is :", formattedRate);
+  //     setFormattedRate(formattedRate);
+  //     setMerchantRate(formattedMerchantRate);
+  //     setProfitRate(formattedProfitRate);
+  //     setSharedRate(fetchedRate.toString());
+  //   } catch (error) {
+  //     console.error("Failed to fetch rate:", error);
+  //   }
+  // };
+  // Replace multiple sequential API calls with Promise.all
   const fetchData = async () => {
     try {
-      const fetchedRate = await fetchRate();
-      const fetchedMerchantRate = await fetchMerchantRate();
-      const fetchedProfitRate = await fetchProfitRate();
-      setRate(fetchedRate.toString());
-      const formattedRate = formatCurrency(
-        fetchedRate.toString(),
-        "NGN",
-        "en-NG"
-      );
-      const formattedMerchantRate = formatCurrency(
-        fetchedMerchantRate.toString(),
-        "NGN",
-        "en-NG"
-      );
-      const formattedProfitRate = formatCurrency(
-        fetchedProfitRate.toString(),
-        "NGN",
-        "en-NG"
-      );
+      const [fetchedRate, fetchedMerchantRate, fetchedProfitRate] =
+        await Promise.all([
+          fetchRate(),
+          fetchMerchantRate(),
+          fetchProfitRate(),
+        ]);
 
-      console.log("formattedRate is :", formattedRate);
-      setFormattedRate(formattedRate);
-      setMerchantRate(formattedMerchantRate);
-      setProfitRate(formattedProfitRate);
-      setSharedRate(fetchedRate.toString());
+      // Batch state updates
+      const updates = {
+        rate: fetchedRate.toString(),
+        formattedRate: formatCurrency(fetchedRate.toString(), "NGN", "en-NG"),
+        merchantRate: formatCurrency(
+          fetchedMerchantRate.toString(),
+          "NGN",
+          "en-NG"
+        ),
+        profitRate: formatCurrency(
+          fetchedProfitRate.toString(),
+          "NGN",
+          "en-NG"
+        ),
+      };
+
+      // Update all states at once
+      setRate(updates.rate);
+      setFormattedRate(updates.formattedRate);
+      setMerchantRate(updates.merchantRate);
+      setProfitRate(updates.profitRate);
+      setSharedRate(updates.rate);
     } catch (error) {
-      console.error("Failed to fetch rate:", error);
+      console.error("Failed to fetch rates:", error);
     }
   };
 
@@ -3254,15 +3296,28 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     }
   }, [chatMessages]);
 
-  const groupedMessages = chatMessages.reduce((groups, message) => {
-    const date = new Date(message.timestamp);
-    const dateString = format(date, "yyyy-MM-dd");
-    if (!groups[dateString]) {
-      groups[dateString] = [];
-    }
-    groups[dateString].push(message);
-    return groups;
-  }, {} as Record<string, MessageType[]>);
+  // const groupedMessages = chatMessages.reduce((groups, message) => {
+  //   const date = new Date(message.timestamp);
+  //   const dateString = format(date, "yyyy-MM-dd");
+  //   if (!groups[dateString]) {
+  //     groups[dateString] = [];
+  //   }
+  //   groups[dateString].push(message);
+  //   return groups;
+  // }, {} as Record<string, MessageType[]>);
+
+  const groupedMessages = useMemo(
+    () =>
+      chatMessages.reduce((groups, message) => {
+        const dateString = format(new Date(message.timestamp), "yyyy-MM-dd");
+        if (!groups[dateString]) {
+          groups[dateString] = [];
+        }
+        groups[dateString].push(message);
+        return groups;
+      }, {} as Record<string, MessageType[]>),
+    [chatMessages]
+  );
 
   // CHATBOT
   return isMobile ? (
