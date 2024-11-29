@@ -289,585 +289,6 @@ export const displayPayIn = (
 
   addChatMessages(newMessages);
 };
-
-// DISPLAY USSER CHARGE
-export const displayCharge = async (
-  addChatMessages: (messages: MessageType[]) => void,
-  nextStep: (step: string) => void,
-  input: string,
-  sharedEstimateAsset: string,
-  sharedRate: string,
-  sharedAssetPrice: string,
-  sharedCrypto: string,
-  setSharedCharge: React.Dispatch<React.SetStateAction<string>>,
-  setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
-  setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
-  setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
-  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
-  sharedPaymentMode: string
-) => {
-  const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
-  const dollar = ["usdt"];
-  const isCrypto = cryptocurrencies.includes(sharedEstimateAsset.toLowerCase());
-  const isDollar = dollar.includes(sharedEstimateAsset.toLowerCase());
-  const rate = parseFloat(sharedRate);
-  const upperDollar = 2000000 / rate;
-  const lowerDollar = 20000 / rate;
-  const assetPrice = parseFloat(sharedAssetPrice);
-  const parsedInput = input.replace(/[^\d.]/g, "");
-  // input.trim();
-  const dollarValue = parseFloat(parsedInput) * rate;
-  const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
-  let charge = 0;
-
-  let max: number;
-  let min: number;
-
-  const errorMsg =
-    " Invalid amount, try again with an amount within the specified range";
-
-  /**
-   * Remember charges include
-   * - input < NGN 100,000 = NGN 500
-   * - NGN 100,000 < input > NGN 1,000,000 = NGN 1,000
-   * - input > 1,000,000 == NGN 1,500
-   */
-  if (sharedCrypto.toLowerCase() === "usdt") {
-    // if (sharedPaymentMode.toLowerCase() === 'request') {
-    // } else
-
-    if (sharedEstimateAsset.toLowerCase() === "naira") {
-      max = 2000000;
-      min = 20000;
-      const nairaValue = parseFloat(parsedInput);
-      if (nairaValue <= max && nairaValue >= min) {
-        var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
-
-        charge =
-          nairaValue <= 100000
-            ? 500
-            : nairaValue > 100000 && nairaValue <= 1000000
-            ? 1000
-            : 1500;
-
-        const cryptoCharge =
-          charge === 500
-            ? basic
-            : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        setSharedChargeForDB(
-          `${formatCurrency(
-            cryptoPaymentEstimate.toString(),
-            "USD",
-            "en-NG"
-          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                Charge:
-                <b>
-                  {formatCurrency(cryptoCharge.toFixed(9), "USD")}=
-                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
-                </b>
-                <br />
-                1. Charge from the amount
-                <br />
-                2. Add charges to the amount
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
-        console.log("Next is enterBankSearchWord");
-        nextStep("enterBankSearchWord");
-        addChatMessages(newMessages);
-      } else {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                {errorMsg}
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-    } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
-      max = upperDollar;
-      min = lowerDollar;
-      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
-        charge =
-          dollarValue <= 100000
-            ? 500
-            : dollarValue > 100000 && dollarValue <= 1000000
-            ? 1000
-            : 1500;
-
-        var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
-        const cryptoCharge =
-          charge === 500
-            ? basic
-            : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
-
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
-        const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${formatCurrency(
-            cryptoPaymentEstimate.toString(),
-            "USD",
-            "en-NG"
-          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                Charge:
-                <b>
-                  {formatCurrency(cryptoCharge.toFixed(9).toString(), "USD")}=
-                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
-                </b>
-                <br />
-                1. Charge from the amount
-                <br />
-                2. Add charges to the amount
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
-        console.log("Next is enterBankSearchWord");
-        nextStep("enterBankSearchWord");
-        addChatMessages(newMessages);
-      } else {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Invalid amount, try again within range
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-    } else {
-      max = upperDollar / rate;
-      min = lowerDollar / rate;
-      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
-        charge =
-          cryptoValue <= 100000
-            ? 500
-            : cryptoValue > 100000 && cryptoValue <= 1000000
-            ? 1000
-            : 1500;
-
-        var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
-        const cryptoCharge =
-          charge === 500
-            ? basic
-            : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
-
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
-        const nairaPaymentEstimate =
-          parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${formatCurrency(
-            cryptoPaymentEstimate.toString(),
-            "USD",
-            "en-NG"
-          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                Charge:
-                <b>
-                  {formatCurrency(cryptoCharge.toFixed(9), "NGN", "en-NG")}=
-                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
-                </b>
-                <br />
-                1. Charge from the amount
-                <br />
-                2. Add charges to the amount
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
-        console.log("Next is enterBankSearchWord");
-        nextStep("enterBankSearchWord");
-        addChatMessages(newMessages);
-      } else {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Invalid amount, try again within range
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-    }
-  } else {
-    if (sharedEstimateAsset.toLowerCase() === "naira") {
-      max = 2000000;
-      min = 20000;
-      const nairaValue = parseFloat(parsedInput);
-      if (nairaValue <= max && nairaValue >= min) {
-        var basic = 500 / rate / assetPrice;
-        var median = 1000 / rate / assetPrice;
-        var premium = 1500 / rate / assetPrice;
-
-        charge =
-          nairaValue <= 100000
-            ? 500
-            : nairaValue > 100000 && nairaValue <= 1000000
-            ? 1000
-            : 1500;
-
-        const cryptoCharge =
-          charge === 500
-            ? basic
-            : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate =
-          parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
-            charge.toString(),
-            "NGN",
-            "en-NG"
-          )}`
-        );
-
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                Charge:
-                <b>
-                  {cryptoCharge.toFixed(9)}
-                  {sharedCrypto} =
-                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
-                </b>
-                <br />
-                1. Charge from the amount
-                <br />
-                2. Add charges to the amount
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
-        console.log("Next is enterBankSearchWord");
-        sharedPaymentMode.toLowerCase() === "gift"
-          ? nextStep("enterPhone")
-          : nextStep("enterBankSearchWord");
-        addChatMessages(newMessages);
-      } else {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                {errorMsg}
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-    } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
-      max = upperDollar;
-      min = lowerDollar;
-      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
-        charge =
-          dollarValue <= 100000
-            ? 500
-            : dollarValue > 100000 && dollarValue <= 1000000
-            ? 1000
-            : 1500;
-
-        var basic = 500 / rate / assetPrice;
-        var median = 1000 / rate / assetPrice;
-        var premium = 1500 / rate / assetPrice;
-
-        const cryptoCharge =
-          charge === 500
-            ? basic
-            : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
-
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
-        const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
-            charge.toString(),
-            "NGN",
-            "en-NG"
-          )}`
-        );
-
-        console.log("crypto charge in dollar", cryptoCharge.toFixed(9));
-
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                Charge:
-                <b>
-                  {cryptoCharge.toFixed(9)}
-                  {sharedCrypto}=
-                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
-                </b>
-                <br />
-                1. Charge from the amount
-                <br />
-                2. Add charges to the amount
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
-        console.log("Next is enterBankSearchWord");
-        nextStep("enterBankSearchWord");
-        addChatMessages(newMessages);
-      } else {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                {errorMsg}
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-    } else {
-      max = upperDollar / assetPrice;
-      min = lowerDollar / assetPrice;
-      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
-        charge =
-          cryptoValue <= 100000
-            ? 500
-            : cryptoValue > 100000 && cryptoValue <= 1000000
-            ? 1000
-            : 1500;
-
-        var basic = 500 / rate / assetPrice;
-        var median = 1000 / rate / assetPrice;
-        var premium = 1500 / rate / assetPrice;
-        const cryptoCharge =
-          charge === 500
-            ? basic
-            : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
-
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
-        const nairaPaymentEstimate =
-          parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
-            charge.toString(),
-            "NGN",
-            "en-NG"
-          )}`
-        );
-
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Here is your menu:
-                <br />
-                <br />
-                Charge:
-                <b>
-                  {cryptoCharge.toFixed(9)}
-                  {sharedCrypto} =
-                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
-                </b>
-                <br />
-                1. Charge from the amount
-                <br />
-                2. Add charges to the amount
-                <br />
-                0. Go back
-                <br />
-                00. Exit
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-
-        console.log("Next is enterBankSearchWord");
-        nextStep("enterBankSearchWord");
-        addChatMessages(newMessages);
-      } else {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                {errorMsg}
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-    }
-  }
-};
-
 // ALLOW USER ENTER BANK SEARCH CRITERIAL
 export const displaySearchBank = async (
   addChatMessages: (messages: MessageType[]) => void,
@@ -1625,42 +1046,15 @@ export const displaySendPayment = async (
       type: "incoming",
       content: (
         <span>
-          You are receiving{" "}
-          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
-          <br />
-          Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
-          <CopyableText
-            text={transactionID.toString()}
-            label="Transaction ID"
-          />
-        </span>
-      ),
-      timestamp: new Date(),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Send <b>{paymentAsset}</b> to our wallet address. <br />
+          Note: You are sending{" "}
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
+          <b>{paymentAsset}</b> only to 2Settle wallet address <br />
           <CopyableText
             text={`${assetPayment.toFixed(8)}`}
             label={`${sharedCrypto} amount`}
           />
           <br />
-          Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
-          {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
-          <b>So we expect to receive not less than {paymentAsset}.</b>
-          <br />
-          Tap to copy or Scan the wallet address below 👇🏾
-        </span>
-      ),
-      timestamp: new Date(),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Tap to copy 👉: <br />
+          Tap to copy 👇🏾: <br />
           <br />
           <CopyableText
             text={activeWallet}
@@ -1668,18 +1062,22 @@ export const displaySendPayment = async (
             isWallet={true}
           />
           <br />
-          <b>This transaction expires in {allowedTime.toString()} minutes</b>
+          Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+          <CopyableText
+            text={transactionID.toString()}
+            label="Transaction ID"
+          />{" "}
           <br />
-          <b>
-            This wallet address is only available for {allowedTime.toString()}{" "}
-            minutes
-          </b>
-          <br />
-          There would be a pop up later on this page,
-          <br />
-          But if you miss it, you can <b>say 'Hi'</b> to start a new transaction
+          Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+          include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
+          address expires in {allowedTime.toString()} minutes. <br />
         </span>
       ),
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: "Wait for the pop-up. If missed, say 'hi' to restart. ",
       timestamp: new Date(),
     },
   ];
@@ -1699,7 +1097,6 @@ export const displaySendPayment = async (
       timestamp: new Date(),
     };
   }
-
   // Send initial messages
   addChatMessages(initialMessages);
 };
@@ -1779,3 +1176,811 @@ export const displayTransactionProcessing = (
   nextStep("start");
   addChatMessages(newMessages);
 };
+
+// DISPLAY USSER CHARGE
+export const displayCharge = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void,
+  input: string,
+  sharedEstimateAsset: string,
+  sharedRate: string,
+  sharedAssetPrice: string,
+  sharedCrypto: string,
+  setSharedCharge: React.Dispatch<React.SetStateAction<string>>,
+  setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
+  setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
+  setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
+  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
+  sharedPaymentMode: string
+) => {
+  const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
+  const dollar = ["usdt"];
+  const isCrypto = cryptocurrencies.includes(sharedEstimateAsset.toLowerCase());
+  const isDollar = dollar.includes(sharedEstimateAsset.toLowerCase());
+  const rate = parseFloat(sharedRate);
+  const upperDollar = 2000000 / rate;
+  const lowerDollar = 20000 / rate;
+  const assetPrice = parseFloat(sharedAssetPrice);
+  const parsedInput = input.replace(/[^\d.]/g, "");
+  // input.trim();
+  const dollarValue = parseFloat(parsedInput) * rate;
+  const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
+  let charge = 0;
+
+  let max: number;
+  let min: number;
+
+  const errorMsg =
+    " Invalid amount, try again with an amount within the specified range";
+
+  /**
+   * Remember charges include
+   * - input < NGN 100,000 = NGN 500
+   * - NGN 100,000 < input > NGN 1,000,000 = NGN 1,000
+   * - input > 1,000,000 == NGN 1,500
+   */
+  if (sharedCrypto.toLowerCase() === "usdt") {
+    // if (sharedPaymentMode.toLowerCase() === 'request') {
+    // } else
+
+    if (sharedEstimateAsset.toLowerCase() === "naira") {
+      max = 2000000;
+      min = 20000;
+      const nairaValue = parseFloat(parsedInput);
+      if (nairaValue <= max && nairaValue >= min) {
+        var basic = 500 / rate;
+        var median = 1000 / rate;
+        var premium = 1500 / rate;
+
+        charge =
+          nairaValue <= 100000
+            ? 500
+            : nairaValue > 100000 && nairaValue <= 1000000
+            ? 1000
+            : 1500;
+
+        const cryptoCharge =
+          charge === 500
+            ? basic
+            : charge === 1000
+            ? median
+            : charge === 1500
+            ? premium
+            : 0;
+        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
+        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        setSharedChargeForDB(
+          `${formatCurrency(
+            cryptoPaymentEstimate.toString(),
+            "USD",
+            "en-NG"
+          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                Charge:
+                <b>
+                  {formatCurrency(cryptoCharge.toFixed(9), "USD")}=
+                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
+                </b>
+                <br />
+                1. Charge from the amount
+                <br />
+                2. Add charges to the amount
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
+        console.log("Next is enterBankSearchWord");
+        nextStep("enterBankSearchWord");
+        addChatMessages(newMessages);
+      } else {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                {errorMsg}
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+    } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
+      max = upperDollar;
+      min = lowerDollar;
+      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
+        charge =
+          dollarValue <= 100000
+            ? 500
+            : dollarValue > 100000 && dollarValue <= 1000000
+            ? 1000
+            : 1500;
+
+        var basic = 500 / rate;
+        var median = 1000 / rate;
+        var premium = 1500 / rate;
+        const cryptoCharge =
+          charge === 500
+            ? basic
+            : charge === 1000
+            ? median
+            : charge === 1500
+            ? premium
+            : 0;
+
+        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
+        const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
+        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedChargeForDB(
+          `${formatCurrency(
+            cryptoPaymentEstimate.toString(),
+            "USD",
+            "en-NG"
+          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                Charge:
+                <b>
+                  {formatCurrency(cryptoCharge.toFixed(9).toString(), "USD")}=
+                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
+                </b>
+                <br />
+                1. Charge from the amount
+                <br />
+                2. Add charges to the amount
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
+        console.log("Next is enterBankSearchWord");
+        nextStep("enterBankSearchWord");
+        addChatMessages(newMessages);
+      } else {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Invalid amount, try again within range
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+    } else {
+      max = upperDollar / rate;
+      min = lowerDollar / rate;
+      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
+        charge =
+          cryptoValue <= 100000
+            ? 500
+            : cryptoValue > 100000 && cryptoValue <= 1000000
+            ? 1000
+            : 1500;
+
+        var basic = 500 / rate;
+        var median = 1000 / rate;
+        var premium = 1500 / rate;
+        const cryptoCharge =
+          charge === 500
+            ? basic
+            : charge === 1000
+            ? median
+            : charge === 1500
+            ? premium
+            : 0;
+
+        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
+        const nairaPaymentEstimate =
+          parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
+        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedChargeForDB(
+          `${formatCurrency(
+            cryptoPaymentEstimate.toString(),
+            "USD",
+            "en-NG"
+          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                Charge:
+                <b>
+                  {formatCurrency(cryptoCharge.toFixed(9), "NGN", "en-NG")}=
+                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
+                </b>
+                <br />
+                1. Charge from the amount
+                <br />
+                2. Add charges to the amount
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
+        console.log("Next is enterBankSearchWord");
+        nextStep("enterBankSearchWord");
+        addChatMessages(newMessages);
+      } else {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Invalid amount, try again within range
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+    }
+  } else {
+    if (sharedEstimateAsset.toLowerCase() === "naira") {
+      max = 2000000;
+      min = 20000;
+      const nairaValue = parseFloat(parsedInput);
+      if (nairaValue <= max && nairaValue >= min) {
+        var basic = 500 / rate / assetPrice;
+        var median = 1000 / rate / assetPrice;
+        var premium = 1500 / rate / assetPrice;
+
+        charge =
+          nairaValue <= 100000
+            ? 500
+            : nairaValue > 100000 && nairaValue <= 1000000
+            ? 1000
+            : 1500;
+
+        const cryptoCharge =
+          charge === 500
+            ? basic
+            : charge === 1000
+            ? median
+            : charge === 1500
+            ? premium
+            : 0;
+        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        const cryptoPaymentEstimate =
+          parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
+        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedChargeForDB(
+          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
+            charge.toString(),
+            "NGN",
+            "en-NG"
+          )}`
+        );
+
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                Charge:
+                <b>
+                  {cryptoCharge.toFixed(9)}
+                  {sharedCrypto} =
+                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
+                </b>
+                <br />
+                1. Charge from the amount
+                <br />
+                2. Add charges to the amount
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
+        console.log("Next is enterBankSearchWord");
+        sharedPaymentMode.toLowerCase() === "gift"
+          ? nextStep("enterPhone")
+          : nextStep("enterBankSearchWord");
+        addChatMessages(newMessages);
+      } else {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                {errorMsg}
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+    } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
+      max = upperDollar;
+      min = lowerDollar;
+      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
+        charge =
+          dollarValue <= 100000
+            ? 500
+            : dollarValue > 100000 && dollarValue <= 1000000
+            ? 1000
+            : 1500;
+
+        var basic = 500 / rate / assetPrice;
+        var median = 1000 / rate / assetPrice;
+        var premium = 1500 / rate / assetPrice;
+
+        const cryptoCharge =
+          charge === 500
+            ? basic
+            : charge === 1000
+            ? median
+            : charge === 1500
+            ? premium
+            : 0;
+
+        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
+        const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
+        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedChargeForDB(
+          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
+            charge.toString(),
+            "NGN",
+            "en-NG"
+          )}`
+        );
+
+        console.log("crypto charge in dollar", cryptoCharge.toFixed(9));
+
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                Charge:
+                <b>
+                  {cryptoCharge.toFixed(9)}
+                  {sharedCrypto}=
+                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
+                </b>
+                <br />
+                1. Charge from the amount
+                <br />
+                2. Add charges to the amount
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
+        console.log("Next is enterBankSearchWord");
+        nextStep("enterBankSearchWord");
+        addChatMessages(newMessages);
+      } else {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                {errorMsg}
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+    } else {
+      max = upperDollar / assetPrice;
+      min = lowerDollar / assetPrice;
+      if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
+        charge =
+          cryptoValue <= 100000
+            ? 500
+            : cryptoValue > 100000 && cryptoValue <= 1000000
+            ? 1000
+            : 1500;
+
+        var basic = 500 / rate / assetPrice;
+        var median = 1000 / rate / assetPrice;
+        var premium = 1500 / rate / assetPrice;
+        const cryptoCharge =
+          charge === 500
+            ? basic
+            : charge === 1000
+            ? median
+            : charge === 1500
+            ? premium
+            : 0;
+
+        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
+        const nairaPaymentEstimate =
+          parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
+        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
+        setSharedNairaCharge(
+          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        );
+        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        setSharedChargeForDB(
+          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
+            charge.toString(),
+            "NGN",
+            "en-NG"
+          )}`
+        );
+
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                Charge:
+                <b>
+                  {cryptoCharge.toFixed(9)}
+                  {sharedCrypto} =
+                  {formatCurrency(charge.toString(), "NGN", "en-NG")}
+                </b>
+                <br />
+                1. Charge from the amount
+                <br />
+                2. Add charges to the amount
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
+        console.log("Next is enterBankSearchWord");
+        nextStep("enterBankSearchWord");
+        addChatMessages(newMessages);
+      } else {
+        const newMessages: MessageType[] = [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                {errorMsg}
+                <br />
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+        addChatMessages(newMessages);
+        return;
+      }
+    }
+  }
+};
+
+// export const displayCharge = async (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   nextStep: (step: string) => void,
+//   input: string,
+//   sharedEstimateAsset: string,
+//   sharedRate: string,
+//   sharedAssetPrice: string,
+//   sharedCrypto: string,
+//   setSharedCharge: React.Dispatch<React.SetStateAction<string>>,
+//   setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
+//   setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
+//   setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
+//   setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
+//   sharedPaymentMode: string
+// ) => {
+//   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
+//   const dollar = ["usdt"];
+//   const isCrypto = cryptocurrencies.includes(sharedEstimateAsset.toLowerCase());
+//   const isDollar = dollar.includes(sharedEstimateAsset.toLowerCase());
+//   const rate = parseFloat(sharedRate);
+//   const upperDollar = 2000000 / rate;
+//   const lowerDollar = 20000 / rate;
+//   const assetPrice = parseFloat(sharedAssetPrice);
+//   const parsedInput = input.replace(/[^\d.]/g, "");
+//   const dollarValue = parseFloat(parsedInput) * rate;
+//   const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
+//   let charge = 0;
+
+//   let max: number;
+//   let min: number;
+
+//   const errorMsg =
+//     "Invalid amount, try again with an amount within the specified range";
+
+//   // Function to calculate charge based on value
+//   const calculateCharge = (value: number): number => {
+//     if (value <= 100000) return 500;
+//     if (value <= 1000000) return 1000;
+//     return 1500;
+//   };
+
+//   // Function to calculate crypto charge
+//   const calculateCryptoCharge = (nairaCharge: number): number => {
+//     return (
+//       nairaCharge /
+//       rate /
+//       (sharedCrypto.toLowerCase() === "usdt" ? 1 : assetPrice)
+//     );
+//   };
+
+//   try {
+//     if (sharedEstimateAsset.toLowerCase() === "naira") {
+//       max = 2000000;
+//       min = 20000;
+//       const nairaValue = parseFloat(parsedInput);
+//       if (nairaValue <= max && nairaValue >= min) {
+//         charge = calculateCharge(nairaValue);
+//         const cryptoCharge = calculateCryptoCharge(charge);
+
+//         setSharedCharge(cryptoCharge.toString());
+//         const cryptoPaymentEstimate =
+//           nairaValue /
+//           rate /
+//           (sharedCrypto.toLowerCase() === "usdt" ? 1 : assetPrice);
+//         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString());
+//         setSharedPaymentNairaEstimate(nairaValue.toString());
+//         setSharedNairaCharge(
+//           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+//         );
+//         setSharedChargeForDB(
+//           `${formatCurrency(
+//             cryptoPaymentEstimate.toString(),
+//             sharedCrypto.toUpperCase(),
+//             "en-NG"
+//           )} = ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+//         );
+
+//         displayChargeMenu(
+//           addChatMessages,
+//           nextStep,
+//           cryptoCharge,
+//           charge,
+//           sharedCrypto,
+//           sharedPaymentMode
+//         );
+//       } else {
+//         displayErrorMessage(addChatMessages, errorMsg);
+//       }
+//     } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
+//       max = upperDollar;
+//       min = lowerDollar;
+//       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
+//         charge = calculateCharge(dollarValue);
+//         const cryptoCharge = calculateCryptoCharge(charge);
+
+//         setSharedCharge(cryptoCharge.toString());
+//         const cryptoPaymentEstimate =
+//           parseFloat(parsedInput) /
+//           (sharedCrypto.toLowerCase() === "usdt" ? 1 : assetPrice);
+//         const nairaPaymentEstimate = parseFloat(parsedInput) * rate;
+//         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString());
+//         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString());
+//         setSharedNairaCharge(
+//           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+//         );
+//         setSharedChargeForDB(
+//           `${formatCurrency(
+//             cryptoPaymentEstimate.toString(),
+//             sharedCrypto.toUpperCase(),
+//             "en-NG"
+//           )} = ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+//         );
+
+//         displayChargeMenu(
+//           addChatMessages,
+//           nextStep,
+//           cryptoCharge,
+//           charge,
+//           sharedCrypto,
+//           sharedPaymentMode
+//         );
+//       } else {
+//         displayErrorMessage(addChatMessages, errorMsg);
+//       }
+//     } else {
+//       max = upperDollar / assetPrice;
+//       min = lowerDollar / assetPrice;
+//       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
+//         charge = calculateCharge(cryptoValue);
+//         const cryptoCharge = calculateCryptoCharge(charge);
+
+//         setSharedCharge(cryptoCharge.toString());
+//         const cryptoPaymentEstimate = parseFloat(parsedInput);
+//         const nairaPaymentEstimate =
+//           parseFloat(parsedInput) * rate * assetPrice;
+//         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString());
+//         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString());
+//         setSharedNairaCharge(
+//           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+//         );
+//         setSharedChargeForDB(
+//           `${formatCurrency(
+//             cryptoPaymentEstimate.toString(),
+//             sharedCrypto.toUpperCase(),
+//             "en-NG"
+//           )} = ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+//         );
+
+//         displayChargeMenu(
+//           addChatMessages,
+//           nextStep,
+//           cryptoCharge,
+//           charge,
+//           sharedCrypto,
+//           sharedPaymentMode
+//         );
+//       } else {
+//         displayErrorMessage(addChatMessages, errorMsg);
+//       }
+//     }
+//   } catch (error) {
+//     console.error("Error in displayCharge:", error);
+//     displayErrorMessage(
+//       addChatMessages,
+//       "An error occurred while processing your request. Please try again."
+//     );
+//   }
+// };
+
+// const displayChargeMenu = (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   nextStep: (step: string) => void,
+//   cryptoCharge: number,
+//   nairaCharge: number,
+//   sharedCrypto: string,
+//   sharedPaymentMode: string
+// ) => {
+//   const newMessages: MessageType[] = [
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Here is your menu:
+//           <br />
+//           <br />
+//           Charge:
+//           <b>
+//             {cryptoCharge.toFixed(9)} {sharedCrypto} =
+//             {formatCurrency(nairaCharge.toString(), "NGN", "en-NG")}
+//           </b>
+//           <br />
+//           1. Charge from the amount
+//           <br />
+//           2. Add charges to the amount
+//           <br />
+//           0. Go back
+//           <br />
+//           00. Exit
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//   ];
+
+//   console.log("Next is enterBankSearchWord");
+//   sharedPaymentMode.toLowerCase() === "gift"
+//     ? nextStep("enterPhone")
+//     : nextStep("enterBankSearchWord");
+//   addChatMessages(newMessages);
+// };
+
+// const displayErrorMessage = (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   message: string
+// ) => {
+//   const newMessages: MessageType[] = [
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           {message}
+//           <br />
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//   ];
+//   addChatMessages(newMessages);
+// };
