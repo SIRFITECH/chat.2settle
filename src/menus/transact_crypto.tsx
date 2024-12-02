@@ -1193,6 +1193,20 @@ export const displayCharge = async (
   setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
   sharedPaymentMode: string
 ) => {
+  const updateTransactionState = (updates: {
+    charge: string;
+    paymentAssetEstimate: string;
+    paymentNairaEstimate: string;
+    nairaCharge: string;
+    chargeForDB: string;
+  }) => {
+    setSharedCharge(updates.charge);
+    setSharedPaymentAssetEstimate(updates.paymentAssetEstimate);
+    setSharedPaymentNairaEstimate(updates.paymentNairaEstimate);
+    setSharedNairaCharge(updates.nairaCharge);
+    setSharedChargeForDB(updates.chargeForDB);
+  };
+
   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
   const dollar = ["usdt"];
   const isCrypto = cryptocurrencies.includes(sharedEstimateAsset.toLowerCase());
@@ -1201,8 +1215,28 @@ export const displayCharge = async (
   const upperDollar = 2000000 / rate;
   const lowerDollar = 20000 / rate;
   const assetPrice = parseFloat(sharedAssetPrice);
-  const parsedInput = input.replace(/[^\d.]/g, "");
-  // input.trim();
+  const parsedInput = input.trim().replace(/[^\d.]/g, "");
+
+  console.log("Values before calculation:", {
+    parsedInput,
+    rate: sharedRate,
+    assetPrice: sharedAssetPrice,
+    estimateAsset: sharedEstimateAsset,
+  });
+
+  // Validate the values
+  if (isNaN(rate) || isNaN(assetPrice) || isNaN(parseFloat(parsedInput))) {
+    console.error("Invalid values:", { rate, assetPrice, input });
+    addChatMessages([
+      {
+        type: "incoming",
+        content: "Invalid input values. Please try again.",
+        timestamp: new Date(),
+      },
+    ]);
+    return;
+  }
+
   const dollarValue = parseFloat(parsedInput) * rate;
   const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
   let charge = 0;
@@ -1247,20 +1281,34 @@ export const displayCharge = async (
             : charge === 1500
             ? premium
             : 0;
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
         const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        setSharedChargeForDB(
-          `${formatCurrency(
+
+        // setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        // setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        // setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
+        // setSharedNairaCharge(
+        //   `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        // );
+        // setSharedChargeForDB(
+        //   `${formatCurrency(
+        //     cryptoPaymentEstimate.toString(),
+        //     "USD",
+        //     "en-NG"
+        //   )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        // );
+
+        // Use it like this
+        updateTransactionState({
+          charge: cryptoCharge.toString(),
+          paymentAssetEstimate: cryptoPaymentEstimate.toString(),
+          paymentNairaEstimate: parsedInput,
+          nairaCharge: formatCurrency(charge.toString(), "NGN", "en-NG"),
+          chargeForDB: `${formatCurrency(
             cryptoPaymentEstimate.toString(),
             "USD",
             "en-NG"
-          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
+          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`,
+        });
 
         const newMessages: MessageType[] = [
           {
@@ -1330,23 +1378,36 @@ export const displayCharge = async (
             : charge === 1500
             ? premium
             : 0;
-
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
         const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
         const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${formatCurrency(
+
+        // setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        // setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        // setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString()); // this is the naira the person will recieve
+        // setSharedNairaCharge(
+        //   `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        // );
+        // // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        // setSharedChargeForDB(
+        //   `${formatCurrency(
+        //     cryptoPaymentEstimate.toString(),
+        //     "USD",
+        //     "en-NG"
+        //   )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        // );
+
+        // SET ALL THE STATE VARIABLES
+        updateTransactionState({
+          charge: cryptoCharge.toString(),
+          paymentAssetEstimate: cryptoPaymentEstimate.toString(),
+          paymentNairaEstimate: nairaPaymentEstimate.toString(),
+          nairaCharge: formatCurrency(charge.toString(), "NGN", "en-NG"),
+          chargeForDB: `${formatCurrency(
             cryptoPaymentEstimate.toString(),
             "USD",
             "en-NG"
-          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
+          )} =  ${formatCurrency(charge.toString(), "NGN", "en-NG")}`,
+        });
 
         const newMessages: MessageType[] = [
           {
@@ -1507,22 +1568,35 @@ export const displayCharge = async (
             : charge === 1500
             ? premium
             : 0;
-        setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
         const cryptoPaymentEstimate =
           parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
-        setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        setSharedNairaCharge(
-          `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        );
-        // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        setSharedChargeForDB(
-          `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
+        // setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
+        // setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
+        // setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
+        // setSharedNairaCharge(
+        //   `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
+        // );
+        // // setSharedNairaCharge(charge.toString()); // this is the charge in naira
+        // setSharedChargeForDB(
+        //   `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
+        //     charge.toString(),
+        //     "NGN",
+        //     "en-NG"
+        //   )}`
+        // );
+
+        // SET ALL THE STATE VARIABLES
+        updateTransactionState({
+          charge: cryptoCharge.toString(),
+          paymentAssetEstimate: cryptoPaymentEstimate.toString(),
+          paymentNairaEstimate: parsedInput,
+          nairaCharge: formatCurrency(charge.toString(), "NGN", "en-NG"),
+          chargeForDB: `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
             charge.toString(),
             "NGN",
             "en-NG"
-          )}`
-        );
+          )}`,
+        });
 
         const newMessages: MessageType[] = [
           {

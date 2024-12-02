@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
 import Loader from "./Loader";
@@ -296,6 +302,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
   const [isTelUser, setIsTelUser] = useState(false);
   const code = localStorage.getItem("referralCode") ?? "";
+  const MAX_MESSAGES = 100;
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -321,26 +328,69 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           timestamp: new Date(msg.timestamp),
         }));
         const { currentStep, stepHistory = ["start"] } = parsedData;
+
+        // Only keep the last 100 messages
+        const limitedMessages = deserializedMessages.slice(-MAX_MESSAGES);
+        const limitedSerializedMessages = parsedData.messages.slice(
+          -MAX_MESSAGES
+        );
         return {
-          messages: deserializedMessages,
-          serializedMessages: parsedData.messages,
+          messages: limitedMessages,
+          serializedMessages: limitedSerializedMessages,
           step: currentStep,
           stepHistory: parsedData.stepHistory || ["start"],
         };
       }
     }
-    // serialize messages before saving
-    const serializedInitialMessages = initialMessages.map((msg) => ({
-      ...serializeMessage(msg),
-      timestamp: msg.timestamp.toISOString(),
-    }));
+
     return {
       messages: initialMessages,
-      serializedMessages: serializedInitialMessages,
+      serializedMessages: initialMessages.map((msg) => ({
+        ...serializeMessage(msg),
+        timestamp: msg.timestamp.toISOString(),
+      })),
       step: "start",
       stepHistory: ["start"],
     };
   });
+
+  // Add this effect to monitor localStorage changes
+  useEffect(() => {
+    const storageListener = () => {
+      const chatData = window.localStorage.getItem("chat_data");
+      console.log("localStorage updated:", chatData);
+    };
+
+    window.addEventListener("storage", storageListener);
+    return () => window.removeEventListener("storage", storageListener);
+  }, []);
+
+  React.useEffect(() => {
+    const limitedMessages = serializedMessages.slice(-MAX_MESSAGES);
+    const chatData = {
+      messages: limitedMessages,
+      // serializedMessages,
+      currentStep,
+      stepHistory,
+    };
+    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
+  }, [serializedMessages, currentStep, stepHistory]);
+
+  // To help debug performance issues
+  useEffect(() => {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.duration > 50) {
+          // 50ms threshold
+          console.warn("Long task detected:", entry);
+        }
+      }
+    });
+
+    observer.observe({ entryTypes: ["longtask"] });
+    return () => observer.disconnect();
+  }, []);
+
   // Load telegram data
   useEffect(() => {
     const loadTelegramWebApp = async () => {
@@ -363,24 +413,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const telFirstName = isTelUser ? telegramUser?.first_name : "";
 
   useEffect(() => {
-    const chatData = {
-      messages: local.serializedMessages,
-      currentStep: local.step,
-      stepHistory: local.stepHistory,
-    };
-    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
-  }, [local.serializedMessages, local.step, local.stepHistory]);
-
-  React.useEffect(() => {
-    const chatData = {
-      messages: serializedMessages,
-      currentStep,
-      stepHistory,
-    };
-    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
-  }, [serializedMessages, currentStep, stepHistory]);
-
-  useEffect(() => {
     if (sharedCrypto != "") {
       if (sharedCrypto.toLowerCase() === "usdt") {
         setSharedAssetPrice(`${rate}`);
@@ -401,13 +433,20 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToBottom = useCallback(() => {
+    if (!messagesEndRef.current) return;
+
+    // Use requestAnimationFrame to avoid forced reflow
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages]);
+    // Debounce scroll updates for rapid message additions
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
+  }, [chatMessages, scrollToBottom]);
 
   useEffect(() => {
     if (isOpen && textareaRef.current) {
@@ -450,37 +489,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     initializeChatId();
   }, [chatId]);
 
-  // const fetchData = async () => {
-  //   try {
-  //     const fetchedRate = await fetchRate();
-  //     const fetchedMerchantRate = await fetchMerchantRate();
-  //     const fetchedProfitRate = await fetchProfitRate();
-  //     setRate(fetchedRate.toString());
-  //     const formattedRate = formatCurrency(
-  //       fetchedRate.toString(),
-  //       "NGN",
-  //       "en-NG"
-  //     );
-  //     const formattedMerchantRate = formatCurrency(
-  //       fetchedMerchantRate.toString(),
-  //       "NGN",
-  //       "en-NG"
-  //     );
-  //     const formattedProfitRate = formatCurrency(
-  //       fetchedProfitRate.toString(),
-  //       "NGN",
-  //       "en-NG"
-  //     );
-
-  //     console.log("formattedRate is :", formattedRate);
-  //     setFormattedRate(formattedRate);
-  //     setMerchantRate(formattedMerchantRate);
-  //     setProfitRate(formattedProfitRate);
-  //     setSharedRate(fetchedRate.toString());
-  //   } catch (error) {
-  //     console.error("Failed to fetch rate:", error);
-  //   }
-  // };
   // Replace multiple sequential API calls with Promise.all
   const fetchData = async () => {
     try {
