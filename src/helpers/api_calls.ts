@@ -11,6 +11,7 @@ import {
   vendorData,
   WalletInfo,
 } from "../types/general_types";
+import useErrorHandler from "@/hooks/useErrorHandler";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -381,29 +382,60 @@ export async function fetchCoinPrice(ticker: string): Promise<number> {
   }
 }
 // COLLECT BANK NAMES FROM DB
-export const fetchBankNames = async (extracted: string): Promise<BankName> => {
+// export const fetchBankNames = async (extracted: string): Promise<BankName> => {
+//   const { handleError } = useErrorHandler();
+
+//   try {
+//     const response = await axios.post<BankName>(`${apiURL}/api/bank_names/`, {
+//       message: extracted,
+//     });
+//     return response.data;
+//   } catch (error) {
+//     handleError(error);
+//     throw error;
+//     // console.error("Error fetching bank names:", error);
+//     // throw new Error("Failed to fetch bank names");
+//   }
+// };
+export const fetchBankNames = async (
+  extracted: string,
+  handleError: (message: string) => void,
+  setLoading: (loading: boolean) => void
+): Promise<BankName> => {
   try {
+    setLoading(true);
     const response = await axios.post<BankName>(`${apiURL}/api/bank_names/`, {
       message: extracted,
     });
+    if (!response) {
+      throw new Error(`HTTP error! status: ${response}`);
+    }
     return response.data;
   } catch (error) {
-    console.error("Error fetching bank names:", error);
-    throw new Error("Failed to fetch bank names");
+    handleError(
+      error instanceof Error ? error.message : "Failed to fetch bank names"
+    );
+    throw error;
+  } finally {
+    setLoading(false);
   }
 };
+// THE FETCHBANKNAMES IS AN EXAMPLE USEAGE OF TE ERROR HANDLING FOR API CALLS
 
-// QUERY BANK DETAILS FROM NUBAN
+
 export const fetchBankDetails = async (
   bank_code: string,
   acc_no: string
 ): Promise<any | null> => {
+  const { handleError } = useErrorHandler();
   try {
     const response = await axios.get(
       `https://app.nuban.com.ng/api/NUBAN-WBODZCTK1831?bank_code=${bank_code}&acc_no=${acc_no}`
     );
     return response.data;
   } catch (error) {
+    // handleError(error);
+    // throw error;
     console.error(
       `Error fetching bank details for bank code ${bank_code} and account number ${acc_no}:`,
       error
@@ -411,6 +443,22 @@ export const fetchBankDetails = async (
     return null;
   }
 };
+
+// export const fetchBankDetails = async (bank_code: string, acc_no: string) => {
+//   const { handleError } = useErrorHandler();
+//   try {
+//     const response = await fetch(
+//       `/api/bank-details?bankCode=${bankCode}&accountNumber=${accountNumber}`
+//     );
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+//     return await response.json();
+//   } catch (error) {
+//     handleError(error);
+//     throw error;
+//   }
+// };
 
 // export async function payoutMoney(data: PayoutData) {
 //   return new Promise((resolve, reject) => {
@@ -530,9 +578,6 @@ export const fetchBankDetails = async (
 //     throw error;
 //   }
 // };
-
-
-
 
 // const payoutQueue: (() => Promise<void>)[] = [];
 // let isProcessingQueue = false;

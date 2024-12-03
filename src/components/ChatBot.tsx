@@ -108,6 +108,9 @@ import {
 } from "date-fns";
 
 import { telegramUser } from "@/types/telegram_types";
+import useErrorHandler from "@/hooks/useErrorHandler";
+import TelegramIntegration from "./TelegramIntegration";
+import { withErrorHandling } from "./withErrorHandling";
 
 const initialMessages = [
   {
@@ -186,6 +189,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
+  const { error, handleError, clearError } = useErrorHandler();
 
   const chatboxRef = useRef<HTMLDivElement>(null);
   const [visibleDateSeparators, setVisibleDateSeparators] = useState<
@@ -358,7 +362,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   useEffect(() => {
     const storageListener = () => {
       const chatData = window.localStorage.getItem("chat_data");
-      console.log("localStorage updated:", chatData);
     };
 
     window.addEventListener("storage", storageListener);
@@ -393,21 +396,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
   // Load telegram data
   useEffect(() => {
-    const loadTelegramWebApp = async () => {
-      if (typeof window !== "undefined") {
-        try {
-          const twa = await import("@twa-dev/sdk");
-          if (twa.default.initDataUnsafe.user) {
-            setTelegramUser(twa.default.initDataUnsafe.user as telegramUser);
-            setIsTelUser(true);
-          }
-        } catch (error) {
-          console.error("Failed to load Telegram Web App SDK:", error);
-        }
-      }
-    };
-
-    loadTelegramWebApp();
+    <TelegramIntegration />;
   }, []);
 
   const telFirstName = isTelUser ? telegramUser?.first_name : "";
@@ -1474,7 +1463,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         const finalAssetPayment = parseFloat(sharedPaymentAssetEstimate);
         const finalNairaPayment =
           parseFloat(sharedPaymentNairaEstimate) -
-          parseFloat(sharedNairaCharge);
+          parseFloat(sharedNairaCharge.replace(/[^\d.]/g, ""));
+        console.log("Naira charger is :", sharedNairaCharge);
+        console.log(
+          "We are setting setSharedPaymentNairaEstimate to:",
+          finalNairaPayment.toString()
+        );
 
         setSharedPaymentAssetEstimate(finalAssetPayment.toString());
         setSharedPaymentNairaEstimate(finalNairaPayment.toString());
@@ -1484,11 +1478,17 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           displaySearchBank(addChatMessages, nextStep);
       } else if (chatInput === "2") {
         const finalAssetPayment =
-          parseFloat(sharedPaymentAssetEstimate) + parseFloat(sharedCharge);
-        const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
+          parseFloat(sharedPaymentAssetEstimate) +
+          parseFloat(sharedCharge.replace(/[^\d.]/g, ""));
+        // const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
+
+        console.log(
+          "We are setting setSharedPaymentNairaEstimate to:",
+          sharedPaymentNairaEstimate
+        );
 
         setSharedPaymentAssetEstimate(finalAssetPayment.toString());
-        setSharedPaymentNairaEstimate(finalNairaPayment.toString());
+        // setSharedPaymentNairaEstimate(finalNairaPayment.toString());
         setSharedChargeForDB(
           `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
         );
@@ -1541,7 +1541,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setLoading(true);
 
       try {
-        const bankNames = await fetchBankNames(chatInput.trim());
+        const bankNames = await fetchBankNames(
+          chatInput.trim(),
+          handleError,
+          setLoading
+        );
         bankList = bankNames["message"];
 
         if (Array.isArray(bankList)) {
@@ -3010,251 +3014,321 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // THE ROOT FUNCTION
 
   const handleConversation = async (chatInput: any) => {
-    if (chatInput.trim()) {
-      const newMessage: MessageType = {
-        type: "outgoing",
-        content: <span>{chatInput}</span>,
-        timestamp: new Date(),
-      };
-      addChatMessages([newMessage]);
-      setChatInput("");
+    try {
+      if (chatInput.trim()) {
+        const newMessage: MessageType = {
+          type: "outgoing",
+          content: <span>{chatInput}</span>,
+          timestamp: new Date(),
+        };
+        addChatMessages([newMessage]);
+        setChatInput("");
+      }
+
+      if (greetings.includes(chatInput.trim().toLowerCase())) {
+        goToStep("start");
+      }
+
+      switch (currentStep) {
+        case "start":
+          console.log("current step is start");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          helloMenu(chatInput);
+          setChatInput("");
+          setSharedPaymentMode("");
+          break;
+
+        case "chooseAction":
+          console.log("current step is chooseAction");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          choiceMenu(chatInput);
+          setChatInput("");
+          break;
+
+        case "transactCrypto":
+          console.log("current step is transactCrypto");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleMakeAChoice(chatInput);
+          setChatInput("");
+          break;
+
+        case "transferMoney":
+          console.log("Current step is transferMoney ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleTransferMoney(chatInput);
+          setChatInput("");
+          break;
+
+        case "estimateAsset":
+          console.log("Current step is estimateAsset ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleEstimateAsset(chatInput);
+          setChatInput("");
+          break;
+
+        case "network":
+          console.log("Current step is network ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleNetwork(chatInput);
+          setChatInput("");
+          break;
+
+        case "payOptions":
+          console.log("Current step is payOptions ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handlePayOptions(chatInput);
+          setChatInput("");
+          break;
+
+        case "charge":
+          console.log("Current step is charge ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleCharge(chatInput);
+          setChatInput("");
+          break;
+
+        case "enterBankSearchWord":
+          console.log("Current step is enterBankSearchWord");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          let wantsToClaimGift =
+            sharedPaymentMode.toLowerCase() === "claim gift";
+          let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
+          let wantsToRequestPayment =
+            sharedPaymentMode.toLowerCase() === "request";
+          let wnatsToTransactCrypto =
+            sharedPaymentMode.toLowerCase() === "transfermoney";
+
+          wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
+            ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
+              console.log("PAYMENT MODE IS:", sharedPaymentMode),
+              handleSearchBank(chatInput))
+            : (console.log(
+                "CURRENT STEP IS continueToPay IN enterBankSearchWord "
+              ),
+              console.log("PAYMENT MODE IS:", sharedPaymentMode),
+              handleContinueToPay(chatInput));
+          setChatInput("");
+          break;
+
+        case "selectBank":
+          console.log("Current step is selectBank ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleSelectBank(chatInput);
+          setChatInput("");
+          break;
+
+        case "enterAccountNumber":
+          console.log("Current step is enterAccountNumber ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleBankAccountNumber(chatInput);
+          setChatInput("");
+          break;
+
+        case "continueToPay":
+          console.log("Current step is continueToPay ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleContinueToPay(chatInput);
+          setChatInput("");
+          break;
+
+        case "enterPhone":
+          console.log("Current step is enterPhone ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handlePhoneNumber(chatInput);
+          setChatInput("");
+          break;
+
+        case "sendPayment":
+          console.log("Current step is sendPayment ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          await handleCryptoPayment(chatInput);
+          setChatInput("");
+          break;
+
+        case "confirmTransaction":
+          console.log("Current step is confirmTransaction ");
+          console.log(
+            `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+          );
+          handleConfirmTransaction(chatInput);
+          setChatInput("");
+
+          break;
+
+        case "paymentProcessing":
+          console.log("Current step is paymentProcessing ");
+          handleTransactionProcessing(chatInput);
+          setChatInput("");
+          break;
+
+        case "kycInfo":
+          console.log("Current step is kycInfo ");
+          handleKYCInfo(chatInput);
+          setChatInput("");
+          break;
+
+        case "kycReg":
+          console.log("Current step is kycReg ");
+          handleRegKYC(chatInput);
+          setChatInput("");
+          break;
+
+        case "thankForKYCReg":
+          console.log("Current step is thankForKYCReg ");
+          handleThankForKYCReg(chatInput);
+          setChatInput("");
+          break;
+
+        case "supportWelcome":
+          console.log("Current step is supportWelcome ");
+          displayCustomerSupportWelcome(addChatMessages, nextStep);
+          setChatInput("");
+          break;
+
+        case "assurance":
+          console.log("Current step is assurance ");
+          handleCustomerSupportAssurance(chatInput);
+          setChatInput("");
+          break;
+
+        case "entreTrxId":
+          console.log("Current step is entreTrxId ");
+          handleTransactionId(chatInput);
+          setChatInput("");
+          break;
+
+        case "makeComplain":
+          console.log("Current step is makeComplain ");
+          handleMakeComplain(chatInput);
+          setChatInput("");
+          break;
+
+        case "completeTransactionId":
+          console.log("Current step is completeTransactionId ");
+          handleCompleteTransactionId(chatInput);
+          setChatInput("");
+          break;
+
+        case "giftFeedBack":
+          console.log("Current step is giftFeedBack ");
+          handleGiftRequestId(chatInput);
+          setChatInput("");
+          break;
+
+        case "completetrxWithID":
+          console.log("Current step is trxIDFeedback ");
+          // handleReportlyWelcome(chatInput);
+          setChatInput("");
+          break;
+
+        case "makeReport":
+          console.log("Current step is makeReport ");
+          handleReportlyWelcome(chatInput);
+          setChatInput("");
+          break;
+
+        case "reporterName":
+          console.log("Current step is reporterName ");
+          handleReporterName(chatInput);
+          setChatInput("");
+          break;
+
+        case "reporterPhoneNumber":
+          console.log("Current step is reporterPhoneNumber ");
+          handleEnterReporterPhoneNumber(chatInput);
+          setChatInput("");
+          break;
+
+        case "reporterWallet":
+          console.log("Current step is reporterWallet");
+          handleEnterReporterWalletAddress(chatInput);
+          setChatInput("");
+          break;
+
+        case "fraudsterWallet":
+          console.log("Current step is fraudsterWallet");
+          handleEnterFraudsterWalletAddress(chatInput);
+          setChatInput("");
+          break;
+
+        case "reportlyNote":
+          console.log("Current step is reportlyNote");
+          handleReportlyNote(chatInput);
+          setChatInput("");
+          break;
+
+        case "reporterFarwell":
+          console.log("Current step is reporterFarwell");
+          handleReporterFarwell(chatInput);
+
+          setChatInput("");
+          break;
+
+        default:
+          addChatMessages([
+            {
+              type: "incoming",
+              content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
+              timestamp: new Date(),
+            },
+          ]);
+          setChatInput("");
+          break;
+      }
+    } catch (error) {
+      handleError(
+        error instanceof Error ? error.message : "An unknown error occurred"
+      );
+      addChatMessages([
+        {
+          type: "incoming",
+          content:
+            "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setLoading(false);
     }
-
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-    }
-
-    switch (currentStep) {
-      case "start":
-        console.log("current step is start");
-        helloMenu(chatInput);
-        setChatInput("");
-        setSharedPaymentMode("");
-        break;
-
-      case "chooseAction":
-        console.log("current step is chooseAction");
-        choiceMenu(chatInput);
-        setChatInput("");
-        break;
-
-      case "transactCrypto":
-        console.log("current step is transactCrypto");
-        handleMakeAChoice(chatInput);
-        setChatInput("");
-        break;
-
-      case "transferMoney":
-        console.log("Current step is transferMoney ");
-        handleTransferMoney(chatInput);
-        setChatInput("");
-        break;
-
-      case "estimateAsset":
-        console.log("Current step is estimateAsset ");
-        handleEstimateAsset(chatInput);
-        setChatInput("");
-        break;
-
-      case "network":
-        console.log("Current step is network ");
-        handleNetwork(chatInput);
-        setChatInput("");
-        break;
-
-      case "payOptions":
-        console.log("Current step is payOptions ");
-        handlePayOptions(chatInput);
-        setChatInput("");
-        break;
-
-      case "charge":
-        console.log("Current step is charge ");
-        handleCharge(chatInput);
-        setChatInput("");
-        break;
-
-      case "enterBankSearchWord":
-        console.log("Current step is enterBankSearchWord");
-        let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
-        let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
-        let wantsToRequestPayment =
-          sharedPaymentMode.toLowerCase() === "request";
-        let wnatsToTransactCrypto =
-          sharedPaymentMode.toLowerCase() === "transfermoney";
-
-        wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
-          ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
-            console.log("PAYMENT MODE IS:", sharedPaymentMode),
-            handleSearchBank(chatInput))
-          : (console.log(
-              "CURRENT STEP IS continueToPay IN enterBankSearchWord "
-            ),
-            console.log("PAYMENT MODE IS:", sharedPaymentMode),
-            handleContinueToPay(chatInput));
-        setChatInput("");
-        break;
-
-      case "selectBank":
-        console.log("Current step is selectBank ");
-        handleSelectBank(chatInput);
-        setChatInput("");
-        break;
-
-      case "enterAccountNumber":
-        console.log("Current step is enterAccountNumber ");
-        handleBankAccountNumber(chatInput);
-        setChatInput("");
-        break;
-
-      case "continueToPay":
-        console.log("Current step is continueToPay ");
-        handleContinueToPay(chatInput);
-        setChatInput("");
-        break;
-
-      case "enterPhone":
-        console.log("Current step is enterPhone ");
-        handlePhoneNumber(chatInput);
-        setChatInput("");
-        break;
-
-      case "sendPayment":
-        console.log("Current step is sendPayment ");
-        console.log(
-          `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-        );
-        await handleCryptoPayment(chatInput);
-        setChatInput("");
-        break;
-
-      case "confirmTransaction":
-        console.log("Current step is confirmTransaction ");
-        handleConfirmTransaction(chatInput);
-        setChatInput("");
-
-        break;
-
-      case "paymentProcessing":
-        console.log("Current step is paymentProcessing ");
-        handleTransactionProcessing(chatInput);
-        setChatInput("");
-        break;
-
-      case "kycInfo":
-        console.log("Current step is kycInfo ");
-        handleKYCInfo(chatInput);
-        setChatInput("");
-        break;
-
-      case "kycReg":
-        console.log("Current step is kycReg ");
-        handleRegKYC(chatInput);
-        setChatInput("");
-        break;
-
-      case "thankForKYCReg":
-        console.log("Current step is thankForKYCReg ");
-        handleThankForKYCReg(chatInput);
-        setChatInput("");
-        break;
-
-      case "supportWelcome":
-        console.log("Current step is supportWelcome ");
-        displayCustomerSupportWelcome(addChatMessages, nextStep);
-        setChatInput("");
-        break;
-
-      case "assurance":
-        console.log("Current step is assurance ");
-        handleCustomerSupportAssurance(chatInput);
-        setChatInput("");
-        break;
-
-      case "entreTrxId":
-        console.log("Current step is entreTrxId ");
-        handleTransactionId(chatInput);
-        setChatInput("");
-        break;
-
-      case "makeComplain":
-        console.log("Current step is makeComplain ");
-        handleMakeComplain(chatInput);
-        setChatInput("");
-        break;
-
-      case "completeTransactionId":
-        console.log("Current step is completeTransactionId ");
-        handleCompleteTransactionId(chatInput);
-        setChatInput("");
-        break;
-
-      case "giftFeedBack":
-        console.log("Current step is giftFeedBack ");
-        handleGiftRequestId(chatInput);
-        setChatInput("");
-        break;
-
-      case "completetrxWithID":
-        console.log("Current step is trxIDFeedback ");
-        // handleReportlyWelcome(chatInput);
-        setChatInput("");
-        break;
-
-      case "makeReport":
-        console.log("Current step is makeReport ");
-        handleReportlyWelcome(chatInput);
-        setChatInput("");
-        break;
-
-      case "reporterName":
-        console.log("Current step is reporterName ");
-        handleReporterName(chatInput);
-        setChatInput("");
-        break;
-
-      case "reporterPhoneNumber":
-        console.log("Current step is reporterPhoneNumber ");
-        handleEnterReporterPhoneNumber(chatInput);
-        setChatInput("");
-        break;
-
-      case "reporterWallet":
-        console.log("Current step is reporterWallet");
-        handleEnterReporterWalletAddress(chatInput);
-        setChatInput("");
-        break;
-
-      case "fraudsterWallet":
-        console.log("Current step is fraudsterWallet");
-        handleEnterFraudsterWalletAddress(chatInput);
-        setChatInput("");
-        break;
-
-      case "reportlyNote":
-        console.log("Current step is reportlyNote");
-        handleReportlyNote(chatInput);
-        setChatInput("");
-        break;
-
-      case "reporterFarwell":
-        console.log("Current step is reporterFarwell");
-        handleReporterFarwell(chatInput);
-
-        setChatInput("");
-        break;
-
-      default:
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
-            timestamp: new Date(),
-          },
-        ]);
-        setChatInput("");
-        break;
-    }
+    // } catch (error) {
+    //   handleError(error);
+    // addChatMessages([
+    //   {
+    //     type: "incoming",
+    //     content:
+    //       "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
+    //     timestamp: new Date(),
+    //   },
+    // ]);
+    // }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -3297,17 +3371,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       return () => clearTimeout(timer);
     }
   }, [chatMessages]);
-
-  // const groupedMessages = chatMessages.reduce((groups, message) => {
-  //   const date = new Date(message.timestamp);
-  //   const dateString = format(date, "yyyy-MM-dd");
-  //   if (!groups[dateString]) {
-  //     groups[dateString] = [];
-  //   }
-  //   groups[dateString].push(message);
-  //   return groups;
-  // }, {} as Record<string, MessageType[]>);
-
   const groupedMessages = useMemo(
     () =>
       chatMessages.reduce((groups, message) => {
@@ -3607,4 +3670,5 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   );
 };
 
-export default ChatBot;
+// export default ChatBot;
+export default withErrorHandling(ChatBot);
