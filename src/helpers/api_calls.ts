@@ -422,12 +422,10 @@ export const fetchBankNames = async (
 };
 // THE FETCHBANKNAMES IS AN EXAMPLE USEAGE OF TE ERROR HANDLING FOR API CALLS
 
-
 export const fetchBankDetails = async (
   bank_code: string,
   acc_no: string
 ): Promise<any | null> => {
-  const { handleError } = useErrorHandler();
   try {
     const response = await axios.get(
       `https://app.nuban.com.ng/api/NUBAN-WBODZCTK1831?bank_code=${bank_code}&acc_no=${acc_no}`
