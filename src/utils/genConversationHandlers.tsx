@@ -1,11 +1,10 @@
 import ShortenedAddress from "@/components/ShortenAddress";
 import { MessageType } from "../types/general_types";
 import { greetings } from "./ChatbotConsts";
-  // prevStep: (step: string) => void,
-  // goToStep: (step: string) => void
 
 // Import other necessary functions and types
-
+// prevStep: (step: string) => void,
+// goToStep: (step: string) => void
 export const helloMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
