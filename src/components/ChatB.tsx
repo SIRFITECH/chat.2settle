@@ -1552,7 +1552,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setLoading(true);
 
       try {
-        const bankNames = await fetchBankNames(chatInput.trim(), handleError);
+        const bankNames = await fetchBankNames(
+          chatInput.trim(),
+          handleError,
+          setLoading
+        );
         bankList = bankNames["message"];
 
         if (Array.isArray(bankList)) {
@@ -3265,20 +3269,20 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-     handleConversation(
-       chatInput,
-       currentStep,
-       walletIsConnected,
-       wallet,
-       formattedRate,
-       telFirstName ?? "",
-       setLoading,
-       addChatMessages,
-       setChatInput,
-       goToStep,
-       nextStep,
-       setSharedPaymentMode
-     );
+      handleConversation(
+        chatInput,
+        currentStep,
+        walletIsConnected,
+        wallet,
+        formattedRate,
+        telFirstName ?? "",
+        setLoading,
+        addChatMessages,
+        setChatInput,
+        goToStep,
+        nextStep,
+        setSharedPaymentMode
+      );
 
       //   handleConversation(chatInput);
     }
