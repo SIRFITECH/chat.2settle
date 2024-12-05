@@ -114,6 +114,7 @@ import {
   saveLocalStorageData,
 } from "@/utils/localStorageUtils";
 import { ChatBotProps } from "@/types/chatbot_types";
+import ErrorBoundary from "./TelegramError";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // CONST VARIABLES
@@ -2862,6 +2863,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // THE ROOT FUNCTION
 
   const handleConversation = async (chatInput: any) => {
+       setLoading(true);
     try {
       if (chatInput.trim()) {
         const newMessage: MessageType = {
@@ -3187,7 +3189,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   );
 
   // CHATBOT
-  return isMobile ? (
+  // return ;
+   return (
+     <ErrorBoundary>
+       {isMobile ? (
     <div className="fixed inset-0 flex flex-col bg-white">
       <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
         <div className="flex items-center justify-between px-4">
@@ -3469,7 +3474,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         </div>
       </div>
     </div>
-  );
+  )}
+     </ErrorBoundary>
+   );
 };
 
 // export default ChatBot;
