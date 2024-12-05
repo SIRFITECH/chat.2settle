@@ -9,6 +9,7 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import { config } from "../wagmi";
 import { SharedStateProvider } from "../context/SharedStateContext";
+import ErrorBoundary from "@/components/TelegramError";
 
 const client = new QueryClient();
 
@@ -22,7 +23,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         <QueryClientProvider client={client}>
           <RainbowKitProvider>
             <SharedStateProvider>
-              <Component {...pageProps} />
+              <ErrorBoundary>
+                <Component {...pageProps} />
+              </ErrorBoundary>
             </SharedStateProvider>
           </RainbowKitProvider>
         </QueryClientProvider>
