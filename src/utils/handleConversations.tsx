@@ -44,9 +44,9 @@ export const handleConversation = async (
           nextStep
         );
         break;
-      case "chooseAction":
-        handlers.choiceMenu(chatInput, walletIsConnected, formattedRate);
-        break;
+      // case "chooseAction":
+      //   handlers.choiceMenu(chatInput, walletIsConnected, formattedRate);
+      //   break;
       // ... Handle all other cases
       default:
         addChatMessages([

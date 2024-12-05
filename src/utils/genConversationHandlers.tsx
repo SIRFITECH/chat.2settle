@@ -69,28 +69,28 @@ export const helloMenu = (
   }
 };
 
-export const welcomeMenu = (
-  walletIsConnected: boolean,
-  wallet: string,
-  telFirstName: string,
-  formattedRate: string
-) => {
-  // Implementation of welcomeMenu
-};
+// export const welcomeMenu = (
+//   walletIsConnected: boolean,
+//   wallet: string,
+//   telFirstName: string,
+//   formattedRate: string
+// ) => {
+//   // Implementation of welcomeMenu
+// };
 
-export const choiceMenu = (
-  chatInput: string,
-  walletIsConnected: boolean,
-  formattedRate: string
-) => {
-  // Implementation of choiceMenu
-};
+// export const choiceMenu = (
+//   chatInput: string,
+//   walletIsConnected: boolean,
+//   formattedRate: string
+// ) => {
+//   // Implementation of choiceMenu
+// };
 
-// ... Extract all other functions called in handleConversation
-// Make sure to update the function signatures to include all necessary parameters
+// // ... Extract all other functions called in handleConversation
+// // Make sure to update the function signatures to include all necessary parameters
 
-export const handleMakeAChoice = (chatInput: string) => {
-  // Implementation of handleMakeAChoice
-};
+// export const handleMakeAChoice = (chatInput: string) => {
+//   // Implementation of handleMakeAChoice
+// };
 
 // ... Continue extracting all other functions

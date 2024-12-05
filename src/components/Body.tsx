@@ -11,7 +11,7 @@ import { useAccount } from "wagmi";
 import { fetchRate, fetchTotalVolume } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import { Button } from "@/components/ui/button";
-import ChatB from "./ChatB";
+// import ChatB from "./ChatB";
 // import Chat from "./Chat";
 
 const useMediaQuery = (query: string) => {
