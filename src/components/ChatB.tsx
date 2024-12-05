@@ -10,6 +10,8 @@ import React, {
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
 import Loader from "./Loader";
+import parse from "html-react-parser";
+import elementToJSXString from "react-element-to-jsx-string";
 import { useAccount } from "wagmi";
 import ShortenedAddress from "./ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -109,12 +111,77 @@ import { telegramUser } from "@/types/telegram_types";
 import useErrorHandler from "@/hooks/useErrorHandler";
 import TelegramIntegration from "./TelegramIntegration";
 import { withErrorHandling } from "./withErrorHandling";
-import {
-  getLocalStorageData,
-  saveLocalStorageData,
-} from "@/utils/localStorageUtils";
-import { ChatBotProps } from "@/types/chatbot_types";
+import { handleConversation } from "@/utils/handleConversations";
 
+const initialMessages = [
+  {
+    type: "incoming",
+    content: (
+      <span>
+        How far👋
+        <br />
+        <br />
+        Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual assistance,{" "}
+        <br />
+        How may I help you?
+        <br />
+        Say "Hi" let us start
+      </span>
+    ),
+    timestamp: new Date(),
+    isComponent: false,
+  },
+];
+
+const componentMap: { [key: string]: React.ComponentType<any> } = {
+  ConnectButton: ConnectButton,
+  // Add other components here as needed
+};
+
+const sanitizeSerializedContent = (content: string) => {
+  return content
+    .replace(/\{['"]\s*['"]\}/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const serializeMessage = (message: MessageType) => {
+  if (message.isComponent && message.componentName) {
+    return {
+      ...message,
+      content: elementToJSXString(message.content),
+    };
+  }
+  return {
+    ...message,
+    content: sanitizeSerializedContent(elementToJSXString(message.content)),
+  };
+};
+
+const deserializeMessage = (message: MessageType): MessageType => {
+  if (message.isComponent && message.componentName) {
+    const Component = componentMap[message.componentName];
+    if (Component) {
+      return {
+        ...message,
+        content: <Component />,
+      };
+    }
+    // Fallback if component is not found
+    return {
+      ...message,
+      content: <span>Unknown component: {message.componentName}</span>,
+    };
+  }
+  return {
+    ...message,
+    content: parse(message.content as string),
+  };
+};
+interface ChatBotProps {
+  isMobile: boolean;
+  onClose: () => void;
+}
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // CONST VARIABLES
   const account = useAccount();
@@ -241,12 +308,59 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
   const [isTelUser, setIsTelUser] = useState(false);
   const code = localStorage.getItem("referralCode") ?? "";
+  const MAX_MESSAGES = 100;
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // LOAD CHATS FROM LOCALSTORAGE
-  const [local, setLocal] = useState(getLocalStorageData());
+  const [local, setLocal] = useState<{
+    messages: MessageType[];
+    serializedMessages: {
+      type: string;
+      content: string;
+      timestamp: string;
+      isComponent?: boolean;
+      componentName?: string;
+    }[];
+    step: string;
+    stepHistory: string[];
+  }>(() => {
+    if (typeof window !== "undefined") {
+      const fromLocalStorage = window.localStorage.getItem("chat_data");
+      if (fromLocalStorage) {
+        const parsedData = JSON.parse(fromLocalStorage);
+        const deserializedMessages = parsedData.messages.map((msg: any) => ({
+          ...deserializeMessage(msg),
+          timestamp: new Date(msg.timestamp),
+        }));
+        const { currentStep, stepHistory = ["start"] } = parsedData;
+
+        // Only keep the last 100 messages
+        const limitedMessages = deserializedMessages.slice(-MAX_MESSAGES);
+        const limitedSerializedMessages = parsedData.messages.slice(
+          -MAX_MESSAGES
+        );
+        return {
+          messages: limitedMessages,
+          serializedMessages: limitedSerializedMessages,
+          step: currentStep,
+          stepHistory: parsedData.stepHistory || ["start"],
+        };
+      }
+    }
+
+    return {
+      messages: initialMessages,
+      serializedMessages: initialMessages.map((msg) => ({
+        ...serializeMessage(msg),
+        timestamp: msg.timestamp.toISOString(),
+      })),
+      step: "start",
+      stepHistory: ["start"],
+    };
+  });
+
+  // Add this effect to monitor localStorage changes
   useEffect(() => {
     const storageListener = () => {
       const chatData = window.localStorage.getItem("chat_data");
@@ -257,26 +371,33 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   }, []);
 
   React.useEffect(() => {
-    saveLocalStorageData(serializedMessages, currentStep, stepHistory);
+    const limitedMessages = serializedMessages.slice(-MAX_MESSAGES);
+    const chatData = {
+      messages: limitedMessages,
+      // serializedMessages,
+      currentStep,
+      stepHistory,
+    };
+    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
   }, [serializedMessages, currentStep, stepHistory]);
 
   useEffect(() => {
     console.log("Loading state changed:", loading);
   }, [loading]);
-  // // To help debug performance issues
-  // useEffect(() => {
-  //   const observer = new PerformanceObserver((list) => {
-  //     for (const entry of list.getEntries()) {
-  //       if (entry.duration > 50) {
-  //         // 50ms threshold
-  //         console.warn("Long task detected:", entry);
-  //       }
-  //     }
-  //   });
+  // To help debug performance issues
+  useEffect(() => {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.duration > 50) {
+          // 50ms threshold
+          console.warn("Long task detected:", entry);
+        }
+      }
+    });
 
-  //   observer.observe({ entryTypes: ["longtask"] });
-  //   return () => observer.disconnect();
-  // }, []);
+    observer.observe({ entryTypes: ["longtask"] });
+    return () => observer.disconnect();
+  }, []);
 
   // Load telegram data
   useEffect(() => {
@@ -287,7 +408,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
   useEffect(() => {
     if (sharedCrypto != "") {
-      if (sharedCrypto.trim().toLowerCase() === "usdt") {
+      if (sharedCrypto.toLowerCase() === "usdt") {
         setSharedAssetPrice(`${rate}`);
       } else {
         fetchCoinPrice(`${sharedCrypto}`).then((price) => {
@@ -738,12 +859,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       addChatMessages([
         {
           type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
+          content: (
+            <span>
+              You need to make a valid choice
+              <br />
+              <br />
+              Please Try again, or say 'Hi' or 'Hello' to start over
+            </span>
+          ),
           timestamp: new Date(),
         },
       ]);
     }
+    setChatInput("");
   };
 
   // HANDLE TRANSFER MONEY MENU
@@ -1024,15 +1152,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             sharedPaymentMode,
             "738920"
           )
-        : (displayHowToEstimation(
+        : displayHowToEstimation(
             addChatMessages,
             "USDT (BEP20)",
             sharedPaymentMode
-          ),
-          nextStep("payOptions"));
+          );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
+      console.log("sharedPaymentMode:", sharedPaymentMode);
+      // sharedPaymentMode.toLowerCase() === "request"
+      //   ? nextStep("charge")
+      //   : nextStep("payOptions");
     } else {
       addChatMessages([
         {
@@ -1087,7 +1218,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedEstimateAsset("Dollar");
       nextStep("charge");
     } else if (chatInput === "3") {
-      console.log("We are paying with crypto");
       displayPayIn(
         addChatMessages,
         sharedCrypto,
@@ -1098,7 +1228,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       );
       setSharedEstimateAsset(sharedCrypto);
       nextStep("charge");
-    } else if (sharedPaymentMode.trim().toLowerCase() === "request") {
+    } else {
       displayPayIn(
         addChatMessages,
         "Naira",
@@ -1109,15 +1239,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       );
       setSharedEstimateAsset("Naira");
       nextStep("charge");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: "Invalid choice. Please choose a valid pay option.",
-
-          timestamp: new Date(),
-        },
-      ]);
     }
   };
 
@@ -1431,11 +1552,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setLoading(true);
 
       try {
-        const bankNames = await fetchBankNames(
-          chatInput.trim(),
-          handleError,
-          setLoading
-        );
+        const bankNames = await fetchBankNames(chatInput.trim(), handleError);
         bankList = bankNames["message"];
 
         if (Array.isArray(bankList)) {
@@ -2861,282 +2978,309 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
   // THE ROOT FUNCTION
 
-  const handleConversation = async (chatInput: any) => {
-    try {
-      if (chatInput.trim()) {
-        const newMessage: MessageType = {
-          type: "outgoing",
-          content: <span>{chatInput}</span>,
-          timestamp: new Date(),
-        };
-        addChatMessages([newMessage]);
-        setChatInput("");
-      }
+  //   const handleConversation = async (chatInput: any) => {
+  //     try {
+  //       setLoading(true);
+  //       if (chatInput.trim()) {
+  //         const newMessage: MessageType = {
+  //           type: "outgoing",
+  //           content: <span>{chatInput}</span>,
+  //           timestamp: new Date(),
+  //         };
+  //         addChatMessages([newMessage]);
+  //         // setChatInput(""); //Removed as per update instruction
+  //       }
 
-      if (greetings.includes(chatInput.trim().toLowerCase())) {
-        goToStep("start");
-      }
+  //       if (greetings.includes(chatInput.trim().toLowerCase())) {
+  //         goToStep("start");
+  //       }
 
-      switch (currentStep) {
-        case "start":
-          console.log("current step is start");
+  //       switch (currentStep) {
+  //         case "start":
+  //           console.log("current step is start");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           helloMenu(chatInput);
+  //           setSharedPaymentMode("");
+  //           break;
 
-          helloMenu(chatInput);
-          setChatInput("");
-          setSharedPaymentMode("");
-          break;
+  //         case "chooseAction":
+  //           console.log("current step is chooseAction");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           choiceMenu(chatInput);
+  //           break;
 
-        case "chooseAction":
-          console.log("current step is chooseAction");
+  //         case "transactCrypto":
+  //           console.log("current step is transactCrypto");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleMakeAChoice(chatInput);
+  //           break;
 
-          choiceMenu(chatInput);
-          setChatInput("");
-          break;
+  //         case "transferMoney":
+  //           console.log("Current step is transferMoney ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleTransferMoney(chatInput);
+  //           break;
 
-        case "transactCrypto":
-          console.log("current step is transactCrypto");
+  //         case "estimateAsset":
+  //           console.log("Current step is estimateAsset ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleEstimateAsset(chatInput);
+  //           break;
 
-          handleMakeAChoice(chatInput);
-          setChatInput("");
-          break;
+  //         case "network":
+  //           console.log("Current step is network ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleNetwork(chatInput);
+  //           break;
 
-        case "transferMoney":
-          console.log("Current step is transferMoney ");
+  //         case "payOptions":
+  //           console.log("Current step is payOptions ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handlePayOptions(chatInput);
+  //           break;
 
-          handleTransferMoney(chatInput);
-          setChatInput("");
-          break;
+  //         case "charge":
+  //           console.log("Current step is charge ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleCharge(chatInput);
+  //           break;
 
-        case "estimateAsset":
-          console.log("Current step is estimateAsset ");
+  //         case "enterBankSearchWord":
+  //           console.log("Current step is enterBankSearchWord");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           let wantsToClaimGift =
+  //             sharedPaymentMode.toLowerCase() === "claim gift";
+  //           let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
+  //           let wantsToRequestPayment =
+  //             sharedPaymentMode.toLowerCase() === "request";
+  //           let wnatsToTransactCrypto =
+  //             sharedPaymentMode.toLowerCase() === "transfermoney";
 
-          handleEstimateAsset(chatInput);
-          setChatInput("");
-          break;
+  //           wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
+  //             ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
+  //               console.log("PAYMENT MODE IS:", sharedPaymentMode),
+  //               handleSearchBank(chatInput))
+  //             : (console.log(
+  //                 "CURRENT STEP IS continueToPay IN enterBankSearchWord "
+  //               ),
+  //               console.log("PAYMENT MODE IS:", sharedPaymentMode),
+  //               handleContinueToPay(chatInput));
+  //           break;
 
-        case "network":
-          console.log("Current step is network ");
+  //         case "selectBank":
+  //           console.log("Current step is selectBank ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleSelectBank(chatInput);
+  //           break;
 
-          handleNetwork(chatInput);
-          setChatInput("");
-          break;
+  //         case "enterAccountNumber":
+  //           console.log("Current step is enterAccountNumber ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleBankAccountNumber(chatInput);
+  //           break;
 
-        case "payOptions":
-          console.log("Current step is payOptions ");
+  //         case "continueToPay":
+  //           console.log("Current step is continueToPay ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleContinueToPay(chatInput);
+  //           break;
 
-          handlePayOptions(chatInput);
-          setChatInput("");
-          break;
+  //         case "enterPhone":
+  //           console.log("Current step is enterPhone ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handlePhoneNumber(chatInput);
+  //           break;
 
-        case "charge":
-          console.log("Current step is charge ");
+  //         case "sendPayment":
+  //           console.log("Current step is sendPayment ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           await handleCryptoPayment(chatInput);
+  //           break;
 
-          handleCharge(chatInput);
-          setChatInput("");
-          break;
+  //         case "confirmTransaction":
+  //           console.log("Current step is confirmTransaction ");
+  //           console.log(
+  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
+  //           );
+  //           handleConfirmTransaction(chatInput);
+  //           break;
 
-        case "enterBankSearchWord":
-          console.log("Current step is enterBankSearchWord");
-          let wantsToClaimGift =
-            sharedPaymentMode.toLowerCase() === "claim gift";
-          let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
-          let wantsToRequestPayment =
-            sharedPaymentMode.toLowerCase() === "request";
-          let wnatsToTransactCrypto =
-            sharedPaymentMode.toLowerCase() === "transfermoney";
+  //         case "paymentProcessing":
+  //           console.log("Current step is paymentProcessing ");
+  //           handleTransactionProcessing(chatInput);
+  //           break;
 
-          wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
-            ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
-              handleSearchBank(chatInput))
-            : (console.log(
-                "CURRENT STEP IS continueToPay IN enterBankSearchWord "
-              ),
-              handleContinueToPay(chatInput));
-          setChatInput("");
-          break;
+  //         case "kycInfo":
+  //           console.log("Current step is kycInfo ");
+  //           handleKYCInfo(chatInput);
+  //           break;
 
-        case "selectBank":
-          console.log("Current step is selectBank ");
-          handleSelectBank(chatInput);
-          setChatInput("");
-          break;
+  //         case "kycReg":
+  //           console.log("Current step is kycReg ");
+  //           handleRegKYC(chatInput);
+  //           break;
 
-        case "enterAccountNumber":
-          console.log("Current step is enterAccountNumber ");
-          handleBankAccountNumber(chatInput);
-          setChatInput("");
-          break;
+  //         case "thankForKYCReg":
+  //           console.log("Current step is thankForKYCReg ");
+  //           handleThankForKYCReg(chatInput);
+  //           break;
 
-        case "continueToPay":
-          console.log("Current step is continueToPay ");
+  //         case "supportWelcome":
+  //           console.log("Current step is supportWelcome ");
+  //           displayCustomerSupportWelcome(addChatMessages, nextStep);
+  //           break;
 
-          handleContinueToPay(chatInput);
-          setChatInput("");
-          break;
+  //         case "assurance":
+  //           console.log("Current step is assurance ");
+  //           handleCustomerSupportAssurance(chatInput);
+  //           break;
 
-        case "enterPhone":
-          console.log("Current step is enterPhone ");
+  //         case "entreTrxId":
+  //           console.log("Current step is entreTrxId ");
+  //           handleTransactionId(chatInput);
+  //           break;
 
-          handlePhoneNumber(chatInput);
-          setChatInput("");
-          break;
+  //         case "makeComplain":
+  //           console.log("Current step is makeComplain ");
+  //           handleMakeComplain(chatInput);
+  //           break;
 
-        case "sendPayment":
-          console.log("Current step is sendPayment ");
+  //         case "completeTransactionId":
+  //           console.log("Current step is completeTransactionId ");
+  //           handleCompleteTransactionId(chatInput);
+  //           break;
 
-          await handleCryptoPayment(chatInput);
-          setChatInput("");
-          break;
+  //         case "giftFeedBack":
+  //           console.log("Current step is giftFeedBack ");
+  //           handleGiftRequestId(chatInput);
+  //           break;
 
-        case "confirmTransaction":
-          console.log("Current step is confirmTransaction ");
+  //         case "completetrxWithID":
+  //           console.log("Current step is trxIDFeedback ");
+  //           // handleReportlyWelcome(chatInput);
+  //           break;
 
-          handleConfirmTransaction(chatInput);
-          setChatInput("");
+  //         case "makeReport":
+  //           console.log("Current step is makeReport ");
+  //           handleReportlyWelcome(chatInput);
+  //           break;
 
-          break;
+  //         case "reporterName":
+  //           console.log("Current step is reporterName ");
+  //           handleReporterName(chatInput);
+  //           break;
 
-        case "paymentProcessing":
-          console.log("Current step is paymentProcessing ");
-          handleTransactionProcessing(chatInput);
-          setChatInput("");
-          break;
+  //         case "reporterPhoneNumber":
+  //           console.log("Current step is reporterPhoneNumber ");
+  //           handleEnterReporterPhoneNumber(chatInput);
+  //           break;
 
-        case "kycInfo":
-          console.log("Current step is kycInfo ");
-          handleKYCInfo(chatInput);
-          setChatInput("");
-          break;
+  //         case "reporterWallet":
+  //           console.log("Current step is reporterWallet");
+  //           handleEnterReporterWalletAddress(chatInput);
+  //           break;
 
-        case "kycReg":
-          console.log("Current step is kycReg ");
-          handleRegKYC(chatInput);
-          setChatInput("");
-          break;
+  //         case "fraudsterWallet":
+  //           console.log("Current step is fraudsterWallet");
+  //           handleEnterFraudsterWalletAddress(chatInput);
+  //           break;
 
-        case "thankForKYCReg":
-          console.log("Current step is thankForKYCReg ");
-          handleThankForKYCReg(chatInput);
-          setChatInput("");
-          break;
+  //         case "reportlyNote":
+  //           console.log("Current step is reportlyNote");
+  //           handleReportlyNote(chatInput);
+  //           break;
 
-        case "supportWelcome":
-          console.log("Current step is supportWelcome ");
-          displayCustomerSupportWelcome(addChatMessages, nextStep);
-          setChatInput("");
-          break;
+  //         case "reporterFarwell":
+  //           console.log("Current step is reporterFarwell");
+  //           handleReporterFarwell(chatInput);
+  //           break;
 
-        case "assurance":
-          console.log("Current step is assurance ");
-          handleCustomerSupportAssurance(chatInput);
-          setChatInput("");
-          break;
-
-        case "entreTrxId":
-          console.log("Current step is entreTrxId ");
-          handleTransactionId(chatInput);
-          setChatInput("");
-          break;
-
-        case "makeComplain":
-          console.log("Current step is makeComplain ");
-          handleMakeComplain(chatInput);
-          setChatInput("");
-          break;
-
-        case "completeTransactionId":
-          console.log("Current step is completeTransactionId ");
-          handleCompleteTransactionId(chatInput);
-          setChatInput("");
-          break;
-
-        case "giftFeedBack":
-          console.log("Current step is giftFeedBack ");
-          handleGiftRequestId(chatInput);
-          setChatInput("");
-          break;
-
-        case "completetrxWithID":
-          console.log("Current step is trxIDFeedback ");
-          // handleReportlyWelcome(chatInput);
-          setChatInput("");
-          break;
-
-        case "makeReport":
-          console.log("Current step is makeReport ");
-          handleReportlyWelcome(chatInput);
-          setChatInput("");
-          break;
-
-        case "reporterName":
-          console.log("Current step is reporterName ");
-          handleReporterName(chatInput);
-          setChatInput("");
-          break;
-
-        case "reporterPhoneNumber":
-          console.log("Current step is reporterPhoneNumber ");
-          handleEnterReporterPhoneNumber(chatInput);
-          setChatInput("");
-          break;
-
-        case "reporterWallet":
-          console.log("Current step is reporterWallet");
-          handleEnterReporterWalletAddress(chatInput);
-          setChatInput("");
-          break;
-
-        case "fraudsterWallet":
-          console.log("Current step is fraudsterWallet");
-          handleEnterFraudsterWalletAddress(chatInput);
-          setChatInput("");
-          break;
-
-        case "reportlyNote":
-          console.log("Current step is reportlyNote");
-          handleReportlyNote(chatInput);
-          setChatInput("");
-          break;
-
-        case "reporterFarwell":
-          console.log("Current step is reporterFarwell");
-          handleReporterFarwell(chatInput);
-
-          setChatInput("");
-          break;
-
-        default:
-          addChatMessages([
-            {
-              type: "incoming",
-              content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
-              timestamp: new Date(),
-            },
-          ]);
-          setChatInput("");
-          break;
-      }
-    } catch (error) {
-      handleError(
-        error instanceof Error ? error.message : "An unknown error occurred"
-      );
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
-          timestamp: new Date(),
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //         default:
+  //           addChatMessages([
+  //             {
+  //               type: "incoming",
+  //               content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
+  //               timestamp: new Date(),
+  //             },
+  //           ]);
+  //           break;
+  //       }
+  //     } catch (error) {
+  //       handleError(
+  //         error instanceof Error ? error.message : "An unknown error occurred"
+  //       );
+  //       addChatMessages([
+  //         {
+  //           type: "incoming",
+  //           content:
+  //             "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
+  //           timestamp: new Date(),
+  //         },
+  //       ]);
+  //     } finally {
+  //       setLoading(false);
+  //       setChatInput(""); //Added as per update instruction
+  //     }
+  //     // } catch (error) {
+  //     //   handleError(error);
+  //     // addChatMessages([
+  //     //   {
+  //     //     type: "incoming",
+  //     //     content:
+  //     //       "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
+  //     //     timestamp: new Date(),
+  //     //   },
+  //     // ]);
+  //     // }
+  //   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleConversation(chatInput);
+     handleConversation(
+       chatInput,
+       currentStep,
+       walletIsConnected,
+       wallet,
+       formattedRate,
+       telFirstName ?? "",
+       setLoading,
+       addChatMessages,
+       setChatInput,
+       goToStep,
+       nextStep,
+       setSharedPaymentMode
+     );
+
+      //   handleConversation(chatInput);
     }
   };
 
@@ -3316,7 +3460,22 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           />
           <button
             className="ml-2 text-blue-500 cursor-pointer"
-            onClick={() => handleConversation(chatInput)}
+            onClick={() =>
+              handleConversation(
+                chatInput,
+                currentStep,
+                walletIsConnected,
+                wallet,
+                formattedRate,
+                telFirstName ?? "",
+                setLoading,
+                addChatMessages,
+                setChatInput,
+                goToStep,
+                nextStep,
+                setSharedPaymentMode
+              )
+            }
             aria-label="Send message"
           >
             <SendIcon />
@@ -3461,7 +3620,22 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           />
           <button
             className="ml-2 text-blue-500 cursor-pointer"
-            onClick={() => handleConversation(chatInput)}
+            onClick={() =>
+              handleConversation(
+                chatInput,
+                currentStep,
+                walletIsConnected,
+                wallet,
+                formattedRate,
+                telFirstName ?? "",
+                setLoading,
+                addChatMessages,
+                setChatInput,
+                goToStep,
+                nextStep,
+                setSharedPaymentMode
+              )
+            }
             aria-label="Send message"
           >
             <SendIcon />
@@ -3474,3 +3648,5 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
 // export default ChatBot;
 export default withErrorHandling(ChatBot);
+// export default ChatBot;
+// export default withErrorHandling(ChatBot);

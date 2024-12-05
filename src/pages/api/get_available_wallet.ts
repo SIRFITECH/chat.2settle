@@ -28,112 +28,22 @@ export default async function handler(
       .json({ message: "Invalid or missing network parameter" });
   }
 
-  // let connection;
-  // try {
-  //   connection = await pool.getConnection();
-  //   await connection.beginTransaction();
-
-  //   const [rows] = await connection.query<RowDataPacket[]>(
-  //     `SELECT
-  //       bitcoin_wallet, eth_bnb_wallet, tron_wallet,
-  //       bitcoin_flag, ethereum_flag, binance_flag, tron_flag,
-  //       erc20_flag, trc20_flag, bep20_flag,
-  //       bitcoin_last_assigned, ethereum_last_assigned, binance_last_assigned,
-  //       tron_last_assigned, erc20_last_assigned, bep20_last_assigned, trc20_last_assigned
-  //     FROM 2Settle_walletAddress
-  //     WHERE ${getFlagColumn(network)} = 'true'
-  //     LIMIT 1
-  //     FOR UPDATE`
-  //   );
-
-  //   if (rows.length === 0) {
-  //     const [lastAssignedRows] = await connection.query<RowDataPacket[]>(
-  //       `SELECT
-  //         MIN(CASE WHEN bitcoin_flag = 'false' THEN bitcoin_last_assigned END) as btc_last_assigned,
-  //         MIN(CASE WHEN ethereum_flag = 'false' THEN ethereum_last_assigned END) as eth_last_assigned,
-  //         MIN(CASE WHEN binance_flag = 'false' THEN binance_last_assigned END) as bnb_last_assigned,
-  //         MIN(CASE WHEN erc20_flag = 'false' THEN erc20_last_assigned END) as erc20_last_assigned,
-  //         MIN(CASE WHEN bep20_flag = 'false' THEN bep20_last_assigned END) as bep20_last_assigned,
-  //         MIN(CASE WHEN tron_flag = 'false' THEN tron_last_assigned END) as trx_last_assigned,
-  //         MIN(CASE WHEN trc20_flag = 'false' THEN trc20_last_assigned END) as trc20_last_assigned
-  //       FROM 2Settle_walletAddress`
-  //     );
-
-  //     const nearestExpiry = getNearestExpiry(lastAssignedRows[0], network);
-
-  //     await connection.rollback();
-  //     connection.release();
-
-  //     if (nearestExpiry) {
-  //       const waitTime = Math.max(
-  //         0,
-  //         nearestExpiry.getTime() + WALLET_EXPIRY_TIME - Date.now()
-  //       );
-  //       const waitTimeMinutes = Math.ceil(waitTime / (60 * 1000));
-  //       return res.status(503).json({
-  //         message: `It is an up time for ${network} transactions. You would need to wait and try again in ${waitTimeMinutes} minute${
-  //           waitTimeMinutes !== 1 ? "s" : ""
-  //         }.`,
-  //       });
-  //     } else {
-  //       return res
-  //         .status(404)
-  //         .json({ message: `No active wallet found for ${network}` });
-  //     }
-  //   }
-
-  //   const wallet = rows[0];
-  //   const activeWallet = getWalletForNetwork(wallet, network);
-  //   const flagToUpdate = getFlagColumn(network);
-  //   const lastAssignedColumn = getLastAssignedColumn(network);
-
-  //   if (activeWallet) {
-  //     const lastAssignedTime = new Date();
-
-  //     await connection.query(
-  //       `UPDATE 2Settle_walletAddress SET ${flagToUpdate} = 'false', ${lastAssignedColumn} = ? WHERE ${getWalletColumn(
-  //         network
-  //       )} = ?`,
-  //       [lastAssignedTime, activeWallet]
-  //     );
-
-  //     await connection.commit();
-  //     connection.release();
-
-  //     return res.status(200).json({ activeWallet, lastAssignedTime });
-  //   } else {
-  //     await connection.rollback();
-  //     connection.release();
-  //     return res
-  //       .status(404)
-  //       .json({ message: `No active wallet found for ${network}` });
-  //   }
-  // } catch (error) {
-  //   if (connection) {
-  //     await connection.rollback();
-  //     connection.release();
-  //   }
-  //   console.error("Database query error:", error);
-  //   return res.status(500).json({ message: "Internal server error" });
-  // }
-  // ... (previous code remains the same)
-
   let connection;
   try {
     connection = await pool.getConnection();
     await connection.beginTransaction();
-    console.log(`Flag for ${network} is ${getFlagColumn(network)}`);
 
-    const [rows] = await connection.query<RowDataPacket[]>(
-      `SELECT
-        *
-      FROM 2Settle_walletAddress
-      WHERE ${getFlagColumn(network)} = 'true'
-      LIMIT 1
-      FOR UPDATE`
-    );
+    const flagColumn = getFlagColumn(network);
 
-    // ... (rest of the code remains the same)
+    const query = `
+    SELECT *
+    FROM 2Settle_walletAddress
+    WHERE TRIM(${flagColumn}) IN ('true', 1, true)
+    LIMIT 1
+    FOR UPDATE`;
+
+    const [rows] = await connection.query<RowDataPacket[]>(query);
+
     if (rows.length === 0) {
       const [lastAssignedRows] = await connection.query<RowDataPacket[]>(
         `SELECT

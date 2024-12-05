@@ -224,7 +224,7 @@ export const displayPayIn = (
   const rate = parseFloat(sharedRate);
   const upperDollar = 2000000 / rate;
   const lowerDollar = 20000 / rate;
-  const assetPrice = parseFloat(sharedAssetPrice);
+  const assetPrice = parseFloat(sharedAssetPrice.trim().replace(/[^\d.]/g, ""));
   let max: number;
   let min: number;
   if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
@@ -522,6 +522,299 @@ export const displayEnterPhone = (
 };
 
 // // FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
+export const displaySendPayment = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  nextStep: (step: string) => void,
+  wallet: string,
+  sharedCrypto: string,
+  sharedPaymentAssetEstimate: string,
+  sharedPaymentNairaEstimate: string,
+  transactionID: number,
+  sharedNetwork: string,
+  sharedPaymentMode: string,
+  giftID: number,
+  lastAssignedTime?: Date
+): Promise<void> => {
+  const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+  const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+  const isGift = sharedPaymentMode.toLowerCase() === "gift";
+  const activeWallet = wallet;
+  const allowedTime = 5;
+
+  const CopyableText: React.FC<{
+    text: string;
+    label: string;
+    isWallet?: boolean;
+  }> = ({ text, label, isWallet = false }) => {
+    const [isCopied, setIsCopied] = useState(false);
+    const [isExpired, setIsExpired] = useState(false);
+    const [timeLeft, setTimeLeft] = useState("");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [walletCopied, setWalletCopied] = useState(false);
+    const [dialogMessage, setDialogMessage] = useState("");
+    const buttonRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+      if (isWallet && lastAssignedTime) {
+        const timer = setInterval(() => {
+          const now = new Date().getTime();
+          const distance =
+            new Date(
+              lastAssignedTime.getTime() + allowedTime * 60 * 1000
+            ).getTime() - now;
+
+          if (distance < 0) {
+            clearInterval(timer);
+            setTimeLeft("00:00");
+            setIsExpired(true);
+            if (!walletCopied) {
+              setDialogMessage(
+                "This wallet is no longer available. Please start a new transaction."
+              );
+              setIsDialogOpen(true);
+            }
+          } else {
+            const minutes = Math.floor(
+              (distance % (1000 * 60 * 60)) / (1000 * 60)
+            );
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            const timeString = `${minutes.toString().padStart(2, "0")}:${seconds
+              .toString()
+              .padStart(2, "0")}`;
+            setTimeLeft(timeString);
+
+            // Check if time is less than or equal to 2 minutes and popup hasn't been shown
+            if (minutes === 2 && seconds === 0 && walletCopied) {
+              setDialogMessage("Have you sent the payment?");
+              setIsDialogOpen(true);
+            }
+          }
+        }, 1000);
+
+        return () => clearInterval(timer);
+      }
+    }, [isWallet, lastAssignedTime, walletCopied]);
+    const handleCopy = () => {
+      navigator.clipboard.writeText(text).then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 3000);
+        if (isWallet) {
+          setWalletCopied(true);
+        }
+      });
+    };
+
+    const handleConfirm = () => {
+      setIsDialogOpen(false);
+      addChatMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              Thank you for your transaction, <br />
+              Wait a little while and check if you have received your funds.
+              <br />
+              <br />
+              1. Start another transaction
+              <br />
+              2. No, I want to complain
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("paymentProcessing");
+    };
+
+    const handleClose = () => {
+      setIsDialogOpen(false);
+      addChatMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              It appears you did not go through with the transaction again,{" "}
+              <br />
+              Thanks anyway for your time. Feel free to
+              <br />
+              <br />
+              1. Start another transaction
+              <br />
+              2. Tell us what went wrong
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("paymentProcessing");
+    };
+
+    const truncateText = (text: string) => {
+      return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
+    };
+
+    const getButtonText = () => {
+      if (dialogMessage === "Have you sent the payment?") {
+        return "Yes, I've sent the payment";
+      } else if (
+        dialogMessage ===
+        "This wallet is no longer available. Please start a new transaction."
+      ) {
+        return "Start a new transaction";
+      } else {
+        return "Okay, I understand";
+      }
+    };
+
+    return (
+      <div className="flex flex-col items-start space-y-2">
+        {isWallet ? <span>{truncateText(text)}</span> : ""}
+
+        <Button
+          ref={buttonRef}
+          onClick={handleCopy}
+          variant="outline"
+          size="sm"
+          disabled={isWallet && isExpired}
+        >
+          {!isCopied ? (
+            <>
+              <Copy className="w-4 h-4 mr-2" />
+              <span>Copy {label}</span>
+            </>
+          ) : (
+            <>
+              <Check className="w-4 h-4 mr-2" />
+              <span>{label} Copied</span>
+            </>
+          )}
+        </Button>
+        {isWallet && (
+          <span
+            className={
+              timeLeft < "02:01" || isExpired
+                ? "text-red-500 animate-pulse font-bold"
+                : "text-green-500"
+            }
+          >
+            {isExpired ? "Wallet expired" : timeLeft}
+          </span>
+        )}
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              buttonRef.current?.focus();
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Transaction Confirmation</DialogTitle>
+              <DialogDescription>{dialogMessage}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
+                onClick={() => {
+                  if (walletCopied) {
+                    handleConfirm();
+                  } else {
+                    handleClose();
+                  }
+                }}
+              >
+                {getButtonText()}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  };
+
+  const initialMessages: MessageType[] = [
+    {
+      type: "incoming",
+      content: "Phone Number confirmed",
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          Note: You are sending{" "}
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
+          <b>{paymentAsset}</b> only to 2Settle wallet address <br />
+          <CopyableText
+            text={`${assetPayment.toFixed(8)}`}
+            label={`${sharedCrypto} amount`}
+          />
+          <br />
+          Tap to copy 👇🏾: <br />
+          <br />
+          <CopyableText
+            text={activeWallet}
+            label="Wallet address"
+            isWallet={true}
+          />
+          <br />
+          Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+          <CopyableText
+            text={transactionID.toString()}
+            label="Transaction ID"
+          />{" "}
+          <br />
+          Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+          include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
+          address expires in {allowedTime.toString()} minutes. <br />
+        </span>
+      ),
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: "Wait for the pop-up. If missed, say 'hi' to restart. ",
+      timestamp: new Date(),
+    },
+  ];
+
+  if (isGift) {
+    initialMessages[1] = {
+      type: "incoming",
+      content: (
+        <span>
+          Note: You are sending{" "}
+          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
+          <b>{paymentAsset}</b> only to 2Settle wallet address <br />
+          <CopyableText
+            text={`${assetPayment.toFixed(8)}`}
+            label={`${sharedCrypto} amount`}
+          />
+          <br />
+          Tap to copy 👇🏾: <br />
+          <br />
+          <CopyableText
+            text={activeWallet}
+            label="Wallet address"
+            isWallet={true}
+          />
+          <br />
+          Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+          <CopyableText text={giftID.toString()} label="Gift ID" />
+          Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+          include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
+          address expires in {allowedTime.toString()} minutes. <br />
+        </span>
+      ),
+      timestamp: new Date(),
+    };
+  }
+  addChatMessages(initialMessages);
+};
+
+// FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
 // export const displaySendPayment = async (
 //   addChatMessages: (messages: MessageType[]) => void,
 //   nextStep: (step: string) => void,
@@ -744,42 +1037,15 @@ export const displayEnterPhone = (
 //       type: "incoming",
 //       content: (
 //         <span>
-//           You are receiving{" "}
-//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
-//           <br />
-//           Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
-//           <CopyableText
-//             text={transactionID.toString()}
-//             label="Transaction ID"
-//           />
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Send <b>{paymentAsset}</b> to our wallet address. <br />
+//           Note: You are sending{" "}
+//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
+//           <b>{paymentAsset}</b> only to 2Settle wallet address <br />
 //           <CopyableText
 //             text={`${assetPayment.toFixed(8)}`}
 //             label={`${sharedCrypto} amount`}
 //           />
 //           <br />
-//           Note: The amount estimated <b>{paymentAsset}</b> does not include the{" "}
-//           {sharedCrypto} ({sharedNetwork}) transaction fee. <br />
-//           <b>So we expect to receive not less than {paymentAsset}.</b>
-//           <br />
-//           Tap to copy or Scan the wallet address below 👇🏾
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Tap to copy 👉: <br />
+//           Tap to copy 👇🏾: <br />
 //           <br />
 //           <CopyableText
 //             text={activeWallet}
@@ -787,18 +1053,22 @@ export const displayEnterPhone = (
 //             isWallet={true}
 //           />
 //           <br />
-//           <b>This transaction expires in {allowedTime.toString()} minutes</b>
+//           Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+//           <CopyableText
+//             text={transactionID.toString()}
+//             label="Transaction ID"
+//           />{" "}
 //           <br />
-//           <b>
-//             This wallet address is only available for {allowedTime.toString()}{" "}
-//             minutes
-//           </b>
-//           <br />
-//           There would be a pop up later on this page,
-//           <br />
-//           But if you miss it, you can <b>say 'Hi'</b> to start a new transaction
+//           Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+//           include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
+//           address expires in {allowedTime.toString()} minutes. <br />
 //         </span>
 //       ),
+//       timestamp: new Date(),
+//     },
+//     {
+//       type: "incoming",
+//       content: "Wait for the pop-up. If missed, say 'hi' to restart. ",
 //       timestamp: new Date(),
 //     },
 //   ];
@@ -808,298 +1078,41 @@ export const displayEnterPhone = (
 //       type: "incoming",
 //       content: (
 //         <span>
-//           You are sending{" "}
-//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+//           Note: You are sending{" "}
+//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
+//           <b>{paymentAsset}</b> only to 2Settle wallet address <br />
+//           <CopyableText
+//             text={`${assetPayment.toFixed(8)}`}
+//             label={`${sharedCrypto} amount`}
+//           />
+//           <br />
+//           Tap to copy 👇🏾: <br />
+//           <br />
+//           <CopyableText
+//             text={activeWallet}
+//             label="Wallet address"
+//             isWallet={true}
+//           />
 //           <br />
 //           Tap to copy Gift ID 👇🏾 : {giftID.toString()}
 //           <CopyableText text={giftID.toString()} label="Gift ID" />
+//           Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+//           include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
+//           address expires in {allowedTime.toString()} minutes. <br />
 //         </span>
 //       ),
 //       timestamp: new Date(),
 //     };
 //   }
 
+//   //  You are sending{" "}
+//   //         <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+//   //         <br />
+//   //         Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+//   //         <CopyableText text={giftID.toString()} label="Gift ID" />
 //   // Send initial messages
 //   addChatMessages(initialMessages);
 // };
-
-// FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
-export const displaySendPayment = async (
-  addChatMessages: (messages: MessageType[]) => void,
-  nextStep: (step: string) => void,
-  wallet: string,
-  sharedCrypto: string,
-  sharedPaymentAssetEstimate: string,
-  sharedPaymentNairaEstimate: string,
-  transactionID: number,
-  sharedNetwork: string,
-  sharedPaymentMode: string,
-  giftID: number,
-  lastAssignedTime?: Date
-): Promise<void> => {
-  const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-  const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
-  const isGift = sharedPaymentMode.toLowerCase() === "gift";
-  const activeWallet = wallet;
-  const allowedTime = 5;
-
-  const CopyableText: React.FC<{
-    text: string;
-    label: string;
-    isWallet?: boolean;
-  }> = ({ text, label, isWallet = false }) => {
-    const [isCopied, setIsCopied] = useState(false);
-    const [isExpired, setIsExpired] = useState(false);
-    const [timeLeft, setTimeLeft] = useState("");
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [walletCopied, setWalletCopied] = useState(false);
-    const [dialogMessage, setDialogMessage] = useState("");
-    const buttonRef = useRef<HTMLButtonElement>(null);
-
-    useEffect(() => {
-      if (isWallet && lastAssignedTime) {
-        const timer = setInterval(() => {
-          const now = new Date().getTime();
-          const distance =
-            new Date(
-              lastAssignedTime.getTime() + allowedTime * 60 * 1000
-            ).getTime() - now;
-
-          if (distance < 0) {
-            clearInterval(timer);
-            setTimeLeft("00:00");
-            setIsExpired(true);
-            if (!walletCopied) {
-              setDialogMessage(
-                "This wallet is no longer available. Please start a new transaction."
-              );
-              setIsDialogOpen(true);
-            }
-          } else {
-            const minutes = Math.floor(
-              (distance % (1000 * 60 * 60)) / (1000 * 60)
-            );
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            const timeString = `${minutes.toString().padStart(2, "0")}:${seconds
-              .toString()
-              .padStart(2, "0")}`;
-            setTimeLeft(timeString);
-
-            if (timeString === "02:00" && walletCopied) {
-              setDialogMessage("Have you sent the payment?");
-              setIsDialogOpen(true);
-            }
-          }
-        }, 1000);
-
-        return () => clearInterval(timer);
-      }
-    }, [isWallet, lastAssignedTime, walletCopied]);
-
-    const handleCopy = () => {
-      navigator.clipboard.writeText(text).then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 3000);
-        if (isWallet) {
-          setWalletCopied(true);
-        }
-      });
-    };
-
-    const handleConfirm = () => {
-      setIsDialogOpen(false);
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              Thank you for your transaction, <br />
-              Wait a little while and check if you have received your funds.
-              <br />
-              <br />
-              1. Start another transaction
-              <br />
-              2. No, I want to complain
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-      nextStep("paymentProcessing");
-    };
-
-    const handleClose = () => {
-      setIsDialogOpen(false);
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              It appears you did not go through with the transaction again,{" "}
-              <br />
-              Thanks anyway for your time. Feel free to
-              <br />
-              <br />
-              1. Start another transaction
-              <br />
-              2. Tell us what went wrong
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-      nextStep("paymentProcessing");
-    };
-
-    const truncateText = (text: string) => {
-      return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
-    };
-
-    const getButtonText = () => {
-      if (dialogMessage === "Have you sent the payment?") {
-        return "Yes, I've sent the payment";
-      } else if (
-        dialogMessage ===
-        "This wallet is no longer available. Please start a new transaction."
-      ) {
-        return "Start a new transaction";
-      } else {
-        return "Okay, I understand";
-      }
-    };
-
-    return (
-      <div className="flex flex-col items-start space-y-2">
-        {isWallet ? <span>{truncateText(text)}</span> : ""}
-
-        <Button
-          ref={buttonRef}
-          onClick={handleCopy}
-          variant="outline"
-          size="sm"
-          disabled={isWallet && isExpired}
-        >
-          {!isCopied ? (
-            <>
-              <Copy className="w-4 h-4 mr-2" />
-              <span>Copy {label}</span>
-            </>
-          ) : (
-            <>
-              <Check className="w-4 h-4 mr-2" />
-              <span>{label} Copied</span>
-            </>
-          )}
-        </Button>
-        {isWallet && (
-          <span
-            className={
-              timeLeft < "02:01" || isExpired
-                ? "text-red-500 animate-pulse"
-                : "text-green-500"
-            }
-          >
-            {isExpired ? "Wallet expired" : timeLeft}
-          </span>
-        )}
-        <Dialog
-          open={isDialogOpen}
-          onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) {
-              buttonRef.current?.focus();
-            }
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Transaction Confirmation</DialogTitle>
-              <DialogDescription>{dialogMessage}</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
-                onClick={() => {
-                  if (walletCopied) {
-                    handleConfirm();
-                  } else {
-                    handleClose();
-                  }
-                }}
-              >
-                {getButtonText()}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  };
-
-  const initialMessages: MessageType[] = [
-    {
-      type: "incoming",
-      content: "Phone Number confirmed",
-      timestamp: new Date(),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Note: You are sending{" "}
-          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
-          <b>{paymentAsset}</b> only to 2Settle wallet address <br />
-          <CopyableText
-            text={`${assetPayment.toFixed(8)}`}
-            label={`${sharedCrypto} amount`}
-          />
-          <br />
-          Tap to copy 👇🏾: <br />
-          <br />
-          <CopyableText
-            text={activeWallet}
-            label="Wallet address"
-            isWallet={true}
-          />
-          <br />
-          Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
-          <CopyableText
-            text={transactionID.toString()}
-            label="Transaction ID"
-          />{" "}
-          <br />
-          Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
-          include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
-          address expires in {allowedTime.toString()} minutes. <br />
-        </span>
-      ),
-      timestamp: new Date(),
-    },
-    {
-      type: "incoming",
-      content: "Wait for the pop-up. If missed, say 'hi' to restart. ",
-      timestamp: new Date(),
-    },
-  ];
-
-  if (isGift) {
-    initialMessages[1] = {
-      type: "incoming",
-      content: (
-        <span>
-          You are sending{" "}
-          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
-          <br />
-          Tap to copy Gift ID 👇🏾 : {giftID.toString()}
-          <CopyableText text={giftID.toString()} label="Gift ID" />
-        </span>
-      ),
-      timestamp: new Date(),
-    };
-  }
-  // Send initial messages
-  addChatMessages(initialMessages);
-};
 
 export const displayConfirmPayment = (
   addChatMessages: (messages: MessageType[]) => void,
@@ -1214,23 +1227,25 @@ export const displayCharge = async (
   const rate = parseFloat(sharedRate);
   const upperDollar = 2000000 / rate;
   const lowerDollar = 20000 / rate;
-  const assetPrice = parseFloat(sharedAssetPrice);
+  const assetPrice = parseFloat(sharedAssetPrice.trim().replace(/[^\d.]/g, ""));
   const parsedInput = input.trim().replace(/[^\d.]/g, "");
-
-  console.log("Values before calculation:", {
-    parsedInput,
-    rate: sharedRate,
-    assetPrice: sharedAssetPrice,
-    estimateAsset: sharedEstimateAsset,
-  });
-
   // Validate the values
   if (isNaN(rate) || isNaN(assetPrice) || isNaN(parseFloat(parsedInput))) {
     console.error("Invalid values:", { rate, assetPrice, input });
     addChatMessages([
       {
         type: "incoming",
-        content: "Invalid input values. Please try again.",
+        content: "There was an issue calculating your payment",
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Please retry the transaction again
+            <br /> Contact support if the issue persists.
+          </span>
+        ),
         timestamp: new Date(),
       },
     ]);
@@ -1828,233 +1843,3 @@ export const displayCharge = async (
     }
   }
 };
-
-// export const displayCharge = async (
-//   addChatMessages: (messages: MessageType[]) => void,
-//   nextStep: (step: string) => void,
-//   input: string,
-//   sharedEstimateAsset: string,
-//   sharedRate: string,
-//   sharedAssetPrice: string,
-//   sharedCrypto: string,
-//   setSharedCharge: React.Dispatch<React.SetStateAction<string>>,
-//   setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
-//   setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
-//   setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
-//   setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
-//   sharedPaymentMode: string
-// ) => {
-//   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
-//   const dollar = ["usdt"];
-//   const isCrypto = cryptocurrencies.includes(sharedEstimateAsset.toLowerCase());
-//   const isDollar = dollar.includes(sharedEstimateAsset.toLowerCase());
-//   const rate = parseFloat(sharedRate);
-//   const upperDollar = 2000000 / rate;
-//   const lowerDollar = 20000 / rate;
-//   const assetPrice = parseFloat(sharedAssetPrice);
-//   const parsedInput = input.replace(/[^\d.]/g, "");
-//   const dollarValue = parseFloat(parsedInput) * rate;
-//   const cryptoValue = parseFloat(parsedInput) * assetPrice * rate;
-//   let charge = 0;
-
-//   let max: number;
-//   let min: number;
-
-//   const errorMsg =
-//     "Invalid amount, try again with an amount within the specified range";
-
-//   // Function to calculate charge based on value
-//   const calculateCharge = (value: number): number => {
-//     if (value <= 100000) return 500;
-//     if (value <= 1000000) return 1000;
-//     return 1500;
-//   };
-
-//   // Function to calculate crypto charge
-//   const calculateCryptoCharge = (nairaCharge: number): number => {
-//     return (
-//       nairaCharge /
-//       rate /
-//       (sharedCrypto.toLowerCase() === "usdt" ? 1 : assetPrice)
-//     );
-//   };
-
-//   try {
-//     if (sharedEstimateAsset.toLowerCase() === "naira") {
-//       max = 2000000;
-//       min = 20000;
-//       const nairaValue = parseFloat(parsedInput);
-//       if (nairaValue <= max && nairaValue >= min) {
-//         charge = calculateCharge(nairaValue);
-//         const cryptoCharge = calculateCryptoCharge(charge);
-
-//         setSharedCharge(cryptoCharge.toString());
-//         const cryptoPaymentEstimate =
-//           nairaValue /
-//           rate /
-//           (sharedCrypto.toLowerCase() === "usdt" ? 1 : assetPrice);
-//         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString());
-//         setSharedPaymentNairaEstimate(nairaValue.toString());
-//         setSharedNairaCharge(
-//           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-//         );
-//         setSharedChargeForDB(
-//           `${formatCurrency(
-//             cryptoPaymentEstimate.toString(),
-//             sharedCrypto.toUpperCase(),
-//             "en-NG"
-//           )} = ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-//         );
-
-//         displayChargeMenu(
-//           addChatMessages,
-//           nextStep,
-//           cryptoCharge,
-//           charge,
-//           sharedCrypto,
-//           sharedPaymentMode
-//         );
-//       } else {
-//         displayErrorMessage(addChatMessages, errorMsg);
-//       }
-//     } else if (sharedEstimateAsset.toLowerCase() === "dollar" || isDollar) {
-//       max = upperDollar;
-//       min = lowerDollar;
-//       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
-//         charge = calculateCharge(dollarValue);
-//         const cryptoCharge = calculateCryptoCharge(charge);
-
-//         setSharedCharge(cryptoCharge.toString());
-//         const cryptoPaymentEstimate =
-//           parseFloat(parsedInput) /
-//           (sharedCrypto.toLowerCase() === "usdt" ? 1 : assetPrice);
-//         const nairaPaymentEstimate = parseFloat(parsedInput) * rate;
-//         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString());
-//         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString());
-//         setSharedNairaCharge(
-//           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-//         );
-//         setSharedChargeForDB(
-//           `${formatCurrency(
-//             cryptoPaymentEstimate.toString(),
-//             sharedCrypto.toUpperCase(),
-//             "en-NG"
-//           )} = ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-//         );
-
-//         displayChargeMenu(
-//           addChatMessages,
-//           nextStep,
-//           cryptoCharge,
-//           charge,
-//           sharedCrypto,
-//           sharedPaymentMode
-//         );
-//       } else {
-//         displayErrorMessage(addChatMessages, errorMsg);
-//       }
-//     } else {
-//       max = upperDollar / assetPrice;
-//       min = lowerDollar / assetPrice;
-//       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
-//         charge = calculateCharge(cryptoValue);
-//         const cryptoCharge = calculateCryptoCharge(charge);
-
-//         setSharedCharge(cryptoCharge.toString());
-//         const cryptoPaymentEstimate = parseFloat(parsedInput);
-//         const nairaPaymentEstimate =
-//           parseFloat(parsedInput) * rate * assetPrice;
-//         setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString());
-//         setSharedPaymentNairaEstimate(nairaPaymentEstimate.toString());
-//         setSharedNairaCharge(
-//           `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-//         );
-//         setSharedChargeForDB(
-//           `${formatCurrency(
-//             cryptoPaymentEstimate.toString(),
-//             sharedCrypto.toUpperCase(),
-//             "en-NG"
-//           )} = ${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-//         );
-
-//         displayChargeMenu(
-//           addChatMessages,
-//           nextStep,
-//           cryptoCharge,
-//           charge,
-//           sharedCrypto,
-//           sharedPaymentMode
-//         );
-//       } else {
-//         displayErrorMessage(addChatMessages, errorMsg);
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Error in displayCharge:", error);
-//     displayErrorMessage(
-//       addChatMessages,
-//       "An error occurred while processing your request. Please try again."
-//     );
-//   }
-// };
-
-// const displayChargeMenu = (
-//   addChatMessages: (messages: MessageType[]) => void,
-//   nextStep: (step: string) => void,
-//   cryptoCharge: number,
-//   nairaCharge: number,
-//   sharedCrypto: string,
-//   sharedPaymentMode: string
-// ) => {
-//   const newMessages: MessageType[] = [
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           Here is your menu:
-//           <br />
-//           <br />
-//           Charge:
-//           <b>
-//             {cryptoCharge.toFixed(9)} {sharedCrypto} =
-//             {formatCurrency(nairaCharge.toString(), "NGN", "en-NG")}
-//           </b>
-//           <br />
-//           1. Charge from the amount
-//           <br />
-//           2. Add charges to the amount
-//           <br />
-//           0. Go back
-//           <br />
-//           00. Exit
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//   ];
-
-//   console.log("Next is enterBankSearchWord");
-//   sharedPaymentMode.toLowerCase() === "gift"
-//     ? nextStep("enterPhone")
-//     : nextStep("enterBankSearchWord");
-//   addChatMessages(newMessages);
-// };
-
-// const displayErrorMessage = (
-//   addChatMessages: (messages: MessageType[]) => void,
-//   message: string
-// ) => {
-//   const newMessages: MessageType[] = [
-//     {
-//       type: "incoming",
-//       content: (
-//         <span>
-//           {message}
-//           <br />
-//         </span>
-//       ),
-//       timestamp: new Date(),
-//     },
-//   ];
-//   addChatMessages(newMessages);
-// };

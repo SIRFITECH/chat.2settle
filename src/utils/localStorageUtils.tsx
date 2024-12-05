@@ -1,0 +1,123 @@
+import { MessageType } from "@/types/general_types";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import parse from "html-react-parser";
+import React from "react";
+import {
+  ReactElement,
+  JSXElementConstructor,
+  ReactNode,
+  ReactPortal,
+  AwaitedReactNode,
+} from "react";
+import { initialMessages } from "./ChatbotConsts";
+
+const componentMap: { [key: string]: React.ComponentType<any> } = {
+  ConnectButton: ConnectButton,
+  // Add other components here as needed
+};
+const MAX_MESSAGES = 100;
+
+const sanitizeSerializedContent = (content: string) => {
+  return content
+    .replace(/\{['"]\s*['"]\}/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const serializeMessage = (message: MessageType) => {
+  if (message.isComponent && message.componentName) {
+    return {
+      ...message,
+      content: elementToJSXString(message.content),
+    };
+  }
+  return {
+    ...message,
+    content: sanitizeSerializedContent(elementToJSXString(message.content)),
+  };
+};
+
+const deserializeMessage = (message: MessageType): MessageType => {
+  if (message.isComponent && message.componentName) {
+    const Component = componentMap[message.componentName];
+    if (Component) {
+      return {
+        ...message,
+        content: <Component />,
+      };
+    }
+    // Fallback if component is not found
+    return {
+      ...message,
+      content: <span>Unknown component: {message.componentName}</span>,
+    };
+  }
+  return {
+    ...message,
+    content: parse(message.content as string),
+  };
+};
+function elementToJSXString(
+  content:
+    | string
+    | number
+    | bigint
+    | boolean
+    | ReactElement<any, string | JSXElementConstructor<any>>
+    | Iterable<ReactNode>
+    | ReactPortal
+    | Promise<AwaitedReactNode>
+    | null
+    | undefined
+): string {
+  throw new Error("Function not implemented.");
+}
+
+export const getLocalStorageData = () => {
+  if (typeof window !== "undefined") {
+    const fromLocalStorage = window.localStorage.getItem("chat_data");
+    if (fromLocalStorage) {
+      const parsedData = JSON.parse(fromLocalStorage);
+      const deserializedMessages = parsedData.messages.map((msg: any) => ({
+        ...deserializeMessage(msg),
+        timestamp: new Date(msg.timestamp),
+      }));
+      const { currentStep, stepHistory = ["start"] } = parsedData;
+
+      const limitedMessages = deserializedMessages.slice(-MAX_MESSAGES);
+      const limitedSerializedMessages = parsedData.messages.slice(
+        -MAX_MESSAGES
+      );
+      return {
+        messages: limitedMessages,
+        serializedMessages: limitedSerializedMessages,
+        step: currentStep,
+        stepHistory: parsedData.stepHistory || ["start"],
+      };
+    }
+  }
+
+  return {
+    messages: initialMessages,
+    serializedMessages: initialMessages.map((msg) => ({
+      ...serializeMessage(msg),
+      timestamp: msg.timestamp.toISOString(),
+    })),
+    step: "start",
+    stepHistory: ["start"],
+  };
+};
+
+export const saveLocalStorageData = (
+  serializedMessages: any[],
+  currentStep: string,
+  stepHistory: string[]
+) => {
+  const limitedMessages = serializedMessages.slice(-MAX_MESSAGES);
+  const chatData = {
+    messages: limitedMessages,
+    currentStep,
+    stepHistory,
+  };
+  window.localStorage.setItem("chat_data", JSON.stringify(chatData));
+};

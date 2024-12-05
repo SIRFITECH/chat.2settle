@@ -66,7 +66,7 @@
 //       setChatInput("");
 //       break;
 //     case "chooseAction":
-//       choiceMenu(chatInput, addChatMessages, prevStep,nextStep, goToStep);
+//       choiceMenu(chatInput, addChatMessages, prevStep, nextStep, goToStep);
 //       setChatInput("");
 //       break;
 //     case "transactCrypto":
@@ -185,7 +185,13 @@
 //       setChatInput("");
 //       break;
 //     case "paymentProcessing":
-//       handleTransactionProcessing(chatInput, addChatMessages,prevStep,nextStep, goToStep);
+//       handleTransactionProcessing(
+//         chatInput,
+//         addChatMessages,
+//         prevStep,
+//         nextStep,
+//         goToStep
+//       );
 //       setChatInput("");
 //       break;
 //     case "kycInfo":
@@ -291,7 +297,7 @@
 //         addChatMessages,
 //         nextStep,
 //         prevStep,
-//         goToStep,
+//         goToStep
 //       );
 //       setChatInput("");
 //       break;
