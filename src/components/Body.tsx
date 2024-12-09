@@ -11,6 +11,7 @@ import { useAccount } from "wagmi";
 import { fetchRate, fetchTotalVolume } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import { Button } from "@/components/ui/button";
+import ErrorBoundary from "./TelegramError";
 // import ChatB from "./ChatB";
 // import Chat from "./Chat";
 
@@ -105,6 +106,19 @@ export default function Body() {
       "Failed to load the background image. Please check your internet connection and try again."
     );
   };
+  const renderChatBot = () => {
+    try {
+      return (
+        <ErrorBoundary>
+          <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
+        </ErrorBoundary>
+      );
+    } catch (error) {
+      console.error("Error rendering ChatBot:", error);
+      return <div>Error loading ChatBot. Please try again.</div>;
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full flex flex-col overflow-hidden">
       <div className={`absolute inset-0 ${isOpen ? "z-0" : "z-10"}`}>
@@ -213,7 +227,8 @@ export default function Body() {
 
       {isOpen && (
         <div className="fixed inset-0 z-40">
-          <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
+          {renderChatBot()}
+          {/* <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} /> */}
         </div>
       )}
     </div>
