@@ -227,8 +227,23 @@ export default function Body() {
 
       {isOpen && (
         <div className="fixed inset-0 z-40">
-          {renderChatBot()}
-          {/* <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} /> */}
+          {/* {renderChatBot()}
+          <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} /> */}
+          <ErrorBoundary
+            fallback={
+              <div className="p-4 bg-white rounded-lg shadow-lg">
+                <h3 className="text-lg font-semibold mb-2">Chat Error</h3>
+                <p>
+                  Unable to load the chat interface. Please try again later.
+                </p>
+                <Button onClick={() => setIsOpen(false)} className="mt-4">
+                  Close
+                </Button>
+              </div>
+            }
+          >
+            <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
+          </ErrorBoundary>
         </div>
       )}
     </div>

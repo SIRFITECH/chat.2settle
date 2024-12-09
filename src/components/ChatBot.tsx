@@ -116,7 +116,7 @@ import {
 import { ChatBotProps } from "@/types/chatbot_types";
 import ErrorBoundary from "./TelegramError";
 
-const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
+const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
   const account = useAccount();
   const wallet = account.address;
@@ -2863,7 +2863,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   // THE ROOT FUNCTION
 
   const handleConversation = async (chatInput: any) => {
-       setLoading(true);
+    setLoading(true);
     try {
       if (chatInput.trim()) {
         const newMessage: MessageType = {
@@ -3119,8 +3119,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           break;
       }
     } catch (error) {
-      handleError(
-        error instanceof Error ? error.message : "An unknown error occurred"
+      console.error("Error in conversation:", error);
+      onError?.(
+        error instanceof Error ? error : new Error("An unknown error occurred")
       );
       addChatMessages([
         {
@@ -3133,6 +3134,22 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } finally {
       setLoading(false);
     }
+
+    // catch (error) {
+    //   handleError(
+    //     error instanceof Error ? error.message : "An unknown error occurred"
+    //   );
+    //   addChatMessages([
+    //     {
+    //       type: "incoming",
+    //       content:
+    //         "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
+    //       timestamp: new Date(),
+    //     },
+    //   ]);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -3190,104 +3207,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
   // CHATBOT
   // return ;
-   return (
-     <ErrorBoundary>
-       {isMobile ? (
-    <div className="fixed inset-0 flex flex-col bg-white">
-      <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
-        <div className="flex items-center justify-between px-4">
-          <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
-            <Image
-              src="/waaa.png"
-              alt="Avatar"
-              width={32}
-              height={32}
-              className="rounded"
-            />
-          </span>
-          <h2 className="text-lg font-bold">2SettleHQ</h2>
-          <button
-            onClick={onClose}
-            className="text-white"
-            aria-label="Close chat"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        {showDateDropdown && currentDate && (
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
-            {currentDate}
-          </div>
-        )}
-      </header>
-      <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
-        <ul className="p-4 space-y-4">
-          {Object.entries(groupedMessages).map(([dateString, messages]) => (
-            <React.Fragment key={dateString}>
-              <li
-                className={`date-separator text-center text-sm text-gray-500 my-2 ${
-                  visibleDateSeparators.has(dateString) ? "" : "hidden"
-                }`}
-                data-date={dateString}
-              >
-                {renderDateSeparator(new Date(dateString))}
-              </li>
-              {chatMessages.map((msg, index) => (
-                <li
-                  key={`${dateString}-${index}`}
-                  className={`flex ${
-                    msg.type === "incoming" ? "items-start" : "justify-end"
-                  }`}
-                >
-                  {msg.type === "incoming" && (
-                    <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
-                      <Image
-                        src="/waaa.png"
-                        alt="Avatar"
-                        width={32}
-                        height={32}
-                        className="rounded"
-                      />
-                    </span>
-                  )}
-                  <div className="flex flex-col max-w-[75%]">
-                    <div
-                      className={`p-2 md:p-3 rounded-lg ${
-                        msg.type === "incoming"
-                          ? "bg-gray-200 text-black rounded-bl-none"
-                          : "bg-blue-500 text-white rounded-br-none"
-                      }`}
-                    >
-                      <p className="text-xs md:text-sm">{msg.content}</p>
-                    </div>
-                    <span
-                      className={`text-xs text-gray-500 mt-1 ${
-                        msg.type === "incoming" ? "self-end" : "self-start"
-                      }`}
-                    >
-                      {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </React.Fragment>
-          ))}
-          {loading && (
-            <div className="flex items-center">
-              <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+  return (
+    <ErrorBoundary>
+      {isMobile ? (
+        <div className="fixed inset-0 flex flex-col bg-white">
+          <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
+            <div className="flex items-center justify-between px-4">
+              <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
                 <Image
                   src="/waaa.png"
                   alt="Avatar"
@@ -3296,143 +3222,146 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
                   className="rounded"
                 />
               </span>
-              <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
-                <div className="flex justify-start">
-                  <Loader />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </ul>
-      </div>
-      <div className="p-3 border-t border-gray-200 bg-white">
-        <div className="flex items-center">
-          <textarea
-            ref={textareaRef}
-            className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
-            placeholder="Enter a message..."
-            rows={1}
-            spellCheck={false}
-            required
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-          />
-          <button
-            className="ml-2 text-blue-500 cursor-pointer"
-            onClick={() => handleConversation(chatInput)}
-            aria-label="Send message"
-          >
-            <SendIcon />
-          </button>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div
-      ref={chatboxRef}
-      className={`fixed ${
-        isMobile
-          ? "inset-0 top-10"
-          : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
-      } bg-white rounded-lg shadow-lg overflow-hidden flex flex-col`}
-      style={{ height: isMobile ? "150%" : "80vh" }}
-    >
-      <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
-        <div className="flex items-center justify-between px-4">
-          <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
-            <Image
-              src="/waaa.png"
-              alt="Avatar"
-              width={32}
-              height={32}
-              className="rounded"
-            />
-          </span>
-          <h2 className="text-lg font-bold">2SettleHQ</h2>
-          <button
-            onClick={onClose}
-            className="text-white"
-            aria-label="Close chat"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        {showDateDropdown && currentDate && (
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
-            {currentDate}
-          </div>
-        )}
-      </header>
-      <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
-        <ul className="p-4 space-y-4">
-          {Object.entries(groupedMessages).map(([dateString, messages]) => (
-            <React.Fragment key={dateString}>
-              <li
-                className={`date-separator text-center text-sm text-gray-500 my-2 ${
-                  visibleDateSeparators.has(dateString) ? "" : "hidden"
-                }`}
-                data-date={dateString}
+              <h2 className="text-lg font-bold">2SettleHQ</h2>
+              <button
+                onClick={onClose}
+                className="text-white"
+                aria-label="Close chat"
               >
-                {renderDateSeparator(new Date(dateString))}
-              </li>
-              {chatMessages.map((msg, index) => (
-                <li
-                  key={`${dateString}-${index}`}
-                  className={`flex ${
-                    msg.type === "incoming" ? "items-start" : "justify-end"
-                  }`}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  {msg.type === "incoming" && (
-                    <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
-                      <Image
-                        src="/waaa.png"
-                        alt="Avatar"
-                        width={32}
-                        height={32}
-                        className="rounded"
-                      />
-                    </span>
-                  )}
-                  <div className="flex flex-col max-w-[75%]">
-                    <div
-                      className={`p-2 md:p-3 rounded-lg ${
-                        msg.type === "incoming"
-                          ? "bg-gray-200 text-black rounded-bl-none"
-                          : "bg-blue-500 text-white rounded-br-none"
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            {showDateDropdown && currentDate && (
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
+                {currentDate}
+              </div>
+            )}
+          </header>
+          <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
+            <ul className="p-4 space-y-4">
+              {Object.entries(groupedMessages).map(([dateString, messages]) => (
+                <React.Fragment key={dateString}>
+                  <li
+                    className={`date-separator text-center text-sm text-gray-500 my-2 ${
+                      visibleDateSeparators.has(dateString) ? "" : "hidden"
+                    }`}
+                    data-date={dateString}
+                  >
+                    {renderDateSeparator(new Date(dateString))}
+                  </li>
+                  {chatMessages.map((msg, index) => (
+                    <li
+                      key={`${dateString}-${index}`}
+                      className={`flex ${
+                        msg.type === "incoming" ? "items-start" : "justify-end"
                       }`}
                     >
-                      <p className="text-xs md:text-sm">{msg.content}</p>
-                    </div>
-                    <span
-                      className={`text-xs text-gray-500 mt-1 ${
-                        msg.type === "incoming" ? "self-end" : "self-start"
-                      }`}
-                    >
-                      {format(new Date(msg.timestamp), "h:mm a").toLowerCase()}
-                    </span>
-                  </div>
-                </li>
+                      {msg.type === "incoming" && (
+                        <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
+                          <Image
+                            src="/waaa.png"
+                            alt="Avatar"
+                            width={32}
+                            height={32}
+                            className="rounded"
+                          />
+                        </span>
+                      )}
+                      <div className="flex flex-col max-w-[75%]">
+                        <div
+                          className={`p-2 md:p-3 rounded-lg ${
+                            msg.type === "incoming"
+                              ? "bg-gray-200 text-black rounded-bl-none"
+                              : "bg-blue-500 text-white rounded-br-none"
+                          }`}
+                        >
+                          <p className="text-xs md:text-sm">{msg.content}</p>
+                        </div>
+                        <span
+                          className={`text-xs text-gray-500 mt-1 ${
+                            msg.type === "incoming" ? "self-end" : "self-start"
+                          }`}
+                        >
+                          {format(
+                            new Date(msg.timestamp),
+                            "h:mm a"
+                          ).toLowerCase()}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </React.Fragment>
               ))}
-            </React.Fragment>
-          ))}
-          {loading && (
+              {loading && (
+                <div className="flex items-center">
+                  <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+                    <Image
+                      src="/waaa.png"
+                      alt="Avatar"
+                      width={32}
+                      height={32}
+                      className="rounded"
+                    />
+                  </span>
+                  <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
+                    <div className="flex justify-start">
+                      <Loader />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </ul>
+          </div>
+          <div className="p-3 border-t border-gray-200 bg-white">
             <div className="flex items-center">
-              <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+              <textarea
+                ref={textareaRef}
+                className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
+                placeholder="Enter a message..."
+                rows={1}
+                spellCheck={false}
+                required
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+              <button
+                className="ml-2 text-blue-500 cursor-pointer"
+                onClick={() => handleConversation(chatInput)}
+                aria-label="Send message"
+              >
+                <SendIcon />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div
+          ref={chatboxRef}
+          className={`fixed ${
+            isMobile
+              ? "inset-0 top-10"
+              : "right-8 bottom-24 w-10/12 md:w-7/12 lg:w-6/12"
+          } bg-white rounded-lg shadow-lg overflow-hidden flex flex-col`}
+          style={{ height: isMobile ? "150%" : "80vh" }}
+        >
+          <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
+            <div className="flex items-center justify-between px-4">
+              <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
                 <Image
                   src="/waaa.png"
                   alt="Avatar"
@@ -3441,42 +3370,136 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
                   className="rounded"
                 />
               </span>
-              <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
-                <div className="flex justify-start">
-                  <Loader />
-                </div>
-              </div>
+              <h2 className="text-lg font-bold">2SettleHQ</h2>
+              <button
+                onClick={onClose}
+                className="text-white"
+                aria-label="Close chat"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
             </div>
-          )}
-          <div ref={messagesEndRef} />
-        </ul>
-      </div>
-      <div className="p-3 border-t border-gray-200 bg-white">
-        <div className="flex items-center">
-          <textarea
-            ref={textareaRef}
-            className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
-            placeholder="Enter a message..."
-            rows={1}
-            spellCheck={false}
-            required
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-          />
-          <button
-            className="ml-2 text-blue-500 cursor-pointer"
-            onClick={() => handleConversation(chatInput)}
-            aria-label="Send message"
-          >
-            <SendIcon />
-          </button>
+            {showDateDropdown && currentDate && (
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 bg-gray-200 text-gray-700 px-4 py-2 rounded-b-lg shadow-md text-sm transition-all duration-300 ease-in-out">
+                {currentDate}
+              </div>
+            )}
+          </header>
+          <div className="flex-grow overflow-y-auto" ref={chatboxRef}>
+            <ul className="p-4 space-y-4">
+              {Object.entries(groupedMessages).map(([dateString, messages]) => (
+                <React.Fragment key={dateString}>
+                  <li
+                    className={`date-separator text-center text-sm text-gray-500 my-2 ${
+                      visibleDateSeparators.has(dateString) ? "" : "hidden"
+                    }`}
+                    data-date={dateString}
+                  >
+                    {renderDateSeparator(new Date(dateString))}
+                  </li>
+                  {chatMessages.map((msg, index) => (
+                    <li
+                      key={`${dateString}-${index}`}
+                      className={`flex ${
+                        msg.type === "incoming" ? "items-start" : "justify-end"
+                      }`}
+                    >
+                      {msg.type === "incoming" && (
+                        <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
+                          <Image
+                            src="/waaa.png"
+                            alt="Avatar"
+                            width={32}
+                            height={32}
+                            className="rounded"
+                          />
+                        </span>
+                      )}
+                      <div className="flex flex-col max-w-[75%]">
+                        <div
+                          className={`p-2 md:p-3 rounded-lg ${
+                            msg.type === "incoming"
+                              ? "bg-gray-200 text-black rounded-bl-none"
+                              : "bg-blue-500 text-white rounded-br-none"
+                          }`}
+                        >
+                          <p className="text-xs md:text-sm">{msg.content}</p>
+                        </div>
+                        <span
+                          className={`text-xs text-gray-500 mt-1 ${
+                            msg.type === "incoming" ? "self-end" : "self-start"
+                          }`}
+                        >
+                          {format(
+                            new Date(msg.timestamp),
+                            "h:mm a"
+                          ).toLowerCase()}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </React.Fragment>
+              ))}
+              {loading && (
+                <div className="flex items-center">
+                  <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 mt-2 bg-white rounded">
+                    <Image
+                      src="/waaa.png"
+                      alt="Avatar"
+                      width={32}
+                      height={32}
+                      className="rounded"
+                    />
+                  </span>
+                  <div className="bg-gray-200 relative left-1 top-1 rounded-bl-none pr-2 pt-2 pl-2 pb-1 md:pr-4 md:pt-4 md:pl-3 md:pb-2 rounded-lg mr-12 md:mr-48">
+                    <div className="flex justify-start">
+                      <Loader />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </ul>
+          </div>
+          <div className="p-3 border-t border-gray-200 bg-white">
+            <div className="flex items-center">
+              <textarea
+                ref={textareaRef}
+                className="flex-grow pl-2 pr-2 py-2 border-none outline-none resize-none"
+                placeholder="Enter a message..."
+                rows={1}
+                spellCheck={false}
+                required
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+              />
+              <button
+                className="ml-2 text-blue-500 cursor-pointer"
+                onClick={() => handleConversation(chatInput)}
+                aria-label="Send message"
+              >
+                <SendIcon />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  )}
-     </ErrorBoundary>
-   );
+      )}
+    </ErrorBoundary>
+  );
 };
 
 // export default ChatBot;
