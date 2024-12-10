@@ -1,10 +1,8 @@
 import ShortenedAddress from "@/components/ShortenAddress";
 import { MessageType } from "../types/general_types";
 import { greetings } from "./ChatbotConsts";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-// Import other necessary functions and types
-// prevStep: (step: string) => void,
-// goToStep: (step: string) => void
 export const helloMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
@@ -69,28 +67,184 @@ export const helloMenu = (
   }
 };
 
-// export const welcomeMenu = (
-//   walletIsConnected: boolean,
-//   wallet: string,
-//   telFirstName: string,
-//   formattedRate: string
-// ) => {
-//   // Implementation of welcomeMenu
-// };
-
-// export const choiceMenu = (
-//   chatInput: string,
-//   walletIsConnected: boolean,
-//   formattedRate: string
-// ) => {
-//   // Implementation of choiceMenu
-// };
-
-// // ... Extract all other functions called in handleConversation
-// // Make sure to update the function signatures to include all necessary parameters
-
-// export const handleMakeAChoice = (chatInput: string) => {
-//   // Implementation of handleMakeAChoice
-// };
-
-// ... Continue extracting all other functions
+export const choiceMenu = (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  walletIsConnected: boolean,
+  wallet: `0x${string}` | undefined,
+  telFirstName: string,
+  formattedRate: string,
+  nextStep: (step: string) => void,
+  prevStep: () => void,
+  goToStep: (step: string) => void,
+  setChatInput: (chat: string) => void,
+  setSharedPaymentMode: (mode: string) => void
+) => {
+  const choice = chatInput.trim();
+  if (greetings.includes(choice.toLowerCase())) {
+    helloMenu(
+      addChatMessages,
+      choice,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode,
+      nextStep
+    );
+    goToStep("start");
+  } else if (choice === "0") {
+    prevStep();
+    helloMenu(
+      addChatMessages,
+      "hi",
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode,
+      nextStep
+    );
+  } else if (choice.toLowerCase() === "1") {
+    if (!walletIsConnected) {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: <ConnectButton />,
+          timestamp: new Date(),
+          isComponent: true,
+          componentName: "ConnectButton",
+        },
+        {
+          type: "incoming",
+          content: (
+            <span>
+              Type to go back:
+              <br />
+              0. Go Back
+              <br />
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("transactCrypto");
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: <ConnectButton />,
+          timestamp: new Date(),
+          isComponent: true,
+          componentName: "ConnectButton",
+        },
+        {
+          type: "incoming",
+          content: (
+            <span>
+              Type to go back:
+              <br />
+              0. Go Back
+              <br />
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("transactCrypto");
+    }
+  } else if (choice.toLowerCase() === "2") {
+    if (!walletIsConnected) {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              You continued <b>without connecting your wallet</b>
+              <br />
+              <br />
+              Today Rate: <b>{formattedRate}/$1</b> <br />
+              <br />
+              Welcome to 2SettleHQ, how can I help you today?
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+        {
+          type: "incoming",
+          content: (
+            <span>
+              1. Transact Crypto
+              <br />
+              2. Request for paycard
+              <br />
+              3. Customer support
+              <br />
+              4. Transaction ID
+              <br />
+              5. Reportly
+              <br />
+              0. Back
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("transactCrypto");
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              You continued as{" "}
+              <b>
+                <ShortenedAddress wallet={wallet} />
+              </b>
+              <br />
+              <br />
+              Today Rate: <b>{formattedRate}/$1</b> <br />
+              <br />
+              Welcome to 2SettleHQ, how can I help you today?
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+        {
+          type: "incoming",
+          content: (
+            <span>
+              1. Transact Crypto
+              <br />
+              2. Request for paycard
+              <br />
+              3. Customer support
+              <br />
+              4. Transaction ID
+              <br />
+              5. Reportly
+              <br />
+              0. Back
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      nextStep("transactCrypto");
+    }
+  } else {
+    addChatMessages([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            You need to make a valid choice
+            <br />
+            <br />
+            Please Try again, or say 'Hi' or 'Hello' to start over
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
+  }
+  setChatInput("");
+};

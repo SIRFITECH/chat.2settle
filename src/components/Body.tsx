@@ -13,7 +13,7 @@ import { formatCurrency } from "../helpers/format_currency";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "./TelegramError";
 // import ChatB from "./ChatB";
-// import Chat from "./Chat";
+import Chat from "./Chat";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -66,12 +66,12 @@ export default function Body() {
     setLoading(true);
     try {
       const fetchedRate = await fetchRate();
-      const formattedRate = formatCurrency(
+      const rateFormated = formatCurrency(
         fetchedRate.toString(),
         "NGN",
         "en-NG"
       );
-      setFormattedRate(formattedRate);
+      setFormattedRate(rateFormated);
       setLoading(false);
     } catch (error) {
       console.error("Failed to fetch rate:", error);
@@ -242,7 +242,7 @@ export default function Body() {
               </div>
             }
           >
-            <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
+            <Chat isMobile={isMobile} onClose={() => setIsOpen(false)} />
           </ErrorBoundary>
         </div>
       )}

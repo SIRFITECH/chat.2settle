@@ -388,7 +388,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           "en-NG"
         ),
       };
-
+      console.log("Rate is:", rate);
       // Update all states at once
       setRate(updates.rate);
       setFormattedRate(updates.formattedRate);
@@ -553,159 +553,159 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   };
 
   // TRANSACT CRYPTO SEQUENCE FUNCTIONS
-  const choiceMenu = (chatInput: string) => {
-    const choice = chatInput.trim();
-    if (greetings.includes(choice.toLowerCase())) {
-      helloMenu(choice);
-      goToStep("start");
-    } else if (choice === "0") {
-      prevStep();
-      helloMenu("hi");
-    } else if (choice.toLowerCase() === "1") {
-      if (!walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <ConnectButton />,
-            timestamp: new Date(),
-            isComponent: true,
-            componentName: "ConnectButton",
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Type to go back:
-                <br />
-                0. Go Back
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <ConnectButton />,
-            timestamp: new Date(),
-            isComponent: true,
-            componentName: "ConnectButton",
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Type to go back:
-                <br />
-                0. Go Back
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      }
-    } else if (choice.toLowerCase() === "2") {
-      if (!walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued <b>without connecting your wallet</b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued as{" "}
-                <b>
-                  <ShortenedAddress wallet={wallet} />
-                </b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              You need to make a valid choice
-              <br />
-              <br />
-              Please Try again, or say 'Hi' or 'Hello' to start over
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-    }
-    setChatInput("");
-  };
+   const choiceMenu = (chatInput: string) => {
+     const choice = chatInput.trim();
+     if (greetings.includes(choice.toLowerCase())) {
+       helloMenu(choice);
+       goToStep("start");
+     } else if (choice === "0") {
+       prevStep();
+       helloMenu("hi");
+     } else if (choice.toLowerCase() === "1") {
+       if (!walletIsConnected) {
+         addChatMessages([
+           {
+             type: "incoming",
+             content: <ConnectButton />,
+             timestamp: new Date(),
+             isComponent: true,
+             componentName: "ConnectButton",
+           },
+           {
+             type: "incoming",
+             content: (
+               <span>
+                 Type to go back:
+                 <br />
+                 0. Go Back
+                 <br />
+               </span>
+             ),
+             timestamp: new Date(),
+           },
+         ]);
+         nextStep("transactCrypto");
+       } else {
+         addChatMessages([
+           {
+             type: "incoming",
+             content: <ConnectButton />,
+             timestamp: new Date(),
+             isComponent: true,
+             componentName: "ConnectButton",
+           },
+           {
+             type: "incoming",
+             content: (
+               <span>
+                 Type to go back:
+                 <br />
+                 0. Go Back
+                 <br />
+               </span>
+             ),
+             timestamp: new Date(),
+           },
+         ]);
+         nextStep("transactCrypto");
+       }
+     } else if (choice.toLowerCase() === "2") {
+       if (!walletIsConnected) {
+         addChatMessages([
+           {
+             type: "incoming",
+             content: (
+               <span>
+                 You continued <b>without connecting your wallet</b>
+                 <br />
+                 <br />
+                 Today Rate: <b>{formattedRate}/$1</b> <br />
+                 <br />
+                 Welcome to 2SettleHQ, how can I help you today?
+               </span>
+             ),
+             timestamp: new Date(),
+           },
+           {
+             type: "incoming",
+             content: (
+               <span>
+                 1. Transact Crypto
+                 <br />
+                 2. Request for paycard
+                 <br />
+                 3. Customer support
+                 <br />
+                 4. Transaction ID
+                 <br />
+                 5. Reportly
+                 <br />
+                 0. Back
+               </span>
+             ),
+             timestamp: new Date(),
+           },
+         ]);
+         nextStep("transactCrypto");
+       } else {
+         addChatMessages([
+           {
+             type: "incoming",
+             content: (
+               <span>
+                 You continued as{" "}
+                 <b>
+                   <ShortenedAddress wallet={wallet} />
+                 </b>
+                 <br />
+                 <br />
+                 Today Rate: <b>{formattedRate}/$1</b> <br />
+                 <br />
+                 Welcome to 2SettleHQ, how can I help you today?
+               </span>
+             ),
+             timestamp: new Date(),
+           },
+           {
+             type: "incoming",
+             content: (
+               <span>
+                 1. Transact Crypto
+                 <br />
+                 2. Request for paycard
+                 <br />
+                 3. Customer support
+                 <br />
+                 4. Transaction ID
+                 <br />
+                 5. Reportly
+                 <br />
+                 0. Back
+               </span>
+             ),
+             timestamp: new Date(),
+           },
+         ]);
+         nextStep("transactCrypto");
+       }
+     } else {
+       addChatMessages([
+         {
+           type: "incoming",
+           content: (
+             <span>
+               You need to make a valid choice
+               <br />
+               <br />
+               Please Try again, or say 'Hi' or 'Hello' to start over
+             </span>
+           ),
+           timestamp: new Date(),
+         },
+       ]);
+     }
+     setChatInput("");
+   };
 
   // HANDLE THE CHOICE FROM ABOVE
   const handleMakeAChoice = (chatInput: string) => {
@@ -3135,21 +3135,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       setLoading(false);
     }
 
-    // catch (error) {
-    //   handleError(
-    //     error instanceof Error ? error.message : "An unknown error occurred"
-    //   );
-    //   addChatMessages([
-    //     {
-    //       type: "incoming",
-    //       content:
-    //         "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
-    //       timestamp: new Date(),
-    //     },
-    //   ]);
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
