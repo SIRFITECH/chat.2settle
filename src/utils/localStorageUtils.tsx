@@ -2,13 +2,7 @@ import { MessageType } from "@/types/general_types";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import parse from "html-react-parser";
 import React from "react";
-import {
-  ReactElement,
-  JSXElementConstructor,
-  ReactNode,
-  ReactPortal,
-  AwaitedReactNode,
-} from "react";
+import elementToJSXString from "react-element-to-jsx-string";
 import { initialMessages } from "./ChatbotConsts";
 
 const componentMap: { [key: string]: React.ComponentType<any> } = {
@@ -57,21 +51,6 @@ const deserializeMessage = (message: MessageType): MessageType => {
     content: parse(message.content as string),
   };
 };
-function elementToJSXString(
-  content:
-    | string
-    | number
-    | bigint
-    | boolean
-    | ReactElement<any, string | JSXElementConstructor<any>>
-    | Iterable<ReactNode>
-    | ReactPortal
-    | Promise<AwaitedReactNode>
-    | null
-    | undefined
-): string {
-  throw new Error("Function not implemented.");
-}
 
 export const getLocalStorageData = () => {
   if (typeof window !== "undefined") {
