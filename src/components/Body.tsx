@@ -227,8 +227,8 @@ export default function Body() {
 
       {isOpen && (
         <div className="fixed inset-0 z-40">
-          {/* {renderChatBot()}
-          <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} /> */}
+          {/* {renderChatBot()} */}
+          {/* <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} /> */}
           <ErrorBoundary
             fallback={
               <div className="p-4 bg-white rounded-lg shadow-lg">
@@ -242,7 +242,7 @@ export default function Body() {
               </div>
             }
           >
-            <Chat isMobile={isMobile} onClose={() => setIsOpen(false)} />
+            <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
           </ErrorBoundary>
         </div>
       )}

@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
 import Loader from "./Loader";
@@ -18,7 +12,6 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MessageType, WalletInfo } from "../types/general_types";
 import {
   checkGiftExists,
-  checkRequestExists,
   checkTranscationExists,
   createComplain,
   createTransaction,
@@ -81,7 +74,6 @@ import {
   displayEnterPhone,
   displayHowToEstimation,
   displayPayIn,
-  displayRequestPaymentSummary,
   displaySearchBank,
   displaySelectBank,
   displaySendPayment,
@@ -108,10 +100,6 @@ import {
 } from "date-fns";
 
 import { telegramUser } from "@/types/telegram_types";
-import useErrorHandler from "@/hooks/useErrorHandler";
-import TelegramIntegration from "./TelegramIntegration";
-import { withErrorHandling } from "./withErrorHandling";
-import { handleConversation } from "@/utils/handleConversations";
 
 const initialMessages = [
   {
@@ -178,7 +166,6 @@ const deserializeMessage = (message: MessageType): MessageType => {
     content: parse(message.content as string),
   };
 };
-
 interface ChatBotProps {
   isMobile: boolean;
   onClose: () => void;
@@ -191,7 +178,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
-  const { error, handleError, clearError } = useErrorHandler();
 
   const chatboxRef = useRef<HTMLDivElement>(null);
   const [visibleDateSeparators, setVisibleDateSeparators] = useState<
@@ -221,7 +207,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       }
     };
   }, []);
-
   // SHAREDSTATE HOOK
   const {
     sharedRate,
@@ -308,8 +293,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   const [currentDate, setCurrentDate] = useState<string | null>(null);
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
   const [isTelUser, setIsTelUser] = useState(false);
-  const code = localStorage.getItem("referralCode") ?? "";
-  const MAX_MESSAGES = 100;
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -335,77 +318,64 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           timestamp: new Date(msg.timestamp),
         }));
         const { currentStep, stepHistory = ["start"] } = parsedData;
-
-        // Only keep the last 100 messages
-        const limitedMessages = deserializedMessages.slice(-MAX_MESSAGES);
-        const limitedSerializedMessages = parsedData.messages.slice(
-          -MAX_MESSAGES
-        );
         return {
-          messages: limitedMessages,
-          serializedMessages: limitedSerializedMessages,
+          messages: deserializedMessages,
+          serializedMessages: parsedData.messages,
           step: currentStep,
           stepHistory: parsedData.stepHistory || ["start"],
         };
       }
     }
-
+    // serialize messages before saving
+    const serializedInitialMessages = initialMessages.map((msg) => ({
+      ...serializeMessage(msg),
+      timestamp: msg.timestamp.toISOString(),
+    }));
     return {
       messages: initialMessages,
-      serializedMessages: initialMessages.map((msg) => ({
-        ...serializeMessage(msg),
-        timestamp: msg.timestamp.toISOString(),
-      })),
+      serializedMessages: serializedInitialMessages,
       step: "start",
       stepHistory: ["start"],
     };
   });
-
-  // Add this effect to monitor localStorage changes
+  // Load telegram data
   useEffect(() => {
-    const storageListener = () => {
-      const chatData = window.localStorage.getItem("chat_data");
+    const loadTelegramWebApp = async () => {
+      if (typeof window !== "undefined") {
+        try {
+          const twa = await import("@twa-dev/sdk");
+          if (twa.default.initDataUnsafe.user) {
+            setTelegramUser(twa.default.initDataUnsafe.user as telegramUser);
+            setIsTelUser(true);
+          }
+        } catch (error) {
+          console.error("Failed to load Telegram Web App SDK:", error);
+        }
+      }
     };
 
-    window.addEventListener("storage", storageListener);
-    return () => window.removeEventListener("storage", storageListener);
+    loadTelegramWebApp();
   }, []);
 
-  React.useEffect(() => {
-    const limitedMessages = serializedMessages.slice(-MAX_MESSAGES);
+  const telFirstName = isTelUser ? telegramUser?.first_name : "";
+
+  useEffect(() => {
     const chatData = {
-      messages: limitedMessages,
-      // serializedMessages,
+      messages: local.serializedMessages,
+      currentStep: local.step,
+      stepHistory: local.stepHistory,
+    };
+    window.localStorage.setItem("chat_data", JSON.stringify(chatData));
+  }, [local.serializedMessages, local.step, local.stepHistory]);
+
+  React.useEffect(() => {
+    const chatData = {
+      messages: serializedMessages,
       currentStep,
       stepHistory,
     };
     window.localStorage.setItem("chat_data", JSON.stringify(chatData));
   }, [serializedMessages, currentStep, stepHistory]);
-
-  useEffect(() => {
-    console.log("Loading state changed:", loading);
-  }, [loading]);
-  // To help debug performance issues
-  useEffect(() => {
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        if (entry.duration > 50) {
-          // 50ms threshold
-          console.warn("Long task detected:", entry);
-        }
-      }
-    });
-
-    observer.observe({ entryTypes: ["longtask"] });
-    return () => observer.disconnect();
-  }, []);
-
-  // Load telegram data
-  useEffect(() => {
-    <TelegramIntegration />;
-  }, []);
-
-  const telFirstName = isTelUser ? telegramUser?.first_name : "";
 
   useEffect(() => {
     if (sharedCrypto != "") {
@@ -428,20 +398,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     trxID == "" ? sharedTransactionId : setSharedTransactionId(trxID || "");
   });
 
-  const scrollToBottom = useCallback(() => {
-    if (!messagesEndRef.current) return;
-
-    // Use requestAnimationFrame to avoid forced reflow
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    });
-  }, []);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    // Debounce scroll updates for rapid message additions
-    const timeoutId = setTimeout(scrollToBottom, 100);
-    return () => clearTimeout(timeoutId);
-  }, [chatMessages, scrollToBottom]);
+    scrollToBottom();
+  }, [chatMessages]);
 
   useEffect(() => {
     if (isOpen && textareaRef.current) {
@@ -484,40 +447,35 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     initializeChatId();
   }, [chatId]);
 
-  // Replace multiple sequential API calls with Promise.all
   const fetchData = async () => {
     try {
-      const [fetchedRate, fetchedMerchantRate, fetchedProfitRate] =
-        await Promise.all([
-          fetchRate(),
-          fetchMerchantRate(),
-          fetchProfitRate(),
-        ]);
+      const fetchedRate = await fetchRate();
+      const fetchedMerchantRate = await fetchMerchantRate();
+      const fetchedProfitRate = await fetchProfitRate();
+      setRate(fetchedRate.toString());
+      const formattedRate = formatCurrency(
+        fetchedRate.toString(),
+        "NGN",
+        "en-NG"
+      );
+      const formattedMerchantRate = formatCurrency(
+        fetchedMerchantRate.toString(),
+        "NGN",
+        "en-NG"
+      );
+      const formattedProfitRate = formatCurrency(
+        fetchedProfitRate.toString(),
+        "NGN",
+        "en-NG"
+      );
 
-      // Batch state updates
-      const updates = {
-        rate: fetchedRate.toString(),
-        formattedRate: formatCurrency(fetchedRate.toString(), "NGN", "en-NG"),
-        merchantRate: formatCurrency(
-          fetchedMerchantRate.toString(),
-          "NGN",
-          "en-NG"
-        ),
-        profitRate: formatCurrency(
-          fetchedProfitRate.toString(),
-          "NGN",
-          "en-NG"
-        ),
-      };
-
-      // Update all states at once
-      setRate(updates.rate);
-      setFormattedRate(updates.formattedRate);
-      setMerchantRate(updates.merchantRate);
-      setProfitRate(updates.profitRate);
-      setSharedRate(updates.rate);
+      console.log("formattedRate is :", formattedRate);
+      setFormattedRate(formattedRate);
+      setMerchantRate(formattedMerchantRate);
+      setProfitRate(formattedProfitRate);
+      setSharedRate(fetchedRate.toString());
     } catch (error) {
-      console.error("Failed to fetch rates:", error);
+      console.error("Failed to fetch rate:", error);
     }
   };
 
@@ -565,7 +523,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         ]);
         nextStep("chooseAction");
       } else {
-        setSharedPaymentMode("");
         addChatMessages([
           {
             type: "incoming",
@@ -860,19 +817,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       addChatMessages([
         {
           type: "incoming",
-          content: (
-            <span>
-              You need to make a valid choice
-              <br />
-              <br />
-              Please Try again, or say 'Hi' or 'Hello' to start over
-            </span>
-          ),
+          content:
+            "Invalid choice. You need to choose an action from the options",
           timestamp: new Date(),
         },
       ]);
     }
-    setChatInput("");
   };
 
   // HANDLE TRANSFER MONEY MENU
@@ -886,29 +836,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       welcomeMenu();
     } else if (chatInput === "1") {
       setSharedPaymentMode("transferMoney");
-      displayTransferMoney(addChatMessages);
+      displayTransferMoney(addChatMessages, );
       nextStep("estimateAsset");
     } else if (chatInput === "2") {
-      displayTransferMoney(addChatMessages);
+      console.log("The choice is TWO, SEND GIFT ");
+      displayTransferMoney(addChatMessages, );
       setSharedPaymentMode("Gift");
-
       nextStep("estimateAsset");
     } else if (chatInput === "3") {
-      displayPayIn(
-        addChatMessages,
-        "Naira",
-        sharedRate,
-        "",
-        "",
-        sharedPaymentMode
-      );
-      setSharedEstimateAsset("Naira");
-      nextStep("enterBankSearchWord");
-
+      displayHowToEstimation(addChatMessages, "", "request");
+      nextStep("payOptions");
+      // displaySearchBank(addChatMessages, nextStep);
       setSharedPaymentMode("request");
-    } else if (sharedPaymentMode.toLowerCase() === "request") {
-      displayTransferMoney(addChatMessages);
-      nextStep("estimateAsset");
     } else {
       addChatMessages([
         {
@@ -928,6 +867,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } else if (chatInput === "0") {
       (() => {
         prevStep();
+        // displayTransactCrypto(addChatMessages, nextStep);
+        // if sharedPaymentMode === 'request'
+        // go back to handleTransferMoney()
         const newMessages: MessageType[] = [
           {
             type: "incoming",
@@ -955,6 +897,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       goToStep("chooseAction");
       helloMenu("hi");
     } else if (chatInput === "1") {
+      // console.log("How to display estimation, NOW PAY OPTIONS");
       displayHowToEstimation(
         addChatMessages,
         "Bitcoin (BTC)",
@@ -965,6 +908,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("BTC");
       nextStep("payOptions");
     } else if (chatInput === "2") {
+      // displayHowToEstimation(addChatMessages, "Ethereum (ETH)");
       const parsedInput = "Ethereum (ETH)";
 
       const newMessages: MessageType[] = [
@@ -1000,6 +944,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("ERC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
+      // displayHowToEstimation(addChatMessages, "BINANCE (BNB)");
       const parsedInput = "BINANCE (BNB)";
 
       const newMessages: MessageType[] = [
@@ -1035,6 +980,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("BEP20");
       nextStep("payOptions");
     } else if (chatInput === "4") {
+      // displayHowToEstimation(addChatMessages, "TRON (TRX)");
       const parsedInput = "TRON (TRX)";
 
       const newMessages: MessageType[] = [
@@ -1072,6 +1018,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "5") {
+      // displayNetwork(addChatMessages, nextStep, "USDT");
       const newMessages: MessageType[] = [
         {
           type: "incoming",
@@ -1119,7 +1066,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     } else if (chatInput === "0") {
       (() => {
         prevStep();
-        displayTransferMoney(addChatMessages);
+        displayTransferMoney(addChatMessages, );
       })();
     } else if (chatInput === "1") {
       displayHowToEstimation(
@@ -1143,28 +1090,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       setSharedNetwork("TRC20");
       nextStep("payOptions");
     } else if (chatInput === "3") {
-      // sharedGiftId
-
-      console.log("This is the requestID:", sharedGiftId);
-      sharedPaymentMode.toLowerCase() === "request"
-        ? displayRequestPaymentSummary(
-            addChatMessages,
-            "",
-            sharedPaymentMode,
-            "738920"
-          )
-        : displayHowToEstimation(
-            addChatMessages,
-            "USDT (BEP20)",
-            sharedPaymentMode
-          );
+      displayHowToEstimation(
+        addChatMessages,
+        "USDT (BEP20)",
+        sharedPaymentMode
+      );
       setSharedTicker("USDT");
       setSharedCrypto("USDT");
       setSharedNetwork("BEP20");
-      console.log("sharedPaymentMode:", sharedPaymentMode);
-      // sharedPaymentMode.toLowerCase() === "request"
-      //   ? nextStep("charge")
-      //   : nextStep("payOptions");
+      nextStep("payOptions");
     } else {
       addChatMessages([
         {
@@ -1189,6 +1123,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       })();
     } else if (chatInput === "0") {
       (() => {
+        // console.log("Going back from handlePayOptions");
         prevStep();
         displayHowToEstimation(
           addChatMessages,
@@ -1203,10 +1138,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedRate,
         sharedTicker,
         sharedAssetPrice,
-        sharedPaymentMode
+        sharedCrypto
       );
       setSharedEstimateAsset("Naira");
-      nextStep("charge");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     } else if (chatInput === "2") {
       displayPayIn(
         addChatMessages,
@@ -1214,10 +1151,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedRate,
         sharedTicker,
         chatInput,
-        sharedPaymentMode
+        sharedCrypto
       );
       setSharedEstimateAsset("Dollar");
-      nextStep("charge");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     } else if (chatInput === "3") {
       displayPayIn(
         addChatMessages,
@@ -1225,21 +1164,20 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         sharedRate,
         sharedTicker,
         sharedAssetPrice,
-        sharedPaymentMode
+        sharedCrypto
       );
       setSharedEstimateAsset(sharedCrypto);
-      nextStep("charge");
+      sharedPaymentMode === "request"
+        ? nextStep("enterBankSearchWord")
+        : nextStep("charge");
     } else {
-      displayPayIn(
-        addChatMessages,
-        "Naira",
-        sharedRate,
-        "",
-        "",
-        sharedPaymentMode
-      );
-      setSharedEstimateAsset("Naira");
-      nextStep("charge");
+      addChatMessages([
+        {
+          type: "incoming",
+          content: "Invalid choice. Choose your prefered estimate asset.",
+          timestamp: new Date(),
+        },
+      ]);
     }
   };
 
@@ -1426,28 +1364,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           );
         })();
       } else {
-        // chatInput.trim()
-        // CLEAN THE STRING HERE
-        chatInput = chatInput.replace(/[^0-9.]/g, "");
-        if (Number(chatInput) > 20000 && Number(chatInput) < 2000000) {
-          setSharedPaymentNairaEstimate(chatInput);
-          displaySearchBank(addChatMessages, nextStep);
-        } else {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  You can only recieve <br />
-                  <b>Min: {formatCurrency("20000", "NGN", "en-NG")}</b> and{" "}
-                  <br />
-                  <b>Max: {formatCurrency("2000000", "NGN", "en-NG")}</b>
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-          ]);
-        }
+        displaySearchBank(addChatMessages, nextStep);
       }
     } else {
       console.log("USER WANTS TO TRANSACT CRYPTO");
@@ -1476,12 +1393,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         const finalAssetPayment = parseFloat(sharedPaymentAssetEstimate);
         const finalNairaPayment =
           parseFloat(sharedPaymentNairaEstimate) -
-          parseFloat(sharedNairaCharge.replace(/[^\d.]/g, ""));
-        console.log("Naira charger is :", sharedNairaCharge);
-        console.log(
-          "We are setting setSharedPaymentNairaEstimate to:",
-          finalNairaPayment.toString()
-        );
+          parseFloat(sharedNairaCharge);
 
         setSharedPaymentAssetEstimate(finalAssetPayment.toString());
         setSharedPaymentNairaEstimate(finalNairaPayment.toString());
@@ -1491,17 +1403,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           displaySearchBank(addChatMessages, nextStep);
       } else if (chatInput === "2") {
         const finalAssetPayment =
-          parseFloat(sharedPaymentAssetEstimate) +
-          parseFloat(sharedCharge.replace(/[^\d.]/g, ""));
-        // const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
-
-        console.log(
-          "We are setting setSharedPaymentNairaEstimate to:",
-          sharedPaymentNairaEstimate
-        );
+          parseFloat(sharedPaymentAssetEstimate) + parseFloat(sharedCharge);
+        const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
 
         setSharedPaymentAssetEstimate(finalAssetPayment.toString());
-        // setSharedPaymentNairaEstimate(finalNairaPayment.toString());
+        setSharedPaymentNairaEstimate(finalNairaPayment.toString());
         setSharedChargeForDB(
           `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
         );
@@ -1549,15 +1455,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         );
       })();
     } else if (chatInput != "0") {
+      // console.log(chatInput.trim());
       let bankList: [] = [];
       setLoading(true);
 
       try {
-        const bankNames = await fetchBankNames(
-          chatInput.trim(),
-          handleError,
-          setLoading
-        );
+        const bankNames = await fetchBankNames(chatInput.trim());
         bankList = bankNames["message"];
 
         if (Array.isArray(bankList)) {
@@ -1572,7 +1475,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
             "The fetched bank names are not in the expected format."
           );
         }
-
         setLoading(false);
       } catch (error) {
         setLoading(false);
@@ -1643,6 +1545,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         displaySearchBank(addChatMessages, nextStep);
       })();
     } else if (chatInput !== "0") {
+      // console.log(chatInput.trim());
+
       if (chatInput === "1" || chatInput === "2") {
         displayEnterPhone(addChatMessages, nextStep);
       } else {
@@ -1824,7 +1728,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
     activeWallet?: string,
     lastAssignedTime?: Date
   ) => {
-    // one last check is for USER WANT TO PAY REQUEST
+    // one last che is for USER WANT TO PAY REQUEST
     try {
       if (isGift) {
         // UPDATE THE USER GIFT PAYMENT DATA
@@ -1964,32 +1868,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         setSharedGiftId(giftID.toString());
         window.localStorage.setItem("giftID", giftID.toString());
 
-        // Add validation
-        if (
-          !sharedPaymentAssetEstimate ||
-          isNaN(parseFloat(sharedPaymentAssetEstimate))
-        ) {
-          console.error(
-            "Invalid sharedPaymentAssetEstimate:",
-            sharedPaymentAssetEstimate
-          );
-          setLoading(false);
-          addChatMessages([
-            {
-              type: "incoming",
-              content:
-                "There was an error calculating the payment amount. Please try again.",
-              timestamp: new Date(),
-            },
-          ]);
-          setLoading(false);
-          return;
-        }
         const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        console.log("sharedPaymentNairaEstimate", sharedPaymentNairaEstimate);
 
         displaySendPayment(
           addChatMessages,
@@ -2008,7 +1890,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         console.log("User data created", activeWallet);
 
         setLoading(false);
-        console.log("testing for gift:", sharedPaymentNairaEstimate);
         // let's save the transaction details to db
         const userDate = {
           crypto: sharedCrypto,
@@ -2044,28 +1925,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
+        await createTransaction(userDate);
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
-        console.log("USER WANTS TO DO A REQUEST TRANSACTION");
-        if (sharedGiftId) {
-          const requestStatus = (await checkRequestExists(sharedGiftId)).exists;
-          if (requestStatus) {
-          }
-        }
-
         console.log("USER WANTS TO REQUEST PAYMENT");
 
         // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
@@ -2076,7 +1939,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         const date = getFormattedDateTime();
 
         setLoading(false);
-        console.log("testing for request crypto:", sharedPaymentNairaEstimate);
         // let's save the transaction details to db
         const userDate = {
           crypto: null,
@@ -2089,19 +1951,17 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           bank_name: bankData.bank_name,
           receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
-            sharedPaymentNairaEstimate,
-            // "200000",
+            // sharedPaymentNairaEstimate,
+            "200000",
             "NGN",
             "en-NG"
           ),
           crypto_sent: null,
           wallet_address: null,
           Date: date,
-          status: "Processing",
-          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+          status: "Successful",
           customer_phoneNumber: formatPhoneNumber(phoneNumber),
           transac_id: transactionID.toString(),
-          request_id: requestID.toString(),
           settle_walletLink: "",
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
@@ -2113,64 +1973,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
+        await createTransaction(userDate);
 
         console.log("request payment data created", userDate);
-        // nextStep("start");
-        // helloMenu("hi");
-        displaySendPayment(
-          addChatMessages,
-          nextStep,
-          activeWallet ?? "",
-          sharedCrypto,
-          sharedPaymentAssetEstimate,
-          sharedPaymentNairaEstimate,
-          transactionID,
-          sharedNetwork,
-          sharedPaymentMode,
-          requestID,
-          lastAssignedTime
-        );
-        setLoading(false);
-        nextStep("start");
-        helloMenu("hi");
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
-        if (
-          !sharedPaymentAssetEstimate ||
-          isNaN(parseFloat(sharedPaymentAssetEstimate))
-        ) {
-          console.error(
-            "Invalid sharedPaymentAssetEstimate:",
-            sharedPaymentAssetEstimate
-          );
-          setLoading(false);
-          addChatMessages([
-            {
-              type: "incoming",
-              content:
-                "There was an error calculating the payment amount. Please try again.",
-              timestamp: new Date(),
-            },
-          ]);
-          setLoading(false);
-          return;
-        }
-
         const paymentAsset = ` ${parseFloat(sharedPaymentAssetEstimate)
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
@@ -2191,22 +2001,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         );
 
         console.log("Just to know that the wallet is available ", activeWallet);
-        console.log("The ref code for this transaction is", code);
-        console.log(
-          "sharedPaymentNairaEstimate is",
-          sharedPaymentNairaEstimate
-        );
-        console.log("sharedAssetPrice is", sharedAssetPrice);
-        console.log("sharedRate is", sharedRate);
-        console.log("The ref code for this transaction is", code);
-        console.log(
-          "sharedPaymentNairaEstimate is",
-          sharedPaymentNairaEstimate
-        );
-        console.log("sharedAssetPrice is", sharedAssetPrice);
-        console.log("sharedRate is", sharedRate);
         setLoading(false);
-        console.log("testing for transact crypto:", sharedPaymentNairaEstimate);
         // let's save the transaction details to db
         const userDate = {
           crypto: sharedCrypto,
@@ -2240,18 +2035,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
+        await createTransaction(userDate);
 
         console.log("User data created", userDate);
       }
@@ -2555,18 +2339,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       displayEnterCompleteTransactionId(addChatMessages, nextStep);
     } else if (chatInput === "2") {
       console.log("Let's see what is going on HERE!!!");
-      displayEnterId(addChatMessages, nextStep, "Claim Gift");
+      displayEnterId(addChatMessages, nextStep, sharedPaymentMode);
       setSharedPaymentMode("Claim Gift");
     } else if (chatInput === "3") {
-      displayEnterId(addChatMessages, nextStep, "request");
-      setSharedPaymentMode("request");
     }
   };
 
   // CUSTOMER TRANSACTION ID SEQUENCE FUNCTIONS
 
   // ALLOW USERS ENTER GIFT ID
-  const handleGiftRequestId = async (chatInput: string) => {
+  const handleGiftId = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -2582,59 +2364,37 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
         displayTransactIDWelcome(addChatMessages, nextStep);
       })();
     } else if (chatInput !== "0") {
-      const needed_id = chatInput.trim();
+      const gift_id = chatInput.trim();
       setLoading(true);
       setSharedGiftId(chatInput.trim());
+      let giftExists = (await checkGiftExists(gift_id)).exists;
 
-      try {
-        let giftExists = false;
-        let requestExists = false;
+      console.log("gift is processing");
 
-        // Check if it's a gift or request
-        if (sharedPaymentMode === "Claim Gift") {
-          giftExists = (await checkGiftExists(needed_id)).exists;
-        } else {
-          requestExists = (await checkRequestExists(needed_id)).exists;
-        }
-
-        const idExists = giftExists || requestExists;
-
-        console.log("gift is processing");
-
-        // IF GIFT_ID EXIST IN DB,
-        if (idExists) {
-          if (giftExists) {
-            // Handle gift exists case
-            displayGiftFeedbackMessage(addChatMessages, nextStep);
-            helloMenu("hi");
-          } else if (requestExists) {
-            // Handle request exists case
-            // displayRequestFeedbackMessage(addChatMessages, nextStep);
-            displayTransferMoney(addChatMessages);
-            nextStep("estimateAsset");
-          }
-        } else {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: `Invalid ${
-                sharedPaymentMode === "Claim Gift" ? "gift" : "request"
-              }_id. Try again`,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      } catch (error) {
+      // IF GIFT_ID EXIST IN DB,
+      if (giftExists) {
+        displayGiftFeedbackMessage(addChatMessages, nextStep);
+        helloMenu("hi");
+        setLoading(false);
+      } else {
         addChatMessages([
           {
             type: "incoming",
-            content: "Error checking ID. Please try again.",
+            content: "Invalid gift_id. Try again",
             timestamp: new Date(),
           },
         ]);
-      } finally {
         setLoading(false);
       }
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content:
+            "Invalid choice. You need to choose an action from the options",
+          timestamp: new Date(),
+        },
+      ]);
     }
   };
 
@@ -2983,309 +2743,254 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
 
   // THE ROOT FUNCTION
 
-  //   const handleConversation = async (chatInput: any) => {
-  //     try {
-  //       setLoading(true);
-  //       if (chatInput.trim()) {
-  //         const newMessage: MessageType = {
-  //           type: "outgoing",
-  //           content: <span>{chatInput}</span>,
-  //           timestamp: new Date(),
-  //         };
-  //         addChatMessages([newMessage]);
-  //         // setChatInput(""); //Removed as per update instruction
-  //       }
+  const handleConversation = async (chatInput: any) => {
+    if (chatInput.trim()) {
+      const newMessage: MessageType = {
+        type: "outgoing",
+        content: <span>{chatInput}</span>,
+        timestamp: new Date(),
+      };
+      addChatMessages([newMessage]);
+      setChatInput("");
+    }
 
-  //       if (greetings.includes(chatInput.trim().toLowerCase())) {
-  //         goToStep("start");
-  //       }
+    if (greetings.includes(chatInput.trim().toLowerCase())) {
+      goToStep("start");
+    }
 
-  //       switch (currentStep) {
-  //         case "start":
-  //           console.log("current step is start");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           helloMenu(chatInput);
-  //           setSharedPaymentMode("");
-  //           break;
+    switch (currentStep) {
+      case "start":
+        console.log("current step is start");
+        helloMenu(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "chooseAction":
-  //           console.log("current step is chooseAction");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           choiceMenu(chatInput);
-  //           break;
+      case "chooseAction":
+        console.log("current step is chooseAction");
+        choiceMenu(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "transactCrypto":
-  //           console.log("current step is transactCrypto");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleMakeAChoice(chatInput);
-  //           break;
+      case "transactCrypto":
+        console.log("current step is transactCrypto");
+        handleMakeAChoice(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "transferMoney":
-  //           console.log("Current step is transferMoney ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleTransferMoney(chatInput);
-  //           break;
+      case "transferMoney":
+        console.log("Current step is transferMoney ");
+        handleTransferMoney(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "estimateAsset":
-  //           console.log("Current step is estimateAsset ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleEstimateAsset(chatInput);
-  //           break;
+      case "estimateAsset":
+        console.log("Current step is estimateAsset ");
+        handleEstimateAsset(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "network":
-  //           console.log("Current step is network ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleNetwork(chatInput);
-  //           break;
+      case "network":
+        console.log("Current step is network ");
+        handleNetwork(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "payOptions":
-  //           console.log("Current step is payOptions ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handlePayOptions(chatInput);
-  //           break;
+      case "payOptions":
+        console.log("Current step is payOptions ");
+        handlePayOptions(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "charge":
-  //           console.log("Current step is charge ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleCharge(chatInput);
-  //           break;
+      case "charge":
+        console.log("Current step is charge ");
+        handleCharge(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "enterBankSearchWord":
-  //           console.log("Current step is enterBankSearchWord");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           let wantsToClaimGift =
-  //             sharedPaymentMode.toLowerCase() === "claim gift";
-  //           let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
-  //           let wantsToRequestPayment =
-  //             sharedPaymentMode.toLowerCase() === "request";
-  //           let wnatsToTransactCrypto =
-  //             sharedPaymentMode.toLowerCase() === "transfermoney";
+      case "enterBankSearchWord":
+        console.log("Current step is enterBankSearchWord");
+        let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
+        let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
+        let wantsToRequestPayment =
+          sharedPaymentMode.toLowerCase() === "request";
+        let wnatsToTransactCrypto =
+          sharedPaymentMode.toLowerCase() === "transfermoney";
 
-  //           wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
-  //             ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
-  //               console.log("PAYMENT MODE IS:", sharedPaymentMode),
-  //               handleSearchBank(chatInput))
-  //             : (console.log(
-  //                 "CURRENT STEP IS continueToPay IN enterBankSearchWord "
-  //               ),
-  //               console.log("PAYMENT MODE IS:", sharedPaymentMode),
-  //               handleContinueToPay(chatInput));
-  //           break;
+        wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
+          ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
+            console.log("PAYMENT MODE IS:", sharedPaymentMode),
+            handleSearchBank(chatInput))
+          : (console.log(
+              "CURRENT STEP IS continueToPay IN enterBankSearchWord "
+            ),
+            console.log("PAYMENT MODE IS:", sharedPaymentMode),
+            handleContinueToPay(chatInput));
+        setChatInput("");
+        break;
 
-  //         case "selectBank":
-  //           console.log("Current step is selectBank ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleSelectBank(chatInput);
-  //           break;
+      case "selectBank":
+        console.log("Current step is selectBank ");
+        handleSelectBank(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "enterAccountNumber":
-  //           console.log("Current step is enterAccountNumber ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleBankAccountNumber(chatInput);
-  //           break;
+      case "enterAccountNumber":
+        console.log("Current step is enterAccountNumber ");
+        handleBankAccountNumber(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "continueToPay":
-  //           console.log("Current step is continueToPay ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleContinueToPay(chatInput);
-  //           break;
+      case "continueToPay":
+        console.log("Current step is continueToPay ");
+        handleContinueToPay(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "enterPhone":
-  //           console.log("Current step is enterPhone ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handlePhoneNumber(chatInput);
-  //           break;
+      case "enterPhone":
+        console.log("Current step is enterPhone ");
+        handlePhoneNumber(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "sendPayment":
-  //           console.log("Current step is sendPayment ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           await handleCryptoPayment(chatInput);
-  //           break;
+      case "sendPayment":
+        console.log("Current step is sendPayment ");
+        await handleCryptoPayment(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "confirmTransaction":
-  //           console.log("Current step is confirmTransaction ");
-  //           console.log(
-  //             `sharedPaymentNairaEstimate is ${sharedPaymentNairaEstimate}`
-  //           );
-  //           handleConfirmTransaction(chatInput);
-  //           break;
+      case "confirmTransaction":
+        console.log("Current step is confirmTransaction ");
+        handleConfirmTransaction(chatInput);
+        setChatInput("");
 
-  //         case "paymentProcessing":
-  //           console.log("Current step is paymentProcessing ");
-  //           handleTransactionProcessing(chatInput);
-  //           break;
+        break;
 
-  //         case "kycInfo":
-  //           console.log("Current step is kycInfo ");
-  //           handleKYCInfo(chatInput);
-  //           break;
+      case "paymentProcessing":
+        console.log("Current step is paymentProcessing ");
+        handleTransactionProcessing(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "kycReg":
-  //           console.log("Current step is kycReg ");
-  //           handleRegKYC(chatInput);
-  //           break;
+      case "kycInfo":
+        console.log("Current step is kycInfo ");
+        handleKYCInfo(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "thankForKYCReg":
-  //           console.log("Current step is thankForKYCReg ");
-  //           handleThankForKYCReg(chatInput);
-  //           break;
+      case "kycReg":
+        console.log("Current step is kycReg ");
+        handleRegKYC(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "supportWelcome":
-  //           console.log("Current step is supportWelcome ");
-  //           displayCustomerSupportWelcome(addChatMessages, nextStep);
-  //           break;
+      case "thankForKYCReg":
+        console.log("Current step is thankForKYCReg ");
+        handleThankForKYCReg(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "assurance":
-  //           console.log("Current step is assurance ");
-  //           handleCustomerSupportAssurance(chatInput);
-  //           break;
+      case "supportWelcome":
+        console.log("Current step is supportWelcome ");
+        displayCustomerSupportWelcome(addChatMessages, nextStep);
+        setChatInput("");
+        break;
 
-  //         case "entreTrxId":
-  //           console.log("Current step is entreTrxId ");
-  //           handleTransactionId(chatInput);
-  //           break;
+      case "assurance":
+        console.log("Current step is assurance ");
+        handleCustomerSupportAssurance(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "makeComplain":
-  //           console.log("Current step is makeComplain ");
-  //           handleMakeComplain(chatInput);
-  //           break;
+      case "entreTrxId":
+        console.log("Current step is entreTrxId ");
+        handleTransactionId(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "completeTransactionId":
-  //           console.log("Current step is completeTransactionId ");
-  //           handleCompleteTransactionId(chatInput);
-  //           break;
+      case "makeComplain":
+        console.log("Current step is makeComplain ");
+        handleMakeComplain(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "giftFeedBack":
-  //           console.log("Current step is giftFeedBack ");
-  //           handleGiftRequestId(chatInput);
-  //           break;
+      case "completeTransactionId":
+        console.log("Current step is completeTransactionId ");
+        handleCompleteTransactionId(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "completetrxWithID":
-  //           console.log("Current step is trxIDFeedback ");
-  //           // handleReportlyWelcome(chatInput);
-  //           break;
+      case "giftFeedBack":
+        console.log("Current step is giftFeedBack ");
+        handleGiftId(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "makeReport":
-  //           console.log("Current step is makeReport ");
-  //           handleReportlyWelcome(chatInput);
-  //           break;
+      case "completetrxWithID":
+        console.log("Current step is trxIDFeedback ");
+        // handleReportlyWelcome(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "reporterName":
-  //           console.log("Current step is reporterName ");
-  //           handleReporterName(chatInput);
-  //           break;
+      case "makeReport":
+        console.log("Current step is makeReport ");
+        handleReportlyWelcome(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "reporterPhoneNumber":
-  //           console.log("Current step is reporterPhoneNumber ");
-  //           handleEnterReporterPhoneNumber(chatInput);
-  //           break;
+      case "reporterName":
+        console.log("Current step is reporterName ");
+        handleReporterName(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "reporterWallet":
-  //           console.log("Current step is reporterWallet");
-  //           handleEnterReporterWalletAddress(chatInput);
-  //           break;
+      case "reporterPhoneNumber":
+        console.log("Current step is reporterPhoneNumber ");
+        handleEnterReporterPhoneNumber(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "fraudsterWallet":
-  //           console.log("Current step is fraudsterWallet");
-  //           handleEnterFraudsterWalletAddress(chatInput);
-  //           break;
+      case "reporterWallet":
+        console.log("Current step is reporterWallet");
+        handleEnterReporterWalletAddress(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "reportlyNote":
-  //           console.log("Current step is reportlyNote");
-  //           handleReportlyNote(chatInput);
-  //           break;
+      case "fraudsterWallet":
+        console.log("Current step is fraudsterWallet");
+        handleEnterFraudsterWalletAddress(chatInput);
+        setChatInput("");
+        break;
 
-  //         case "reporterFarwell":
-  //           console.log("Current step is reporterFarwell");
-  //           handleReporterFarwell(chatInput);
-  //           break;
+      case "reportlyNote":
+        console.log("Current step is reportlyNote");
+        handleReportlyNote(chatInput);
+        setChatInput("");
+        break;
 
-  //         default:
-  //           addChatMessages([
-  //             {
-  //               type: "incoming",
-  //               content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
-  //               timestamp: new Date(),
-  //             },
-  //           ]);
-  //           break;
-  //       }
-  //     } catch (error) {
-  //       handleError(
-  //         error instanceof Error ? error.message : "An unknown error occurred"
-  //       );
-  //       addChatMessages([
-  //         {
-  //           type: "incoming",
-  //           content:
-  //             "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
-  //           timestamp: new Date(),
-  //         },
-  //       ]);
-  //     } finally {
-  //       setLoading(false);
-  //       setChatInput(""); //Added as per update instruction
-  //     }
-  //     // } catch (error) {
-  //     //   handleError(error);
-  //     // addChatMessages([
-  //     //   {
-  //     //     type: "incoming",
-  //     //     content:
-  //     //       "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
-  //     //     timestamp: new Date(),
-  //     //   },
-  //     // ]);
-  //     // }
-  //   };
+      case "reporterFarwell":
+        console.log("Current step is reporterFarwell");
+        handleReporterFarwell(chatInput);
+
+        setChatInput("");
+        break;
+
+      default:
+        addChatMessages([
+          {
+            type: "incoming",
+            content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
+            timestamp: new Date(),
+          },
+        ]);
+        setChatInput("");
+        break;
+    }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleConversation(
-        chatInput,
-        currentStep,
-        walletIsConnected,
-        wallet,
-        formattedRate,
-        telFirstName ?? "",
-        setLoading,
-        addChatMessages,
-        setChatInput,
-        goToStep,
-        nextStep,
-        setSharedPaymentMode
-      );
-
-      //   handleConversation(chatInput);
+      handleConversation(chatInput);
     }
   };
 
@@ -3322,18 +3027,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
       return () => clearTimeout(timer);
     }
   }, [chatMessages]);
-  const groupedMessages = useMemo(
-    () =>
-      chatMessages.reduce((groups, message) => {
-        const dateString = format(new Date(message.timestamp), "yyyy-MM-dd");
-        if (!groups[dateString]) {
-          groups[dateString] = [];
-        }
-        groups[dateString].push(message);
-        return groups;
-      }, {} as Record<string, MessageType[]>),
-    [chatMessages]
-  );
+
+  const groupedMessages = chatMessages.reduce((groups, message) => {
+    const date = new Date(message.timestamp);
+    const dateString = format(date, "yyyy-MM-dd");
+    if (!groups[dateString]) {
+      groups[dateString] = [];
+    }
+    groups[dateString].push(message);
+    return groups;
+  }, {} as Record<string, MessageType[]>);
 
   // CHATBOT
   return isMobile ? (
@@ -3465,22 +3168,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           />
           <button
             className="ml-2 text-blue-500 cursor-pointer"
-            onClick={() =>
-              handleConversation(
-                chatInput,
-                currentStep,
-                walletIsConnected,
-                wallet,
-                formattedRate,
-                telFirstName ?? "",
-                setLoading,
-                addChatMessages,
-                setChatInput,
-                goToStep,
-                nextStep,
-                setSharedPaymentMode
-              )
-            }
+            onClick={() => handleConversation(chatInput)}
             aria-label="Send message"
           >
             <SendIcon />
@@ -3625,22 +3313,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
           />
           <button
             className="ml-2 text-blue-500 cursor-pointer"
-            onClick={() =>
-              handleConversation(
-                chatInput,
-                currentStep,
-                walletIsConnected,
-                wallet,
-                formattedRate,
-                telFirstName ?? "",
-                setLoading,
-                addChatMessages,
-                setChatInput,
-                goToStep,
-                nextStep,
-                setSharedPaymentMode
-              )
-            }
+            onClick={() => handleConversation(chatInput)}
             aria-label="Send message"
           >
             <SendIcon />
@@ -3651,5 +3324,4 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose }) => {
   );
 };
 
-// export default ChatBot;
-export default withErrorHandling(ChatBot);
+export default ChatBot;
