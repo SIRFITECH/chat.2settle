@@ -3,6 +3,7 @@ import { MessageType } from "../types/general_types";
 import { greetings } from "./ChatbotConsts";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
+// ON HI | HELLO | HOWDY | HEY PROMPT
 export const helloMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
@@ -67,6 +68,94 @@ export const helloMenu = (
   }
 };
 
+// WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
+export const welcomeMenu = (
+  addChatMessages: (messages: MessageType[]) => void,
+  walletIsConnected: boolean,
+  wallet: `0x${string}` | undefined,
+  telFirstName: string,
+  formattedRate: string,
+) => {
+  if (walletIsConnected) {
+    addChatMessages([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            How far {telFirstName} 👋
+            <br />
+            <br />
+            You are connected as
+            <b>
+              <ShortenedAddress wallet={wallet} />
+            </b>
+            <br />
+            <br />
+            Your wallet is connected. The current rate is
+            <b> {formattedRate}/$1</b>
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        content: (
+          <span>
+            1. Transact Crypto
+            <br />
+            2. Request for paycard
+            <br />
+            3. Customer support
+            <br />
+            4. Transaction ID
+            <br />
+            5. Reportly,
+          </span>
+        ),
+      },
+    ] as unknown as MessageType[]);
+  } else {
+    {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              You continued <b>without connecting your wallet</b>
+              <br />
+              <br />
+              Today Rate: <b>{formattedRate}/$1</b> <br />
+              <br />
+              Welcome to 2SettleHQ {telFirstName}, how can I help you today?
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+        {
+          type: "incoming",
+          content: (
+            <span>
+              1. Transact Crypto
+              <br />
+              2. Request for paycard
+              <br />
+              3. Customer support
+              <br />
+              4. Transaction ID
+              <br />
+              5. Reportly
+              <br />
+              0. Back
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  }
+};
+
+// TRANSACT CRYPTO SEQUENCE FUNCTIONS
 export const choiceMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,

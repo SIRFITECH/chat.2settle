@@ -10,13 +10,20 @@ export const handleConversation = async (
   wallet: `0x${string}` | undefined,
   formattedRate: string,
   telFirstName: string,
+  sharedPaymentMode: string,
+  sharedRate: string,
   setLoading: (loading: boolean) => void,
   addChatMessages: (messages: MessageType[]) => void,
   setChatInput: (input: string) => void,
   goToStep: (step: string) => void,
   nextStep: (step: string) => void,
   prevStep: () => void,
-  setSharedPaymentMode: (mode: string) => void
+  setSharedPaymentMode: (mode: string) => void,
+  setSharedTicker: (ticker: string) => void,
+  setSharedCrypto: (crypto: string) => void,
+  setSharedNetwork: (network: string) => void,
+  setSharedWallet: (wallet: string) => void,
+  setSharedEstimateAsset: (network: string) => void
 ) => {
   try {
     setLoading(true);
@@ -79,19 +86,47 @@ export const handleConversation = async (
         setChatInput("");
         break;
 
-      // case "transferMoney":
-      //   console.log("Current step is transferMoney ");
+      case "transferMoney":
+        console.log("Current step is transferMoney ");
 
-      //   handleTransferMoney(chatInput);
-      //   setChatInput("");
-      //   break;
+        cryptoTrxConvo.handleTransferMoney(
+          addChatMessages,
+          chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          sharedPaymentMode,
+          sharedRate,
+          nextStep,
+          prevStep,
+          goToStep,
+          setSharedPaymentMode,
+          setSharedWallet,
+          setSharedEstimateAsset
+        );
+        setChatInput("");
+        break;
 
-      // case "estimateAsset":
-      //   console.log("Current step is estimateAsset ");
+      case "estimateAsset":
+        console.log("Current step is estimateAsset ");
 
-      //   handleEstimateAsset(chatInput);
-      //   setChatInput("");
-      //   break;
+        cryptoTrxConvo.handleEstimateAsset(
+          addChatMessages,
+          chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          sharedPaymentMode,
+          nextStep,
+          prevStep,
+          goToStep,
+          setSharedPaymentMode,
+          setSharedTicker,
+          setSharedCrypto,
+          setSharedNetwork
+        );
+        setChatInput("");
+        break;
 
       // case "network":
       //   console.log("Current step is network ");

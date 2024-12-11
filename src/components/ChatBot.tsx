@@ -1929,12 +1929,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           localStorage.removeItem("referralCode");
           localStorage.removeItem("referralCategory");
         });
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
 
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
@@ -1992,12 +1986,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
 
@@ -2119,12 +2107,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
               ? formatCurrency(sharedAssetPrice, "USD")
               : formatCurrency(sharedRate, "NGN", "en-NG"),
         };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
 

@@ -13,6 +13,8 @@ import {
   differenceInDays,
   differenceInMonths,
 } from "date-fns";
+import { generateChatId, getChatId, saveChatId } from "./utilities";
+import { telegramUser } from "@/types/telegram_types";
 
 export const renderDateSeparator = (date: Date) => {
   const now = new Date();
@@ -91,5 +93,36 @@ export const fetchData = async (
     setSharedRate(updates.rate);
   } catch (error) {
     console.error("Failed to fetch rates:", error);
+  }
+};
+
+export const initializeChatId = (
+  isTelUser: boolean,
+  chatId: string,
+  telegramUser: telegramUser | null,
+  setSharedChatId: (rate: string) => void,
+  setChatId: React.Dispatch<React.SetStateAction<string>>
+) => {
+  // we now set the telegram chatId to the chatId if it a telegram user
+  const existingChatId = isTelUser ? telegramUser?.id.toString() : getChatId();
+  setSharedChatId(`${existingChatId}`);
+
+  if (!existingChatId) {
+    const newChatId = isTelUser
+      ? // ? telegramUser?.id ?? generateChatId()
+        telegramUser?.id.toString()
+      : generateChatId();
+
+    if (newChatId !== undefined) {
+      // Ensure newChatId is defined
+      saveChatId(newChatId);
+      setChatId(newChatId.toString());
+    } else {
+      console.warn("Failed to generate a new chat ID.");
+    }
+  } else {
+    if (existingChatId !== chatId) {
+      setChatId(existingChatId);
+    }
   }
 };

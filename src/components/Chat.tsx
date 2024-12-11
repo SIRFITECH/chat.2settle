@@ -17,16 +17,14 @@ import { MessageType } from "../types/general_types";
 import { handleConversation } from "@/utils/handleConversations";
 import { ChatBotProps } from "@/types/chatbot_types";
 import { withErrorHandling } from "./withErrorHandling";
-import { fetchData, renderDateSeparator } from "@/utils/ChatbotConsts";
+import {
+  fetchData,
+  initializeChatId,
+  renderDateSeparator,
+} from "@/utils/ChatbotConsts";
 import { telegramUser } from "@/types/telegram_types";
 import Loader from "./Loader";
-import {
-  fetchCoinPrice,
-  fetchMerchantRate,
-  fetchProfitRate,
-  fetchRate,
-} from "@/helpers/api_calls";
-import { formatCurrency } from "@/helpers/format_currency";
+import { fetchCoinPrice } from "@/helpers/api_calls";
 import {
   getLocalStorageData,
   saveLocalStorageData,
@@ -36,15 +34,19 @@ const Chat: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const { address: wallet, isConnected: walletIsConnected } = useAccount();
   const {
     sharedRate,
-    setSharedRate,
-    sharedPaymentMode,
-    setSharedPaymentMode,
     sharedCrypto,
-    setSharedCrypto,
-    sharedAssetPrice,
-    setSharedAssetPrice,
     sharedTransactionId,
+    sharedPaymentMode,
+    setSharedRate,
+    setSharedPaymentMode,
+    setSharedAssetPrice,
     setSharedTransactionId,
+    setSharedChatId,
+    setSharedTicker,
+    setSharedCrypto,
+    setSharedNetwork,
+    setSharedWallet,
+    setSharedEstimateAsset,
   } = useSharedState();
 
   const {
@@ -86,56 +88,29 @@ const Chat: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }, [isOpen]);
 
-  const fetchData = async () => {
-    try {
-      const [fetchedRate, fetchedMerchantRate, fetchedProfitRate] =
-        await Promise.all([
-          fetchRate(),
-          fetchMerchantRate(),
-          fetchProfitRate(),
-        ]);
-
-      // Batch state updates
-      const updates = {
-        rate: fetchedRate.toString(),
-        formattedRate: formatCurrency(fetchedRate.toString(), "NGN", "en-NG"),
-        merchantRate: formatCurrency(
-          fetchedMerchantRate.toString(),
-          "NGN",
-          "en-NG"
-        ),
-        profitRate: formatCurrency(
-          fetchedProfitRate.toString(),
-          "NGN",
-          "en-NG"
-        ),
-      };
-
-      console.log("Rate is:", rate)
-
-      // Update all states at once
-      setRate(updates.rate);
-      setFormattedRate(updates.formattedRate);
-      setMerchantRate(updates.merchantRate);
-      setProfitRate(updates.profitRate);
-      setSharedRate(updates.rate);
-    } catch (error) {
-      console.error("Failed to fetch rates:", error);
-    }
-  };
-
   // Fetch data on page load
-
   useEffect(() => {
-    fetchData();
-    // fetchData(
-    //   setRate,
-    //   setFormattedRate,
-    //   setMerchantRate,
-    //   setProfitRate,
-    //   setSharedRate
-    // );
+    fetchData(
+      setRate,
+      setFormattedRate,
+      setMerchantRate,
+      setProfitRate,
+      setSharedRate
+    );
   }, []);
+
+  // initialize user chatID
+  useEffect(() => {
+    initializeChatId(
+      isTelUser,
+      chatId,
+      telegramUser,
+      setSharedChatId,
+      setChatId
+    );
+    // initializeChatId();
+  }, [chatId]);
+
   //   load chats from storage
   useState(getLocalStorageData());
 
@@ -239,13 +214,20 @@ const Chat: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         wallet,
         formattedRate,
         telFirstName ?? "",
+        sharedPaymentMode,
+        sharedRate,
         setLoading,
         addChatMessages,
         setChatInput,
         goToStep,
         nextStep,
         prevStep,
-        setSharedPaymentMode
+        setSharedPaymentMode,
+        setSharedTicker,
+        setSharedCrypto,
+        setSharedNetwork,
+        setSharedWallet,
+        setSharedEstimateAsset
       );
     }
   };
@@ -367,13 +349,20 @@ const Chat: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
               wallet,
               formattedRate,
               telFirstName ?? "",
+              sharedPaymentMode,
+              sharedRate,
               setLoading,
               addChatMessages,
               setChatInput,
               goToStep,
               nextStep,
               prevStep,
-              setSharedPaymentMode
+              setSharedPaymentMode,
+              setSharedTicker,
+              setSharedCrypto,
+              setSharedNetwork,
+              setSharedWallet,
+              setSharedEstimateAsset
             )
           }
           aria-label="Send message"
