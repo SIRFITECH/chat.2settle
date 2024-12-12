@@ -5,11 +5,13 @@ import Image from "next/image";
 import ChatBot from "./ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
+
 import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
 import { useAccount } from "wagmi";
 import { fetchRate, fetchTotalVolume } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
+
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "./TelegramError";
 // import ChatB from "./ChatB";
@@ -202,6 +204,7 @@ export default function Body() {
             </p>
           </div>
         )}
+
       </div>
 
       <Button
