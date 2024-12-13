@@ -100,18 +100,16 @@ export const displayCompleteTrxFeedbackMessage = (
 };
 
 // ENTER GIFT ID
-export const displayEnterId = async (
+export const displayEnterGiftId = async (
   addChatMessages: (messages: MessageType[]) => void,
-  nextStep: (step: string) => void,
-  sharedPaymentMode: string
+  nextStep: (step: string) => void
 ) => {
-  const queryId = sharedPaymentMode !== "request" ? "Gift ID" : "Request ID";
   const newMessages: MessageType[] = [
     {
       type: "incoming",
       content: (
         <span>
-          Enter your {queryId}.
+          Enter your Gift ID.
           <br />
           0. Go back
           <br />
@@ -122,9 +120,8 @@ export const displayEnterId = async (
     },
   ];
   console.log("Next is giftFeedBack");
-  sharedPaymentMode === "Claim Gift"
-    ? nextStep("enterBankSearchWord")
-    : nextStep("transferMoney");
+  nextStep("enterBankSearchWord");
+  // nextStep("giftFeedBack");
   addChatMessages(newMessages);
 };
 // GIFT FEEDBACK MESSAGE

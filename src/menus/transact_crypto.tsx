@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { checkRequestExists } from "@/helpers/api_calls";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -73,41 +72,106 @@ export const displayPayAVendor = (
 };
 
 // IF USER CHOOSE TRANSFER MONEY THEY SEE THIS NEXT
+// export const displayTransferMoney = (
+//   addChatMessages: (messages: MessageType[]) => void
+// ) => {
+//   console.log("Let's start with selecting an actions");
+//   const newMessages: MessageType[] = [
+//     {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Pay with:
+//           <br />
+//           <br />
+//           1. Bitcoin (BTC)
+//           <br />
+//           2. Ethereum (ETH)
+//           <br />
+//           3. BINANCE (BNB)
+//           <br />
+//           4. TRON (TRX)
+//           <br />
+//           5. USDT
+//           <br />
+//           0. Go back
+//           <br />
+//           00. Exit
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     },
+//   ];
+//   console.log("Next is howToEstimate");
+
+//   addChatMessages(newMessages);
+// };
+
 export const displayTransferMoney = (
-  addChatMessages: (messages: MessageType[]) => void
+  addChatMessages: (messages: MessageType[]) => void,
+  sharedPaymentMode: string
 ) => {
-  console.log("Let's start with selecting an actions");
-  const newMessages: MessageType[] = [
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Pay with:
-          <br />
-          <br />
-          1. Bitcoin (BTC)
-          <br />
-          2. Ethereum (ETH)
-          <br />
-          3. BINANCE (BNB)
-          <br />
-          4. TRON (TRX)
-          <br />
-          5. USDT
-          <br />
-          0. Go back
-          <br />
-          00. Exit
-        </span>
-      ),
-      timestamp: new Date(),
-    },
-  ];
+  console.log("Let's start with selecting an action");
+
+  const newMessages: MessageType[] =
+    sharedPaymentMode === "request"
+      ? [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                I would like to estimate my payment request in:
+                <br />
+                <br />
+                1. Bitcoin (BTC)
+                <br />
+                2. Ethereum (ETH)
+                <br />
+                3. BINANCE (BNB)
+                <br />
+                4. TRON (TRX)
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]
+      : [
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Pay with:
+                <br />
+                <br />
+                1. Bitcoin (BTC)
+                <br />
+                2. Ethereum (ETH)
+                <br />
+                3. BINANCE (BNB)
+                <br />
+                4. TRON (TRX)
+                <br />
+                5. USDT
+                <br />
+                0. Go back
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
+
   console.log("Next is howToEstimate");
 
   addChatMessages(newMessages);
 };
 
+// USE CHOOSE WHICH WAY THEY WANT TO ESTIMATE THE PAY
 export const displayHowToEstimation = async (
   addChatMessages: (messages: MessageType[]) => void,
   input: string,
@@ -115,62 +179,61 @@ export const displayHowToEstimation = async (
 ) => {
   const parsedInput = input.trim();
 
-  const newMessages: MessageType[] = [
-    {
-      type: "incoming",
-      content: `How would you like to estimate your ${parsedInput}?`,
-      timestamp: new Date(),
-    },
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Here is your menu:
-          <br />
-          <br />
-          1. Naira
-          <br />
-          2. Dollar
-          <br />
-          3. Crypto
-          <br />
-          00. Exit
-        </span>
-      ),
-      timestamp: new Date(),
-    },
-  ];
+  const newMessages: MessageType[] =
+    sharedPaymentMode === "request"
+      ? [
+          {
+            type: "incoming",
+            content: `How would you like to request this payment?`,
+            timestamp: new Date(),
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                I would like to request the payment in:
+                <br />
+                <br />
+                1. Naira
+                <br />
+                2. Dollar
+                <br />
+                3. Crypto
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]
+      : [
+          {
+            type: "incoming",
+            content: `How would you like to estimate your ${parsedInput}?`,
+            timestamp: new Date(),
+          },
+          {
+            type: "incoming",
+            content: (
+              <span>
+                Here is your menu:
+                <br />
+                <br />
+                1. Naira
+                <br />
+                2. Dollar
+                <br />
+                3. Crypto
+                <br />
+                00. Exit
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ];
 
   console.log("Next is estimationAmount");
-  addChatMessages(newMessages);
-};
-export const displayRequestPaymentSummary = async (
-  addChatMessages: (messages: MessageType[]) => void,
-  input: string,
-  sharedPaymentMode: string,
-  requestId: string
-) => {
-  const parsedInput = input.trim();
-  const request = (await checkRequestExists(requestId)).user;
-  const requestAmount = request?.receiver_amount;
-  const requestReciever = request?.receiver_name;
-
-  const requestStatus = (await checkRequestExists(requestId)).exists;
-  console.log("Does request exist:", request?.receiver_amount);
-
-  const newMessages: MessageType[] = [
-    {
-      type: "incoming",
-      content: `You are paying ${requestAmount} worth of {BTC} to ${requestReciever}`,
-      timestamp: new Date(),
-    },
-    {
-      type: "incoming",
-      content: `To complete this ${sharedPaymentMode} payment, you need to pay {0.005 BTC} to our wallet (charge included)`,
-      timestamp: new Date(),
-    },
-  ];
-  console.log("Next is estimationAmount");
+  // nextStep("payOptions"); // Uncomment if needed
   addChatMessages(newMessages);
 };
 
@@ -178,8 +241,7 @@ export const displayRequestPaymentSummary = async (
 export const displayNetwork = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
-  input: string,
-  sharedPaymentMode: string
+  input: string
 ) => {
   const parsedInput = input.trim();
   const newMessages: MessageType[] = [
@@ -202,9 +264,7 @@ export const displayNetwork = (
   ];
 
   console.log("Next is payOptions");
-  sharedPaymentMode !== "request"
-    ? nextStep("payOptions")
-    : nextStep("continueToPay");
+  nextStep("payOptions");
   addChatMessages(newMessages);
 };
 
@@ -215,7 +275,7 @@ export const displayPayIn = (
   sharedRate: string,
   sharedTicker: string,
   sharedAssetPrice: string,
-  sharedPaymentMode: string
+  sharedCrypto: string
 ) => {
   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
   const dollar = ["usdt"];
@@ -236,7 +296,7 @@ export const displayPayIn = (
   }
 
   const rangeMessage = (
-    <span style={{ margin: 0, padding: 0 }}>
+    <div style={{ margin: 0, padding: 0 }}>
       {sharedEstimateAsset.toLowerCase() === "naira" ? (
         <>
           Min. = {formatCurrency("20000", "NGN", "en-NG")}
@@ -258,30 +318,24 @@ export const displayPayIn = (
       ) : (
         ""
       )}
-    </span>
+    </div>
   );
-  console.log("Just to see what sharedPaymentMode is:", sharedPaymentMode);
-  const paymentMode =
-    sharedPaymentMode === "transferMoney" || sharedPaymentMode === "Gift"
-      ? "send"
-      : "request";
 
   const newMessages: MessageType[] = [
     {
       type: "incoming",
       content: (
-        <>
-          Enter the amount you want to {paymentMode} in {sharedEstimateAsset}{" "}
-          value
+        <span>
+          Enter the amount you want to send in {sharedEstimateAsset} value
           <br />
           <br />
           NOTE:
-          <b> {rangeMessage}</b>
+          <b> {rangeMessage}.</b>
           <br />
           0. Go back
           <br />
           00. Exit
-        </>
+        </span>
       ),
       timestamp: new Date(),
     },
@@ -344,7 +398,6 @@ export const displaySelectBank = (
       },
     ];
     addChatMessages(retryMessages);
-
     return;
   }
 
@@ -354,6 +407,7 @@ export const displaySelectBank = (
       <br />
     </span>
   ));
+
 
   results.map((result, index) => {
     bankCodes.push(results[index].code);
@@ -813,7 +867,6 @@ export const displaySendPayment = async (
   }
   addChatMessages(initialMessages);
 };
-
 // FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
 // export const displaySendPayment = async (
 //   addChatMessages: (messages: MessageType[]) => void,

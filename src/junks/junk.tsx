@@ -555,7 +555,6 @@ export default ChatComponent;
 //         return permittedAddresses[recipient];
 //     }
 // }
-
 // const processTransaction = async (
 //   phoneNumber: string,
 //   isGift: boolean,
