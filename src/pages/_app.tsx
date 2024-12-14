@@ -1,7 +1,6 @@
 import "../../globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
 import type { AppProps } from "next/app";
-import Head from "next/head";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
@@ -10,6 +9,7 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { config } from "../wagmi";
 import { SharedStateProvider } from "../context/SharedStateContext";
 import ErrorBoundary from "@/components/TelegramError";
+import Head from "next/head";
 
 const client = new QueryClient();
 
