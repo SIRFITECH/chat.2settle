@@ -32,6 +32,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "dotenv": "^16.4.7",
     "ethers": "^6.13.4",
     "googleapis": "^140.0.1",
     "html-react-parser": "^5.1.18",
@@ -50,7 +51,8 @@
     "tailwindcss-animate": "^1.0.7",
     "twilio": "^5.3.6",
     "viem": "2.9.31",
-    "wagmi": "^2.13.3"
+    "wagmi": "^2.13.3",
+    "web3": "^4.16.0"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",

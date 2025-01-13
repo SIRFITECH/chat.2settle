@@ -5,12 +5,12 @@ export type MessageType = {
   type: string;
   content: React.ReactNode;
   timestamp: Date;
-  isComponent?: boolean;
-  componentName?: string;
+  // isComponent?: boolean;
+  // componentName?: string;
 };
 
 //WALLET
-export type EthereumAddress = `0x${string}`;
+export type EthereumAddress = `0x${string}`|undefined;
 
 // RATES FROM THE VENDOR TABLE
 export interface ExchangeRate {
