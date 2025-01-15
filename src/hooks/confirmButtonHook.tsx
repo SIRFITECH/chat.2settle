@@ -28,6 +28,7 @@ interface ConfirmAndProceedButtonProps {
   ) => Promise<void>;
   network: string;
   connectedWallet: boolean;
+  amount: string;
 }
 
 const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
@@ -39,6 +40,7 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
       processTransaction,
       network,
       connectedWallet,
+      amount,
     }) => {
       const [state, setState] = useState({
         isButtonClicked: false,
@@ -65,13 +67,16 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
           const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
             network
           );
+          const wallet = "0x0EC67B0de231E3CBcbDb3DF75C8ff315D40F8048";
           if (activeWallet) {
             switch (network.toLowerCase()) {
               case "eth":
-                await spendETH(activeWallet as EthereumAddress, "5");
+                console.log("We are calling the ETH payout...", amount);
+                await spendETH(wallet as EthereumAddress, amount);
                 break;
               case "bnb":
-                await spendBNB(activeWallet as EthereumAddress, "amount");
+                console.log("We are calling the BNB payout...");
+                await spendBNB(wallet as EthereumAddress, amount);
                 break;
               case "erc20":
                 await spendBNB(activeWallet as EthereumAddress, "amount");

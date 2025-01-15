@@ -387,8 +387,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         ),
       };
       console.log("Rate is:", rate);
-      if (ethConnect) {
-      }
+      // console.log("Just to know if this is running");
+
+      // if (walletIsConnected) {
+      //   console.log("Wallet connected", ethConnect);
+      //   await spendETH(wallet, "0.005");
+      //   console.log("This is from inside the function");
+      // }
+      // console.log("Just to know if this actually ran");
 
       // Update all states at once
       setRate(updates.rate);
@@ -1620,6 +1626,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         processTransaction={processTransaction}
         network={network}
         connectedWallet={ethConnect}
+        amount={sharedPaymentAssetEstimate}
       />
     ),
     [setLoading, sharedPaymentMode, processTransaction, ethConnect]
