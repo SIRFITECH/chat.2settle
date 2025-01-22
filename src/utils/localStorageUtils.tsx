@@ -19,12 +19,7 @@ const sanitizeSerializedContent = (content: string) => {
 };
 
 const serializeMessage = (message: MessageType) => {
-  if (message.isComponent && message.componentName) {
-    return {
-      ...message,
-      content: elementToJSXString(message.content),
-    };
-  }
+ 
   return {
     ...message,
     content: sanitizeSerializedContent(elementToJSXString(message.content)),
@@ -32,20 +27,7 @@ const serializeMessage = (message: MessageType) => {
 };
 
 const deserializeMessage = (message: MessageType): MessageType => {
-  if (message.isComponent && message.componentName) {
-    const Component = componentMap[message.componentName];
-    if (Component) {
-      return {
-        ...message,
-        content: <Component />,
-      };
-    }
-    // Fallback if component is not found
-    return {
-      ...message,
-      content: <span>Unknown component: {message.componentName}</span>,
-    };
-  }
+
   return {
     ...message,
     content: parse(message.content as string),
