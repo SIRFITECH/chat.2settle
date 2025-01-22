@@ -385,12 +385,19 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
     // Get the first connected account (primary wallet address)
     const spender = accounts[0];
 
-    // spendUSDTERC20Contract.methods.send({ from: spender })
+    // spendUSDTERC20Contract.methods
+    //   .updateRecipient(wallet)
+    //   .send({ from: spender })
     //   .then(() => {
     //     spendERCContract.methods
     //       .transferUSDTFrom(valueInWei, wallet)
     //       .send({ from: spender });
 
+    //     console.log(`Transferred ${amount} USDT to ${wallet}`);
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error);
+    //   });
     //     console.log(`Transferred ${amount} USDT to ${wallet}`);
     //   })
     //   .catch((error) => {
