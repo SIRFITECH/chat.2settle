@@ -264,12 +264,17 @@ export async function spendETH(wallet: EthereumAddress, amount: string) {
     const spender = accounts[0];
 
     // sending plain ETH with no transaction data
-    const reciept = web3.eth.sendTransaction({
+    const reciept = await web3.eth.sendTransaction({
       from: spender,
       to: wallet,
       value: valueInWei,
     });
-    console.log(`Sent ${amount} Ether to the contract`, reciept);
+    if (reciept.status) {
+      console.log(`Sent ${amount} Ether to the contract`, reciept);
+    } else {
+      console.error("Transaction failed");
+    }
+    return reciept;
   } catch (error) {
     console.error("Errorsending the transaction", error);
     return null;
@@ -342,20 +347,22 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
       .on("error", (error) => console.error("Transaction faild", error));
 
     console.log(`We have sent ${amount} BNB`, reciept);
+    return reciept;
   } catch (error) {
     console.error("Errorsending the transaction", error);
     return null;
   }
 }
 export async function spendERC20(wallet: EthereumAddress, amount: string) {
-  
   try {
     // Request wallet connection
     await window.ethereum.request({ method: "eth_requestAccounts" });
-    
+
     // Check if the wallet (MetaMask) is available
     if (typeof window.ethereum === "undefined") {
-      console.error("MetaMask is not installed. Please install it to continue.");
+      console.error(
+        "MetaMask is not installed. Please install it to continue."
+      );
       return null;
     }
     // Create a Web3 instance with the injected provider
@@ -378,19 +385,17 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
     // Get the first connected account (primary wallet address)
     const spender = accounts[0];
 
-    spendUSDTERC20Contract.methods
-      .updateRecipient(wallet)
-      .send({ from: spender })
-      .then(() => {
-        spendERCContract.methods
-          .transferUSDTFrom(valueInWei, wallet)
-          .send({ from: spender });
+    // spendUSDTERC20Contract.methods.send({ from: spender })
+    //   .then(() => {
+    //     spendERCContract.methods
+    //       .transferUSDTFrom(valueInWei, wallet)
+    //       .send({ from: spender });
 
-        console.log(`Transferred ${amount} USDT to ${wallet}`);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    //     console.log(`Transferred ${amount} USDT to ${wallet}`);
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error:", error);
+    //   });
   } catch (error) {
     console.error("Error connecting to wallet:", error);
     return null;

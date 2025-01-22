@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { spendBNB, spendETH } from "@/helpers/ethereum_script/spend_crypto";
 import { EthereumAddress } from "@/types/general_types";
+import { TransactionReceipt } from "web3";
 
 interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
@@ -62,17 +63,17 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
           isProcessing: true,
           error: null,
         }));
-
         try {
           const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
             network
           );
           const wallet = "0x0EC67B0de231E3CBcbDb3DF75C8ff315D40F8048";
+          let reciept: TransactionReceipt | null = null;
           if (activeWallet) {
             switch (network.toLowerCase()) {
               case "eth":
                 console.log("We are calling the ETH payout...", amount);
-                await spendETH(wallet as EthereumAddress, amount);
+                reciept = await spendETH(wallet as EthereumAddress, amount);
                 break;
               case "bnb":
                 console.log("We are calling the BNB payout...");
@@ -95,27 +96,32 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
             }
           }
 
-          const assignedTime = new Date(lastAssignedTime);
-          setState((prev) => ({
-            ...prev,
-            activeWallet,
-            lastAssignedTime: assignedTime,
-          }));
+          if (reciept && reciept.status === 1) {
+            const assignedTime = new Date(lastAssignedTime);
+            setState((prev) => ({
+              ...prev,
+              activeWallet,
+              lastAssignedTime: assignedTime,
+            }));
 
-          const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-          const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+            const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+            const requestPayment =
+              sharedPaymentMode.toLowerCase() === "request";
 
-          setLoading(true);
-          await processTransaction(
-            phoneNumber,
-            false,
-            isGiftTrx,
-            requestPayment,
-            activeWallet,
-            assignedTime
-          );
+            setLoading(true);
+            await processTransaction(
+              phoneNumber,
+              false,
+              isGiftTrx,
+              requestPayment,
+              activeWallet,
+              assignedTime
+            );
 
-          console.log(`Transaction processed for phone number: ${phoneNumber}`);
+            console.log(
+              `Transaction processed for phone number: ${phoneNumber}`
+            );
+          }
         } catch (error) {
           console.error("Error processing transaction:", error);
           setState((prev) => ({
