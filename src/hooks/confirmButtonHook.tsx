@@ -11,7 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { spendBNB, spendETH } from "@/helpers/ethereum_script/spend_crypto";
+import {
+  spendBEP20,
+  spendBNB,
+  spendERC20,
+  spendETH,
+  spendTRC20,
+  spendTRX,
+} from "@/helpers/ethereum_script/spend_crypto";
 import { EthereumAddress } from "@/types/general_types";
 import { TransactionReceipt } from "web3";
 
@@ -77,19 +84,33 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
                 break;
               case "bnb":
                 console.log("We are calling the BNB payout...");
-                await spendBNB(wallet as EthereumAddress, amount);
-                break;
-              case "erc20":
-                await spendBNB(activeWallet as EthereumAddress, "amount");
-                break;
-              case "bep20":
-                await spendBNB(activeWallet as EthereumAddress, "amount");
+                reciept = await spendBNB(wallet as EthereumAddress, amount);
                 break;
               case "trx":
-                await spendBNB(activeWallet as EthereumAddress, "amount");
+                // reciept = await spendTRX(
+                //   activeWallet as EthereumAddress,
+                //   amount
+                // );
+                break;
+              case "erc20":
+                console.log("We are calling the USDT payout...", amount);
+                reciept = await spendERC20(
+                  activeWallet as EthereumAddress,
+                  amount
+                );
+                break;
+              case "bep20":
+                console.log("Spending USDT BEP20");
+                reciept = await spendBEP20(
+                  activeWallet as EthereumAddress,
+                  amount
+                );
                 break;
               case "trc20":
-                await spendBNB(activeWallet as EthereumAddress, "amount");
+                // reciept = await spendTRC20(
+                //   activeWallet as EthereumAddress,
+                //   "amount"
+                // );
                 break;
               default:
                 break;

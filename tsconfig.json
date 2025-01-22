@@ -30,11 +30,7 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -50,23 +46,17 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     },
-    "types": [
-      "jest",
-      "@testing-library/jest-dom"
-    ],
+    "types": ["jest", "@testing-library/jest-dom"],
     "incremental": true
   },
   "include": [
     "src",
     "__tests__",
     "jest.setup.ts",
-    "jest.config.ts"
+    "jest.config.ts",
+    "global.d.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

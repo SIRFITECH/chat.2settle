@@ -49,6 +49,7 @@
     "react-window": "^1.8.10",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "tronweb": "^6.0.1",
     "twilio": "^5.3.6",
     "viem": "2.9.31",
     "wagmi": "^2.13.3",
