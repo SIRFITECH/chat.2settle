@@ -678,6 +678,7 @@ function errorNetworkNotAvilable(network: string) {
 }
 
 export async function spendETH(wallet: EthereumAddress, amount: string) {
+  console.log("Sending eth...");
   try {
     // Check if the wallet (MetaMask) is available
     if (typeof window.ethereum === "undefined") {
@@ -881,10 +882,6 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
     console.error("Errorsending the transaction", error);
   }
   return null;
-}
-
-export async function spendTRX(wallet: EthereumAddress, amount: string) {
-  // if(window.tronWeb)
 }
 
 export async function spendERC20(wallet: EthereumAddress, amount: string) {
@@ -1102,48 +1099,75 @@ export async function spendBEP20(wallet: EthereumAddress, amount: string) {
   }
 }
 
-export async function spendTRC20(wallet: EthereumAddress, amount: string) {
-  // // Check if the wallet (MetaMask) is available
-  // if (typeof window.ethereum === "undefined") {
-  //   console.error("MetaMask is not installed. Please install it to continue.");
-  //   return null;
-  // }
+export async function spendTRX(wallet: EthereumAddress, amount: string) {
   // try {
-  //   // Request wallet connection
-  //   await window.ethereum.request({ method: "eth_requestAccounts" });
-  //   // Create a Web3 instance with the injected provider
-  //   const web3 = new Web3(window.ethereum);
-  //   // Get the list of accounts
-  //   const accounts = await web3.eth.getAccounts();
-  //   const spendETHContract = new web3.eth.Contract(
-  //     contractABI,
-  //     contractAddress
-  //   );
-  //   const spendERCContract = new web3.eth.Contract(
-  //     contractABI,
-  //     contractAddress
-  //   );
-  //   const valueInWei = web3.utils.toWei(amount, "ether");
-  //   if (accounts.length === 0) {
-  //     console.log("No accounts found. Please connect a wallet.");
-  //     return null;
+  //   // check if user has wallet connected
+  //   if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
+  //     throw new Error("You need to connect TronLink wallet");
   //   }
-  //   // Get the first connected account (primary wallet address)
-  //   const spender = accounts[0];
-  //   spendETHContract.methods
-  //     .updateRecipient(wallet)
-  //     .send({ from: spender })
-  //     .then(() => {
-  //       spendERCContract.methods
-  //         .transferUSDTFrom(valueInWei, wallet)
-  //         .send({ from: spender });
-  //       console.log(`Transferred ${amount} USDT to ${wallet}`);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error:", error);
-  //     });
+  //   // get the connected wallet address
+  //   const spender = window.tronWeb.defaultAddress.base58;
+  //   // convert the amount to SUN
+  //   const amountInSun = window.tronWeb.toSun(amount);
+  //   // check if the user have enough balance
+  //   const balance = await window.tronWeb.trx.getBalance(spender);
+  //   if (balance < amountInSun) {
+  //     console.log("Insufficient balance for transaction");
+  //     throw new Error("Insufficient balance");
+  //   }
+  //   // create a transaction object
+  //   const transaction = await window.tronWeb.trx.sign(
+  //     wallet,
+  //     amountInSun,
+  //     spender
+  //   );
+  //   const signedTransaction = await window.tronWeb.trx.sign(transaction);
+  //   if (!signedTransaction.signature) {
+  //     throw new Error(
+  //       "Could not sign transaction, unlock your wallet and sign the transaction"
+  //     );
+  //   }
+  //   const broadcast = await window.tronWeb.trx.sendRawTransaction(
+  //     signedTransaction
+  //   );
+  //   if (broadcast.result) {
+  //     console.log("Transaction successfull TXID:", broadcast.txid);
+  //     return broadcast.result;
+  //   } else {
+  //     throw new Error("Transaction broadcast failed");
+  //   }
   // } catch (error) {
-  //   console.error("Error connecting to wallet:", error);
-  //   return null;
+  //   // forward the error for the calling function to handle
+  //   throw error;
+  // }
+}
+
+export async function spendTRC20(wallet: EthereumAddress, amount: string) {
+  // // Ensure tronweb provider is injected
+  // try {
+  //   if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
+  //     throw new Error("TronLink wallet is not connected.");
+  //   }
+  //   // get the users connected wallet
+  //   const spender = window.tronWeb.defaultAddress.base58;
+  //   // USDT TRC20 contract address on the Tron blockchain
+  //   const USDT_CONTRACT_ADDRESS = "TXLAQ63Xg1NAzckPwKHvzwE7HdRc8Q5hU4";
+  //   const amountInSmallestUnit = TronWeb.toBigNumber(amount)
+  //     .multiplyBy(1e6)
+  //     .toString();
+  //   const USDTTRC20Contract = await window.tronWeb
+  //     .contract()
+  //     .at(USDT_CONTRACT_ADDRESS);
+  //   const balance = await USDTTRC20Contract.methods.balanceOf(spender).call();
+  //   if (TronWeb.toBigNumber(balance).lt(amountInSmallestUnit)) {
+  //     throw new Error("Insufficient USDT balance in the connected wallet.");
+  //   }
+  //   const transfer = await USDTTRC20Contract.methods
+  //     .transfer(wallet, amountInSmallestUnit)
+  //     .send();
+  //   console.log("Transaction successful! TXID:", transaction);
+  // } catch (error) {
+  //   console.error("Error during USDT transfer:");
+  //   throw error; // Re-throw the error for the calling function to handle
   // }
 }

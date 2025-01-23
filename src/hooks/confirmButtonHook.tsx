@@ -93,7 +93,7 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
                 // );
                 break;
               case "erc20":
-                console.log("We are calling the USDT payout...", amount);
+                console.log("We are calling the USDT ERC20 payout...", amount);
                 reciept = await spendERC20(
                   activeWallet as EthereumAddress,
                   amount
