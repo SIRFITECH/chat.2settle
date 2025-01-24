@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Copy, Check } from "lucide-react";
 import { CountdownTimer } from "@/helpers/format_date";
-import { getAvaialableWallet } from "@/helpers/api_calls";
+import { getAvaialableWallet, getDirectDebitWallet } from "@/helpers/api_calls";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,7 @@ interface ConfirmAndProceedButtonProps {
     isGiftTrx: boolean,
     requestPayment: boolean,
     activeWallet: string,
-    assignedTime: Date
+    assignedTime?: Date
   ) => Promise<void>;
   network: string;
   connectedWallet: boolean;
@@ -71,12 +71,13 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
           error: null,
         }));
         try {
-          const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
-            network
-          );
-          const wallet = "0x0EC67B0de231E3CBcbDb3DF75C8ff315D40F8048";
+          // const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
+          //   network
+          // );
+          // const wallet = "0x0EC67B0de231E3CBcbDb3DF75C8ff315D40F8048";
+          const wallet = await getDirectDebitWallet();
           let reciept: TransactionReceipt | null = null;
-          if (activeWallet) {
+          if (wallet) {
             switch (network.toLowerCase()) {
               case "eth":
                 console.log("We are calling the ETH payout...", amount);
@@ -88,27 +89,21 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
                 break;
               case "trx":
                 // reciept = await spendTRX(
-                //   activeWallet as EthereumAddress,
+                //   wallet as EthereumAddress,
                 //   amount
                 // );
                 break;
               case "erc20":
                 console.log("We are calling the USDT ERC20 payout...", amount);
-                reciept = await spendERC20(
-                  activeWallet as EthereumAddress,
-                  amount
-                );
+                reciept = await spendERC20(wallet as EthereumAddress, amount);
                 break;
               case "bep20":
                 console.log("Spending USDT BEP20");
-                reciept = await spendBEP20(
-                  activeWallet as EthereumAddress,
-                  amount
-                );
+                reciept = await spendBEP20(wallet as EthereumAddress, amount);
                 break;
               case "trc20":
                 // reciept = await spendTRC20(
-                //   activeWallet as EthereumAddress,
+                //   wallet as EthereumAddress,
                 //   "amount"
                 // );
                 break;
@@ -118,11 +113,11 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
           }
 
           if (reciept && reciept.status === 1) {
-            const assignedTime = new Date(lastAssignedTime);
+            // const assignedTime = new Date(lastAssignedTime);
             setState((prev) => ({
               ...prev,
-              activeWallet,
-              lastAssignedTime: assignedTime,
+              wallet,
+              // lastAssignedTime: assignedTime,
             }));
 
             const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
@@ -135,8 +130,7 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
               false,
               isGiftTrx,
               requestPayment,
-              activeWallet,
-              assignedTime
+              wallet
             );
 
             console.log(

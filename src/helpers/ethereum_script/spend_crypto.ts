@@ -694,7 +694,7 @@ export async function spendETH(wallet: EthereumAddress, amount: string) {
     // Create a Web3 instance with the injected provider
     const web3 = new Web3(window.ethereum);
 
-    const expectedChainID = 11155111;
+    const expectedChainID = 1;
     const expectedChainIDHex = getChainIdHex(expectedChainID);
 
     // request a user to connect wallet
@@ -713,7 +713,7 @@ export async function spendETH(wallet: EthereumAddress, amount: string) {
     // Make sure user is connected to ETH mainnet in prod or sopelia testnet in dev
     if (currentChainIDHex !== expectedChainIDHex) {
       try {
-        console.log("Switching to Sepolia...");
+        console.log("Switching to ERC20...");
 
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
@@ -723,10 +723,10 @@ export async function spendETH(wallet: EthereumAddress, amount: string) {
             },
           ],
         });
-        console.log("Network switched to Sepolia");
+        console.log("Network switched to ERC20");
       } catch (error: unknown) {
         if (error instanceof Error) {
-          console.log("Error message", error.message);
+          console.error("Error message", error);
 
           // check if error has code
           const rpcError = error as { code?: number };
@@ -762,23 +762,32 @@ export async function spendETH(wallet: EthereumAddress, amount: string) {
       });
     return reciept;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error) {
-      const rpcError = error as { code: number; message: string; data?: any };
-      if (rpcError.data) {
-        console.error("Error data", rpcError.data.message);
-        throw new Error(rpcError.data.message);
+    console.error("Error occured", error);
+
+    if (error instanceof Error) {
+      if (error.message.includes("insufficient funds")) {
+        throw new Error(" Insufficeint funds to to complete the transaction");
       }
-      if (rpcError.code === -32000) {
-        throw new Error("Insufficeint balance to complete transaction");
-      } else if (rpcError.code === -32603) {
-        throw new Error("Error:", rpcError.data.message || rpcError.message);
-      } else {
-        throw new Error(
-          "Unknown Error:",
-          rpcError.data.message || rpcError.message
-        );
+      if (error && typeof error === "object" && "code" in error) {
+        const rpcError = error as { code: number; message: string; data?: any };
+        if (rpcError.data) {
+          console.error("Error data", rpcError.data.message);
+          throw new Error(rpcError.data.message);
+        }
+        if (rpcError.code == -32000) {
+          throw new Error("Insufficeint balance to complete transaction");
+        } else if (rpcError.code === -32603) {
+          throw new Error("Error:", rpcError.data.message || rpcError.message);
+        } else {
+          console.log("the error is: ", error);
+          throw new Error(
+            "Unknown Error:",
+            rpcError.data.message || rpcError.message
+          );
+        }
       }
     }
+
     console.error("Error sending the transaction", error);
     throw new Error("Error sending the transaction");
   }
@@ -912,11 +921,8 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
       throw new Error("No accounts found. Please connect a wallet.");
     }
 
-    const currentChainID = web3.eth.getChainId();
+    const currentChainID = await web3.eth.getChainId();
     const currentChainIDHex = getChainIdHex(currentChainID);
-
-    console.log("expectedChainIDHex", expectedChainIDHex);
-    console.log("currentChainIDHex", currentChainIDHex);
 
     // Make sure user is on ERC20 network
     if (currentChainIDHex !== expectedChainIDHex) {

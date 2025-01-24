@@ -220,6 +220,23 @@ export const getAvaialableWallet = async (
     }
   }
 };
+
+export const getDirectDebitWallet = async (): Promise<string> => {
+  try {
+    const response = await axios.get("/api/get_direct_debit_wallet");
+    if (response.status === 200) {
+      console.log("wallet is:", response.data.wallet);
+      return response.data.wallet;
+    } else if (response.status === 500) {
+      return "Internal error occured";
+    } else if (response.status === 404) {
+      return "Wallet not found";
+    }
+    return "walet";
+  } catch (error) {
+    return "Unexpected response from server";
+  }
+};
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
@@ -456,7 +473,6 @@ export const fetchBankDetails = async (
     return null;
   }
 };
-
 
 // import axios from "axios";
 // import {
@@ -783,7 +799,6 @@ export const fetchBankDetails = async (
 
 //   isProcessingQueue = false;
 // }
-
 
 // export const getGiftNaira = async (gift_id: string): Promise<number> => {
 //   try {
