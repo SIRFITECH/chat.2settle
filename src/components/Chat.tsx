@@ -23,7 +23,7 @@ import {
   renderDateSeparator,
 } from "@/utils/ChatbotConsts";
 import { telegramUser } from "@/types/telegram_types";
-import Loader from "./Loader";
+import Loader from "./shared/Loader";
 import { fetchCoinPrice } from "@/helpers/api_calls";
 import {
   getLocalStorageData,

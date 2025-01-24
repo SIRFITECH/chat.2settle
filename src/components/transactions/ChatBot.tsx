@@ -9,11 +9,11 @@ import React, {
 } from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
-import Loader from "./Loader";
+import Loader from "../shared/Loader";
 import { useAccount, useChainId, useEnsName } from "wagmi";
-import ShortenedAddress from "./ShortenAddress";
+import ShortenedAddress from "../shared/ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType, WalletInfo } from "../types/general_types";
+import { MessageType, WalletInfo } from "../../types/general_types";
 import {
   checkGiftExists,
   checkRequestExists,
@@ -29,8 +29,8 @@ import {
   isGiftValid,
   updateGiftTransaction,
   updateTransaction,
-} from "../helpers/api_calls";
-import { formatCurrency } from "../helpers/format_currency";
+} from "../../helpers/api_calls";
+import { formatCurrency } from "../../helpers/format_currency";
 import {
   formatPhoneNumber,
   generateChatId,
@@ -41,27 +41,27 @@ import {
   greetings,
   phoneNumberPattern,
   saveChatId,
-} from "../utils/utilities";
-import { useSharedState } from "../context/SharedStateContext";
-import { getFormattedDateTime } from "../helpers/format_date";
+} from "../../utils/utilities";
+import { useSharedState } from "../../context/SharedStateContext";
+import { getFormattedDateTime } from "../../helpers/format_date";
 
 import {
   displayKYCInfo,
   displayRegKYC,
   displayThankForKYCReg,
-} from "../menus/request_paycard";
+} from "../../menus/request_paycard";
 import {
   displayCustomerSupportAssurance,
   displayCustomerSupportWelcome,
   displayEnterTransactionId,
   displayMakeComplain,
-} from "../menus/customer_support";
+} from "../../menus/customer_support";
 import {
   displayEnterCompleteTransactionId,
   displayEnterId,
   displayGiftFeedbackMessage,
   displayTransactIDWelcome,
-} from "../menus/transaction_id";
+} from "../../menus/transaction_id";
 import {
   displayReportlyFarwell,
   displayReportlyFraudsterWalletAddress,
@@ -70,7 +70,7 @@ import {
   displayReportlyPhoneNumber,
   displayReportlyReporterWalletAddress,
   displayReportlyWelcome,
-} from "../menus/reportly";
+} from "../../menus/reportly";
 import {
   displayCharge,
   displayConfirmPayment,
@@ -86,7 +86,7 @@ import {
   displayTransactCrypto,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { useChatNavigation } from "../hooks/useChatNavigation";
+import { useChatNavigation } from "../../hooks/useChatNavigation";
 import {
   countWords,
   getLastReportId,
@@ -107,23 +107,18 @@ import {
 
 import { telegramUser } from "@/types/telegram_types";
 import useErrorHandler from "@/hooks/useErrorHandler";
-import TelegramIntegration from "./TelegramIntegration";
-import { withErrorHandling } from "./withErrorHandling";
+import TelegramIntegration from "../TelegramIntegration";
+import { withErrorHandling } from "../withErrorHandling";
 import {
   getLocalStorageData,
   saveLocalStorageData,
 } from "@/utils/localStorageUtils";
 import { ChatBotProps } from "@/types/chatbot_types";
-import ErrorBoundary from "./TelegramError";
-import { spendBNB, spendETH } from "@/helpers/ethereum_script/spend_crypto";
-// import { useNetwork } from "wagmi";
-// import * as useNetwork  from "wagmi";
+import ErrorBoundary from "../TelegramError";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
   const account = useAccount();
-  const chainId = useChainId();
-  const ensName = useEnsName();
   const wallet = account.address;
   let walletIsConnected = account.isConnected;
 
@@ -387,14 +382,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         ),
       };
       console.log("Rate is:", rate);
-      // console.log("Just to know if this is running");
-
-      // if (walletIsConnected) {
-      //   console.log("Wallet connected", ethConnect);
-      //   await spendETH(wallet, "0.005");
-      //   console.log("This is from inside the function");
-      // }
-      // console.log("Just to know if this actually ran");
 
       // Update all states at once
       setRate(updates.rate);

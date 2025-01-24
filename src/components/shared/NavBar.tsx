@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Logo from "./Logo";
 import { cn } from "@/lib/utils";
+import ConnectWallet from "./ConnectWallet";
 
 const navigation = [
   { name: "Transact", href: "/transact" },
@@ -54,7 +55,7 @@ export default function Navbar() {
           {/* Connect Button & Mobile Menu */}
           <div className="flex items-center">
             <div className="hidden sm:flex sm:items-center">
-              <ConnectButton />
+              <ConnectWallet children={"Wallet"} />
             </div>
             <div className="flex items-center sm:hidden">
               <button
@@ -97,7 +98,7 @@ export default function Navbar() {
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex justify-center px-4">
-              <ConnectButton />
+              <ConnectWallet children={"Wallet"} />
             </div>
           </div>
         </div>

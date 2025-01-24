@@ -71,10 +71,6 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
           error: null,
         }));
         try {
-          // const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
-          //   network
-          // );
-          // const wallet = "0x0EC67B0de231E3CBcbDb3DF75C8ff315D40F8048";
           const wallet = await getDirectDebitWallet();
           let reciept: TransactionReceipt | null = null;
           if (wallet) {

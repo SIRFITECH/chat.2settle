@@ -1,4 +1,4 @@
-import ShortenedAddress from "@/components/ShortenAddress";
+import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "../types/general_types";
 import { greetings } from "./ChatbotConsts";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
