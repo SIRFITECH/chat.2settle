@@ -1,4 +1,4 @@
-import ShortenedAddress from "@/components/ShortenAddress";
+import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "../types/general_types";
 import { greetings } from "./ChatbotConsts";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -74,7 +74,7 @@ export const welcomeMenu = (
   walletIsConnected: boolean,
   wallet: `0x${string}` | undefined,
   telFirstName: string,
-  formattedRate: string,
+  formattedRate: string
 ) => {
   if (walletIsConnected) {
     addChatMessages([
@@ -199,8 +199,6 @@ export const choiceMenu = (
           type: "incoming",
           content: <ConnectButton />,
           timestamp: new Date(),
-          isComponent: true,
-          componentName: "ConnectButton",
         },
         {
           type: "incoming",
@@ -222,8 +220,6 @@ export const choiceMenu = (
           type: "incoming",
           content: <ConnectButton />,
           timestamp: new Date(),
-          isComponent: true,
-          componentName: "ConnectButton",
         },
         {
           type: "incoming",

@@ -9,11 +9,11 @@ import React, {
 } from "react";
 import SendIcon from "@mui/icons-material/Send";
 import Image from "next/image";
-import Loader from "./Loader";
-import { useAccount } from "wagmi";
-import ShortenedAddress from "./ShortenAddress";
+import Loader from "../shared/Loader";
+import { useAccount, useChainId, useEnsName } from "wagmi";
+import ShortenedAddress from "../shared/ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType, WalletInfo } from "../types/general_types";
+import { MessageType, WalletInfo } from "../../types/general_types";
 import {
   checkGiftExists,
   checkRequestExists,
@@ -29,8 +29,8 @@ import {
   isGiftValid,
   updateGiftTransaction,
   updateTransaction,
-} from "../helpers/api_calls";
-import { formatCurrency } from "../helpers/format_currency";
+} from "../../helpers/api_calls";
+import { formatCurrency } from "../../helpers/format_currency";
 import {
   formatPhoneNumber,
   generateChatId,
@@ -41,27 +41,27 @@ import {
   greetings,
   phoneNumberPattern,
   saveChatId,
-} from "../utils/utilities";
-import { useSharedState } from "../context/SharedStateContext";
-import { getFormattedDateTime } from "../helpers/format_date";
+} from "../../utils/utilities";
+import { useSharedState } from "../../context/SharedStateContext";
+import { getFormattedDateTime } from "../../helpers/format_date";
 
 import {
   displayKYCInfo,
   displayRegKYC,
   displayThankForKYCReg,
-} from "../menus/request_paycard";
+} from "../../menus/request_paycard";
 import {
   displayCustomerSupportAssurance,
   displayCustomerSupportWelcome,
   displayEnterTransactionId,
   displayMakeComplain,
-} from "../menus/customer_support";
+} from "../../menus/customer_support";
 import {
   displayEnterCompleteTransactionId,
   displayEnterId,
   displayGiftFeedbackMessage,
   displayTransactIDWelcome,
-} from "../menus/transaction_id";
+} from "../../menus/transaction_id";
 import {
   displayReportlyFarwell,
   displayReportlyFraudsterWalletAddress,
@@ -70,7 +70,7 @@ import {
   displayReportlyPhoneNumber,
   displayReportlyReporterWalletAddress,
   displayReportlyWelcome,
-} from "../menus/reportly";
+} from "../../menus/reportly";
 import {
   displayCharge,
   displayConfirmPayment,
@@ -86,7 +86,7 @@ import {
   displayTransactCrypto,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { useChatNavigation } from "../hooks/useChatNavigation";
+import { useChatNavigation } from "../../hooks/useChatNavigation";
 import {
   countWords,
   getLastReportId,
@@ -107,20 +107,21 @@ import {
 
 import { telegramUser } from "@/types/telegram_types";
 import useErrorHandler from "@/hooks/useErrorHandler";
-import TelegramIntegration from "./TelegramIntegration";
-import { withErrorHandling } from "./withErrorHandling";
+import TelegramIntegration from "../TelegramIntegration";
+import { withErrorHandling } from "../withErrorHandling";
 import {
   getLocalStorageData,
   saveLocalStorageData,
 } from "@/utils/localStorageUtils";
 import { ChatBotProps } from "@/types/chatbot_types";
-import ErrorBoundary from "./TelegramError";
+import ErrorBoundary from "../TelegramError";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
   const account = useAccount();
   const wallet = account.address;
   let walletIsConnected = account.isConnected;
+
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
@@ -246,6 +247,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  let isETH =
+    sharedNetwork.trim().toLowerCase() === "erc20" ||
+    sharedNetwork.trim().toLowerCase() === "bep20";
+
+  let ethConnect = walletIsConnected && isETH;
+
   // LOAD CHATS FROM LOCALSTORAGE
   const [local, setLocal] = useState(getLocalStorageData());
   useEffect(() => {
@@ -262,22 +269,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   }, [serializedMessages, currentStep, stepHistory]);
 
   useEffect(() => {
-    console.log("Loading state changed:", loading);
+    console.log("Loading top state changed:", loading);
   }, [loading]);
-  // // To help debug performance issues
-  // useEffect(() => {
-  //   const observer = new PerformanceObserver((list) => {
-  //     for (const entry of list.getEntries()) {
-  //       if (entry.duration > 50) {
-  //         // 50ms threshold
-  //         console.warn("Long task detected:", entry);
-  //       }
-  //     }
-  //   });
-
-  //   observer.observe({ entryTypes: ["longtask"] });
-  //   return () => observer.disconnect();
-  // }, []);
 
   // Load telegram data
   useEffect(() => {
@@ -389,6 +382,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         ),
       };
       console.log("Rate is:", rate);
+
       // Update all states at once
       setRate(updates.rate);
       setFormattedRate(updates.formattedRate);
@@ -402,6 +396,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
   useEffect(() => {
     fetchData();
+    // console.log("To see wagmi:", useNetwork);
+    // console.log("chainid From wagmi:", chainId);
+    // console.log("ens name From wagmi:", ensName);
   }, []);
 
   useEffect(() => {
@@ -568,8 +565,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             type: "incoming",
             content: <ConnectButton />,
             timestamp: new Date(),
-            isComponent: true,
-            componentName: "ConnectButton",
           },
           {
             type: "incoming",
@@ -591,8 +586,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             type: "incoming",
             content: <ConnectButton />,
             timestamp: new Date(),
-            isComponent: true,
-            componentName: "ConnectButton",
           },
           {
             type: "incoming",
@@ -1611,6 +1604,20 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   };
 
+  const MemoizedConfirmAndProceedButton = useCallback(
+    ({ phoneNumber, network }: { phoneNumber: string; network: string }) => (
+      <ConfirmAndProceedButton
+        phoneNumber={phoneNumber}
+        setLoading={setLoading}
+        sharedPaymentMode={sharedPaymentMode}
+        processTransaction={processTransaction}
+        network={network}
+        connectedWallet={ethConnect}
+        amount={sharedPaymentAssetEstimate}
+      />
+    ),
+    [setLoading, sharedPaymentMode, processTransaction, ethConnect]
+  );
   // final part to finish transaction
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
@@ -1656,28 +1663,47 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           : sharedCrypto.toLowerCase();
 
       if (!isGift && !requestPayment) {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <div className="flex flex-col items-center">
-                <p className="mb-4">
-                  Do you understand that you need to complete your payment
-                  within <b>5 minutes</b>, otherwise you may lose your money.
-                </p>
+        const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+        const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
 
-                <ConfirmAndProceedButton
-                  phoneNumber={phoneNumber}
-                  setLoading={setLoading}
-                  sharedPaymentMode={sharedPaymentMode}
-                  processTransaction={processTransaction}
-                  network={network}
-                />
-              </div>
-            ),
-            timestamp: new Date(),
-          },
-        ];
+        const newMessages: MessageType[] = ethConnect
+          ? [
+              {
+                type: "incoming",
+                content: (
+                  <div className="flex flex-col items-center">
+                    <p className="mb-4">
+                      You are going to be charged <b>{paymentAsset}</b> directly
+                      from your {sharedCrypto} ({sharedNetwork}) wallet.
+                    </p>
+                    <MemoizedConfirmAndProceedButton
+                      phoneNumber={phoneNumber}
+                      network={network}
+                    />
+                  </div>
+                ),
+                timestamp: new Date(),
+              },
+            ]
+          : [
+              {
+                type: "incoming",
+                content: (
+                  <div className="flex flex-col items-center">
+                    <p className="mb-4">
+                      Do you understand that you need to complete your payment
+                      within <b>5 minutes</b>, otherwise you may lose your
+                      money.
+                    </p>
+                    <MemoizedConfirmAndProceedButton
+                      phoneNumber={phoneNumber}
+                      network={network}
+                    />
+                  </div>
+                ),
+                timestamp: new Date(),
+              },
+            ];
 
         setLoading(false);
         addChatMessages(newMessages);
@@ -1695,14 +1721,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   };
 
-  const processTransaction = async (
+  async function processTransaction(
     phoneNumber: string,
     isGift: boolean,
     isGiftTrx: boolean,
     requestPayment: boolean,
     activeWallet?: string,
     lastAssignedTime?: Date
-  ) => {
+  ) {
     // one last check is for USER WANT TO PAY REQUEST
     try {
       if (isGift) {
@@ -1881,6 +1907,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           sharedNetwork,
           sharedPaymentMode,
           giftID,
+          ethConnect,
           lastAssignedTime
         );
 
@@ -1994,8 +2021,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         });
 
         console.log("request payment data created", userDate);
-        // nextStep("start");
-        // helloMenu("hi");
+
         displaySendPayment(
           addChatMessages,
           nextStep,
@@ -2007,6 +2033,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           sharedNetwork,
           sharedPaymentMode,
           requestID,
+          ethConnect,
           lastAssignedTime
         );
         setLoading(false);
@@ -2015,6 +2042,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
+        // React.useMemo(()=>getFormattedDateTime(), []);
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
         if (
@@ -2042,6 +2070,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
+        // React.useMemo(()=>getFormattedDateTime(), []);
 
         displaySendPayment(
           addChatMessages,
@@ -2054,26 +2083,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           sharedNetwork,
           sharedPaymentMode,
           0,
+          ethConnect,
           lastAssignedTime
         );
 
-        console.log("Just to know that the wallet is available ", activeWallet);
-        console.log("The ref code for this transaction is", code);
-        console.log(
-          "sharedPaymentNairaEstimate is",
-          sharedPaymentNairaEstimate
-        );
-        console.log("sharedAssetPrice is", sharedAssetPrice);
-        console.log("sharedRate is", sharedRate);
-        console.log("The ref code for this transaction is", code);
-        console.log(
-          "sharedPaymentNairaEstimate is",
-          sharedPaymentNairaEstimate
-        );
-        console.log("sharedAssetPrice is", sharedAssetPrice);
-        console.log("sharedRate is", sharedRate);
         setLoading(false);
-        console.log("testing for transact crypto:", sharedPaymentNairaEstimate);
         // let's save the transaction details to db
         const userDate = {
           crypto: sharedCrypto,
@@ -2119,7 +2133,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     } catch (error) {
       console.error("Error during transaction", error);
     }
-  };
+  }
 
   const handleConfirmTransaction = async (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {

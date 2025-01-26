@@ -5,7 +5,7 @@ const Logo = () => (
     <Image
       src="/logo.png"
       alt="Logo"
-      layout="fill" // Fill the parent element
+      fill // Fill the parent element
       objectFit="contain" // Maintain aspect ratio
       priority
     />

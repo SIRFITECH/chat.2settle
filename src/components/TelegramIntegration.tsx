@@ -15,6 +15,7 @@ export default function TelegramIntegration() {
         try {
           const twa = await import("@twa-dev/sdk");
           if (twa.default.initDataUnsafe.user) {
+            console.log("From the telegram component, we load telegram...")
             setTelegramUser(twa.default.initDataUnsafe.user as telegramUser);
             setIsTelUser(true);
           }
