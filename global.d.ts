@@ -1,7 +1,10 @@
+import { TronWeb } from "tronweb";
+
 export {};
 declare global {
   interface Window {
-    tronWeb: {
+    tronWeb: TronWeb & {
+      ready: boolean;
       defaultAddress: {
         base58: string;
         hex: string;
