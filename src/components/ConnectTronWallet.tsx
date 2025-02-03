@@ -59,7 +59,7 @@ const ConnectTronWallet = () => {
         </div>
       ) : (
         <Button
-          className="bg-transparent h-6 border border-transparent shadow-none"
+          className="bg-transparent h-6 border border-transparent shadow-none hover:bg-red-400"
           onClick={() => {
             console.log("Connect clicked");
             setIsModalOpen(true);
@@ -100,6 +100,7 @@ const ConnectTronWallet = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
     </div>
   );
 };
