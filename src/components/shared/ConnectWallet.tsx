@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import Logo from "./Logo";
-import ConnectTronWallet from "../ConnectTronWallet";
+// import ConnectTronWallet from "../ConnectTronWallet";
 
 const ConnectWallet = () => {
   const { isConnected } = useAccount();
@@ -72,7 +72,7 @@ const ConnectWallet = () => {
                       <ConnectButton />
                     </div>
                   </Button>
-                  <Button
+                  {/* <Button
                     className="mb-3 bg-red-700 hover:bg-red-400"
                     type="button"
                   >
@@ -86,7 +86,7 @@ const ConnectWallet = () => {
                         <ConnectTronWallet />
                       </div>
                     </div>
-                  </Button>
+                  </Button> */}
                 </>
               )}
             </div>
