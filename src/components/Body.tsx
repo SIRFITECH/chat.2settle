@@ -7,13 +7,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
 import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
-import { useAccount } from "wagmi";
 import { fetchRate, fetchTotalVolume } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "./TelegramError";
-// import ChatB from "./ChatB";
-import Chat from "./Chat";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -39,8 +36,6 @@ export default function Body() {
   const [tvtLoading, setTVTLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const isMobile = useMediaQuery("(max-width: 767px)");
-  // const isTablet = useMediaQuery("(min-width: 768px) and (max-width: 1365px)");
-  // const isDesktop = useMediaQuery("(min-width: 1366px)");
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralCategory, setReferralCategory] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -90,13 +85,15 @@ export default function Body() {
       setTVTLoading(false);
     } catch (error) {}
   };
-
   const getBackgroundImage = (): string => {
     if (isMobile) {
-      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/phone-AfU0CbbR026gFTYfYjbdG5FYYSHKRN.jpg";
+      return "https://gbo1qdj0roz2nqut.public.blob.vercel-storage.com/home-bg-sm-x1K8H1Woi3WMjoEJnhjLGpt6gugM9z.png";
     } else {
-      return "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/web-P134QKh1VxKd5JZdUREkUu8JeEbDQB.jpg";
+      return "https://gbo1qdj0roz2nqut.public.blob.vercel-storage.com/home-bg-lg-GWkkBEQz6PnxsepRxg7sVChWtC4M1x.png";
     }
+  };
+  const getWale = () => {
+    return "https://gbo1qdj0roz2nqut.public.blob.vercel-storage.com/wale-mTGuRn8gew59IpHaWYW1PrlfiZ2NxQ.png";
   };
   const handleImageError = (
     event: React.SyntheticEvent<HTMLImageElement, Event>
@@ -106,18 +103,18 @@ export default function Body() {
       "Failed to load the background image. Please check your internet connection and try again."
     );
   };
-  const renderChatBot = () => {
-    try {
-      return (
-        <ErrorBoundary>
-          <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
-        </ErrorBoundary>
-      );
-    } catch (error) {
-      console.error("Error rendering ChatBot:", error);
-      return <div>Error loading ChatBot. Please try again.</div>;
-    }
-  };
+  // const renderChatBot = () => {
+  //   try {
+  //     return (
+  //       <ErrorBoundary>
+  //         <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
+  //       </ErrorBoundary>
+  //     );
+  //   } catch (error) {
+  //     console.error("Error rendering ChatBot:", error);
+  //     return <div>Error loading ChatBot. Please try again.</div>;
+  //   }
+  // };
 
   return (
     <div className="relative min-h-screen w-full flex flex-col overflow-hidden">
@@ -144,37 +141,52 @@ export default function Body() {
           isOpen ? "z-0" : "z-20"
         }`}
       >
-        {loading ? (
-          <h2 className="font-Poppins text-2xl animate-pulse">
-            Loading Exchange rate...
-          </h2>
-        ) : (
-          <>
-            <div className="text-center text-black bg-white bg-opacity-80 p-6 rounded-lg shadow-lg mb-6">
-              <h2 className="font-bold font-Poppins text-2xl md:text-3xl mb-4">
-                Today's Rate: <br />
-                <span className="text-blue-500 text-4xl md:text-5xl animate-pulse">
-                  <b>{formattedRate}/$1</b>
-                </span>
-              </h2>
+        <div className="flex justify-center mb-20">
+          <h3 className=" text-4xl font-Poppins font-bold ">
+            <span className="flex justify-center">A New Way </span>
+            To <span className="font-thin">Spend </span>Money
+          </h3>
+        </div>
+        <div
+          // className="absolute -top-12 right-0 bg-blue-500 text-white text-sm text-nowrap font-Poppins px-5 py-2 rounded-full w-28 h-9 transform -rotate-12 translate-x-1/4"
+          className="absolute bg-blue-500 text-white text-sm text-nowrap font-Poppins px-5 py-2 rounded-full w-28 h-9"
+          style={{
+            transform: "rotate(-12.75deg)",
+            top: "33%", // adjust the top
+            right: "36%", // adjust the vertical z
+            zIndex: "10",
+          }}
+        >
+          with crypto
+        </div>
+        <div className="text-center font-Poppins  text-black bg-gradient-to-tr from-purple-200 via-grey-300 to-white bg-opacity-90 px-8 py-3 rounded-full shadow-lg mb-6 border-2 border-white ">
+          {loading ? (
+            <h2 className="font-Poppins text-xl ">
+              {/* animate-pulse */}
+              Loading Exchange rate...
+            </h2>
+          ) : (
+            <span className="text-blue-700 font-Poppins text-small md:text-lg ">
+              {/* animate-pulse */}
+              Todays rate is {formattedRate}/$1
+            </span>
+          )}
+        </div>
 
-              <div className="flex flex-col sm:flex-row justify-center mt-4 space-y-4 sm:space-y-0 sm:space-x-4">
-                <Button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg w-full sm:w-auto hover:bg-blue-500"
-                  onClick={() => setIsOpen(true)}
-                >
-                  {isClient ? <SpendMoney /> : "Spend Money"}
-                </Button>
-                <Button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg w-full sm:w-auto hover:bg-blue-500"
-                  onClick={() => setIsOpen(true)}
-                >
-                  {isClient ? <SendMoney /> : "Send Money"}
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
+        <div className="flex flex-col sm:flex-row justify-center mt-4 space-y-4 sm:space-y-0 sm:space-x-4">
+          {/* <Button
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg w-full sm:w-auto hover:bg-blue-500"
+            onClick={() => setIsOpen(true)}
+          >
+            {isClient ? <SpendMoney /> : "Spend Money"}
+          </Button> */}
+          <Button
+            className="px-4 py-2 bg-blue-500 text-white rounded-full w-full sm:w-auto hover:bg-blue-500"
+            onClick={() => setIsOpen(true)}
+          >
+            {isClient ? <SendMoney /> : "Send Money"}
+          </Button>
+        </div>
         {tvtLoading ? (
           <h2 className="font-Poppins text-xl animate-pulse">
             Loading Total Volume Traded YTD...
@@ -202,6 +214,21 @@ export default function Body() {
             </p>
           </div>
         )}
+      </div>
+      <div
+        className={`absolute left-0 top-[45%] transform-y-1/4 ${
+          isOpen ? "z-0" : "z-20"
+        } `}
+      >
+        <Image
+          src={getWale()}
+          alt="Wale"
+          width={500}
+          height={500}
+          className="w-full max-w-[500px] mx-0"
+          priority
+          onError={handleImageError}
+        />
       </div>
 
       <Button
