@@ -34,13 +34,13 @@ export const fetchRate = async (): Promise<number> => {
 };
 // FETCH CURRENT EXCHANGE RATE FROM DB
 export const fetchTotalVolume = async (): Promise<number> => {
- 
   try {
     const response = await axios.get<{ ytdVolume: string }>(
-      `${apiURL}/api/fetchYTD?sheetID`
+      `${apiURL}/api/fetchYTD`
     );
-    const rawVolume = response.data.ytdVolume.replace(/,/g, ""); // Remove commas
+    const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
     const ytdVolume = parseFloat(rawVolume);
+    console.log("YTD", rawVolume);
 
     if (isNaN(ytdVolume)) {
       throw new Error("Invalid rate received");
