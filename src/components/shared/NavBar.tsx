@@ -55,7 +55,7 @@ export default function Navbar() {
           {/* Connect Button & Mobile Menu */}
           <div className="flex items-center">
             <div className="hidden sm:flex sm:items-center">
-              <ConnectWallet children={"Wallet"} />
+              <ConnectWallet />
             </div>
             <div className="flex items-center sm:hidden">
               <button
@@ -98,7 +98,7 @@ export default function Navbar() {
           </div>
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex justify-center px-4">
-              <ConnectWallet children={"Wallet"} />
+              <ConnectWallet />
             </div>
           </div>
         </div>
