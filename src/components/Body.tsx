@@ -5,7 +5,6 @@ import Image from "next/image";
 import ChatBot from "./transactions/ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
-import SpendMoney from "./SpendMoney";
 import SendMoney from "./SendMoney";
 import { fetchRate, fetchTotalVolume } from "../helpers/api_calls";
 import { formatCurrency } from "../helpers/format_currency";
@@ -35,7 +34,10 @@ export default function Body() {
   const [loading, setLoading] = useState(false);
   const [tvtLoading, setTVTLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 767px)");
+  const isMobile = useMediaQuery("(max-width: 425px)");
+  const isTab = useMediaQuery("(max-width: 768px)");
+  const isDeskTop = useMediaQuery("(max-width: 1440px)");
+
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralCategory, setReferralCategory] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -103,18 +105,136 @@ export default function Body() {
       "Failed to load the background image. Please check your internet connection and try again."
     );
   };
-  // const renderChatBot = () => {
-  //   try {
-  //     return (
-  //       <ErrorBoundary>
-  //         <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} />
-  //       </ErrorBoundary>
-  //     );
-  //   } catch (error) {
-  //     console.error("Error rendering ChatBot:", error);
-  //     return <div>Error loading ChatBot. Please try again.</div>;
-  //   }
-  // };
+  const renderWale = () => {
+    return isMobile ? (
+      <Image
+        src={getWale()}
+        alt="Wale Image"
+        width={200}
+        height={500}
+        // className="w-full max-w-[500px] mx-0"
+        priority
+        onError={handleImageError}
+      />
+    ) : isTab ? (
+      <Image
+        src={getWale()}
+        alt="Wale Image"
+        width={300}
+        height={500}
+        // className="w-full max-w-[500px] mx-0"
+        priority
+        onError={handleImageError}
+      />
+    ) : isDeskTop ? (
+      <Image
+        src={getWale()}
+        alt="Wale Image"
+        width={500}
+        height={500}
+        // className="w-full max-w-[500px] mx-0"
+        priority
+        onError={handleImageError}
+      />
+    ) : (
+      <Image
+        src={getWale()}
+        alt="Wale Image"
+        width={700}
+        height={700}
+        className="w-full"
+        priority
+        onError={handleImageError}
+      />
+    );
+  };
+  const renderChat = () => {
+    return isMobile ? (
+      <Button
+        className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
+          isOpen ? "rotate-90" : ""
+        } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
+          isMobile && isOpen ? "hidden" : ""
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+      >
+        <span className="text-white relative">
+          {isOpen ? (
+            <CloseIcon className="h-8 w-8" />
+          ) : (
+            <>
+              <ChatBubbleOutlineIcon className="h-8 w-8" />
+              <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
+            </>
+          )}
+        </span>
+      </Button>
+    ) : isTab ? (
+      <Button
+        className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
+          isOpen ? "rotate-90" : ""
+        } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
+          isMobile && isOpen ? "hidden" : ""
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+      >
+        <span className="text-white relative">
+          {isOpen ? (
+            <CloseIcon className="h-8 w-8" />
+          ) : (
+            <>
+              <ChatBubbleOutlineIcon className="h-8 w-8" />
+              <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
+            </>
+          )}
+        </span>
+      </Button>
+    ) : isDeskTop ? (
+      <Button
+        className={`fixed bottom-8 right-8 h-20 w-20 rounded-full bg-blue-500 transition-transform transform ${
+          isOpen ? "rotate-90" : ""
+        } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
+          isMobile && isOpen ? "hidden" : ""
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+      >
+        <span className="text-white relative">
+          {isOpen ? (
+            <CloseIcon className="h-12 w-12" />
+          ) : (
+            <>
+              <ChatBubbleOutlineIcon className="h-12 w-12" />
+              <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
+            </>
+          )}
+        </span>
+      </Button>
+    ) : (
+      <Button
+        className={`fixed bottom-8 right-8 h-44 w-44 rounded-full bg-blue-500 transition-transform transform ${
+          isOpen ? "rotate-90" : ""
+        } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
+          isMobile && isOpen ? "hidden" : ""
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close chat" : "Open chat"}
+      >
+        <span className="text-white relative">
+          {isOpen ? (
+            <CloseIcon className="h-24 w-24" />
+          ) : (
+            <>
+              <ChatBubbleOutlineIcon className="h-24 w-24" />
+              <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
+            </>
+          )}
+        </span>
+      </Button>
+    );
+  };
 
   return (
     <div className="relative min-h-screen w-full flex flex-col overflow-hidden">
@@ -148,18 +268,17 @@ export default function Body() {
           </h3>
         </div>
         <div
-          // className="absolute -top-12 right-0 bg-blue-500 text-white text-sm text-nowrap font-Poppins px-5 py-2 rounded-full w-28 h-9 transform -rotate-12 translate-x-1/4"
           className="absolute bg-blue-500 text-white text-sm text-nowrap font-Poppins px-5 py-2 rounded-full w-28 h-9"
           style={{
             transform: "rotate(-12.75deg)",
-            top: "33%", // adjust the top
-            right: "36%", // adjust the vertical z
+            top: "33%",
+            right: "36%",
             zIndex: "10",
           }}
         >
           with crypto
         </div>
-        <div className="text-center font-Poppins  text-black bg-gradient-to-tr from-purple-200 via-grey-300 to-white bg-opacity-90 px-8 py-3 rounded-full shadow-lg mb-6 border-2 border-white ">
+        <div className="text-center font-Poppins  text-black bg-gradient-to-tr from-purple-300 via-grey-400 to-white bg-opacity-90 px-8 py-3 rounded-full shadow-lg mb-6 border-2 border-white ">
           {loading ? (
             <h2 className="font-Poppins text-xl ">
               {/* animate-pulse */}
@@ -174,12 +293,6 @@ export default function Body() {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-center mt-4 space-y-4 sm:space-y-0 sm:space-x-4">
-          {/* <Button
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg w-full sm:w-auto hover:bg-blue-500"
-            onClick={() => setIsOpen(true)}
-          >
-            {isClient ? <SpendMoney /> : "Spend Money"}
-          </Button> */}
           <Button
             className="px-4 py-2 bg-blue-500 text-white rounded-full w-full sm:w-auto hover:bg-blue-500"
             onClick={() => setIsOpen(true)}
@@ -215,23 +328,18 @@ export default function Body() {
           </div>
         )}
       </div>
+
       <div
-        className={`absolute left-0 top-[45%] transform-y-1/4 ${
-          isOpen ? "z-0" : "z-20"
+        className={`absolute left-0 bottom-0 transform-y-1/4 ${
+          isOpen ? "z-0" : "z-10"
         } `}
       >
-        <Image
-          src={getWale()}
-          alt="Wale"
-          width={500}
-          height={500}
-          className="w-full max-w-[500px] mx-0"
-          priority
-          onError={handleImageError}
-        />
+        {renderWale()}
       </div>
 
-      <Button
+      {renderChat()}
+
+      {/* <Button
         className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""
         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
@@ -250,7 +358,7 @@ export default function Body() {
             </>
           )}
         </span>
-      </Button>
+      </Button> */}
 
       {isOpen && (
         <div className="fixed inset-0 z-40">
