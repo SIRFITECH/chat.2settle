@@ -13,6 +13,8 @@ module.exports = {
     extend: {
       fontFamily: {
         Poppins: ["Poppins", "serif"],
+        dancing: ["'Dancing Script'", "cursive"],
+        grand: ["'Grand Hotel'", "cursive"],
       },
       animation: {
         bounce: "bounce 1.5s infinite",

@@ -128,9 +128,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const { error, handleError, clearError } = useErrorHandler();
 
   const chatboxRef = useRef<HTMLDivElement>(null);
-  const [visibleDateSeparators, setVisibleDateSeparators] = useState<
-    Set<string>
-  >(new Set());
+  // const [visibleDateSeparators, setVisibleDateSeparators] = useState<
+  //   Set<string>
+  // >(new Set());
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -3185,8 +3185,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     [chatMessages]
   );
 
+  // centralize the date seperator badge for both mobile and desktop
+  const dateSeperatorBadge = (dateString: string) => {
+    return (
+      <li
+        className={`date-separator text-center text-sm text-gray-900 my-2 mx-auto bg-gray-200 w-fit rounded-lg px-4 py-1 `}
+        data-date={dateString}
+      >
+        {renderDateSeparator(new Date(dateString))}
+      </li>
+    );
+  };
+
   // CHATBOT
-  // return ;
   return (
     <ErrorBoundary>
       {isMobile ? (
@@ -3234,14 +3245,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             <ul className="p-4 space-y-4">
               {Object.entries(groupedMessages).map(([dateString, messages]) => (
                 <React.Fragment key={dateString}>
-                  <li
-                    className={`date-separator text-center text-sm text-gray-500 my-2 ${
-                      visibleDateSeparators.has(dateString) ? "" : "hidden"
-                    }`}
-                    data-date={dateString}
-                  >
-                    {renderDateSeparator(new Date(dateString))}
-                  </li>
+                  {dateSeperatorBadge(dateString)}
+                  {/* ${visibleDateSeparators.has(dateString) ? "" : "hidden"} */}
                   {chatMessages.map((msg, index) => (
                     <li
                       key={`${dateString}-${index}`}
@@ -3382,14 +3387,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             <ul className="p-4 space-y-4">
               {Object.entries(groupedMessages).map(([dateString, messages]) => (
                 <React.Fragment key={dateString}>
-                  <li
-                    className={`date-separator text-center text-sm text-gray-500 my-2 ${
-                      visibleDateSeparators.has(dateString) ? "" : "hidden"
-                    }`}
-                    data-date={dateString}
-                  >
-                    {renderDateSeparator(new Date(dateString))}
-                  </li>
+                  {dateSeperatorBadge(dateString)}
+
                   {chatMessages.map((msg, index) => (
                     <li
                       key={`${dateString}-${index}`}
@@ -3484,3 +3483,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
 // export default ChatBot;
 export default withErrorHandling(ChatBot);
+
+//  <li
+//    className={`date-separator text-center text-sm text-gray-900 my-2 mx-auto bg-gray-200 w-fit rounded-lg px-4 py-1 `}
+//    data-date={dateString}
+//  >
+//    {/* ${visibleDateSeparators.has(dateString) ? "" : "hidden"} */}
+//    {renderDateSeparator(new Date(dateString))}
+//  </li>;

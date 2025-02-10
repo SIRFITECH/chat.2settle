@@ -193,7 +193,7 @@ export default function Body() {
       </Button>
     ) : isDeskTop ? (
       <Button
-        className={`fixed bottom-8 right-8 h-20 w-20 rounded-full bg-blue-500 transition-transform transform ${
+        className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""
         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
           isMobile && isOpen ? "hidden" : ""
@@ -203,10 +203,10 @@ export default function Body() {
       >
         <span className="text-white relative">
           {isOpen ? (
-            <CloseIcon className="h-12 w-12" />
+            <CloseIcon className="h-7 w-7" />
           ) : (
             <>
-              <ChatBubbleOutlineIcon className="h-12 w-12" />
+              <ChatBubbleOutlineIcon className="h-10 w-10" />
               <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
             </>
           )}
@@ -264,10 +264,10 @@ export default function Body() {
         <div className="flex justify-center mb-20">
           <h3 className=" text-4xl font-Poppins font-bold ">
             <span className="flex justify-center">A New Way </span>
-            To <span className="font-thin">Spend </span>Money
+            To <span className="font-grand">Spend </span>Money
           </h3>
         </div>
-        <div
+        {/* <div
           className="absolute bg-blue-500 text-white text-sm text-nowrap font-Poppins px-5 py-2 rounded-full w-28 h-9"
           style={{
             transform: "rotate(-12.75deg)",
@@ -277,43 +277,45 @@ export default function Body() {
           }}
         >
           with crypto
-        </div>
+        </div> */}
+        <h3 className="font-bold font-Poppins text-sm md:text-lg text-black">
+          Todays rate is:
+        </h3>
         <div className="text-center font-Poppins  text-black bg-gradient-to-tr from-purple-300 via-grey-400 to-white bg-opacity-90 px-8 py-3 rounded-full shadow-lg mb-6 border-2 border-white ">
           {loading ? (
-            <h2 className="font-Poppins text-xl ">
+            <h2 className="font-Poppins text-sm md:text-xl ">
               {/* animate-pulse */}
               Loading Exchange rate...
             </h2>
           ) : (
-            <span className="text-blue-700 font-Poppins text-small md:text-lg ">
-              {/* animate-pulse */}
-              Todays rate is {formattedRate}/$1
+            <span className="text-blue-700 font-Poppins text-xl md:text-2xl font-bold animate-pulse">
+              <b> {formattedRate}/$1</b>
             </span>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-center mt-4 space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className="flex flex-col sm:flex-row justify-center mt-4 space-y-4 sm:space-y-0 sm:space-x-4 mb-5">
           <Button
             className="px-4 py-2 bg-blue-500 text-white rounded-full w-full sm:w-auto hover:bg-blue-500"
             onClick={() => setIsOpen(true)}
           >
-            {isClient ? <SendMoney /> : "Send Money"}
+            {isClient ? <SendMoney /> : "Spend Money"}
           </Button>
         </div>
-        {tvtLoading ? (
-          <h2 className="font-Poppins text-xl animate-pulse">
-            Loading Total Volume Traded YTD...
-          </h2>
-        ) : (
-          <div className="text-center bg-white bg-opacity-80 p-4 rounded-lg shadow-lg">
-            <h3 className="font-bold font-Poppins text-xl md:text-2xl text-black">
-              Total Volume Traded (YTD): <br />
-              <span className="text-green-600 text-3xl md:text-4xl animate-pulse">
-                <b>{formattedTotalVolume}</b>
+        <div className="text-center bg-white font-Poppins  text-black  px-8 py-2 rounded-full shadow-lg mb-6 border-2 border-white">
+          {tvtLoading ? (
+            <h2 className="font-Poppins text-xs md:text-sm animate-pulse">
+              Loading Total Volume Traded YTD...
+            </h2>
+          ) : (
+            <h3 className="font-bold font-Poppins text-sm md:text-lg text-black">
+              Volume(YTD):
+              <span className="text-green-600 text-sm md:text-lg animate-pulse">
+                <b> {formattedTotalVolume}</b>
               </span>
             </h3>
-          </div>
-        )}
+          )}
+        </div>
         {referralCode && referralCategory && (
           <div className="mt-4 text-center bg-white bg-opacity-80 p-4 rounded-lg shadow-lg">
             <p className="text-black font-medium">
@@ -362,8 +364,6 @@ export default function Body() {
 
       {isOpen && (
         <div className="fixed inset-0 z-40">
-          {/* {renderChatBot()} */}
-          {/* <ChatBot isMobile={isMobile} onClose={() => setIsOpen(false)} /> */}
           <ErrorBoundary
             fallback={
               <div className="p-4 bg-white rounded-lg shadow-lg">
