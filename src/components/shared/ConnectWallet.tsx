@@ -24,7 +24,10 @@ const ConnectWallet = () => {
         {isConnected ? (
           <ConnectButton />
         ) : (
-          <Button className="bg-blue-500 text-white" variant="outline">
+          <Button
+            className="bg-blue-500 hover:bg-blue-400 hover:text-white-4 text-white rounded-full"
+            variant="outline"
+          >
             {"Connect Wallet"}
           </Button>
         )}
