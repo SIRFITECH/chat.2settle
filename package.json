@@ -26,6 +26,7 @@
     "@rainbow-me/rainbowkit": "^2.2.0",
     "@styled/react-element-to-jsx-string": "^14.4.4",
     "@tanstack/react-query": "^5.62.0",
+    "@tanstack/react-query-devtools": "^5.66.0",
     "@twa-dev/sdk": "^7.10.1",
     "@types/react-qr-reader": "^2.1.7",
     "axios": "^1.7.8",
