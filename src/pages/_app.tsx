@@ -1,15 +1,14 @@
-import "../../globals.css";
-import "@rainbow-me/rainbowkit/styles.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { config } from "../wagmi";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-
-import { config } from "../wagmi";
 import { SharedStateProvider } from "../context/SharedStateContext";
 import ErrorBoundary from "@/components/TelegramError";
+import "@rainbow-me/rainbowkit/styles.css";
+import "../../globals.css";
 
 const client = new QueryClient();
 
@@ -25,6 +24,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             <SharedStateProvider>
               <ErrorBoundary>
                 <Component {...pageProps} />
+                < ReactQueryDevtools /> 
               </ErrorBoundary>
             </SharedStateProvider>
           </RainbowKitProvider>

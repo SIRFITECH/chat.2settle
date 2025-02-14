@@ -21,6 +21,7 @@ import {
 } from "@/helpers/ethereum_script/spend_crypto";
 import { EthereumAddress } from "@/types/general_types";
 import { TransactionReceipt } from "web3";
+import { handleConfirm } from "@/features/transact/confirmButton/handleConfirm";
 
 interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
@@ -155,61 +156,61 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
         network,
       ]);
 
-      const handleConfirm = useCallback(async () => {
-        setState((prev) => ({
-          ...prev,
-          isDialogOpen: false,
-          isButtonClicked: true,
-          isProcessing: true,
-          error: null,
-        }));
+      // const handleConfirm = useCallback(async () => {
+      //   setState((prev) => ({
+      //     ...prev,
+      //     isDialogOpen: false,
+      //     isButtonClicked: true,
+      //     isProcessing: true,
+      //     error: null,
+      //   }));
 
-        try {
-          const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
-            network
-          );
-          const assignedTime = new Date(lastAssignedTime);
-          setState((prev) => ({
-            ...prev,
-            activeWallet,
-            lastAssignedTime: assignedTime,
-          }));
+      //   try {
+      //     const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
+      //       network
+      //     );
+      //     const assignedTime = new Date(lastAssignedTime);
+      //     setState((prev) => ({
+      //       ...prev,
+      //       activeWallet,
+      //       lastAssignedTime: assignedTime,
+      //     }));
 
-          const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-          const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+      //     const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+      //     const requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
-          setLoading(true);
-          await processTransaction(
-            phoneNumber,
-            false,
-            isGiftTrx,
-            requestPayment,
-            activeWallet,
-            assignedTime
-          );
+      //     setLoading(true);
+      //     await processTransaction(
+      //       phoneNumber,
+      //       false,
+      //       isGiftTrx,
+      //       requestPayment,
+      //       activeWallet,
+      //       assignedTime
+      //     );
 
-          console.log(`Transaction processed for phone number: ${phoneNumber}`);
-        } catch (error) {
-          console.error("Error processing transaction:", error);
-          setState((prev) => ({
-            ...prev,
-            error:
-              error instanceof Error
-                ? error.message
-                : "An unknown error occurred",
-            isButtonClicked: false,
-          }));
-        } finally {
-          setState((prev) => ({ ...prev, isProcessing: false }));
-          setLoading(false);
-        }
-      }, [
-        phoneNumber,
-        setLoading,
-        sharedPaymentMode,
-        processTransaction,
-        network,
-      ]);
+      //     console.log(`Transaction processed for phone number: ${phoneNumber}`);
+      //   } catch (error) {
+      //     console.error("Error processing transaction:", error);
+      //     setState((prev) => ({
+      //       ...prev,
+      //       error:
+      //         error instanceof Error
+      //           ? error.message
+      //           : "An unknown error occurred",
+      //       isButtonClicked: false,
+      //     }));
+      //   } finally {
+      //     setState((prev) => ({ ...prev, isProcessing: false }));
+      //     setLoading(false);
+      //   }
+      // }, [
+      //   phoneNumber,
+      //   setLoading,
+      //   sharedPaymentMode,
+      //   processTransaction,
+      //   network,
+      // ]);
 
       const handleCopyWallet = useCallback((wallet: string) => {
         navigator.clipboard.writeText(wallet).then(() => {
@@ -369,7 +370,16 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> =
                 </Button>
                 <Button
                   className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700"
-                  onClick={handleConfirm}
+                  onClick={() =>
+                    handleConfirm({
+                      setState,
+                      phoneNumber,
+                      setLoading,
+                      sharedPaymentMode,
+                      processTransaction,
+                      network,
+                    })
+                  }
                 >
                   Okay
                 </Button>

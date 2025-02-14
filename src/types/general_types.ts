@@ -29,6 +29,7 @@ export interface ServerData {
   rate: string;
   merchantRate: string;
   profitRate: string;
+  ytdVolume: string;
 }
 
 // USER FROM THE VENDOR TABLE

@@ -27,7 +27,7 @@ export default function Navbar() {
   return (
     <nav className="bg-[#F9F9F9] shadow">
       <div className="max-w-full mx-auto h-[5rem] px-4 sm:px-6 lg:px-8">
-         <div className="flex justify-between h-[5rem]">
+        <div className="flex justify-between h-[5rem]">
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
               <Logo />
@@ -40,10 +40,10 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "inline-flex items-center px-1 pt-1 border-b-2 text-xs sm:text-sm md:text-base lg:text-2xl font-medium",
+                    "inline-flex items-center px-1 pt-1 border-b-2 text-xs sm:text-sm md:text-base lg:text-xl font-medium",
                     pathname === item.href
                       ? "border-blue-500 text-blue-500"
-                      : "border-transparent text-black hover:border-blue-500 hover:text-blue-500"
+                      : "border-transparent text-black hover:border-blue-500 hover:text-blue-700"
                   )}
                 >
                   {item.name}
