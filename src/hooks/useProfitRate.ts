@@ -21,7 +21,7 @@ const useRate = () => {
           return profitRate;
         }),
     staleTime: 15 * 60 * 1000, // 15 mins
-  });
+c  });
 };
 
 export default useRate;
