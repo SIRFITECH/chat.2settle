@@ -1,4 +1,5 @@
 import React, {
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { checkRequestExists } from "@/helpers/api_calls";
 import { CopyableText } from "@/features/transact/CopyableText";
+import { initialMessages } from "@/utils/ChatbotConsts";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -533,6 +535,169 @@ export const displayEnterPhone = (
 };
 
 // FINAL PAGE IN THE PAYMENT, USER GET PAYMENT WALLET ADDRESS
+// export const displaySendPayment = async (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   nextStep: (step: string) => void,
+//   wallet: string,
+//   sharedCrypto: string,
+//   sharedPaymentAssetEstimate: string,
+//   sharedPaymentNairaEstimate: string,
+//   transactionID: number,
+//   sharedNetwork: string,
+//   sharedPaymentMode: string,
+//   giftID: number,
+//   connectedWallet: boolean,
+//   lastAssignedTime?: Date
+// ): Promise<void> => {
+//   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+//   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+//   const isGift = sharedPaymentMode.toLowerCase() === "gift";
+//   const activeWallet = wallet;
+//   const allowedTime = 5;
+
+//   const initialMessages: MessageType[] = connectedWallet
+//     ? [
+//         {
+//           type: "incoming",
+//           content: "Phone Number confirmed",
+//           timestamp: new Date(),
+//         },
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               <b>{paymentAsset}</b> =
+//               <b>
+//                 {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
+//               </b>{" "}
+//               will be deducted from your {sharedCrypto} ({sharedNetwork})
+//               wallet.
+//               <br />
+//               Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+//               <CopyableText
+//                 text={transactionID.toString()}
+//                 label="Transaction ID"
+//                 addChatMessages={addChatMessages}
+//                 nextStep={nextStep}
+//                 lastAssignedTime={lastAssignedTime}
+//               />
+//               <br />
+//               Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+//               include {sharedCrypto} ({sharedNetwork}) transaction fee.
+//               <br />
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//         {
+//           type: "incoming",
+//           content: "Thank you for transactiong with me",
+//           timestamp: new Date(),
+//         },
+//       ]
+//     : [
+//         {
+//           type: "incoming",
+//           content: "Phone Number confirmed",
+//           timestamp: new Date(),
+//         },
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               Note: You are sending{" "}
+//               <b>
+//                 {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
+//               </b>{" "}
+//               = <b>{paymentAsset}</b> only to 2Settle wallet address <br />
+//               <CopyableText
+//                 text={`${assetPayment.toFixed(8)}`}
+//                 label={`${sharedCrypto} amount`}
+//                 addChatMessages={addChatMessages}
+//                 nextStep={nextStep}
+//                 lastAssignedTime={lastAssignedTime}
+//               />
+//               <br />
+//               Tap to copy 👇🏾: <br />
+//               <br />
+//               <CopyableText
+//                 text={activeWallet}
+//                 label="Wallet address"
+//                 isWallet={true}
+//                 addChatMessages={addChatMessages}
+//                 nextStep={nextStep}
+//                 lastAssignedTime={lastAssignedTime}
+//               />
+//               <br />
+//               Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+//               <CopyableText
+//                 text={transactionID.toString()}
+//                 label="Transaction ID"
+//                 addChatMessages={addChatMessages}
+//                 nextStep={nextStep}
+//                 lastAssignedTime={lastAssignedTime}
+//               />{" "}
+//               <br />
+//               Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+//               include {sharedCrypto} ({sharedNetwork}) transaction fee. This
+//               wallet address expires in {allowedTime.toString()} minutes. <br />
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//         {
+//           type: "incoming",
+//           content: "Wait for the pop-up. If missed, say 'hi' to restart. ",
+//           timestamp: new Date(),
+//         },
+//       ];
+
+//   if (isGift) {
+//     initialMessages[1] = {
+//       type: "incoming",
+//       content: (
+//         <span>
+//           Note: You are sending{" "}
+//           <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
+//           <b>{paymentAsset}</b> only to 2Settle wallet address <br />
+//           <CopyableText
+//             text={`${assetPayment.toFixed(8)}`}
+//             label={`${sharedCrypto} amount`}
+//             addChatMessages={addChatMessages}
+//             nextStep={nextStep}
+//             lastAssignedTime={lastAssignedTime}
+//           />
+//           <br />
+//           Tap to copy 👇🏾: <br />
+//           <br />
+//           <CopyableText
+//             text={activeWallet}
+//             label="Wallet address"
+//             isWallet={true}
+//             addChatMessages={addChatMessages}
+//             nextStep={nextStep}
+//             lastAssignedTime={lastAssignedTime}
+//           />
+//           <br />
+//           Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+//           <CopyableText
+//             text={giftID.toString()}
+//             label="Gift ID"
+//             addChatMessages={addChatMessages}
+//             nextStep={nextStep}
+//             lastAssignedTime={lastAssignedTime}
+//           />
+//           Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
+//           include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
+//           address expires in {allowedTime.toString()} minutes. <br />
+//         </span>
+//       ),
+//       timestamp: new Date(),
+//     };
+//   }
+//   addChatMessages(initialMessages);
+// };
+
 export const displaySendPayment = async (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
@@ -546,153 +711,116 @@ export const displaySendPayment = async (
   giftID: number,
   connectedWallet: boolean,
   lastAssignedTime?: Date
-): Promise<void> => {
+) => {
+  const allowedTime = 5;
   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
   const isGift = sharedPaymentMode.toLowerCase() === "gift";
-  const activeWallet = wallet;
-  const allowedTime = 5;
- 
-  const initialMessages: MessageType[] = connectedWallet
-    ? [
-        {
-          type: "incoming",
-          content: "Phone Number confirmed",
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: (
-            <span>
-              <b>{paymentAsset}</b> =
-              <b>
-                {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
-              </b>{" "}
-              will be deducted from your {sharedCrypto} ({sharedNetwork})
-              wallet.
-              <br />
-              Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
-              <CopyableText
-                text={transactionID.toString()}
-                label="Transaction ID"
-                addChatMessages={addChatMessages}
-                nextStep={nextStep}
-                lastAssignedTime={lastAssignedTime}
-              />
-              <br />
-              Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
-              include {sharedCrypto} ({sharedNetwork}) transaction fee.
-              <br />
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: "Thank you for transactiong with me",
-          timestamp: new Date(),
-        },
-      ]
-    : [
-        {
-          type: "incoming",
-          content: "Phone Number confirmed",
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: (
-            <span>
-              Note: You are sending{" "}
-              <b>
-                {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
-              </b>{" "}
-              = <b>{paymentAsset}</b> only to 2Settle wallet address <br />
-              <CopyableText
-                text={`${assetPayment.toFixed(8)}`}
-                label={`${sharedCrypto} amount`}
-                addChatMessages={addChatMessages}
-                nextStep={nextStep}
-                lastAssignedTime={lastAssignedTime}
-              />
-              <br />
-              Tap to copy 👇🏾: <br />
-              <br />
-              <CopyableText
-                text={activeWallet}
-                label="Wallet address"
-                isWallet={true}
-                addChatMessages={addChatMessages}
-                nextStep={nextStep}
-                lastAssignedTime={lastAssignedTime}
-              />
-              <br />
-              Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
-              <CopyableText
-                text={transactionID.toString()}
-                label="Transaction ID"
-                addChatMessages={addChatMessages}
-                nextStep={nextStep}
-                lastAssignedTime={lastAssignedTime}
-              />{" "}
-              <br />
-              Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
-              include {sharedCrypto} ({sharedNetwork}) transaction fee. This
-              wallet address expires in {allowedTime.toString()} minutes. <br />
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: "Wait for the pop-up. If missed, say 'hi' to restart. ",
-          timestamp: new Date(),
-        },
-      ];
 
-  if (isGift) {
-    initialMessages[1] = {
+  const copyableTransactionID = (
+    <>
+      Tap to copy Transaction ID 👇🏾 : {transactionID.toString()}
+      <CopyableText
+        text={transactionID.toString()}
+        label={"Transaction ID"}
+        addChatMessages={addChatMessages}
+        nextStep={nextStep}
+        lastAssignedTime={lastAssignedTime}
+      />
+    </>
+  );
+
+  const copyableGiftID = isGift ? (
+    <>
+      Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+      <CopyableText
+        text={giftID.toString()}
+        label={"Gift ID"}
+        addChatMessages={addChatMessages}
+        nextStep={nextStep}
+        lastAssignedTime={lastAssignedTime}
+      />
+    </>
+  ) : null;
+
+  const copyableWalletddress = (
+    <>
+      Tap to copy 👇🏾:
+      <br />
+      <CopyableText
+        text={wallet}
+        label={"Wallet Address"}
+        isWallet={true}
+        addChatMessages={addChatMessages}
+        nextStep={nextStep}
+        lastAssignedTime={lastAssignedTime}
+      />
+    </>
+  );
+
+  // helper function to generate transaction message
+  const generateTransactionMessage = (extraContent?: ReactNode) => {
+    return (
+      <span>
+        <b>
+          {paymentAsset} =
+          { formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
+        </b>{" "}
+        will be deducted from your {sharedCrypto} ({sharedNetwork}) wallet.
+        <br />
+        {extraContent}
+        <br />
+        Disclaimer: The estimated amount <b>{paymentAsset}</b> does not include{" "}
+        {sharedCrypto} ({sharedNetwork}) transaction fee.
+        {isGift
+          ? `This wallet address expires in ${allowedTime.toString()} minutes`
+          : ""}
+        <br />
+      </span>
+    );
+  };
+  // Define initial message
+  const initialMessages: MessageType[] = [
+    {
       type: "incoming",
-      content: (
-        <span>
-          Note: You are sending{" "}
-          <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b> ={" "}
-          <b>{paymentAsset}</b> only to 2Settle wallet address <br />
-          <CopyableText
-            text={`${assetPayment.toFixed(8)}`}
-            label={`${sharedCrypto} amount`}
-            addChatMessages={addChatMessages}
-            nextStep={nextStep}
-            lastAssignedTime={lastAssignedTime}
-          />
-          <br />
-          Tap to copy 👇🏾: <br />
-          <br />
-          <CopyableText
-            text={activeWallet}
-            label="Wallet address"
-            isWallet={true}
-            addChatMessages={addChatMessages}
-            nextStep={nextStep}
-            lastAssignedTime={lastAssignedTime}
-          />
-          <br />
-          Tap to copy Gift ID 👇🏾 : {giftID.toString()}
-          <CopyableText
-            text={giftID.toString()}
-            label="Gift ID"
-            addChatMessages={addChatMessages}
-            nextStep={nextStep}
-            lastAssignedTime={lastAssignedTime}
-          />
-          Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
-          include {sharedCrypto} ({sharedNetwork}) transaction fee. This wallet
-          address expires in {allowedTime.toString()} minutes. <br />
-        </span>
+      content: "Phone number confirmed",
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: generateTransactionMessage(
+        isGift ? (
+          <>
+            Note: You are sending{" "}
+            <b>
+              {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")} ={" "}
+              {paymentAsset}{" "}
+            </b>{" "}
+            only to 2Settle wallet address
+            <CopyableText
+              text={assetPayment.toFixed(8)}
+              label={`${sharedCrypto} amount`}
+              addChatMessages={addChatMessages}
+              nextStep={nextStep}
+              lastAssignedTime={lastAssignedTime}
+            />
+            {copyableWalletddress}
+            {copyableGiftID}
+          </>
+        ) : (
+          <>Tap to copy 👇🏾: {copyableTransactionID}</>
+        )
       ),
       timestamp: new Date(),
-    };
-  }
+    },
+    {
+      type: "incoming",
+      content: connectedWallet
+        ? "Thank you for transacting with me"
+        : "Wait for  the pop-up. If missed, say 'hi' to restart.",
+      timestamp: new Date(),
+    },
+  ];
   addChatMessages(initialMessages);
 };
 
