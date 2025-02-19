@@ -3,7 +3,6 @@ import { ServerData } from "@/types/general_types";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-
 const useRate = () => {
   return useQuery<number, Error>({
     queryKey: ["profit_rate"],
@@ -21,7 +20,7 @@ const useRate = () => {
           return profitRate;
         }),
     staleTime: 15 * 60 * 1000, // 15 mins
-c  });
+  });
 };
 
 export default useRate;

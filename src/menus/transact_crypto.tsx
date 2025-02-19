@@ -552,6 +552,7 @@ export const displaySendPayment = async (
   const isGift = sharedPaymentMode.toLowerCase() === "gift";
   const activeWallet = wallet;
   const allowedTime = 5;
+ 
   const initialMessages: MessageType[] = connectedWallet
     ? [
         {

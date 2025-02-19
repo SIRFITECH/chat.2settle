@@ -18,7 +18,7 @@ const useTotalVolume = () => {
 
         return ytdVolume;
       }),
-    staleTime: 15 * 60 * 1000, // 15 mins
+    staleTime: 5 * 60 * 1000, // 15 mins
   });
 };
 
