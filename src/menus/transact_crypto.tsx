@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { checkRequestExists } from "@/helpers/api_calls";
 import { CopyableText } from "@/features/transact/CopyableText";
-import { initialMessages } from "@/utils/ChatbotConsts";
+import { initialMessages } from "@/features/chatbot/helpers/ChatbotConsts";
 
 // IF USER CHOOSE TRANSACT CRYPTO< THEY SEE THIS NEXT
 export const displayTransactCrypto = (
@@ -764,7 +764,7 @@ export const displaySendPayment = async (
       <span>
         <b>
           {paymentAsset} =
-          { formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
+          {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
         </b>{" "}
         will be deducted from your {sharedCrypto} ({sharedNetwork}) wallet.
         <br />

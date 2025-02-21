@@ -166,7 +166,7 @@ export default function Body() {
       </Button>
     ) : isDeskTop ? (
       <Button
-        className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
+        className={`fixed bottom-8 right-8 h-32 w-32 rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""
         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
           isMobile && isOpen ? "hidden" : ""
@@ -176,18 +176,18 @@ export default function Body() {
       >
         <span className="text-white relative">
           {isOpen ? (
-            <CloseIcon className="h-7 w-7" />
+            <CloseIcon className="h-24 w-24" />
           ) : (
             <>
-              <ChatBubbleOutlineIcon className="h-7 w-7" />
-              <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
+              <ChatBubbleOutlineIcon className="h-24 w-24" />
+              {/* <span className="absolute bottom-0 right-0 w-4 h-4 bg-red-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span> */}
             </>
           )}
         </span>
       </Button>
     ) : (
       <Button
-        className={`fixed bottom-8 right-8 h-20 w-20 rounded-full bg-blue-500 transition-transform transform ${
+        className={`fixed bottom-8 right-8 h-24 w-24 rounded-full bg-blue-500 transition-transform transform ${
           isOpen ? "rotate-90" : ""
         } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
           isMobile && isOpen ? "hidden" : ""
@@ -197,10 +197,10 @@ export default function Body() {
       >
         <span className="text-white relative">
           {isOpen ? (
-            <CloseIcon className="h-10 w-10" />
+            <CloseIcon className="h-24 w-24" />
           ) : (
             <>
-              <ChatBubbleOutlineIcon className="h-10 w-10" />
+              <ChatBubbleOutlineIcon className="h-24 w-24" />
             </>
           )}
         </span>

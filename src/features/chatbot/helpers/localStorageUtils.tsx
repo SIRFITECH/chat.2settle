@@ -19,7 +19,6 @@ const sanitizeSerializedContent = (content: string) => {
 };
 
 const serializeMessage = (message: MessageType) => {
- 
   return {
     ...message,
     content: sanitizeSerializedContent(elementToJSXString(message.content)),
@@ -27,7 +26,6 @@ const serializeMessage = (message: MessageType) => {
 };
 
 const deserializeMessage = (message: MessageType): MessageType => {
-
   return {
     ...message,
     content: parse(message.content as string),

@@ -36,7 +36,6 @@ import {
   generateGiftId,
   generateTransactionId,
   getChatId,
-  greetings,
   phoneNumberPattern,
   saveChatId,
 } from "../../utils/utilities";
@@ -110,12 +109,15 @@ import { withErrorHandling } from "../withErrorHandling";
 import {
   getLocalStorageData,
   saveLocalStorageData,
-} from "@/utils/localStorageUtils";
+} from "@/features/chatbot/helpers/localStorageUtils";
 import { ChatBotProps } from "@/types/chatbot_types";
 import ErrorBoundary from "../TelegramError";
 import ChatHeader from "../chatbot/ChatHeader";
 import ChatMessages from "../chatbot/ChatMessages";
 import ChatInput from "../chatbot/ChatInput";
+
+// import StepHandler from "../chatbot/stepHandler";
+import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -1619,6 +1621,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     ),
     [setLoading, sharedPaymentMode, processTransaction, ethConnect]
   );
+  
   // final part to finish transaction
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
@@ -3115,6 +3118,34 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           setChatInput("");
           break;
       }
+
+      // const trimmedInput = chatInput.trim();
+      // if (!trimmedInput) return;
+
+      // const newMessage: MessageType = {
+      //   type: "incoming",
+      //   content: trimmedInput,
+      //   timestamp: new Date(),
+      // };
+      // addChatMessages([newMessage]);
+      // setChatInput("");
+      // if (greetings.includes(trimmedInput.toLowerCase())) {
+      //   goToStep("start");
+      //   return;
+      // }
+
+      // if (StepHandler[currentStep]) {
+      //   await StepHandler[currentStep](trimmedInput);
+      // } else {
+      //   addChatMessages([
+      //     {
+      //       type: "incoming",
+      //       content:
+      //         "Invalid choice. You can say 'Hi' or 'Hello' to start over",
+      //       timestamp: new Date(),
+      //     },
+      //   ]);
+      // }
     } catch (error) {
       console.error("Error in conversation:", error);
       onError?.(

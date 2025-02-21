@@ -162,7 +162,7 @@ import {
   welcomeMenu,
   choiceMenu,
 } from "@/utils/genConversationHandlers";
-import { greetings } from "@/utils/ChatbotConsts";
+import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 
 // Mock the ShortenedAddress component
 jest.mock("../src/components/ShortenAddress", () => ({

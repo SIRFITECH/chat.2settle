@@ -1,7 +1,8 @@
-import ShortenedAddress from "@/components/shared/ShortenAddress";
-import { MessageType } from "../types/general_types";
-import { greetings } from "./ChatbotConsts";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import ShortenedAddress from "@/components/shared/ShortenAddress";
+import { MessageType } from "@/types/general_types";
+import { greetings } from "../helpers/ChatbotConsts";
+
 
 // ON HI | HELLO | HOWDY | HEY PROMPT
 export const helloMenu = (
