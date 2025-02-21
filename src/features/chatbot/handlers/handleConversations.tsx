@@ -1,7 +1,7 @@
-import { MessageType } from "../types/general_types";
-import { greetings } from "./ChatbotConsts";
+import { MessageType } from "@/types/general_types";
 import * as genConvo from "./genConversationHandlers";
 import * as cryptoTrxConvo from "./transactCryptoConversationHandlers";
+import { greetings } from "../helpers/ChatbotConsts";
 
 export const handleConversation = async (
   chatInput: string,
