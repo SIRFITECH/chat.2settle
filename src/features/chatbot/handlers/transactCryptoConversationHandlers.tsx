@@ -1,5 +1,4 @@
 import { MessageType } from "@/types/general_types";
-import { greetings } from "./ChatbotConsts";
 import {
   displayHowToEstimation,
   displayPayIn,
@@ -11,6 +10,7 @@ import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import { displayReportlyWelcome } from "@/menus/reportly";
 import { displayTransactIDWelcome } from "@/menus/transaction_id";
 import { helloMenu, welcomeMenu } from "./genConversationHandlers";
+import { greetings } from "../helpers/ChatbotConsts";
 
 // HANDLE THE CHOICE FROM ABOVE
 export const handleMakeAChoice = (
