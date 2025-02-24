@@ -3,23 +3,35 @@ import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 
+/**
+ *
+ * @param addChatMessages
+ * @param chatInput
+ * @param walletIsConnected
+ * @param wallet
+ * @param telFirstName
+ * @param setSharedPaymentMode
+ * @param nextStep
+ *
+ * Handle greetings, chat starters and session initialization
+ */
 
 // ON HI | HELLO | HOWDY | HEY PROMPT
 export const helloMenu = (
-  addChatMessages: (messages: MessageType[]) => void,
-  chatInput: string,
-  walletIsConnected: boolean,
-  wallet: `0x${string}` | undefined,
-  telFirstName: string,
-  setSharedPaymentMode: (mode: string) => void,
-  nextStep: (step: string) => void
+  addChatMessages?: (messages: MessageType[]) => void,
+  chatInput?: string,
+  nextStep?: (step: string) => void,
+  walletIsConnected?: boolean,
+  wallet?: `0x${string}` | undefined,
+  telFirstName?: string,
+  setSharedPaymentMode?: (mode: string) => void
 ) => {
   console.log("we are at the start");
-  if (greetings.includes(chatInput.trim().toLowerCase())) {
+  if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     window.localStorage.setItem("transactionID", "");
-    setSharedPaymentMode("");
+    setSharedPaymentMode?.("");
     if (walletIsConnected) {
-      addChatMessages([
+      addChatMessages?.([
         {
           type: "incoming",
           content: (
@@ -40,10 +52,10 @@ export const helloMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("chooseAction");
+      nextStep?.("chooseAction");
     } else {
-      setSharedPaymentMode("");
-      addChatMessages([
+      setSharedPaymentMode?.("");
+      addChatMessages?.([
         {
           type: "incoming",
           content: (
@@ -65,7 +77,7 @@ export const helloMenu = (
       ]);
       console.log("Wallet not connected");
     }
-    nextStep("chooseAction");
+    nextStep?.("chooseAction");
   }
 };
 
@@ -175,11 +187,11 @@ export const choiceMenu = (
     helloMenu(
       addChatMessages,
       choice,
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
     goToStep("start");
   } else if (choice === "0") {
@@ -187,11 +199,11 @@ export const choiceMenu = (
     helloMenu(
       addChatMessages,
       "hi",
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (choice.toLowerCase() === "1") {
     if (!walletIsConnected) {

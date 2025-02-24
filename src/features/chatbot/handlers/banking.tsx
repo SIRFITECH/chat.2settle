@@ -1,3 +1,7 @@
+/**
+ * handle bank search,
+ */
+
 // HANDLE TRANSFER MONEY MENU
 type PaymentHandlerType = {
   chatInput: string;
