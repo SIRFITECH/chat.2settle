@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { CountdownTimer } from "@/helpers/format_date";
@@ -49,6 +49,32 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
     amount,
   });
 
+  const handleConfirmCallback = useCallback(() => {
+    handleConfirm({
+      setState,
+      phoneNumber,
+      setLoading,
+      sharedPaymentMode,
+      processTransaction,
+      network,
+    });
+  }, [
+    setState,
+    phoneNumber,
+    setLoading,
+    sharedPaymentMode,
+    processTransaction,
+    network,
+  ]);
+
+  useEffect(() => {
+    console.log("ConfirmAndProceedButton rendered");
+  });
+
+  useEffect(() => {
+    console.log("State updated:", state);
+  }, [state]);
+
   const isCopyButtonDisabled =
     state.hasCopyButtonBeenClicked || state.isExpired;
 
@@ -68,17 +94,19 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
           )
         }
         onClose={() => setState((prev) => ({ ...prev, isDialogOpen: false }))}
-        onConfirm={() =>
-          connectedWallet
-            ? handleBlockchainPayment()
-            : handleConfirm({
-                setState,
-                phoneNumber,
-                setLoading,
-                sharedPaymentMode,
-                processTransaction,
-                network,
-              })
+        onConfirm={
+          () =>
+            connectedWallet
+              ? handleBlockchainPayment()
+              : handleConfirmCallback()
+          // handleConfirm({
+          //     setState,
+          //     phoneNumber,
+          //     setLoading,
+          //     sharedPaymentMode,
+          //     processTransaction,
+          //     network,
+          //   })
         }
       />
       {/* button  */}

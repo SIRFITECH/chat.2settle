@@ -1607,8 +1607,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         amount={sharedPaymentAssetEstimate}
       />
     ),
-    [setLoading, sharedPaymentMode, processTransaction, ethConnect]
+    [
+      setLoading,
+      processTransaction,
+      sharedPaymentMode,
+      ethConnect,
+      sharedPaymentAssetEstimate,
+    ]
   );
+
 
   // final part to finish transaction
   const handleCryptoPayment = async (chatInput: string) => {
@@ -1700,6 +1707,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         setLoading(false);
         addChatMessages(newMessages);
       } else {
+        console.log(
+          "Calling processTransaction with:",
+          phoneNumber,
+          isGift,
+          isGiftTrx,
+          requestPayment
+        );
+
         await processTransaction(
           phoneNumber,
           isGift,

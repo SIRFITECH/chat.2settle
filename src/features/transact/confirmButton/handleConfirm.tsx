@@ -35,6 +35,7 @@ export const handleConfirm = async ({
   ) => Promise<void>;
   network: string;
 }) => {
+  
   setState((prev) => ({
     ...prev,
     isDialogOpen: false,
