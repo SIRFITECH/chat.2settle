@@ -7,11 +7,10 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import SendIcon from "@mui/icons-material/Send";
 import { useAccount } from "wagmi";
 import ShortenedAddress from "../shared/ShortenAddress";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType, WalletInfo } from "../../types/general_types";
+import { MessageType } from "../../types/general_types";
 import {
   checkGiftExists,
   checkRequestExists,
@@ -21,9 +20,6 @@ import {
   fetchBankDetails,
   fetchBankNames,
   fetchCoinPrice,
-  fetchMerchantRate,
-  fetchProfitRate,
-  fetchRate,
   isGiftValid,
   updateGiftTransaction,
   updateTransaction,
@@ -103,7 +99,6 @@ import {
 } from "date-fns";
 
 import { telegramUser } from "@/types/telegram_types";
-import useErrorHandler from "@/hooks/useErrorHandler";
 import TelegramIntegration from "../TelegramIntegration";
 import { withErrorHandling } from "../withErrorHandling";
 import {
@@ -118,6 +113,8 @@ import ChatInput from "../chatbot/ChatInput";
 
 // import StepHandler from "../chatbot/stepHandler";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { getRates } from "@/services/chatBotService";
+// import { helloMenu } from "@/features/chatbot/handlers/general";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -128,9 +125,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
-  const { error, handleError, clearError } = useErrorHandler();
 
   const chatboxRef = useRef<HTMLDivElement>(null);
+
   // const [visibleDateSeparators, setVisibleDateSeparators] = useState<
   //   Set<string>
   // >(new Set());
@@ -282,6 +279,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
   const telFirstName = isTelUser ? telegramUser?.first_name : "";
 
+  // set crypto asset price
   useEffect(() => {
     if (sharedCrypto != "") {
       if (sharedCrypto.trim().toLowerCase() === "usdt") {
@@ -359,49 +357,39 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     initializeChatId();
   }, [chatId]);
 
-  // Replace multiple sequential API calls with Promise.all
-  const fetchData = async () => {
-    try {
-      const [fetchedRate, fetchedMerchantRate, fetchedProfitRate] =
-        await Promise.all([
-          fetchRate(),
-          fetchMerchantRate(),
-          fetchProfitRate(),
-        ]);
-
-      // Batch state updates
-      const updates = {
-        rate: fetchedRate.toString(),
-        formattedRate: formatCurrency(fetchedRate.toString(), "NGN", "en-NG"),
-        merchantRate: formatCurrency(
-          fetchedMerchantRate.toString(),
-          "NGN",
-          "en-NG"
-        ),
-        profitRate: formatCurrency(
-          fetchedProfitRate.toString(),
-          "NGN",
-          "en-NG"
-        ),
-      };
-      console.log("Rate is:", rate);
-
-      // Update all states at once
-      setRate(updates.rate);
-      setFormattedRate(updates.formattedRate);
-      setMerchantRate(updates.merchantRate);
-      setProfitRate(updates.profitRate);
-      setSharedRate(updates.rate);
-    } catch (error) {
-      console.error("Failed to fetch rates:", error);
-    }
-  };
-
   useEffect(() => {
+    async function fetchData() {
+      const rates = await getRates();
+      if (rates) {
+        // Batch state updates
+        const updates = {
+          rate: rates.fetchedRate.toString(),
+          formattedRate: formatCurrency(
+            rates.fetchedRate.toString(),
+            "NGN",
+            "en-NG"
+          ),
+          merchantRate: formatCurrency(
+            rates.fetchedMerchantRate.toString(),
+            "NGN",
+            "en-NG"
+          ),
+          profitRate: formatCurrency(
+            rates.fetchedProfitRate.toString(),
+            "NGN",
+            "en-NG"
+          ),
+        };
+        console.log("Rate is:", rate);
+        // Update all states at once
+        setRate(updates.rate);
+        setFormattedRate(updates.formattedRate);
+        setMerchantRate(updates.merchantRate);
+        setProfitRate(updates.profitRate);
+        setSharedRate(updates.rate);
+      }
+    }
     fetchData();
-    // console.log("To see wagmi:", useNetwork);
-    // console.log("chainid From wagmi:", chainId);
-    // console.log("ens name From wagmi:", ensName);
   }, []);
 
   useEffect(() => {
@@ -1619,9 +1607,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         amount={sharedPaymentAssetEstimate}
       />
     ),
-    [setLoading, sharedPaymentMode, processTransaction, ethConnect]
+    [
+      setLoading,
+      processTransaction,
+      sharedPaymentMode,
+      ethConnect,
+      sharedPaymentAssetEstimate,
+    ]
   );
-  
+
+
   // final part to finish transaction
   const handleCryptoPayment = async (chatInput: string) => {
     const phoneNumber = chatInput.trim();
@@ -1712,6 +1707,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         setLoading(false);
         addChatMessages(newMessages);
       } else {
+        console.log(
+          "Calling processTransaction with:",
+          phoneNumber,
+          isGift,
+          isGiftTrx,
+          requestPayment
+        );
+
         await processTransaction(
           phoneNumber,
           isGift,

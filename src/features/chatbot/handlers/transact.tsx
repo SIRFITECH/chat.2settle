@@ -9,8 +9,12 @@ import { displayKYCInfo } from "@/menus/request_paycard";
 import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import { displayReportlyWelcome } from "@/menus/reportly";
 import { displayTransactIDWelcome } from "@/menus/transaction_id";
-import { helloMenu, welcomeMenu } from "./genConversationHandlers";
+import { helloMenu, welcomeMenu } from "./general";
 import { greetings } from "../helpers/ChatbotConsts";
+
+/**
+ * handle crypto transaction, payment request and gifts
+ */
 
 // HANDLE THE CHOICE FROM ABOVE
 export const handleMakeAChoice = (
@@ -29,33 +33,33 @@ export const handleMakeAChoice = (
     helloMenu(
       addChatMessages,
       chatInput,
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (chatInput === "00") {
     goToStep("start");
     helloMenu(
       addChatMessages,
       "hi",
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (chatInput === "0") {
     prevStep();
     helloMenu(
       addChatMessages,
       "hi",
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (chatInput === "1") {
     // console.log("The choice is ONE, TRANSACT CRYPTO");
@@ -100,7 +104,7 @@ export const handleTransferMoney = (
   goToStep: (step: string) => void,
   setSharedPaymentMode: (mode: string) => void,
   setSharedWallet: (ticker: string) => void,
-  setSharedEstimateAsset: (crypto: string) => void,
+  setSharedEstimateAsset: (crypto: string) => void
 ) => {
   setSharedWallet("");
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -108,11 +112,11 @@ export const handleTransferMoney = (
     helloMenu(
       addChatMessages,
       chatInput,
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (chatInput === "0") {
     prevStep();
@@ -181,11 +185,11 @@ export const handleEstimateAsset = async (
     helloMenu(
       addChatMessages,
       chatInput,
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (chatInput === "0") {
     (() => {
@@ -218,11 +222,11 @@ export const handleEstimateAsset = async (
     helloMenu(
       addChatMessages,
       "hi",
+      nextStep,
       walletIsConnected,
       wallet,
       telFirstName,
-      setSharedPaymentMode,
-      nextStep
+      setSharedPaymentMode
     );
   } else if (chatInput === "1") {
     displayHowToEstimation(addChatMessages, "Bitcoin (BTC)", sharedPaymentMode);

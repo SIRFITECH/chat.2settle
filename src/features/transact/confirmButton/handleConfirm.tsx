@@ -81,10 +81,3 @@ export const handleConfirm = async ({
     setLoading(false);
   }
 };
-// useCallback( [
-//     phoneNumber,
-//     setLoading,
-//     sharedPaymentMode,
-//     processTransaction,
-//     network,
-//   ]);

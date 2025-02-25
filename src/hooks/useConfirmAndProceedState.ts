@@ -31,13 +31,21 @@ const useConfirmAndProceedState = ({
   });
 
   const handleBlockchainPayment = async () => {
-    setState((prev) => ({
-      ...prev,
-      isDialogOpen: false,
-      isButtonClicked: true,
-      isProcessing: true,
-      error: null,
-    }));
+    setState((prev) => {
+      if (
+        prev.isDialogOpen === false &&
+        prev.isButtonClicked &&
+        prev.isProcessing &&
+        prev.error === null
+      ) return prev;
+        return {
+          ...prev,
+          isDialogOpen: false,
+          isButtonClicked: true,
+          isProcessing: true,
+          error: null,
+        };
+    });
     try {
       const wallet = await getDirectDebitWallet();
       let reciept: TransactionReceipt | null = null;
@@ -61,10 +69,13 @@ const useConfirmAndProceedState = ({
       }
 
       if (reciept && reciept?.status === 1) {
-        setState((prev) => ({
-          ...prev,
-          activeWallet: wallet,
-        }));
+        setState((prev) => {
+          if (prev.activeWallet === wallet) return prev;
+          return {
+            ...prev,
+            activeWallet: wallet,
+          };
+        });
 
         const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
         const requestPayment = sharedPaymentMode.toLowerCase() === "request";
@@ -87,7 +98,10 @@ const useConfirmAndProceedState = ({
         isButtonClicked: false,
       }));
     } finally {
-      setState((prev) => ({ ...prev, isProcessing: false }));
+      setState((prev) => {
+        if (prev.isProcessing === false) return prev;
+        return { ...prev, isProcessing: false };
+      });
       setLoading(false);
     }
   };
@@ -101,7 +115,12 @@ const useConfirmAndProceedState = ({
       }));
 
       setTimeout(
-        () => setState((prev) => ({ ...prev, isCopied: false })),
+        () =>
+          setState((prev) => {
+            if (prev.isCopied === false) return prev;
+
+            return { ...prev, isCopied: false };
+          }),
         3000 // 3 sec
       );
     });
@@ -115,10 +134,10 @@ const useConfirmAndProceedState = ({
   useEffect(() => {
     if (state.lastAssignedTime) {
       const timer = setTimeout(() => {
-        setState((prev) => ({
-          ...prev,
-          isExpired: true,
-        }));
+        setState((prev) => {
+          if (prev.isExpired) return prev;
+          return { ...prev, isExpired: true };
+        });
       }, 5 * 60 * 1000); // set timer for 5 minutes
     }
   }, []);
