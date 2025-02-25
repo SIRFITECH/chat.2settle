@@ -67,14 +67,6 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
     network,
   ]);
 
-  useEffect(() => {
-    console.log("ConfirmAndProceedButton rendered");
-  });
-
-  useEffect(() => {
-    console.log("State updated:", state);
-  }, [state]);
-
   const isCopyButtonDisabled =
     state.hasCopyButtonBeenClicked || state.isExpired;
 

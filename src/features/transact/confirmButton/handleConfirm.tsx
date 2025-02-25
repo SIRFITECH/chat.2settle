@@ -35,7 +35,6 @@ export const handleConfirm = async ({
   ) => Promise<void>;
   network: string;
 }) => {
-  
   setState((prev) => ({
     ...prev,
     isDialogOpen: false,
@@ -82,10 +81,3 @@ export const handleConfirm = async ({
     setLoading(false);
   }
 };
-// useCallback( [
-//     phoneNumber,
-//     setLoading,
-//     sharedPaymentMode,
-//     processTransaction,
-//     network,
-//   ]);
