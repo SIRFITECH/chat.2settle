@@ -1,16 +1,15 @@
 "use client";
 
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, {
-  useState,
-  useEffect,
-  useRef,
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
+  useState,
 } from "react";
 import { useAccount } from "wagmi";
-import ShortenedAddress from "../shared/ShortenAddress";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { MessageType } from "../../types/general_types";
+import { useSharedState } from "../../context/SharedStateContext";
 import {
   checkGiftExists,
   checkRequestExists,
@@ -25,6 +24,8 @@ import {
   updateTransaction,
 } from "../../helpers/api_calls";
 import { formatCurrency } from "../../helpers/format_currency";
+import { getFormattedDateTime } from "../../helpers/format_date";
+import { MessageType } from "../../types/general_types";
 import {
   formatPhoneNumber,
   generateChatId,
@@ -35,35 +36,16 @@ import {
   phoneNumberPattern,
   saveChatId,
 } from "../../utils/utilities";
-import { useSharedState } from "../../context/SharedStateContext";
-import { getFormattedDateTime } from "../../helpers/format_date";
+import ShortenedAddress from "../shared/ShortenAddress";
 
 import {
-  displayKYCInfo,
-  displayRegKYC,
-  displayThankForKYCReg,
-} from "../../menus/request_paycard";
-import {
-  displayCustomerSupportAssurance,
-  displayCustomerSupportWelcome,
-  displayEnterTransactionId,
-  displayMakeComplain,
-} from "../../menus/customer_support";
-import {
-  displayEnterCompleteTransactionId,
-  displayEnterId,
-  displayGiftFeedbackMessage,
-  displayTransactIDWelcome,
-} from "../../menus/transaction_id";
-import {
-  displayReportlyFarwell,
-  displayReportlyFraudsterWalletAddress,
-  displayReportlyName,
-  displayReportlyNote,
-  displayReportlyPhoneNumber,
-  displayReportlyReporterWalletAddress,
-  displayReportlyWelcome,
-} from "../../menus/reportly";
+  countWords,
+  getLastReportId,
+  getNextReportID,
+  isValidWalletAddress,
+  makeAReport,
+} from "@/helpers/api_call/reportly_page_calls";
+import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 import {
   displayCharge,
   displayConfirmPayment,
@@ -79,16 +61,7 @@ import {
   displayTransactCrypto,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { useChatNavigation } from "../../hooks/useChatNavigation";
-import {
-  countWords,
-  getLastReportId,
-  getNextReportID,
-  isValidWalletAddress,
-  makeAReport,
-} from "@/helpers/api_call/reportly_page_calls";
 import { reportData } from "@/types/reportly_types";
-import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 import {
   differenceInDays,
   differenceInHours,
@@ -97,19 +70,46 @@ import {
   isToday,
   isYesterday,
 } from "date-fns";
+import { useChatNavigation } from "../../hooks/useChatNavigation";
+import {
+  displayCustomerSupportAssurance,
+  displayCustomerSupportWelcome,
+  displayEnterTransactionId,
+  displayMakeComplain,
+} from "../../menus/customer_support";
+import {
+  displayReportlyFarwell,
+  displayReportlyFraudsterWalletAddress,
+  displayReportlyName,
+  displayReportlyNote,
+  displayReportlyPhoneNumber,
+  displayReportlyReporterWalletAddress,
+  displayReportlyWelcome,
+} from "../../menus/reportly";
+import {
+  displayKYCInfo,
+  displayRegKYC,
+  displayThankForKYCReg,
+} from "../../menus/request_paycard";
+import {
+  displayEnterCompleteTransactionId,
+  displayEnterId,
+  displayGiftFeedbackMessage,
+  displayTransactIDWelcome,
+} from "../../menus/transaction_id";
 
-import { telegramUser } from "@/types/telegram_types";
-import TelegramIntegration from "../TelegramIntegration";
-import { withErrorHandling } from "../withErrorHandling";
 import {
   getLocalStorageData,
   saveLocalStorageData,
 } from "@/features/chatbot/helpers/localStorageUtils";
 import { ChatBotProps } from "@/types/chatbot_types";
+import { telegramUser } from "@/types/telegram_types";
 import ErrorBoundary from "../TelegramError";
+import TelegramIntegration from "../TelegramIntegration";
 import ChatHeader from "../chatbot/ChatHeader";
-import ChatMessages from "../chatbot/ChatMessages";
 import ChatInput from "../chatbot/ChatInput";
+import ChatMessages from "../chatbot/ChatMessages";
+import { withErrorHandling } from "../withErrorHandling";
 
 // import StepHandler from "../chatbot/stepHandler";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
@@ -1615,7 +1615,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       sharedPaymentAssetEstimate,
     ]
   );
-
 
   // final part to finish transaction
   const handleCryptoPayment = async (chatInput: string) => {
