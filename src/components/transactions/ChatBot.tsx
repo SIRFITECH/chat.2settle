@@ -121,6 +121,7 @@ import {
 } from "@/features/chatbot/handlers/transact";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 import { getRates } from "@/services/chatBotService";
+import { handleContinueToPay } from "@/features/chatbot/handlers/transactionClosing";
 // import { helloMenu } from "@/features/chatbot/handlers/general";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
@@ -696,90 +697,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       ]);
     }
     setChatInput("");
-  };
-
-  // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
-  const handleContinueToPay = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "0") {
-      (() => {
-        // console.log("THIS IS WHERE WE ARE");
-        prevStep();
-        displaySearchBank(addChatMessages, nextStep);
-      })();
-    } else if (chatInput !== "0") {
-      if (chatInput === "1" || chatInput === "2") {
-        displayEnterPhone(addChatMessages, nextStep);
-      } else {
-        let bank_name = "";
-        let account_name = "";
-        let account_number = "";
-
-        setLoading(true);
-
-        try {
-          const bankData = await fetchBankDetails(
-            sharedSelectedBankCode,
-            chatInput.trim()
-          );
-
-          bank_name = bankData[0].bank_name;
-          account_name = bankData[0].account_name;
-          account_number = bankData[0].account_number;
-
-          if (!account_number) {
-            const newMessages: MessageType[] = [
-              {
-                type: "incoming",
-                content: <span>Invalid account number. Please try again.</span>,
-                timestamp: new Date(),
-              },
-            ];
-            addChatMessages(newMessages);
-            setLoading(false);
-            return; // Exit the function to let the user try again
-          }
-
-          setLoading(false);
-          updateBankData({
-            acct_number: account_number,
-            bank_name: sharedSelectedBankName,
-            receiver_name: account_name,
-          });
-          displayContinueToPay(
-            addChatMessages,
-            nextStep,
-            account_name,
-            sharedSelectedBankName,
-            account_number,
-            sharedPaymentMode
-          );
-        } catch (error) {
-          console.error("Failed to fetch bank data:", error);
-          const errorMessage: MessageType[] = [
-            {
-              type: "incoming",
-              content: (
-                <span>
-                  Failed to fetch bank data. Please check your accouunt number
-                  and try again.
-                </span>
-              ),
-              timestamp: new Date(),
-            },
-          ];
-          addChatMessages(errorMessage);
-          setLoading(false);
-        }
-      }
-    }
   };
 
   // MISSING HANDLE FUNCTION< HANDLE PHONE NUMBER
@@ -2260,7 +2177,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             : (console.log(
                 "CURRENT STEP IS continueToPay IN enterBankSearchWord "
               ),
-              handleContinueToPay(chatInput));
+              handleContinueToPay(
+                addChatMessages,
+                chatInput,
+                sharedSelectedBankCode,
+                sharedSelectedBankName,
+                sharedPaymentMode,
+                nextStep,
+                prevStep,
+                goToStep,
+                updateBankData,
+                setLoading
+              ));
           setChatInput("");
           break;
 
@@ -2310,7 +2238,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "continueToPay":
           console.log("Current step is continueToPay ");
 
-          handleContinueToPay(chatInput);
+          handleContinueToPay(
+            addChatMessages,
+            chatInput,
+            sharedSelectedBankCode,
+            sharedSelectedBankName,
+            sharedPaymentMode,
+            nextStep,
+            prevStep,
+            goToStep,
+            updateBankData,
+            setLoading
+          );
           setChatInput("");
           break;
 
