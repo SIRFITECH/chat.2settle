@@ -1,35 +1,17 @@
 import {
-  fetchBankDetails,
-  isGiftValid,
-  updateGiftTransaction,
-  createTransaction,
-  checkRequestExists,
   checkTranscationExists,
-  updateTransaction,
+  fetchBankDetails,
+  updateTransaction
 } from "@/helpers/api_calls";
-import { formatCurrency } from "@/helpers/format_currency";
-import { getFormattedDateTime } from "@/helpers/format_date";
-import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 import {
-  displaySearchBank,
-  displayEnterPhone,
-  displayContinueToPay,
-  displaySendPayment,
   displayConfirmPayment,
+  displayContinueToPay,
+  displayEnterPhone,
+  displaySearchBank
 } from "@/menus/transact_crypto";
-import {
-  displayGiftFeedbackMessage,
-  displayEnterId,
-} from "@/menus/transaction_id";
 import { MessageType, UserBankData } from "@/types/general_types";
-import {
-  phoneNumberPattern,
-  formatPhoneNumber,
-  generateTransactionId,
-  generateGiftId,
-} from "@/utils/utilities";
-import { useCallback } from "react";
 import { greetings } from "../helpers/ChatbotConsts";
+import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import { helloMenu } from "./general";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
@@ -127,26 +109,32 @@ export const handleContinueToPay = async (
   }
 };
 
-// // MISSING HANDLE FUNCTION< HANDLE PHONE NUMBER
-// export const handlePhoneNumber = async (chatInput: string) => {
-//   if (greetings.includes(chatInput.trim().toLowerCase())) {
-//     goToStep("start");
-//     helloMenu(chatInput);
-//   } else if (chatInput === "00") {
-//     (() => {
-//       goToStep("start");
-//       helloMenu("hi");
-//     })();
-//   } else if (chatInput === "0") {
-//     (() => {
-//       // console.log("THIS IS WHERE WE ARE");
-//       prevStep();
-//       displaySearchBank(addChatMessages, nextStep);
-//     })();
-//   } else if (chatInput !== "0") {
-//     displayEnterPhone(addChatMessages, nextStep);
-//   }
-// };
+// MISSING HANDLE FUNCTION< HANDLE PHONE NUMBER
+export const handlePhoneNumber = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string, 
+  nextStep: (step: string) => void,
+  prevStep: () => void,
+  goToStep: (step: string) => void
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput === "00") {
+    (() => {
+      goToStep("start");
+      // helloMenu("hi");
+    })();
+  } else if (chatInput === "0") {
+    (() => {
+      // console.log("THIS IS WHERE WE ARE");
+      prevStep();
+      displaySearchBank(addChatMessages, nextStep);
+    })();
+  } else if (chatInput !== "0") {
+    displayEnterPhone(addChatMessages, nextStep);
+  }
+};
 
 // export const MemoizedConfirmAndProceedButton = useCallback(
 //   ({ phoneNumber, network }: { phoneNumber: string; network: string }) => (
@@ -687,47 +675,87 @@ export const handleContinueToPay = async (
 //   }
 // }
 
-// export const handleConfirmTransaction = async (chatInput: string) => {
-//   if (greetings.includes(chatInput.trim().toLowerCase())) {
-//     goToStep("start");
-//     helloMenu(chatInput);
-//   } else if (chatInput.trim() === "00") {
-//     goToStep("start");
-//     helloMenu(chatInput);
-//   } else if (chatInput.trim() === "0") {
-//   } else if (chatInput.trim().length > 3) {
-//     console.log("Input is:", chatInput.trim());
-//     const transaction_id = chatInput.trim();
-//     setLoading(true);
-//     setSharedTransactionId(transaction_id);
-//     let transactionExists = (await checkTranscationExists(transaction_id))
-//       .exists;
+export const handleConfirmTransaction = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  sharedTransactionId: string,
+  procesingStatus: string,
+  cancelledStatus: string,
+  nextStep: (step: string) => void,
+  goToStep: (step: string) => void,
+  setSharedTransactionId: (step: string) => void,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput.trim() === "00") {
+  } else if (chatInput.trim() === "00") {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput.trim() === "0") {
+  } else if (chatInput.trim().length > 3) {
+    console.log("Input is:", chatInput.trim());
+    const transaction_id = chatInput.trim();
+    setLoading(true);
+    setSharedTransactionId(transaction_id);
+    let transactionExists = (await checkTranscationExists(transaction_id))
+      .exists;
 
-//     console.log(
-//       "User phone:",
-//       (await checkTranscationExists(transaction_id)).user?.customer_phoneNumber
-//     );
+    console.log(
+      "User phone:",
+      (await checkTranscationExists(transaction_id)).user?.customer_phoneNumber
+    );
 
-//     setLoading(false);
-//     // IF TRANSACTION_ID EXIST IN DB,
-//     if (transactionExists) {
-//       displayConfirmPayment(addChatMessages, nextStep);
-//     } else {
-//       addChatMessages([
-//         {
-//           type: "incoming",
-//           content: "Invalid transaction_id. Try again",
-//           timestamp: new Date(),
-//         },
-//       ]);
-//     }
-//   } else {
-//     if (chatInput.trim() === "1") {
-//       updateTransaction(sharedTransactionId, procesingStatus);
-//       displayConfirmPayment(addChatMessages, nextStep);
-//     } else if (chatInput.trim() === "2") {
-//       updateTransaction(sharedTransactionId, cancelledStatus);
-//       displayConfirmPayment(addChatMessages, nextStep);
-//     }
-//   }
-// };
+    setLoading(false);
+    // IF TRANSACTION_ID EXIST IN DB,
+    if (transactionExists) {
+      displayConfirmPayment(addChatMessages, nextStep);
+    } else {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: "Invalid transaction_id. Try again",
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  } else {
+    if (chatInput.trim() === "1") {
+      updateTransaction(sharedTransactionId, procesingStatus);
+      displayConfirmPayment(addChatMessages, nextStep);
+    } else if (chatInput.trim() === "2") {
+      updateTransaction(sharedTransactionId, cancelledStatus);
+      displayConfirmPayment(addChatMessages, nextStep);
+    }
+  }
+};
+
+ // ALLOW USER TO START A NEW TRANSACTION OR CONTACT SUPPORT
+ export const handleTransactionProcessing = async (
+   addChatMessages: (messages: MessageType[]) => void,
+   chatInput: string,
+   nextStep: (step: string) => void,
+   prevStep: () => void,
+   goToStep: (step: string) => void,
+ ) => {
+   if (greetings.includes(chatInput.trim().toLowerCase())) {
+     goToStep("start");
+     // helloMenu(chatInput);
+   } else if (chatInput.trim() === "00") {
+     (() => {
+       goToStep("start");
+       // helloMenu("hi");
+     })();
+   } else if (chatInput.trim() === "0") {
+     (() => {
+       prevStep();
+       displaySearchBank(addChatMessages, nextStep);
+     })();
+   } else if (chatInput.trim() === "1") {
+     // helloMenu("hi");
+   } else if (chatInput.trim() === "2") {
+     goToStep("supportWelcome");
+     displayCustomerSupportWelcome(addChatMessages, nextStep);
+   }
+ };

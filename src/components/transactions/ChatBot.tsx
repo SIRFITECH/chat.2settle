@@ -121,7 +121,12 @@ import {
 } from "@/features/chatbot/handlers/transact";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 import { getRates } from "@/services/chatBotService";
-import { handleContinueToPay } from "@/features/chatbot/handlers/transactionClosing";
+import {
+  handleConfirmTransaction,
+  handleContinueToPay,
+  handlePhoneNumber,
+  handleTransactionProcessing,
+} from "@/features/chatbot/handlers/transactionClosing";
 // import { helloMenu } from "@/features/chatbot/handlers/general";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
@@ -285,7 +290,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     <TelegramIntegration />;
   }, []);
 
-  const telFirstName = isTelUser ? telegramUser?.first_name : "";
+  const telFirstName = "";
+  // isTelUser ? telegramUser?.first_name : "";
 
   // set crypto asset price
   useEffect(() => {
@@ -697,27 +703,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       ]);
     }
     setChatInput("");
-  };
-
-  // MISSING HANDLE FUNCTION< HANDLE PHONE NUMBER
-  const handlePhoneNumber = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "0") {
-      (() => {
-        // console.log("THIS IS WHERE WE ARE");
-        prevStep();
-        displaySearchBank(addChatMessages, nextStep);
-      })();
-    } else if (chatInput !== "0") {
-      displayEnterPhone(addChatMessages, nextStep);
-    }
   };
 
   const MemoizedConfirmAndProceedButton = useCallback(
@@ -1266,79 +1251,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
-  const handleConfirmTransaction = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "0") {
-    } else if (chatInput.trim().length > 3) {
-      console.log("Input is:", chatInput.trim());
-      const transaction_id = chatInput.trim();
-      setLoading(true);
-      setSharedTransactionId(transaction_id);
-      let transactionExists = (await checkTranscationExists(transaction_id))
-        .exists;
-
-      console.log(
-        "User phone:",
-        (await checkTranscationExists(transaction_id)).user
-          ?.customer_phoneNumber
-      );
-
-      setLoading(false);
-      // IF TRANSACTION_ID EXIST IN DB,
-      if (transactionExists) {
-        displayConfirmPayment(addChatMessages, nextStep);
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid transaction_id. Try again",
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    } else {
-      if (chatInput.trim() === "1") {
-        updateTransaction(sharedTransactionId, procesingStatus);
-        displayConfirmPayment(addChatMessages, nextStep);
-      } else if (chatInput.trim() === "2") {
-        updateTransaction(sharedTransactionId, cancelledStatus);
-        displayConfirmPayment(addChatMessages, nextStep);
-      }
-    }
-  };
-
-  // ALLOW USER TO START A NEW TRANSACTION OR CONTACT SUPPORT
-  const handleTransactionProcessing = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displaySearchBank(addChatMessages, nextStep);
-      })();
-    } else if (chatInput.trim() === "1") {
-      helloMenu("hi");
-    } else if (chatInput.trim() === "2") {
-      goToStep("supportWelcome");
-      displayCustomerSupportWelcome(addChatMessages, nextStep);
-    }
-  };
-
-  // REQUEST PAYCARD SEQUENCE FUNCTIONS
-
-  // TELL USERS ABOUT DATA NEEDED FOR PAYCARD REQUEST
-  const handleKYCInfo = (chatInput: string) => {
+ const handleKYCInfo = (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -2256,7 +2169,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "enterPhone":
           console.log("Current step is enterPhone ");
 
-          handlePhoneNumber(chatInput);
+          handlePhoneNumber(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            prevStep,
+            goToStep
+          );
           setChatInput("");
           break;
 
@@ -2270,14 +2189,30 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "confirmTransaction":
           console.log("Current step is confirmTransaction ");
 
-          handleConfirmTransaction(chatInput);
+          handleConfirmTransaction(
+            addChatMessages,
+            chatInput,
+            sharedTransactionId,
+            procesingStatus,
+            cancelledStatus,
+            nextStep,
+            goToStep,
+            setSharedTransactionId,
+            setLoading
+          );
           setChatInput("");
 
           break;
 
         case "paymentProcessing":
           console.log("Current step is paymentProcessing ");
-          handleTransactionProcessing(chatInput);
+          handleTransactionProcessing(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            prevStep,
+            goToStep
+          );
           setChatInput("");
           break;
 
