@@ -124,6 +124,7 @@ import { getRates } from "@/services/chatBotService";
 import {
   handleConfirmTransaction,
   handleContinueToPay,
+  handleCryptoPayment,
   handlePhoneNumber,
   handleTransactionProcessing,
 } from "@/features/chatbot/handlers/transactionClosing";
@@ -726,116 +727,116 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     ]
   );
 
-  // final part to finish transaction
-  const handleCryptoPayment = async (chatInput: string) => {
-    const phoneNumber = chatInput.trim();
+  // // final part to finish transaction
+  // const handleCryptoPayment = async (chatInput: string) => {
+  //   const phoneNumber = chatInput.trim();
 
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput != "0") {
-      setLoading(true);
+  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
+  //     goToStep("start");
+  //     helloMenu(chatInput);
+  //   } else if (chatInput === "00") {
+  //     (() => {
+  //       goToStep("start");
+  //       helloMenu("hi");
+  //     })();
+  //   } else if (chatInput != "0") {
+  //     setLoading(true);
 
-      if (!phoneNumberPattern.test(phoneNumber)) {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a valid phone number, <b>{phoneNumber}</b> is not a
-                valid phone number.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        setLoading(false);
-        addChatMessages(newMessages);
-        return;
-      }
+  //     if (!phoneNumberPattern.test(phoneNumber)) {
+  //       const newMessages: MessageType[] = [
+  //         {
+  //           type: "incoming",
+  //           content: (
+  //             <span>
+  //               Please enter a valid phone number, <b>{phoneNumber}</b> is not a
+  //               valid phone number.
+  //             </span>
+  //           ),
+  //           timestamp: new Date(),
+  //         },
+  //       ];
+  //       setLoading(false);
+  //       addChatMessages(newMessages);
+  //       return;
+  //     }
 
-      setSharedPhone(phoneNumber);
+  //     setSharedPhone(phoneNumber);
 
-      const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
-      const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-      const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+  //     const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
+  //     const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+  //     const requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
-      const network =
-        sharedCrypto.toLowerCase() === "usdt"
-          ? sharedNetwork.toLowerCase()
-          : sharedCrypto.toLowerCase();
+  //     const network =
+  //       sharedCrypto.toLowerCase() === "usdt"
+  //         ? sharedNetwork.toLowerCase()
+  //         : sharedCrypto.toLowerCase();
 
-      if (!isGift && !requestPayment) {
-        const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-        const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+  //     if (!isGift && !requestPayment) {
+  //       const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+  //       const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
 
-        const newMessages: MessageType[] = ethConnect
-          ? [
-              {
-                type: "incoming",
-                content: (
-                  <div className="flex flex-col items-center">
-                    <p className="mb-4">
-                      You are going to be charged <b>{paymentAsset}</b> directly
-                      from your {sharedCrypto} ({sharedNetwork}) wallet.
-                    </p>
-                    <MemoizedConfirmAndProceedButton
-                      phoneNumber={phoneNumber}
-                      network={network}
-                    />
-                  </div>
-                ),
-                timestamp: new Date(),
-              },
-            ]
-          : [
-              {
-                type: "incoming",
-                content: (
-                  <div className="flex flex-col items-center">
-                    <p className="mb-4">
-                      Do you understand that you need to complete your payment
-                      within <b>5 minutes</b>, otherwise you may lose your
-                      money.
-                    </p>
-                    <MemoizedConfirmAndProceedButton
-                      phoneNumber={phoneNumber}
-                      network={network}
-                    />
-                  </div>
-                ),
-                timestamp: new Date(),
-              },
-            ];
+  //       const newMessages: MessageType[] = ethConnect
+  //         ? [
+  //             {
+  //               type: "incoming",
+  //               content: (
+  //                 <div className="flex flex-col items-center">
+  //                   <p className="mb-4">
+  //                     You are going to be charged <b>{paymentAsset}</b> directly
+  //                     from your {sharedCrypto} ({sharedNetwork}) wallet.
+  //                   </p>
+  //                   <MemoizedConfirmAndProceedButton
+  //                     phoneNumber={phoneNumber}
+  //                     network={network}
+  //                   />
+  //                 </div>
+  //               ),
+  //               timestamp: new Date(),
+  //             },
+  //           ]
+  //         : [
+  //             {
+  //               type: "incoming",
+  //               content: (
+  //                 <div className="flex flex-col items-center">
+  //                   <p className="mb-4">
+  //                     Do you understand that you need to complete your payment
+  //                     within <b>5 minutes</b>, otherwise you may lose your
+  //                     money.
+  //                   </p>
+  //                   <MemoizedConfirmAndProceedButton
+  //                     phoneNumber={phoneNumber}
+  //                     network={network}
+  //                   />
+  //                 </div>
+  //               ),
+  //               timestamp: new Date(),
+  //             },
+  //           ];
 
-        setLoading(false);
-        addChatMessages(newMessages);
-      } else {
-        console.log(
-          "Calling processTransaction with:",
-          phoneNumber,
-          isGift,
-          isGiftTrx,
-          requestPayment
-        );
+  //       setLoading(false);
+  //       addChatMessages(newMessages);
+  //     } else {
+  //       console.log(
+  //         "Calling processTransaction with:",
+  //         phoneNumber,
+  //         isGift,
+  //         isGiftTrx,
+  //         requestPayment
+  //       );
 
-        await processTransaction(
-          phoneNumber,
-          isGift,
-          isGiftTrx,
-          requestPayment
-        );
-      }
-    } else {
-      setLoading(false);
-      console.log("User input not recognized");
-    }
-  };
+  //       await processTransaction(
+  //         phoneNumber,
+  //         isGift,
+  //         isGiftTrx,
+  //         requestPayment
+  //       );
+  //     }
+  //   } else {
+  //     setLoading(false);
+  //     console.log("User input not recognized");
+  //   }
+  // };
 
   async function processTransaction(
     phoneNumber: string,
@@ -1251,7 +1252,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
- const handleKYCInfo = (chatInput: string) => {
+  const handleKYCInfo = (chatInput: string) => {
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
       helloMenu(chatInput);
@@ -2182,7 +2183,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "sendPayment":
           console.log("Current step is sendPayment ");
 
-          await handleCryptoPayment(chatInput);
+          await handleCryptoPayment(
+            addChatMessages,
+            chatInput,
+            sharedCrypto,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            sharedPaymentAssetEstimate,
+            setSharedPhone,
+            processTransaction,
+            goToStep,
+            setLoading
+          );
           setChatInput("");
           break;
 

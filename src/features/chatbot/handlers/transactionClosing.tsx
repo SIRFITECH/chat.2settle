@@ -1,18 +1,36 @@
 import {
+  checkRequestExists,
   checkTranscationExists,
+  createTransaction,
   fetchBankDetails,
-  updateTransaction
+  isGiftValid,
+  updateGiftTransaction,
+  updateTransaction,
 } from "@/helpers/api_calls";
 import {
   displayConfirmPayment,
   displayContinueToPay,
   displayEnterPhone,
-  displaySearchBank
+  displaySearchBank,
+  displaySendPayment,
 } from "@/menus/transact_crypto";
 import { MessageType, UserBankData } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import { helloMenu } from "./general";
+import { formatCurrency } from "@/helpers/format_currency";
+import { getFormattedDateTime } from "@/helpers/format_date";
+import {
+  displayGiftFeedbackMessage,
+  displayEnterId,
+} from "@/menus/transaction_id";
+import {
+  phoneNumberPattern,
+  formatPhoneNumber,
+  generateTransactionId,
+  generateGiftId,
+} from "@/utils/utilities";
+import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
 export const handleContinueToPay = async (
@@ -112,7 +130,7 @@ export const handleContinueToPay = async (
 // MISSING HANDLE FUNCTION< HANDLE PHONE NUMBER
 export const handlePhoneNumber = async (
   addChatMessages: (messages: MessageType[]) => void,
-  chatInput: string, 
+  chatInput: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void
@@ -157,110 +175,148 @@ export const handlePhoneNumber = async (
 //   ]
 // );
 
-// // final part to finish transaction
-// export const handleCryptoPayment = async (chatInput: string) => {
-//   const phoneNumber = chatInput.trim();
+// final part to finish transaction
+export const handleCryptoPayment = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  sharedCrypto: string,
+  sharedNetwork: string,
+  sharedPaymentMode: string,
+  ethConnect: boolean,
+  sharedPaymentAssetEstimate: string,
+  setSharedPhone: (phoneNumber: string) => void,
+  processTransaction: (
+    phoneNumber: string,
+    isGift: boolean,
+    isGiftTrx: boolean,
+    requestPayment: boolean,
+    activeWallet?: string,
+    lastAssignedTime?: Date
+  ) => Promise<void>,
+  goToStep: (step: string) => void,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  const phoneNumber = chatInput.trim();
 
-//   if (greetings.includes(chatInput.trim().toLowerCase())) {
-//     goToStep("start");
-//     helloMenu(chatInput);
-//   } else if (chatInput === "00") {
-//     (() => {
-//       goToStep("start");
-//       helloMenu("hi");
-//     })();
-//   } else if (chatInput != "0") {
-//     setLoading(true);
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput === "00") {
+    (() => {
+      goToStep("start");
+      // helloMenu("hi");
+    })();
+  } else if (chatInput != "0") {
+    setLoading(true);
 
-//     if (!phoneNumberPattern.test(phoneNumber)) {
-//       const newMessages: MessageType[] = [
-//         {
-//           type: "incoming",
-//           content: (
-//             <span>
-//               Please enter a valid phone number, <b>{phoneNumber}</b> is not a
-//               valid phone number.
-//             </span>
-//           ),
-//           timestamp: new Date(),
-//         },
-//       ];
-//       setLoading(false);
-//       addChatMessages(newMessages);
-//       return;
-//     }
+    if (!phoneNumberPattern.test(phoneNumber)) {
+      const newMessages: MessageType[] = [
+        {
+          type: "incoming",
+          content: (
+            <span>
+              Please enter a valid phone number, <b>{phoneNumber}</b> is not a
+              valid phone number.
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ];
+      setLoading(false);
+      addChatMessages(newMessages);
+      return;
+    }
 
-//     setSharedPhone(phoneNumber);
+    setSharedPhone(phoneNumber);
 
-//     const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
-//     const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-//     const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+    const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
+    const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+    const requestPayment = sharedPaymentMode.toLowerCase() === "request";
 
-//     const network =
-//       sharedCrypto.toLowerCase() === "usdt"
-//         ? sharedNetwork.toLowerCase()
-//         : sharedCrypto.toLowerCase();
+    const network =
+      sharedCrypto.toLowerCase() === "usdt"
+        ? sharedNetwork.toLowerCase()
+        : sharedCrypto.toLowerCase();
 
-//     if (!isGift && !requestPayment) {
-//       const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-//       const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+    if (!isGift && !requestPayment) {
+      const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+      const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
 
-//       const newMessages: MessageType[] = ethConnect
-//         ? [
-//             {
-//               type: "incoming",
-//               content: (
-//                 <div className="flex flex-col items-center">
-//                   <p className="mb-4">
-//                     You are going to be charged <b>{paymentAsset}</b> directly
-//                     from your {sharedCrypto} ({sharedNetwork}) wallet.
-//                   </p>
-//                   <MemoizedConfirmAndProceedButton
-//                     phoneNumber={phoneNumber}
-//                     network={network}
-//                   />
-//                 </div>
-//               ),
-//               timestamp: new Date(),
-//             },
-//           ]
-//         : [
-//             {
-//               type: "incoming",
-//               content: (
-//                 <div className="flex flex-col items-center">
-//                   <p className="mb-4">
-//                     Do you understand that you need to complete your payment
-//                     within <b>5 minutes</b>, otherwise you may lose your money.
-//                   </p>
-//                   <MemoizedConfirmAndProceedButton
-//                     phoneNumber={phoneNumber}
-//                     network={network}
-//                   />
-//                 </div>
-//               ),
-//               timestamp: new Date(),
-//             },
-//           ];
+      const newMessages: MessageType[] = ethConnect
+        ? [
+            {
+              type: "incoming",
+              content: (
+                <div className="flex flex-col items-center">
+                  <p className="mb-4">
+                    You are going to be charged <b>{paymentAsset}</b> directly
+                    from your {sharedCrypto} ({sharedNetwork}) wallet.
+                  </p>
+                  //{" "}
+                  <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  />
+                  {/* <MemoizedConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    network={network}
+                  /> */}
+                </div>
+              ),
+              timestamp: new Date(),
+            },
+          ]
+        : [
+            {
+              type: "incoming",
+              content: (
+                <div className="flex flex-col items-center">
+                  <p className="mb-4">
+                    Do you understand that you need to complete your payment
+                    within <b>5 minutes</b>, otherwise you may lose your money.
+                  </p>
+                  {/* <MemoizedConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    network={network}
+                  /> */}
+                  <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  />
+                </div>
+              ),
+              timestamp: new Date(),
+            },
+          ];
 
-//       setLoading(false);
-//       addChatMessages(newMessages);
-//     } else {
-//       console.log(
-//         "Calling processTransaction with:",
-//         phoneNumber,
-//         isGift,
-//         isGiftTrx,
-//         requestPayment
-//       );
+      setLoading(false);
+      addChatMessages(newMessages);
+    } else {
+      console.log(
+        "Calling processTransaction with:",
+        phoneNumber,
+        isGift,
+        isGiftTrx,
+        requestPayment
+      );
 
-//       await processTransaction(phoneNumber, isGift, isGiftTrx, requestPayment);
-//     }
-//   } else {
-//     setLoading(false);
-//     console.log("User input not recognized");
-//   }
-// };
+      await processTransaction(phoneNumber, isGift, isGiftTrx, requestPayment);
+    }
+  } else {
+    setLoading(false);
+    console.log("User input not recognized");
+  }
+};
 
 // async function processTransaction(
 //   phoneNumber: string,
@@ -731,31 +787,31 @@ export const handleConfirmTransaction = async (
   }
 };
 
- // ALLOW USER TO START A NEW TRANSACTION OR CONTACT SUPPORT
- export const handleTransactionProcessing = async (
-   addChatMessages: (messages: MessageType[]) => void,
-   chatInput: string,
-   nextStep: (step: string) => void,
-   prevStep: () => void,
-   goToStep: (step: string) => void,
- ) => {
-   if (greetings.includes(chatInput.trim().toLowerCase())) {
-     goToStep("start");
-     // helloMenu(chatInput);
-   } else if (chatInput.trim() === "00") {
-     (() => {
-       goToStep("start");
-       // helloMenu("hi");
-     })();
-   } else if (chatInput.trim() === "0") {
-     (() => {
-       prevStep();
-       displaySearchBank(addChatMessages, nextStep);
-     })();
-   } else if (chatInput.trim() === "1") {
-     // helloMenu("hi");
-   } else if (chatInput.trim() === "2") {
-     goToStep("supportWelcome");
-     displayCustomerSupportWelcome(addChatMessages, nextStep);
-   }
- };
+// ALLOW USER TO START A NEW TRANSACTION OR CONTACT SUPPORT
+export const handleTransactionProcessing = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  nextStep: (step: string) => void,
+  prevStep: () => void,
+  goToStep: (step: string) => void
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput.trim() === "00") {
+    (() => {
+      goToStep("start");
+      // helloMenu("hi");
+    })();
+  } else if (chatInput.trim() === "0") {
+    (() => {
+      prevStep();
+      displaySearchBank(addChatMessages, nextStep);
+    })();
+  } else if (chatInput.trim() === "1") {
+    // helloMenu("hi");
+  } else if (chatInput.trim() === "2") {
+    goToStep("supportWelcome");
+    displayCustomerSupportWelcome(addChatMessages, nextStep);
+  }
+};
