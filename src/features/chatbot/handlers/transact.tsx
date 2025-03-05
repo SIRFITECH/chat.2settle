@@ -1,7 +1,9 @@
 import { MessageType } from "@/types/general_types";
 import {
+  displayCharge,
   displayHowToEstimation,
   displayPayIn,
+  displayRequestPaymentSummary,
   displayTransactCrypto,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
@@ -9,8 +11,9 @@ import { displayKYCInfo } from "@/menus/request_paycard";
 import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import { displayReportlyWelcome } from "@/menus/reportly";
 import { displayTransactIDWelcome } from "@/menus/transaction_id";
-import { helloMenu, welcomeMenu } from "./general";
+import { helloMenu } from "./general";
 import { greetings } from "../helpers/ChatbotConsts";
+import { welcomeMenu } from "./menus";
 
 /**
  * handle crypto transaction, payment request and gifts
@@ -376,4 +379,232 @@ export const handleEstimateAsset = async (
   }
 };
 
-// // ... Continue extracting all other functions
+// HANDLE NETWORK FOR DOLLAR TRANSFER
+export const handleNetwork = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  sharedPaymentMode: string,
+  sharedGiftId: string,
+  nextStep: (step: string) => void,
+  prevStep: () => void,
+  goToStep: (step: string) => void,
+  setSharedTicker: (ticker: string) => void,
+  setSharedCrypto: (crypto: string) => void,
+  setSharedNetwork: (network: string) => void
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    //  helloMenu(chatInput);
+  } else if (chatInput === "00") {
+    (() => {
+      goToStep("start");
+      //  helloMenu("hi");
+    })();
+  } else if (chatInput === "0") {
+    (() => {
+      prevStep();
+      displayTransferMoney(addChatMessages);
+    })();
+  } else if (chatInput === "1") {
+    displayHowToEstimation(addChatMessages, "USDT (ERC20)", sharedPaymentMode);
+
+    setSharedTicker("USDT");
+    setSharedCrypto("USDT");
+    setSharedNetwork("ERC20");
+    nextStep("payOptions");
+  } else if (chatInput === "2") {
+    displayHowToEstimation(addChatMessages, "USDT (TRC20)", sharedPaymentMode);
+    setSharedTicker("USDT");
+    setSharedCrypto("USDT");
+    setSharedNetwork("TRC20");
+    nextStep("payOptions");
+  } else if (chatInput === "3") {
+    // sharedGiftId
+
+    console.log("This is the requestID:", sharedGiftId);
+    sharedPaymentMode.toLowerCase() === "request"
+      ? displayRequestPaymentSummary(
+          addChatMessages,
+          "",
+          sharedPaymentMode,
+          "738920"
+        )
+      : (displayHowToEstimation(
+          addChatMessages,
+          "USDT (BEP20)",
+          sharedPaymentMode
+        ),
+        nextStep("payOptions"));
+    setSharedTicker("USDT");
+    setSharedCrypto("USDT");
+    setSharedNetwork("BEP20");
+  } else {
+    addChatMessages([
+      {
+        type: "incoming",
+        content:
+          "Invalid choice. Choose your prefered network or say Hi if you are stock.",
+        timestamp: new Date(),
+      },
+    ]);
+  }
+};
+
+// HANDLE THE ASSETS FOR ESTIMATION
+export const handlePayOptions = (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  sharedPaymentMode: string,
+  sharedCrypto: string,
+  sharedNetwork: string,
+  sharedRate: string,
+  sharedTicker: string,
+  sharedAssetPrice: string,
+  nextStep: (step: string) => void,
+  prevStep: () => void,
+  goToStep: (step: string) => void,
+  setSharedEstimateAsset: (estimateAsset: string) => void
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput === "00") {
+    (() => {
+      goToStep("start");
+      // helloMenu("hi");
+    })();
+  } else if (chatInput === "0") {
+    (() => {
+      prevStep();
+      displayHowToEstimation(
+        addChatMessages,
+        `${sharedCrypto} (${sharedNetwork})`,
+        sharedPaymentMode
+      );
+    })();
+  } else if (chatInput === "1") {
+    displayPayIn(
+      addChatMessages,
+      "Naira",
+      sharedRate,
+      sharedTicker,
+      sharedAssetPrice,
+      sharedPaymentMode
+    );
+    setSharedEstimateAsset("Naira");
+    nextStep("charge");
+  } else if (chatInput === "2") {
+    displayPayIn(
+      addChatMessages,
+      "Dollar",
+      sharedRate,
+      sharedTicker,
+      chatInput,
+      sharedPaymentMode
+    );
+    setSharedEstimateAsset("Dollar");
+    nextStep("charge");
+  } else if (chatInput === "3") {
+    console.log("We are paying with crypto");
+    displayPayIn(
+      addChatMessages,
+      sharedCrypto,
+      sharedRate,
+      sharedTicker,
+      sharedAssetPrice,
+      sharedPaymentMode
+    );
+    setSharedEstimateAsset(sharedCrypto);
+    nextStep("charge");
+  } else if (sharedPaymentMode.trim().toLowerCase() === "request") {
+    displayPayIn(
+      addChatMessages,
+      "Naira",
+      sharedRate,
+      "",
+      "",
+      sharedPaymentMode
+    );
+    setSharedEstimateAsset("Naira");
+    nextStep("charge");
+  } else {
+    addChatMessages([
+      {
+        type: "incoming",
+        content: "Invalid choice. Please choose a valid pay option.",
+
+        timestamp: new Date(),
+      },
+    ]);
+  }
+};
+
+// HANDLE ESTIMATE IN SELECTED ASSET
+export const handleCharge = (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  sharedPaymentMode: string,
+  sharedEstimateAsset: string,
+  sharedCrypto: string,
+  sharedNetwork: string,
+  sharedRate: string,
+  sharedAssetPrice: string,
+  nextStep: (step: string) => void,
+  prevStep: () => void,
+  goToStep: (step: string) => void,
+  setSharedAmount: (sharedAmount: string) => void,
+  setSharedCharge: React.Dispatch<React.SetStateAction<string>>,
+  setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
+  setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
+  setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
+  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    // helloMenu(chatInput);
+  } else if (chatInput === "00") {
+    (() => {
+      // console.log("Going back from handlePayOptions");
+      goToStep("start");
+      // helloMenu("hi");
+    })();
+  } else if (chatInput === "0") {
+    (() => {
+      // console.log("Going back from handlePayOptions");
+      prevStep();
+      displayHowToEstimation(
+        addChatMessages,
+        `${sharedCrypto} (${sharedNetwork})`,
+        sharedPaymentMode
+      );
+    })();
+  } else if (chatInput != "0") {
+    setSharedAmount(chatInput.trim());
+    console.log("Lets see what comes in", chatInput.trim());
+    displayCharge(
+      addChatMessages,
+      nextStep,
+      chatInput,
+      sharedEstimateAsset,
+      sharedRate,
+      sharedAssetPrice,
+      sharedCrypto,
+      setSharedCharge,
+      setSharedPaymentAssetEstimate,
+      setSharedPaymentNairaEstimate,
+      setSharedNairaCharge,
+      setSharedChargeForDB,
+      sharedPaymentMode
+    );
+  } else {
+    addChatMessages([
+      {
+        type: "incoming",
+        content:
+          "Invalid choice. Do you want to include charge in your estimate or not?.",
+
+        timestamp: new Date(),
+      },
+    ]);
+  }
+};
