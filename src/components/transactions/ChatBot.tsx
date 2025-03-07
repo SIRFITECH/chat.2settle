@@ -128,6 +128,7 @@ import {
   handlePhoneNumber,
   handleTransactionProcessing,
 } from "@/features/chatbot/handlers/transactionClosing";
+import { handleCustomerSupportAssurance } from "@/features/chatbot/handlers/support";
 // import { helloMenu } from "@/features/chatbot/handlers/general";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
@@ -1320,32 +1321,32 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
   // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
 
-  // ALLOW USER TO USER THEIR TRANSACTION ID TO MAKE A COMPLAIN
-  const handleCustomerSupportAssurance = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "0") {
-      (() => {
-        prevStep();
-        displayCustomerSupportWelcome(addChatMessages, nextStep);
-      })();
-    } else if (chatInput === "1") {
-      displayCustomerSupportAssurance(addChatMessages, nextStep);
-      helloMenu("hi");
-    } else if (chatInput === "2") {
-      displayEnterTransactionId(addChatMessages, nextStep);
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
+  // // ALLOW USER TO USER THEIR TRANSACTION ID TO MAKE A COMPLAIN
+  // const handleCustomerSupportAssurance = (chatInput: string) => {
+  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
+  //     goToStep("start");
+  //     helloMenu(chatInput);
+  //   } else if (chatInput === "0") {
+  //     (() => {
+  //       prevStep();
+  //       displayCustomerSupportWelcome(addChatMessages, nextStep);
+  //     })();
+  //   } else if (chatInput === "1") {
+  //     displayCustomerSupportAssurance(addChatMessages, nextStep);
+  //     helloMenu("hi");
+  //   } else if (chatInput === "2") {
+  //     displayEnterTransactionId(addChatMessages, nextStep);
+  //   } else {
+  //     addChatMessages([
+  //       {
+  //         type: "incoming",
+  //         content:
+  //           "Invalid choice. You need to choose an action from the options",
+  //         timestamp: new Date(),
+  //       },
+  //     ]);
+  //   }
+  // };
 
   // ALLOW USERS ENTER TRANSACTION ID
   const handleTransactionId = async (chatInput: string) => {
@@ -2255,7 +2256,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
         case "assurance":
           console.log("Current step is assurance ");
-          handleCustomerSupportAssurance(chatInput);
+          handleCustomerSupportAssurance(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            prevStep,
+            goToStep
+          );
           setChatInput("");
           break;
 
