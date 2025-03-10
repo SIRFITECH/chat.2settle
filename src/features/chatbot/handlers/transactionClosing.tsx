@@ -1,36 +1,21 @@
 import {
-  checkRequestExists,
   checkTranscationExists,
-  createTransaction,
   fetchBankDetails,
-  isGiftValid,
-  updateGiftTransaction,
-  updateTransaction,
+  updateTransaction
 } from "@/helpers/api_calls";
+import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
+import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import {
   displayConfirmPayment,
   displayContinueToPay,
   displayEnterPhone,
-  displaySearchBank,
-  displaySendPayment,
+  displaySearchBank
 } from "@/menus/transact_crypto";
 import { MessageType, UserBankData } from "@/types/general_types";
-import { greetings } from "../helpers/ChatbotConsts";
-import { displayCustomerSupportWelcome } from "@/menus/customer_support";
-import { helloMenu } from "./general";
-import { formatCurrency } from "@/helpers/format_currency";
-import { getFormattedDateTime } from "@/helpers/format_date";
 import {
-  displayGiftFeedbackMessage,
-  displayEnterId,
-} from "@/menus/transaction_id";
-import {
-  phoneNumberPattern,
-  formatPhoneNumber,
-  generateTransactionId,
-  generateGiftId,
+  phoneNumberPattern
 } from "@/utils/utilities";
-import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
+import { greetings } from "../helpers/ChatbotConsts";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
 export const handleContinueToPay = async (
@@ -153,29 +138,6 @@ export const handlePhoneNumber = async (
     displayEnterPhone(addChatMessages, nextStep);
   }
 };
-
-// export const MemoizedConfirmAndProceedButton = useCallback(
-//   ({ phoneNumber, network }: { phoneNumber: string; network: string }) => (
-//     <ConfirmAndProceedButton
-//       phoneNumber={phoneNumber}
-//       setLoading={setLoading}
-//       sharedPaymentMode={sharedPaymentMode}
-//       processTransaction={processTransaction}
-//       network={network}
-//       connectedWallet={ethConnect}
-//       amount={sharedPaymentAssetEstimate}
-//     />
-//   ),
-//   [
-//     setLoading,
-//     processTransaction,
-//     sharedPaymentMode,
-//     ethConnect,
-//     sharedPaymentAssetEstimate,
-//   ]
-// );
-
-// final part to finish transaction
 export const handleCryptoPayment = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,

@@ -128,7 +128,15 @@ import {
   handlePhoneNumber,
   handleTransactionProcessing,
 } from "@/features/chatbot/handlers/transactionClosing";
-import { handleCustomerSupportAssurance } from "@/features/chatbot/handlers/support";
+import {
+  handleCompleteTransactionId,
+  handleCustomerSupportAssurance,
+  handleKYCInfo,
+  handleMakeComplain,
+  handleRegKYC,
+  handleThankForKYCReg,
+  handleTransactionId,
+} from "@/features/chatbot/handlers/support";
 // import { helloMenu } from "@/features/chatbot/handlers/general";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
@@ -1253,89 +1261,37 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
-  const handleKYCInfo = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "1") {
-      displayKYCInfo(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      helloMenu("hi");
-      goToStep("start");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
+  // // const handleKYCInfo = (chatInput: string) => {
+  // //   if (greetings.includes(chatInput.trim().toLowerCase())) {
+  // //     goToStep("start");
+  // //     helloMenu(chatInput);
+  // //   } else if (chatInput === "1") {
+  // //     displayKYCInfo(addChatMessages, nextStep);
+  // //   } else if (chatInput === "2") {
+  // //     helloMenu("hi");
+  // //     goToStep("start");
+  // //   } else {
+  // //     addChatMessages([
+  // //       {
+  // //         type: "incoming",
+  // //         content:
+  // //           "Invalid choice. You need to choose an action from the options",
+  // //         timestamp: new Date(),
+  // //       },
+  // //     ]);
+  // //   }
+  // // };
 
-  // GIVE USERS LINK TO REG
-  const handleRegKYC = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "1") {
-      displayRegKYC(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      helloMenu("hi");
-      goToStep("start");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // GIVE USERS LINK TO REG
-  const handleThankForKYCReg = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "1") {
-      displayThankForKYCReg(addChatMessages, nextStep);
-      helloMenu("hi");
-    } else if (chatInput === "2") {
-      goToStep("start");
-      helloMenu("hi");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
-
-  // // ALLOW USER TO USER THEIR TRANSACTION ID TO MAKE A COMPLAIN
-  // const handleCustomerSupportAssurance = (chatInput: string) => {
+  // // GIVE USERS LINK TO REG
+  // const handleRegKYC = (chatInput: string) => {
   //   if (greetings.includes(chatInput.trim().toLowerCase())) {
   //     goToStep("start");
   //     helloMenu(chatInput);
-  //   } else if (chatInput === "0") {
-  //     (() => {
-  //       prevStep();
-  //       displayCustomerSupportWelcome(addChatMessages, nextStep);
-  //     })();
   //   } else if (chatInput === "1") {
-  //     displayCustomerSupportAssurance(addChatMessages, nextStep);
-  //     helloMenu("hi");
+  //     displayRegKYC(addChatMessages, nextStep);
   //   } else if (chatInput === "2") {
-  //     displayEnterTransactionId(addChatMessages, nextStep);
+  //     helloMenu("hi");
+  //     goToStep("start");
   //   } else {
   //     addChatMessages([
   //       {
@@ -1348,139 +1304,28 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   //   }
   // };
 
-  // ALLOW USERS ENTER TRANSACTION ID
-  const handleTransactionId = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput !== "0") {
-      const transaction_id = chatInput.trim();
-      setLoading(true);
-      setSharedTransactionId(transaction_id);
-      const transactionExists = (await checkTranscationExists(transaction_id))
-        .exists;
-
-      console.log(
-        "User phone:",
-        (await checkTranscationExists(transaction_id)).user
-          ?.customer_phoneNumber
-      );
-
-      setLoading(false);
-      // IF TRANSACTION_ID EXIST IN DB,
-      if (transactionExists) {
-        displayMakeComplain(addChatMessages, nextStep);
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid transaction_id. Try again",
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // MAKE COMPLAIN
-  const handleMakeComplain = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayEnterTransactionId(addChatMessages, nextStep);
-      })();
-    } else if (chatInput !== "0") {
-      const message = chatInput.trim();
-      const words = message.trim().split(/\s+/);
-      let validMessage = words.length < 100 ? true : false;
-      // IF TRANSACTION_ID EXIST IN DB,
-
-      if (validMessage) {
-        setLoading(true);
-        const complainId = generateComplainId();
-        const phone = (await checkTranscationExists(sharedTransactionId)).user
-          ?.customer_phoneNumber;
-        console.log("User phone number is:", phone);
-
-        await createComplain({
-          transaction_id: sharedTransactionId,
-          complain: message,
-          status: "pending",
-          Customer_phoneNumber: phone,
-          complain_id: complainId,
-        });
-        setLoading(false);
-        addChatMessages([
-          {
-            type: "incoming",
-            content:
-              "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
-            timestamp: new Date(),
-          },
-        ]);
-        helloMenu("hi");
-        goToStep("start");
-      } else {
-        console.log("Invalid message length");
-        addChatMessages([
-          {
-            type: "incoming",
-            content:
-              "Invalid entry, Please enter your message in not more that 100 words",
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-  // ENTER TRANSACTION ID TO COMPLETE TRANSACTION
-  const handleCompleteTransactionId = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        choiceMenu("2");
-      })();
-    } else if (chatInput === "1") {
-      displayEnterCompleteTransactionId(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      console.log("Let's see what is going on HERE!!!");
-      displayEnterId(addChatMessages, nextStep, "Claim Gift");
-      setSharedPaymentMode("Claim Gift");
-    } else if (chatInput === "3") {
-      displayEnterId(addChatMessages, nextStep, "request");
-      setSharedPaymentMode("request");
-    }
-  };
+  // GIVE USERS LINK TO REG
+  // const handleThankForKYCReg = (chatInput: string) => {
+  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
+  //     goToStep("start");
+  //     helloMenu(chatInput);
+  //   } else if (chatInput === "1") {
+  //     displayThankForKYCReg(addChatMessages, nextStep);
+  //     helloMenu("hi");
+  //   } else if (chatInput === "2") {
+  //     goToStep("start");
+  //     helloMenu("hi");
+  //   } else {
+  //     addChatMessages([
+  //       {
+  //         type: "incoming",
+  //         content:
+  //           "Invalid choice. You need to choose an action from the options",
+  //         timestamp: new Date(),
+  //       },
+  //     ]);
+  //   }
+  // };
 
   // CUSTOMER TRANSACTION ID SEQUENCE FUNCTIONS
 
@@ -2232,19 +2077,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
         case "kycInfo":
           console.log("Current step is kycInfo ");
-          handleKYCInfo(chatInput);
+          handleKYCInfo(addChatMessages, chatInput, nextStep, goToStep);
           setChatInput("");
           break;
 
         case "kycReg":
           console.log("Current step is kycReg ");
-          handleRegKYC(chatInput);
+          handleRegKYC(addChatMessages, chatInput, nextStep, goToStep);
           setChatInput("");
           break;
 
         case "thankForKYCReg":
           console.log("Current step is thankForKYCReg ");
-          handleThankForKYCReg(chatInput);
+          handleThankForKYCReg(addChatMessages, chatInput, nextStep, goToStep);
           setChatInput("");
           break;
 
@@ -2268,19 +2113,42 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
         case "entreTrxId":
           console.log("Current step is entreTrxId ");
-          handleTransactionId(chatInput);
+          handleTransactionId(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            setSharedTransactionId,
+            setLoading
+          );
+
           setChatInput("");
           break;
 
         case "makeComplain":
           console.log("Current step is makeComplain ");
-          handleMakeComplain(chatInput);
+          handleMakeComplain(
+            addChatMessages,
+            chatInput,
+            sharedTransactionId,
+            goToStep,
+            goToStep,
+            prevStep,
+            setLoading
+          );
           setChatInput("");
           break;
 
         case "completeTransactionId":
           console.log("Current step is completeTransactionId ");
-          handleCompleteTransactionId(chatInput);
+          handleCompleteTransactionId(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setSharedPaymentMode
+          );
           setChatInput("");
           break;
 
