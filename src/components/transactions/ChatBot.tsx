@@ -16,12 +16,9 @@ import {
   checkTranscationExists,
   createComplain,
   createTransaction,
-  fetchBankDetails,
-  fetchBankNames,
   fetchCoinPrice,
   isGiftValid,
-  updateGiftTransaction,
-  updateTransaction,
+  updateGiftTransaction
 } from "../../helpers/api_calls";
 import { formatCurrency } from "../../helpers/format_currency";
 import { getFormattedDateTime } from "../../helpers/format_date";
@@ -45,17 +42,9 @@ import {
   isValidWalletAddress,
   makeAReport,
 } from "@/helpers/api_call/reportly_page_calls";
-import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 import {
-  displayCharge,
-  displayConfirmPayment,
-  displayContinueToPay,
-  displayEnterAccountNumber,
-  displayEnterPhone,
-  displaySearchBank,
-  displaySelectBank,
   displaySendPayment,
-  displayTransferMoney,
+  displayTransferMoney
 } from "@/menus/transact_crypto";
 import { reportData } from "@/types/reportly_types";
 import {
@@ -119,8 +108,6 @@ import {
   handlePayOptions,
   handleTransferMoney,
 } from "@/features/chatbot/handlers/transact";
-import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
-import { getRates } from "@/services/chatBotService";
 import {
   handleConfirmTransaction,
   handleContinueToPay,
@@ -128,6 +115,8 @@ import {
   handlePhoneNumber,
   handleTransactionProcessing,
 } from "@/features/chatbot/handlers/transactionClosing";
+import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { getRates } from "@/services/chatBotService";
 // import { helloMenu } from "@/features/chatbot/handlers/general";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
@@ -141,10 +130,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const narration = "BwB quiz price";
 
   const chatboxRef = useRef<HTMLDivElement>(null);
-
-  // const [visibleDateSeparators, setVisibleDateSeparators] = useState<
-  //   Set<string>
-  // >(new Set());
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -291,8 +276,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     <TelegramIntegration />;
   }, []);
 
-  const telFirstName = "";
-  // isTelUser ? telegramUser?.first_name : "";
+  const telFirstName = isTelUser ? telegramUser?.first_name : "";
 
   // set crypto asset price
   useEffect(() => {
@@ -705,138 +689,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
     setChatInput("");
   };
-
-  const MemoizedConfirmAndProceedButton = useCallback(
-    ({ phoneNumber, network }: { phoneNumber: string; network: string }) => (
-      <ConfirmAndProceedButton
-        phoneNumber={phoneNumber}
-        setLoading={setLoading}
-        sharedPaymentMode={sharedPaymentMode}
-        processTransaction={processTransaction}
-        network={network}
-        connectedWallet={ethConnect}
-        amount={sharedPaymentAssetEstimate}
-      />
-    ),
-    [
-      setLoading,
-      processTransaction,
-      sharedPaymentMode,
-      ethConnect,
-      sharedPaymentAssetEstimate,
-    ]
-  );
-
-  // // final part to finish transaction
-  // const handleCryptoPayment = async (chatInput: string) => {
-  //   const phoneNumber = chatInput.trim();
-
-  //   if (greetings.includes(chatInput.trim().toLowerCase())) {
-  //     goToStep("start");
-  //     helloMenu(chatInput);
-  //   } else if (chatInput === "00") {
-  //     (() => {
-  //       goToStep("start");
-  //       helloMenu("hi");
-  //     })();
-  //   } else if (chatInput != "0") {
-  //     setLoading(true);
-
-  //     if (!phoneNumberPattern.test(phoneNumber)) {
-  //       const newMessages: MessageType[] = [
-  //         {
-  //           type: "incoming",
-  //           content: (
-  //             <span>
-  //               Please enter a valid phone number, <b>{phoneNumber}</b> is not a
-  //               valid phone number.
-  //             </span>
-  //           ),
-  //           timestamp: new Date(),
-  //         },
-  //       ];
-  //       setLoading(false);
-  //       addChatMessages(newMessages);
-  //       return;
-  //     }
-
-  //     setSharedPhone(phoneNumber);
-
-  //     const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
-  //     const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-  //     const requestPayment = sharedPaymentMode.toLowerCase() === "request";
-
-  //     const network =
-  //       sharedCrypto.toLowerCase() === "usdt"
-  //         ? sharedNetwork.toLowerCase()
-  //         : sharedCrypto.toLowerCase();
-
-  //     if (!isGift && !requestPayment) {
-  //       const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-  //       const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
-
-  //       const newMessages: MessageType[] = ethConnect
-  //         ? [
-  //             {
-  //               type: "incoming",
-  //               content: (
-  //                 <div className="flex flex-col items-center">
-  //                   <p className="mb-4">
-  //                     You are going to be charged <b>{paymentAsset}</b> directly
-  //                     from your {sharedCrypto} ({sharedNetwork}) wallet.
-  //                   </p>
-  //                   <MemoizedConfirmAndProceedButton
-  //                     phoneNumber={phoneNumber}
-  //                     network={network}
-  //                   />
-  //                 </div>
-  //               ),
-  //               timestamp: new Date(),
-  //             },
-  //           ]
-  //         : [
-  //             {
-  //               type: "incoming",
-  //               content: (
-  //                 <div className="flex flex-col items-center">
-  //                   <p className="mb-4">
-  //                     Do you understand that you need to complete your payment
-  //                     within <b>5 minutes</b>, otherwise you may lose your
-  //                     money.
-  //                   </p>
-  //                   <MemoizedConfirmAndProceedButton
-  //                     phoneNumber={phoneNumber}
-  //                     network={network}
-  //                   />
-  //                 </div>
-  //               ),
-  //               timestamp: new Date(),
-  //             },
-  //           ];
-
-  //       setLoading(false);
-  //       addChatMessages(newMessages);
-  //     } else {
-  //       console.log(
-  //         "Calling processTransaction with:",
-  //         phoneNumber,
-  //         isGift,
-  //         isGiftTrx,
-  //         requestPayment
-  //       );
-
-  //       await processTransaction(
-  //         phoneNumber,
-  //         isGift,
-  //         isGiftTrx,
-  //         requestPayment
-  //       );
-  //     }
-  //   } else {
-  //     setLoading(false);
-  //     console.log("User input not recognized");
-  //   }
-  // };
 
   async function processTransaction(
     phoneNumber: string,
