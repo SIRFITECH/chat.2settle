@@ -1,15 +1,15 @@
-import React, { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
-import { CountdownTimer } from "@/helpers/format_date";
-import { handleConfirm } from "@/features/transact/confirmButton/handleConfirm";
-import useConfirmAndProceedState from "./useConfirmAndProceedState";
 import ConfirmDialog from "@/features/transact/confirmButton/ConfirmDialog";
+import { handleConfirm } from "@/features/transact/confirmButton/handleConfirm";
 import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
+import { CountdownTimer } from "@/helpers/format_date";
+import { CheckCircle } from "lucide-react";
+import React, { useCallback } from "react";
+import useConfirmAndProceedState from "./useConfirmAndProceedState";
 
 export interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
-  setLoading: (loading: boolean) => void;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   sharedPaymentMode: string;
   processTransaction: (
     phoneNumber: string,
@@ -91,14 +91,6 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
             connectedWallet
               ? handleBlockchainPayment()
               : handleConfirmCallback()
-          // handleConfirm({
-          //     setState,
-          //     phoneNumber,
-          //     setLoading,
-          //     sharedPaymentMode,
-          //     processTransaction,
-          //     network,
-          //   })
         }
       />
       {/* button  */}

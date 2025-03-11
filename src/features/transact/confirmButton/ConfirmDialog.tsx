@@ -24,6 +24,7 @@ const ConfirmDialog = ({
   onClose,
   onConfirm,
 }: Props) => {
+  console.log("Dialog fired");
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>

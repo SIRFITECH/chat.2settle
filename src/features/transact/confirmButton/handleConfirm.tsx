@@ -23,7 +23,7 @@ export const handleConfirm = async ({
     }>
   >;
   phoneNumber: string;
-  setLoading: (loading: boolean) => void;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   sharedPaymentMode: string;
   processTransaction: (
     phoneNumber: string,
