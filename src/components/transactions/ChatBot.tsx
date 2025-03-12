@@ -1,6 +1,5 @@
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, {
   useCallback,
   useEffect,
@@ -29,11 +28,10 @@ import {
   getChatId,
   saveChatId,
 } from "../../utils/utilities";
-import ShortenedAddress from "../shared/ShortenAddress";
 
 import {
   displaySendPayment,
-  displayTransferMoney
+  displayTransferMoney,
 } from "@/menus/transact_crypto";
 import {
   differenceInDays,
@@ -73,6 +71,7 @@ import {
   handleSearchBank,
   handleSelectBank,
 } from "@/features/chatbot/handlers/banking";
+import { choiceMenu, helloMenu } from "@/features/chatbot/handlers/general";
 import {
   handleEnterFraudsterWalletAddress,
   handleEnterReporterPhoneNumber,
@@ -108,7 +107,7 @@ import {
 } from "@/features/chatbot/handlers/transactionClosing";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 import { getRates } from "@/services/chatBotService";
-// import { helloMenu } from "@/features/chatbot/handlers/general";
+import { handleGiftRequestId } from "@/features/chatbot/handlers/gift";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -390,296 +389,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     });
   }, [chatMessages]);
-
-  // OPERATINAL FUNCTIONS
-  // ON HI | HELLO | HOWDY | HEY PROMPT
-  const helloMenu = (chatInput: string) => {
-    console.log("we are at the start");
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      window.localStorage.setItem("transactionID", "");
-      setSharedPaymentMode("");
-      if (walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                How far {telFirstName} 👋
-                <br />
-                <br />
-                You are connected as{" "}
-                <b>
-                  <ShortenedAddress wallet={wallet} />
-                </b>
-                <br />
-                <br />
-                1. To disconnect wallet <br />
-                2. Continue to transact
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("chooseAction");
-      } else {
-        setSharedPaymentMode("");
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                How far {telFirstName}👋
-                <br />
-                <br />
-                Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
-                assistance, <br />
-                <b>Your wallet is not connected,</b> reply with:
-                <br />
-                <br />
-                1. To connect wallet <br />
-                2. To just continue
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        console.log("Wallet not connected");
-      }
-      nextStep("chooseAction");
-    }
-  };
-
-  // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
-  const welcomeMenu = () => {
-    if (walletIsConnected) {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName} 👋
-              <br />
-              <br />
-              You are connected as
-              <b>
-                <ShortenedAddress wallet={wallet} />
-              </b>
-              <br />
-              <br />
-              Your wallet is connected. The current rate is
-              <b> {formattedRate}/$1</b>
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: (
-            <span>
-              1. Transact Crypto
-              <br />
-              2. Request for paycard
-              <br />
-              3. Customer support
-              <br />
-              4. Transaction ID
-              <br />
-              5. Reportly,
-            </span>
-          ),
-        },
-      ] as unknown as MessageType[]);
-    } else {
-      {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued <b>without connecting your wallet</b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ {telFirstName}, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    }
-  };
-
-  // TRANSACT CRYPTO SEQUENCE FUNCTIONS
-  const choiceMenu = (chatInput: string) => {
-    const choice = chatInput.trim();
-    if (greetings.includes(choice.toLowerCase())) {
-      helloMenu(choice);
-      goToStep("start");
-    } else if (choice === "0") {
-      prevStep();
-      helloMenu("hi");
-    } else if (choice.toLowerCase() === "1") {
-      if (!walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <ConnectButton />,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Type to go back:
-                <br />
-                0. Go Back
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <ConnectButton />,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Type to go back:
-                <br />
-                0. Go Back
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      }
-    } else if (choice.toLowerCase() === "2") {
-      if (!walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued <b>without connecting your wallet</b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued as{" "}
-                <b>
-                  <ShortenedAddress wallet={wallet} />
-                </b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              You need to make a valid choice
-              <br />
-              <br />
-              Please Try again, or say 'Hi' or 'Hello' to start over
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-    }
-    setChatInput("");
-  };
   async function processTransaction(
     phoneNumber: string,
     isGift: boolean,
@@ -731,7 +440,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
             setLoading(false);
             displayGiftFeedbackMessage(addChatMessages, nextStep);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
           } else if (giftClaimed) {
             setLoading(false);
             addChatMessages([
@@ -741,7 +459,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           } else if (paymentPending) {
             setLoading(false);
@@ -763,7 +490,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           } else if (giftNotPaid) {
             setLoading(false);
@@ -779,7 +515,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           } else {
             setLoading(false);
@@ -796,7 +541,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           }
         } catch (error) {
@@ -997,7 +751,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         );
         setLoading(false);
         nextStep("start");
-        helloMenu("hi");
+        // helloMenu("hi");
+        helloMenu(
+          addChatMessages,
+          "hi",
+          nextStep,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          setSharedPaymentMode
+        );
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
@@ -1094,81 +857,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
-  // ALLOW USERS ENTER GIFT ID
-  const handleGiftRequestId = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayTransactIDWelcome(addChatMessages, nextStep);
-      })();
-    } else if (chatInput !== "0") {
-      const needed_id = chatInput.trim();
-      setLoading(true);
-      setSharedGiftId(chatInput.trim());
-
-      try {
-        let giftExists = false;
-        let requestExists = false;
-
-        // Check if it's a gift or request
-        if (sharedPaymentMode === "Claim Gift") {
-          giftExists = (await checkGiftExists(needed_id)).exists;
-        } else {
-          requestExists = (await checkRequestExists(needed_id)).exists;
-        }
-
-        const idExists = giftExists || requestExists;
-
-        console.log("gift is processing");
-
-        // IF GIFT_ID EXIST IN DB,
-        if (idExists) {
-          if (giftExists) {
-            // Handle gift exists case
-            displayGiftFeedbackMessage(addChatMessages, nextStep);
-            helloMenu("hi");
-          } else if (requestExists) {
-            // Handle request exists case
-            // displayRequestFeedbackMessage(addChatMessages, nextStep);
-            displayTransferMoney(addChatMessages);
-            nextStep("estimateAsset");
-          }
-        } else {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: `Invalid ${
-                sharedPaymentMode === "Claim Gift" ? "gift" : "request"
-              }_id. Try again`,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      } catch (error) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Error checking ID. Please try again.",
-            timestamp: new Date(),
-          },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
   // THE ROOT FUNCTION
 
-  const handleConversation = async (chatInput: any) => {
+  const handleConversation = async (chatInput: string) => {
     setLoading(true);
     try {
       if (chatInput.trim()) {
@@ -1188,8 +879,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       switch (currentStep) {
         case "start":
           console.log("current step is start");
-
-          helloMenu(chatInput);
+          helloMenu(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            walletIsConnected,
+            wallet,
+            telFirstName,
+            setSharedPaymentMode
+          );
+          // helloMenu(chatInput);
           setChatInput("");
           setSharedPaymentMode("");
           break;
@@ -1197,7 +896,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "chooseAction":
           console.log("current step is chooseAction");
 
-          choiceMenu(chatInput);
+          choiceMenu(
+            addChatMessages,
+            chatInput,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
+            sharedRate,
+            nextStep,
+            prevStep,
+            goToStep,
+            setSharedPaymentMode
+          );
           setChatInput("");
           break;
 
@@ -1268,12 +978,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             chatInput,
             sharedPaymentMode,
             sharedGiftId,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
             nextStep,
             prevStep,
             goToStep,
             setSharedTicker,
             setSharedCrypto,
-            setSharedNetwork
+            setSharedNetwork,
+            setSharedTicker
           );
           setChatInput("");
           break;
@@ -1290,10 +1004,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             sharedRate,
             sharedTicker,
             sharedAssetPrice,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
             nextStep,
             prevStep,
             goToStep,
-            setSharedEstimateAsset
+            setSharedEstimateAsset,
+            setSharedPaymentMode
           );
           setChatInput("");
           break;
@@ -1310,6 +1028,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             sharedNetwork,
             sharedRate,
             sharedAssetPrice,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
             nextStep,
             prevStep,
             goToStep,
@@ -1318,7 +1039,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             setSharedPaymentAssetEstimate,
             setSharedPaymentNairaEstimate,
             setSharedNairaCharge,
-            setSharedChargeForDB
+            setSharedChargeForDB,
+            setSharedPaymentMode
           );
           setChatInput("");
           break;
@@ -1576,13 +1298,20 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
         case "giftFeedBack":
           console.log("Current step is giftFeedBack ");
-          handleGiftRequestId(chatInput);
-          setChatInput("");
-          break;
-
-        case "completetrxWithID":
-          console.log("Current step is trxIDFeedback ");
-          // handleReportlyWelcome(chatInput);
+          handleGiftRequestId(
+            addChatMessages,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
+            sharedPaymentMode,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setSharedPaymentMode,
+            setSharedGiftId,
+            setLoading
+          );
           setChatInput("");
           break;
 
@@ -1590,6 +1319,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           console.log("Current step is makeReport ");
           handleReportlyWelcome(
             addChatMessages,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
+            sharedRate,
             chatInput,
             nextStep,
             goToStep,
@@ -1704,34 +1437,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           setChatInput("");
           break;
       }
-
-      // const trimmedInput = chatInput.trim();
-      // if (!trimmedInput) return;
-
-      // const newMessage: MessageType = {
-      //   type: "incoming",
-      //   content: trimmedInput,
-      //   timestamp: new Date(),
-      // };
-      // addChatMessages([newMessage]);
-      // setChatInput("");
-      // if (greetings.includes(trimmedInput.toLowerCase())) {
-      //   goToStep("start");
-      //   return;
-      // }
-
-      // if (StepHandler[currentStep]) {
-      //   await StepHandler[currentStep](trimmedInput);
-      // } else {
-      //   addChatMessages([
-      //     {
-      //       type: "incoming",
-      //       content:
-      //         "Invalid choice. You can say 'Hi' or 'Hello' to start over",
-      //       timestamp: new Date(),
-      //     },
-      //   ]);
-      // }
     } catch (error) {
       console.error("Error in conversation:", error);
       onError?.(

@@ -19,6 +19,9 @@ import { MessageType } from "@/types/general_types";
 import { formatPhoneNumber, phoneNumberPattern } from "@/utils/utilities";
 import { reportData } from "../../../types/reportly_types";
 import { greetings } from "../helpers/ChatbotConsts";
+import { welcomeMenu } from "./general";
+import { WalletAddress } from "@/types/wallet_types";
+
 type DisplayReportlyPhoneNumber = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void
@@ -29,6 +32,10 @@ type DisplayReportlyPhoneNumber = (
 // first page for reportly, with 3 options and goBack
 export const handleReportlyWelcome = async (
   addChatMessages: (messages: MessageType[]) => void,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
+  sharedRate: string,
   chatInput: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
@@ -47,7 +54,13 @@ export const handleReportlyWelcome = async (
   } else if (chatInput.trim() === "0") {
     (() => {
       prevStep();
-      // welcomeMenu();
+      welcomeMenu(
+        addChatMessages,
+        sharedRate,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+      );
     })();
   } else if (chatInput === "1") {
     setSharedReportlyReportType("Track Transaction");
