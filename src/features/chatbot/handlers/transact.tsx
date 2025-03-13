@@ -14,6 +14,7 @@ import { displayTransactIDWelcome } from "@/menus/transaction_id";
 import { helloMenu } from "./general";
 import { greetings } from "../helpers/ChatbotConsts";
 import { welcomeMenu } from "./menus";
+import { WalletAddress } from "@/types/wallet_types";
 
 /**
  * handle crypto transaction, payment request and gifts
@@ -24,7 +25,7 @@ export const handleMakeAChoice = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   walletIsConnected: boolean,
-  wallet: `0x${string}` | undefined,
+  wallet: WalletAddress,
   telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
@@ -98,7 +99,7 @@ export const handleTransferMoney = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   walletIsConnected: boolean,
-  wallet: `0x${string}` | undefined,
+  wallet: WalletAddress,
   telFirstName: string,
   sharedPaymentMode: string,
   sharedRate: string,
@@ -172,7 +173,7 @@ export const handleEstimateAsset = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   walletIsConnected: boolean,
-  wallet: `0x${string}` | undefined,
+  wallet: WalletAddress,
   telFirstName: string,
   sharedPaymentMode: string,
   nextStep: (step: string) => void,
@@ -385,20 +386,40 @@ export const handleNetwork = async (
   chatInput: string,
   sharedPaymentMode: string,
   sharedGiftId: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
   setSharedTicker: (ticker: string) => void,
   setSharedCrypto: (crypto: string) => void,
-  setSharedNetwork: (network: string) => void
+  setSharedNetwork: (network: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    //  helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      //  helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {
@@ -460,18 +481,38 @@ export const handlePayOptions = (
   sharedRate: string,
   sharedTicker: string,
   sharedAssetPrice: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
-  setSharedEstimateAsset: (estimateAsset: string) => void
+  setSharedEstimateAsset: (estimateAsset: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {
@@ -549,6 +590,9 @@ export const handleCharge = (
   sharedNetwork: string,
   sharedRate: string,
   sharedAssetPrice: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
@@ -557,16 +601,33 @@ export const handleCharge = (
   setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
   setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
   setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
-  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>
+  setSharedChargeForDB: React.Dispatch<React.SetStateAction<string>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       // console.log("Going back from handlePayOptions");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {
