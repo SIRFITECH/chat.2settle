@@ -69,6 +69,7 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
 
   const isCopyButtonDisabled =
     state.hasCopyButtonBeenClicked || state.isExpired;
+  console.log("render call");
 
   return (
     <div className=" flex flex-col items-center space-y-4">
@@ -86,19 +87,21 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
           )
         }
         onClose={() => setState((prev) => ({ ...prev, isDialogOpen: false }))}
-        onConfirm={
-          () =>
-            connectedWallet
-              ? handleBlockchainPayment()
-              : handleConfirmCallback()
+        onConfirm={() =>
+          connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
         }
       />
+
       {/* button  */}
       <Button
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
         disabled={state.isButtonClicked}
         aria-busy={state.isProcessing}
-        onClick={() => setState((prev) => ({ ...prev, isDialogOpen: true }))}
+        onClick={() => {
+          if (!state.isDialogOpen) {
+            setState((prev) => ({ ...prev, isDialogOpen: true }));
+          }
+        }}
       >
         {state.isProcessing ? (
           "Generating wallet for you..."
