@@ -1,6 +1,5 @@
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import React, {
   useCallback,
   useEffect,
@@ -13,15 +12,10 @@ import { useSharedState } from "../../context/SharedStateContext";
 import {
   checkGiftExists,
   checkRequestExists,
-  checkTranscationExists,
-  createComplain,
   createTransaction,
-  fetchBankDetails,
-  fetchBankNames,
   fetchCoinPrice,
   isGiftValid,
   updateGiftTransaction,
-  updateTransaction,
 } from "../../helpers/api_calls";
 import { formatCurrency } from "../../helpers/format_currency";
 import { getFormattedDateTime } from "../../helpers/format_date";
@@ -29,35 +23,16 @@ import { MessageType } from "../../types/general_types";
 import {
   formatPhoneNumber,
   generateChatId,
-  generateComplainId,
   generateGiftId,
   generateTransactionId,
   getChatId,
-  phoneNumberPattern,
   saveChatId,
 } from "../../utils/utilities";
-import ShortenedAddress from "../shared/ShortenAddress";
 
 import {
-  countWords,
-  getLastReportId,
-  getNextReportID,
-  isValidWalletAddress,
-  makeAReport,
-} from "@/helpers/api_call/reportly_page_calls";
-import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
-import {
-  displayCharge,
-  displayConfirmPayment,
-  displayContinueToPay,
-  displayEnterAccountNumber,
-  displayEnterPhone,
-  displaySearchBank,
-  displaySelectBank,
   displaySendPayment,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { reportData } from "@/types/reportly_types";
 import {
   differenceInDays,
   differenceInHours,
@@ -67,27 +42,12 @@ import {
   isYesterday,
 } from "date-fns";
 import { useChatNavigation } from "../../hooks/useChatNavigation";
+import { displayCustomerSupportWelcome } from "../../menus/customer_support";
 import {
-  displayCustomerSupportAssurance,
-  displayCustomerSupportWelcome,
-  displayEnterTransactionId,
-  displayMakeComplain,
-} from "../../menus/customer_support";
-import {
-  displayReportlyFarwell,
-  displayReportlyFraudsterWalletAddress,
-  displayReportlyName,
   displayReportlyNote,
   displayReportlyPhoneNumber,
-  displayReportlyReporterWalletAddress,
 } from "../../menus/reportly";
 import {
-  displayKYCInfo,
-  displayRegKYC,
-  displayThankForKYCReg,
-} from "../../menus/request_paycard";
-import {
-  displayEnterCompleteTransactionId,
   displayEnterId,
   displayGiftFeedbackMessage,
   displayTransactIDWelcome,
@@ -111,6 +71,25 @@ import {
   handleSearchBank,
   handleSelectBank,
 } from "@/features/chatbot/handlers/banking";
+import { choiceMenu, helloMenu } from "@/features/chatbot/handlers/general";
+import {
+  handleEnterFraudsterWalletAddress,
+  handleEnterReporterPhoneNumber,
+  handleEnterReporterWalletAddress,
+  handleReporterFarwell,
+  handleReporterName,
+  handleReportlyNote,
+  handleReportlyWelcome,
+} from "@/features/chatbot/handlers/reportly";
+import {
+  handleCompleteTransactionId,
+  handleCustomerSupportAssurance,
+  handleKYCInfo,
+  handleMakeComplain,
+  handleRegKYC,
+  handleThankForKYCReg,
+  handleTransactionId,
+} from "@/features/chatbot/handlers/support";
 import {
   handleCharge,
   handleEstimateAsset,
@@ -119,15 +98,16 @@ import {
   handlePayOptions,
   handleTransferMoney,
 } from "@/features/chatbot/handlers/transact";
-import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
-import { getRates } from "@/services/chatBotService";
 import {
   handleConfirmTransaction,
   handleContinueToPay,
+  handleCryptoPayment,
   handlePhoneNumber,
   handleTransactionProcessing,
 } from "@/features/chatbot/handlers/transactionClosing";
-// import { helloMenu } from "@/features/chatbot/handlers/general";
+import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { getRates } from "@/services/chatBotService";
+import { handleGiftRequestId } from "@/features/chatbot/handlers/gift";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -140,10 +120,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const narration = "BwB quiz price";
 
   const chatboxRef = useRef<HTMLDivElement>(null);
-
-  // const [visibleDateSeparators, setVisibleDateSeparators] = useState<
-  //   Set<string>
-  // >(new Set());
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -290,8 +266,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     <TelegramIntegration />;
   }, []);
 
-  const telFirstName = "";
-  // isTelUser ? telegramUser?.first_name : "";
+  const telFirstName = isTelUser ? telegramUser?.first_name : "";
 
   // set crypto asset price
   useEffect(() => {
@@ -414,429 +389,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     });
   }, [chatMessages]);
-
-  // OPERATINAL FUNCTIONS
-  // ON HI | HELLO | HOWDY | HEY PROMPT
-  const helloMenu = (chatInput: string) => {
-    console.log("we are at the start");
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      window.localStorage.setItem("transactionID", "");
-      setSharedPaymentMode("");
-      if (walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                How far {telFirstName} 👋
-                <br />
-                <br />
-                You are connected as{" "}
-                <b>
-                  <ShortenedAddress wallet={wallet} />
-                </b>
-                <br />
-                <br />
-                1. To disconnect wallet <br />
-                2. Continue to transact
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("chooseAction");
-      } else {
-        setSharedPaymentMode("");
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                How far {telFirstName}👋
-                <br />
-                <br />
-                Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
-                assistance, <br />
-                <b>Your wallet is not connected,</b> reply with:
-                <br />
-                <br />
-                1. To connect wallet <br />
-                2. To just continue
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        console.log("Wallet not connected");
-      }
-      nextStep("chooseAction");
-    }
-  };
-
-  // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
-  const welcomeMenu = () => {
-    if (walletIsConnected) {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName} 👋
-              <br />
-              <br />
-              You are connected as
-              <b>
-                <ShortenedAddress wallet={wallet} />
-              </b>
-              <br />
-              <br />
-              Your wallet is connected. The current rate is
-              <b> {formattedRate}/$1</b>
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: (
-            <span>
-              1. Transact Crypto
-              <br />
-              2. Request for paycard
-              <br />
-              3. Customer support
-              <br />
-              4. Transaction ID
-              <br />
-              5. Reportly,
-            </span>
-          ),
-        },
-      ] as unknown as MessageType[]);
-    } else {
-      {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued <b>without connecting your wallet</b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ {telFirstName}, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    }
-  };
-
-  // TRANSACT CRYPTO SEQUENCE FUNCTIONS
-  const choiceMenu = (chatInput: string) => {
-    const choice = chatInput.trim();
-    if (greetings.includes(choice.toLowerCase())) {
-      helloMenu(choice);
-      goToStep("start");
-    } else if (choice === "0") {
-      prevStep();
-      helloMenu("hi");
-    } else if (choice.toLowerCase() === "1") {
-      if (!walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <ConnectButton />,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Type to go back:
-                <br />
-                0. Go Back
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <ConnectButton />,
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Type to go back:
-                <br />
-                0. Go Back
-                <br />
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      }
-    } else if (choice.toLowerCase() === "2") {
-      if (!walletIsConnected) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued <b>without connecting your wallet</b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued as{" "}
-                <b>
-                  <ShortenedAddress wallet={wallet} />
-                </b>
-                <br />
-                <br />
-                Today Rate: <b>{formattedRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        nextStep("transactCrypto");
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              You need to make a valid choice
-              <br />
-              <br />
-              Please Try again, or say 'Hi' or 'Hello' to start over
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-    }
-    setChatInput("");
-  };
-
-  const MemoizedConfirmAndProceedButton = useCallback(
-    ({ phoneNumber, network }: { phoneNumber: string; network: string }) => (
-      <ConfirmAndProceedButton
-        phoneNumber={phoneNumber}
-        setLoading={setLoading}
-        sharedPaymentMode={sharedPaymentMode}
-        processTransaction={processTransaction}
-        network={network}
-        connectedWallet={ethConnect}
-        amount={sharedPaymentAssetEstimate}
-      />
-    ),
-    [
-      setLoading,
-      processTransaction,
-      sharedPaymentMode,
-      ethConnect,
-      sharedPaymentAssetEstimate,
-    ]
-  );
-
-  // final part to finish transaction
-  const handleCryptoPayment = async (chatInput: string) => {
-    const phoneNumber = chatInput.trim();
-
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput != "0") {
-      setLoading(true);
-
-      if (!phoneNumberPattern.test(phoneNumber)) {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a valid phone number, <b>{phoneNumber}</b> is not a
-                valid phone number.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        setLoading(false);
-        addChatMessages(newMessages);
-        return;
-      }
-
-      setSharedPhone(phoneNumber);
-
-      const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
-      const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-      const requestPayment = sharedPaymentMode.toLowerCase() === "request";
-
-      const network =
-        sharedCrypto.toLowerCase() === "usdt"
-          ? sharedNetwork.toLowerCase()
-          : sharedCrypto.toLowerCase();
-
-      if (!isGift && !requestPayment) {
-        const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-        const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
-
-        const newMessages: MessageType[] = ethConnect
-          ? [
-              {
-                type: "incoming",
-                content: (
-                  <div className="flex flex-col items-center">
-                    <p className="mb-4">
-                      You are going to be charged <b>{paymentAsset}</b> directly
-                      from your {sharedCrypto} ({sharedNetwork}) wallet.
-                    </p>
-                    <MemoizedConfirmAndProceedButton
-                      phoneNumber={phoneNumber}
-                      network={network}
-                    />
-                  </div>
-                ),
-                timestamp: new Date(),
-              },
-            ]
-          : [
-              {
-                type: "incoming",
-                content: (
-                  <div className="flex flex-col items-center">
-                    <p className="mb-4">
-                      Do you understand that you need to complete your payment
-                      within <b>5 minutes</b>, otherwise you may lose your
-                      money.
-                    </p>
-                    <MemoizedConfirmAndProceedButton
-                      phoneNumber={phoneNumber}
-                      network={network}
-                    />
-                  </div>
-                ),
-                timestamp: new Date(),
-              },
-            ];
-
-        setLoading(false);
-        addChatMessages(newMessages);
-      } else {
-        console.log(
-          "Calling processTransaction with:",
-          phoneNumber,
-          isGift,
-          isGiftTrx,
-          requestPayment
-        );
-
-        await processTransaction(
-          phoneNumber,
-          isGift,
-          isGiftTrx,
-          requestPayment
-        );
-      }
-    } else {
-      setLoading(false);
-      console.log("User input not recognized");
-    }
-  };
-
   async function processTransaction(
     phoneNumber: string,
     isGift: boolean,
@@ -888,7 +440,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
             setLoading(false);
             displayGiftFeedbackMessage(addChatMessages, nextStep);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
           } else if (giftClaimed) {
             setLoading(false);
             addChatMessages([
@@ -898,7 +459,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           } else if (paymentPending) {
             setLoading(false);
@@ -920,7 +490,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           } else if (giftNotPaid) {
             setLoading(false);
@@ -936,7 +515,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           } else {
             setLoading(false);
@@ -953,7 +541,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            helloMenu("hi");
+            // helloMenu("hi");
+            helloMenu(
+              addChatMessages,
+              "hi",
+              nextStep,
+              walletIsConnected,
+              wallet,
+              telFirstName,
+              setSharedPaymentMode
+            );
             goToStep("start");
           }
         } catch (error) {
@@ -1154,7 +751,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         );
         setLoading(false);
         nextStep("start");
-        helloMenu("hi");
+        // helloMenu("hi");
+        helloMenu(
+          addChatMessages,
+          "hi",
+          nextStep,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          setSharedPaymentMode
+        );
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
@@ -1251,655 +857,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
- const handleKYCInfo = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "1") {
-      displayKYCInfo(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      helloMenu("hi");
-      goToStep("start");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // GIVE USERS LINK TO REG
-  const handleRegKYC = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "1") {
-      displayRegKYC(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      helloMenu("hi");
-      goToStep("start");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // GIVE USERS LINK TO REG
-  const handleThankForKYCReg = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "1") {
-      displayThankForKYCReg(addChatMessages, nextStep);
-      helloMenu("hi");
-    } else if (chatInput === "2") {
-      goToStep("start");
-      helloMenu("hi");
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
-
-  // ALLOW USER TO USER THEIR TRANSACTION ID TO MAKE A COMPLAIN
-  const handleCustomerSupportAssurance = (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput === "0") {
-      (() => {
-        prevStep();
-        displayCustomerSupportWelcome(addChatMessages, nextStep);
-      })();
-    } else if (chatInput === "1") {
-      displayCustomerSupportAssurance(addChatMessages, nextStep);
-      helloMenu("hi");
-    } else if (chatInput === "2") {
-      displayEnterTransactionId(addChatMessages, nextStep);
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // ALLOW USERS ENTER TRANSACTION ID
-  const handleTransactionId = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput !== "0") {
-      const transaction_id = chatInput.trim();
-      setLoading(true);
-      setSharedTransactionId(transaction_id);
-      const transactionExists = (await checkTranscationExists(transaction_id))
-        .exists;
-
-      console.log(
-        "User phone:",
-        (await checkTranscationExists(transaction_id)).user
-          ?.customer_phoneNumber
-      );
-
-      setLoading(false);
-      // IF TRANSACTION_ID EXIST IN DB,
-      if (transactionExists) {
-        displayMakeComplain(addChatMessages, nextStep);
-      } else {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Invalid transaction_id. Try again",
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  // MAKE COMPLAIN
-  const handleMakeComplain = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayEnterTransactionId(addChatMessages, nextStep);
-      })();
-    } else if (chatInput !== "0") {
-      const message = chatInput.trim();
-      const words = message.trim().split(/\s+/);
-      let validMessage = words.length < 100 ? true : false;
-      // IF TRANSACTION_ID EXIST IN DB,
-
-      if (validMessage) {
-        setLoading(true);
-        const complainId = generateComplainId();
-        const phone = (await checkTranscationExists(sharedTransactionId)).user
-          ?.customer_phoneNumber;
-        console.log("User phone number is:", phone);
-
-        await createComplain({
-          transaction_id: sharedTransactionId,
-          complain: message,
-          status: "pending",
-          Customer_phoneNumber: phone,
-          complain_id: complainId,
-        });
-        setLoading(false);
-        addChatMessages([
-          {
-            type: "incoming",
-            content:
-              "Your complain is noted.You can also reach out to our customer care. +2349069400430 if you don't want to wait",
-            timestamp: new Date(),
-          },
-        ]);
-        helloMenu("hi");
-        goToStep("start");
-      } else {
-        console.log("Invalid message length");
-        addChatMessages([
-          {
-            type: "incoming",
-            content:
-              "Invalid entry, Please enter your message in not more that 100 words",
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-  // ENTER TRANSACTION ID TO COMPLETE TRANSACTION
-  const handleCompleteTransactionId = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        choiceMenu("2");
-      })();
-    } else if (chatInput === "1") {
-      displayEnterCompleteTransactionId(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      console.log("Let's see what is going on HERE!!!");
-      displayEnterId(addChatMessages, nextStep, "Claim Gift");
-      setSharedPaymentMode("Claim Gift");
-    } else if (chatInput === "3") {
-      displayEnterId(addChatMessages, nextStep, "request");
-      setSharedPaymentMode("request");
-    }
-  };
-
-  // CUSTOMER TRANSACTION ID SEQUENCE FUNCTIONS
-
-  // ALLOW USERS ENTER GIFT ID
-  const handleGiftRequestId = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayTransactIDWelcome(addChatMessages, nextStep);
-      })();
-    } else if (chatInput !== "0") {
-      const needed_id = chatInput.trim();
-      setLoading(true);
-      setSharedGiftId(chatInput.trim());
-
-      try {
-        let giftExists = false;
-        let requestExists = false;
-
-        // Check if it's a gift or request
-        if (sharedPaymentMode === "Claim Gift") {
-          giftExists = (await checkGiftExists(needed_id)).exists;
-        } else {
-          requestExists = (await checkRequestExists(needed_id)).exists;
-        }
-
-        const idExists = giftExists || requestExists;
-
-        console.log("gift is processing");
-
-        // IF GIFT_ID EXIST IN DB,
-        if (idExists) {
-          if (giftExists) {
-            // Handle gift exists case
-            displayGiftFeedbackMessage(addChatMessages, nextStep);
-            helloMenu("hi");
-          } else if (requestExists) {
-            // Handle request exists case
-            // displayRequestFeedbackMessage(addChatMessages, nextStep);
-            displayTransferMoney(addChatMessages);
-            nextStep("estimateAsset");
-          }
-        } else {
-          addChatMessages([
-            {
-              type: "incoming",
-              content: `Invalid ${
-                sharedPaymentMode === "Claim Gift" ? "gift" : "request"
-              }_id. Try again`,
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      } catch (error) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: "Error checking ID. Please try again.",
-            timestamp: new Date(),
-          },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // CUSTOMER REPORTLY SEQUENCE FUNCTIONS
-
-  // first page for reportly, with 3 options and goBack
-  const handleReportlyWelcome = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        welcomeMenu();
-      })();
-    } else if (chatInput === "1") {
-      setSharedReportlyReportType("Track Transaction");
-      console.log("Omo, na to report Track Transaction, input is: ", chatInput);
-      displayReportlyName(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      console.log("Omo, na to report Stolen funds, input is: ", chatInput);
-      setSharedReportlyReportType("Stolen funds | disappear funds");
-      displayReportlyName(addChatMessages, nextStep);
-    } else if (chatInput === "3") {
-      console.log("Omo, na to report Fraud, input is: ", chatInput);
-      setSharedReportlyReportType("Fraud");
-      displayReportlyName(addChatMessages, nextStep);
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-
-  const handleReporterName = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("Going back to start");
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "1") {
-      setSharedReportlyReportType("Track Transaction");
-      console.log("Omo, na to report Track Transaction");
-      displayReportlyName(addChatMessages, nextStep);
-    } else if (chatInput === "2") {
-      console.log("Omo, na to report Stolen funds");
-      setSharedReportlyReportType("Stolen funds | disappear funds");
-      displayReportlyName(addChatMessages, nextStep);
-    } else if (chatInput === "3") {
-      console.log("Omo, na to report Fraud");
-
-      setSharedReportlyReportType("Fraud");
-      displayReportlyName(addChatMessages, nextStep);
-    } else {
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  };
-  // Option to allow user tract transaction, enter name or goBack to the very start
-  const handleEnterReporterPhoneNumber = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("Going back to start");
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        goToStep("reporterName");
-        displayReportlyName(addChatMessages, nextStep);
-      })();
-    } else {
-      const name = chatInput.trim();
-
-      if (name === "") {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a your name. You can not summit an empty space
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-      setReporterName(chatInput.trim());
-      console.log(`Full name is ${reporterName}`);
-      displayReportlyPhoneNumber(addChatMessages, nextStep);
-    }
-  };
-
-  const handleEnterReporterWalletAddress = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("Going back to start");
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayReportlyName(addChatMessages, nextStep);
-      })();
-    } else {
-      let phoneNumber = chatInput.trim();
-      if (!phoneNumberPattern.test(phoneNumber)) {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a valid phone number, <b>{phoneNumber}</b> is not a
-                valid phone number.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-      setReporterPhoneNumber(phoneNumber);
-      console.log(`Reporter phone number  is ${reporterPhoneNumber}`);
-      displayReportlyReporterWalletAddress(addChatMessages, nextStep);
-    }
-  };
-
-  const handleEnterFraudsterWalletAddress = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("Going back to start");
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayReportlyPhoneNumber(addChatMessages, nextStep);
-      })();
-    } else {
-      const wallet = chatInput.trim();
-      const lastReportId = async () => {
-        try {
-          const lastReportId = await getLastReportId();
-          const lastId = getNextReportID(lastReportId);
-          const report_id = `Report_${lastId}`;
-
-          setReportId(report_id);
-        } catch (e) {
-          console.log("we got into a challenge bro", e);
-        }
-      };
-      lastReportId();
-      if (!isValidWalletAddress(wallet)) {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a valid wallet address, <b>{wallet}</b> is not a
-                valid wallet address.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-      setReporterWalletAddress(wallet);
-
-      displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
-    }
-  };
-
-  const handleReportlyNote = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("Going back to start");
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayReportlyReporterWalletAddress(addChatMessages, nextStep);
-      })();
-    } else if (chatInput.trim() === "1") {
-      (() => {
-        goToStep("reportlyNote");
-        displayReportlyNote(addChatMessages, nextStep);
-      })();
-    } else {
-      const wallet = chatInput.trim();
-      if (!isValidWalletAddress(wallet)) {
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a valid wallet address, <b>{wallet}</b> is not a
-                valid wallet address.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-
-      setFraudsterWalletAddress(wallet);
-      displayReportlyNote(addChatMessages, nextStep);
-    }
-  };
-
-  const handleReporterFarwell = async (chatInput: string) => {
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      console.log("Going back to start");
-      goToStep("start");
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        console.log("Going back from handleReportlyWelcome");
-        goToStep("start");
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prevStep();
-        displayReportlyFraudsterWalletAddress(addChatMessages, nextStep);
-      })();
-    } else {
-      const note = chatInput.trim();
-
-      const wordCount = countWords(note);
-
-      if (!(wordCount <= 100)) {
-        console.log("word count is: ", wordCount);
-        const newMessages: MessageType[] = [
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Please enter a note within the specified word count. Your note
-                is {wordCount} words long. The maximum allowed is 100 words.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ];
-        addChatMessages(newMessages);
-        return;
-      }
-
-      setDescriptionNote(note);
-      const reportData: reportData = {
-        name: reporterName,
-        phone_Number: formatPhoneNumber(reporterPhoneNumber),
-        wallet_address: reporterWalletAddress,
-        fraudster_wallet_address: fraudsterWalletAddress,
-        description: note,
-        complaint: sharedReportlyReportType,
-        status: "pending",
-        report_id: reportId,
-        confirmer: "",
-      };
-      setLoading(true);
-      try {
-        await makeAReport(reportData);
-        // re write write_report api to throw error if we get any response other than 200
-        // if (response.status !== 200) {
-        //   throw new Error(`API responded with status ${response.status}`);
-        // }
-        setReporterName("");
-        setReporterPhoneNumber("");
-        setReporterWalletAddress("");
-        setFraudsterWalletAddress("");
-        setDescriptionNote("");
-        displayReportlyFarwell(addChatMessages, nextStep);
-        helloMenu("hi");
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        addChatMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                Aje!!, there was a issue saving the report.
-                <br />
-                Maybe check your internet and try again or say 'hi' to go to the
-                start of the conversation
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        console.log("Aje!!, there was a issue saving the report", error);
-      }
-      return;
-    }
-  };
-
   // THE ROOT FUNCTION
 
-  const handleConversation = async (chatInput: any) => {
+  const handleConversation = async (chatInput: string) => {
     setLoading(true);
     try {
       if (chatInput.trim()) {
@@ -1919,8 +879,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       switch (currentStep) {
         case "start":
           console.log("current step is start");
-
-          helloMenu(chatInput);
+          helloMenu(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            walletIsConnected,
+            wallet,
+            telFirstName,
+            setSharedPaymentMode
+          );
+          // helloMenu(chatInput);
           setChatInput("");
           setSharedPaymentMode("");
           break;
@@ -1928,7 +896,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "chooseAction":
           console.log("current step is chooseAction");
 
-          choiceMenu(chatInput);
+          choiceMenu(
+            addChatMessages,
+            chatInput,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
+            sharedRate,
+            nextStep,
+            prevStep,
+            goToStep,
+            setSharedPaymentMode
+          );
           setChatInput("");
           break;
 
@@ -1999,12 +978,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             chatInput,
             sharedPaymentMode,
             sharedGiftId,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
             nextStep,
             prevStep,
             goToStep,
             setSharedTicker,
             setSharedCrypto,
-            setSharedNetwork
+            setSharedNetwork,
+            setSharedTicker
           );
           setChatInput("");
           break;
@@ -2021,10 +1004,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             sharedRate,
             sharedTicker,
             sharedAssetPrice,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
             nextStep,
             prevStep,
             goToStep,
-            setSharedEstimateAsset
+            setSharedEstimateAsset,
+            setSharedPaymentMode
           );
           setChatInput("");
           break;
@@ -2041,6 +1028,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             sharedNetwork,
             sharedRate,
             sharedAssetPrice,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
             nextStep,
             prevStep,
             goToStep,
@@ -2049,7 +1039,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             setSharedPaymentAssetEstimate,
             setSharedPaymentNairaEstimate,
             setSharedNairaCharge,
-            setSharedChargeForDB
+            setSharedChargeForDB,
+            setSharedPaymentMode
           );
           setChatInput("");
           break;
@@ -2182,7 +1173,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         case "sendPayment":
           console.log("Current step is sendPayment ");
 
-          await handleCryptoPayment(chatInput);
+          await handleCryptoPayment(
+            addChatMessages,
+            chatInput,
+            sharedCrypto,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            sharedPaymentAssetEstimate,
+            setSharedPhone,
+            processTransaction,
+            goToStep,
+            setLoading
+          );
           setChatInput("");
           break;
 
@@ -2218,19 +1221,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
         case "kycInfo":
           console.log("Current step is kycInfo ");
-          handleKYCInfo(chatInput);
+          handleKYCInfo(addChatMessages, chatInput, nextStep, goToStep);
           setChatInput("");
           break;
 
         case "kycReg":
           console.log("Current step is kycReg ");
-          handleRegKYC(chatInput);
+          handleRegKYC(addChatMessages, chatInput, nextStep, goToStep);
           setChatInput("");
           break;
 
         case "thankForKYCReg":
           console.log("Current step is thankForKYCReg ");
-          handleThankForKYCReg(chatInput);
+          handleThankForKYCReg(addChatMessages, chatInput, nextStep, goToStep);
           setChatInput("");
           break;
 
@@ -2242,79 +1245,183 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
         case "assurance":
           console.log("Current step is assurance ");
-          handleCustomerSupportAssurance(chatInput);
+          handleCustomerSupportAssurance(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            prevStep,
+            goToStep
+          );
           setChatInput("");
           break;
 
         case "entreTrxId":
           console.log("Current step is entreTrxId ");
-          handleTransactionId(chatInput);
+          handleTransactionId(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            setSharedTransactionId,
+            setLoading
+          );
+
           setChatInput("");
           break;
 
         case "makeComplain":
           console.log("Current step is makeComplain ");
-          handleMakeComplain(chatInput);
+          handleMakeComplain(
+            addChatMessages,
+            chatInput,
+            sharedTransactionId,
+            goToStep,
+            goToStep,
+            prevStep,
+            setLoading
+          );
           setChatInput("");
           break;
 
         case "completeTransactionId":
           console.log("Current step is completeTransactionId ");
-          handleCompleteTransactionId(chatInput);
+          handleCompleteTransactionId(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setSharedPaymentMode
+          );
           setChatInput("");
           break;
 
         case "giftFeedBack":
           console.log("Current step is giftFeedBack ");
-          handleGiftRequestId(chatInput);
-          setChatInput("");
-          break;
-
-        case "completetrxWithID":
-          console.log("Current step is trxIDFeedback ");
-          // handleReportlyWelcome(chatInput);
+          handleGiftRequestId(
+            addChatMessages,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
+            sharedPaymentMode,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setSharedPaymentMode,
+            setSharedGiftId,
+            setLoading
+          );
           setChatInput("");
           break;
 
         case "makeReport":
           console.log("Current step is makeReport ");
-          handleReportlyWelcome(chatInput);
+          handleReportlyWelcome(
+            addChatMessages,
+            walletIsConnected,
+            wallet,
+            telFirstName || "",
+            sharedRate,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setSharedReportlyReportType
+          );
           setChatInput("");
           break;
 
         case "reporterName":
           console.log("Current step is reporterName ");
-          handleReporterName(chatInput);
+          handleReporterName(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            setSharedReportlyReportType
+          );
           setChatInput("");
           break;
 
         case "reporterPhoneNumber":
           console.log("Current step is reporterPhoneNumber ");
-          handleEnterReporterPhoneNumber(chatInput);
+          handleEnterReporterPhoneNumber(
+            addChatMessages,
+            chatInput,
+            reporterName,
+            nextStep,
+            goToStep,
+            setReporterName,
+            displayReportlyPhoneNumber
+          );
           setChatInput("");
           break;
 
         case "reporterWallet":
           console.log("Current step is reporterWallet");
-          handleEnterReporterWalletAddress(chatInput);
+          handleEnterReporterWalletAddress(
+            addChatMessages,
+            chatInput,
+            reporterPhoneNumber,
+            nextStep,
+            goToStep,
+            prevStep,
+            setReporterPhoneNumber
+          );
           setChatInput("");
           break;
 
         case "fraudsterWallet":
           console.log("Current step is fraudsterWallet");
-          handleEnterFraudsterWalletAddress(chatInput);
+          handleEnterFraudsterWalletAddress(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setReportId,
+            setReporterWalletAddress,
+            displayReportlyPhoneNumber
+          );
           setChatInput("");
           break;
 
         case "reportlyNote":
           console.log("Current step is reportlyNote");
-          handleReportlyNote(chatInput);
+          handleReportlyNote(
+            addChatMessages,
+            chatInput,
+            nextStep,
+            goToStep,
+            prevStep,
+            setFraudsterWalletAddress,
+            displayReportlyNote
+          );
           setChatInput("");
           break;
 
         case "reporterFarwell":
           console.log("Current step is reporterFarwell");
-          handleReporterFarwell(chatInput);
+          handleReporterFarwell(
+            addChatMessages,
+            chatInput,
+            reporterName,
+            reporterPhoneNumber,
+            reporterWalletAddress,
+            fraudsterWalletAddress,
+            sharedReportlyReportType,
+            reportId,
+            nextStep,
+            goToStep,
+            prevStep,
+            setDescriptionNote,
+            setReporterPhoneNumber,
+            setReporterWalletAddress,
+            setFraudsterWalletAddress,
+            setReporterName,
+            setLoading
+          );
 
           setChatInput("");
           break;
@@ -2330,34 +1437,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           setChatInput("");
           break;
       }
-
-      // const trimmedInput = chatInput.trim();
-      // if (!trimmedInput) return;
-
-      // const newMessage: MessageType = {
-      //   type: "incoming",
-      //   content: trimmedInput,
-      //   timestamp: new Date(),
-      // };
-      // addChatMessages([newMessage]);
-      // setChatInput("");
-      // if (greetings.includes(trimmedInput.toLowerCase())) {
-      //   goToStep("start");
-      //   return;
-      // }
-
-      // if (StepHandler[currentStep]) {
-      //   await StepHandler[currentStep](trimmedInput);
-      // } else {
-      //   addChatMessages([
-      //     {
-      //       type: "incoming",
-      //       content:
-      //         "Invalid choice. You can say 'Hi' or 'Hello' to start over",
-      //       timestamp: new Date(),
-      //     },
-      //   ]);
-      // }
     } catch (error) {
       console.error("Error in conversation:", error);
       onError?.(

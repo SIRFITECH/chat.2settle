@@ -24,6 +24,7 @@ const ConfirmDialog = ({
   onClose,
   onConfirm,
 }: Props) => {
+  console.log("Dialog fired");
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -50,3 +51,25 @@ const ConfirmDialog = ({
 };
 
 export default ConfirmDialog;
+// const ConfirmDialog = () => {
+//   let count = 0;
+//   const [open, setOpen] = useState(true);
+//   console.log("Dialog fired", count++);
+//   return (
+//     <Dialog open={open}>
+//       <DialogContent>
+//         <DialogHeader>
+//           <DialogTitle>Title</DialogTitle>
+//           <DialogDescription>Description</DialogDescription>
+//         </DialogHeader>
+//         <DialogFooter>
+//           <Button variant="outline" onClick={() => setOpen(false)}>
+//             Cancel
+//           </Button>
+//         </DialogFooter>
+//       </DialogContent>
+//     </Dialog>
+//   );
+// };
+
+// export default ConfirmDialog;
