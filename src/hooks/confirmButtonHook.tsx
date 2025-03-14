@@ -4,7 +4,7 @@ import { handleConfirm } from "@/features/transact/confirmButton/handleConfirm";
 import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
 import { CountdownTimer } from "@/helpers/format_date";
 import { CheckCircle } from "lucide-react";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import useConfirmAndProceedState from "./useConfirmAndProceedState";
 
 export interface ConfirmAndProceedButtonProps {
@@ -107,7 +107,6 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
           "Generating wallet for you..."
         ) : state.isButtonClicked ? (
           <span>
-            {" "}
             Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
           </span>
         ) : (

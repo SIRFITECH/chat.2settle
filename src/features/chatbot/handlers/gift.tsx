@@ -39,7 +39,6 @@ export const handleGiftRequestId = async (
       telFirstName,
       setSharedPaymentMode
     );
-    // helloMenu(chatInput);
   } else if (chatInput.trim() === "00") {
     (() => {
       goToStep("start");
@@ -84,7 +83,6 @@ export const handleGiftRequestId = async (
         if (giftExists) {
           // Handle gift exists case
           displayGiftFeedbackMessage(addChatMessages, nextStep);
-          // helloMenu("hi");
           helloMenu(
             addChatMessages,
             "hi",

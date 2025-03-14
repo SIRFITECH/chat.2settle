@@ -1,7 +1,7 @@
 import {
   checkTranscationExists,
   fetchBankDetails,
-  updateTransaction
+  updateTransaction,
 } from "@/helpers/api_calls";
 import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
 import { displayCustomerSupportWelcome } from "@/menus/customer_support";
@@ -9,13 +9,13 @@ import {
   displayConfirmPayment,
   displayContinueToPay,
   displayEnterPhone,
-  displaySearchBank
+  displaySearchBank,
 } from "@/menus/transact_crypto";
 import { MessageType, UserBankData } from "@/types/general_types";
-import {
-  phoneNumberPattern
-} from "@/utils/utilities";
+import { phoneNumberPattern } from "@/utils/utilities";
 import { greetings } from "../helpers/ChatbotConsts";
+import { helloMenu } from "./general";
+import { WalletAddress } from "@/types/wallet_types";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
 export const handleContinueToPay = async (
@@ -382,17 +382,37 @@ export const handleConfirmTransaction = async (
 export const handleTransactionProcessing = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
-  goToStep: (step: string) => void
+  goToStep: (step: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -400,7 +420,15 @@ export const handleTransactionProcessing = async (
       displaySearchBank(addChatMessages, nextStep);
     })();
   } else if (chatInput.trim() === "1") {
-    // helloMenu("hi");
+    helloMenu(
+      addChatMessages,
+      "hi",
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "2") {
     goToStep("supportWelcome");
     displayCustomerSupportWelcome(addChatMessages, nextStep);

@@ -37,14 +37,15 @@ const useConfirmAndProceedState = ({
         prev.isButtonClicked &&
         prev.isProcessing &&
         prev.error === null
-      ) return prev;
-        return {
-          ...prev,
-          isDialogOpen: false,
-          isButtonClicked: true,
-          isProcessing: true,
-          error: null,
-        };
+      )
+        return prev;
+      return {
+        ...prev,
+        isDialogOpen: false,
+        isButtonClicked: true,
+        isProcessing: true,
+        error: null,
+      };
     });
     try {
       const wallet = await getDirectDebitWallet();
@@ -139,8 +140,9 @@ const useConfirmAndProceedState = ({
           return { ...prev, isExpired: true };
         });
       }, 5 * 60 * 1000); // set timer for 5 minutes
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [state.lastAssignedTime]);
 
   return {
     state,

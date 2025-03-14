@@ -51,25 +51,3 @@ const ConfirmDialog = ({
 };
 
 export default ConfirmDialog;
-// const ConfirmDialog = () => {
-//   let count = 0;
-//   const [open, setOpen] = useState(true);
-//   console.log("Dialog fired", count++);
-//   return (
-//     <Dialog open={open}>
-//       <DialogContent>
-//         <DialogHeader>
-//           <DialogTitle>Title</DialogTitle>
-//           <DialogDescription>Description</DialogDescription>
-//         </DialogHeader>
-//         <DialogFooter>
-//           <Button variant="outline" onClick={() => setOpen(false)}>
-//             Cancel
-//           </Button>
-//         </DialogFooter>
-//       </DialogContent>
-//     </Dialog>
-//   );
-// };
-
-// export default ConfirmDialog;

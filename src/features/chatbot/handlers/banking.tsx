@@ -15,6 +15,7 @@ import { displayTransactIDWelcome } from "@/menus/transaction_id";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
+import { WalletAddress } from "@/types/wallet_types";
 
 // GET USER BANK DETAILS FROM NUBAN
 export const handleSearchBank = async (
@@ -29,6 +30,9 @@ export const handleSearchBank = async (
   sharedAssetPrice: string,
   sharedEstimateAsset: string,
   sharedNairaCharge: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
@@ -36,6 +40,7 @@ export const handleSearchBank = async (
   setSharedPaymentAssetEstimate: (ticker: string) => void,
   setSharedPaymentNairaEstimate: (crypto: string) => void,
   setSharedChargeForDB: (network: string) => void,
+  setSharedPaymentMode: (mode: string) => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   // IS USER TRYING TO CLAIM GIFT?
@@ -49,11 +54,27 @@ export const handleSearchBank = async (
     console.log("USER WANTS TO CLAIM GIFT");
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
-      // helloMenu(chatInput);
+      helloMenu(
+        addChatMessages,
+        chatInput,
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     } else if (chatInput.trim() === "00") {
       (() => {
         goToStep("start");
-        // helloMenu("hi");
+        helloMenu(
+          addChatMessages,
+          "hi",
+          nextStep,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          setSharedPaymentMode
+        );
       })();
     } else if (chatInput.trim() === "0") {
       (() => {
@@ -93,11 +114,27 @@ export const handleSearchBank = async (
     const chargeFixed = parseFloat(sharedCharge);
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
-      // helloMenu(chatInput);
+      helloMenu(
+        addChatMessages,
+        chatInput,
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     } else if (chatInput === "00") {
       (() => {
         goToStep("start");
-        // helloMenu("hi");
+        helloMenu(
+          addChatMessages,
+          "hi",
+          nextStep,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          setSharedPaymentMode
+        );
       })();
     } else if (chatInput === "0") {
       (() => {
@@ -147,11 +184,27 @@ export const handleSearchBank = async (
     console.log("USER WANTS TO REQUEST PAYMENT");
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
-      // helloMenu(chatInput);
+      helloMenu(
+        addChatMessages,
+        chatInput,
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     } else if (chatInput === "00") {
       (() => {
         goToStep("start");
-        // helloMenu("hi");
+        helloMenu(
+          addChatMessages,
+          "hi",
+          nextStep,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          setSharedPaymentMode
+        );
       })();
     } else if (chatInput === "0") {
       (() => {
@@ -193,11 +246,27 @@ export const handleSearchBank = async (
     const chargeFixed = parseFloat(sharedCharge);
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
-      // helloMenu(chatInput);
+      helloMenu(
+        addChatMessages,
+        chatInput,
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     } else if (chatInput === "00") {
       (() => {
         goToStep("start");
-        // helloMenu("hi");
+        helloMenu(
+          addChatMessages,
+          "hi",
+          nextStep,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          setSharedPaymentMode
+        );
       })();
     } else if (chatInput === "0") {
       (() => {
@@ -268,6 +337,9 @@ export const handleSelectBank = async (
   sharedRate: string,
   sharedAssetPrice: string,
   sharedEstimateAsset: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
@@ -278,15 +350,32 @@ export const handleSelectBank = async (
   setSharedCharge: React.Dispatch<React.SetStateAction<string>>,
   setSharedNairaCharge: React.Dispatch<React.SetStateAction<string>>,
   setSharedBankCodes: React.Dispatch<React.SetStateAction<string[]>>,
+  setSharedPaymentMode: (mode: string) => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {
@@ -346,20 +435,40 @@ export const handleBankAccountNumber = (
   chatInput: string,
   sharedBankCodes: string[],
   sharedBankNames: string[],
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
   setSharedBankCodes: React.Dispatch<React.SetStateAction<string[]>>,
   setSharedSelectedBankCode: React.Dispatch<React.SetStateAction<string>>,
-  setSharedSelectedBankName: React.Dispatch<React.SetStateAction<string>>
+  setSharedSelectedBankName: React.Dispatch<React.SetStateAction<string>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {

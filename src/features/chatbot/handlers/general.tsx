@@ -24,7 +24,7 @@ export const helloMenu = (
   chatInput?: string,
   nextStep?: (step: string) => void,
   walletIsConnected?: boolean,
-  wallet?: `0x${string}` | undefined,
+  wallet?: WalletAddress,
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
