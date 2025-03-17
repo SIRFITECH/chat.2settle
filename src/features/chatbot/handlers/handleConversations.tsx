@@ -82,6 +82,7 @@ export const handleConversation = async (
   fraudsterWalletAddress: string,
   sharedReportlyReportType: string,
   reportId: string,
+  formattedRate: string,
   setSharedAmount: (sharedAmount: string) => void,
   setSharedCharge: React.Dispatch<SetStateAction<string>>,
   setSharedPaymentAssetEstimate: React.Dispatch<SetStateAction<string>>,
@@ -353,11 +354,15 @@ export const handleConversation = async (
               sharedSelectedBankCode,
               sharedSelectedBankName,
               sharedPaymentMode,
+              walletIsConnected,
+              wallet,
+              telFirstName,
               nextStep,
               prevStep,
               goToStep,
               updateBankData,
-              setLoading
+              setLoading,
+              setSharedPaymentMode
             ));
         setChatInput("");
         break;
@@ -422,11 +427,15 @@ export const handleConversation = async (
           sharedSelectedBankCode,
           sharedSelectedBankName,
           sharedPaymentMode,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           nextStep,
           prevStep,
           goToStep,
           updateBankData,
-          setLoading
+          setLoading,
+          setSharedPaymentMode
         );
         setChatInput("");
         break;
@@ -437,9 +446,13 @@ export const handleConversation = async (
         handlePhoneNumber(
           addChatMessages,
           chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           nextStep,
           prevStep,
-          goToStep
+          goToStep,
+          setSharedPaymentMode
         );
         setChatInput("");
         break;
@@ -455,10 +468,15 @@ export const handleConversation = async (
           sharedPaymentMode,
           ethConnect,
           sharedPaymentAssetEstimate,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           setSharedPhone,
           processTransaction,
+          nextStep,
           goToStep,
-          setLoading
+          setLoading,
+          setSharedPaymentMode
         );
         setChatInput("");
         break;
@@ -472,10 +490,14 @@ export const handleConversation = async (
           sharedTransactionId,
           procesingStatus,
           cancelledStatus,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           nextStep,
           goToStep,
           setSharedTransactionId,
-          setLoading
+          setLoading,
+          setSharedPaymentMode
         );
         setChatInput("");
 
@@ -499,19 +521,46 @@ export const handleConversation = async (
 
       case "kycInfo":
         console.log("Current step is kycInfo ");
-        handleKYCInfo(addChatMessages, chatInput, nextStep, goToStep);
+        handleKYCInfo(
+          addChatMessages,
+          chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          nextStep,
+          goToStep,
+          setSharedPaymentMode
+        );
         setChatInput("");
         break;
 
       case "kycReg":
         console.log("Current step is kycReg ");
-        handleRegKYC(addChatMessages, chatInput, nextStep, goToStep);
+        handleRegKYC(
+          addChatMessages,
+          chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          nextStep,
+          goToStep,
+          setSharedPaymentMode
+        );
         setChatInput("");
         break;
 
       case "thankForKYCReg":
         console.log("Current step is thankForKYCReg ");
-        handleThankForKYCReg(addChatMessages, chatInput, nextStep, goToStep);
+        handleThankForKYCReg(
+          addChatMessages,
+          chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
+          nextStep,
+          goToStep,
+          setSharedPaymentMode
+        );
         setChatInput("");
         break;
 
@@ -526,9 +575,13 @@ export const handleConversation = async (
         handleCustomerSupportAssurance(
           addChatMessages,
           chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           nextStep,
           prevStep,
-          goToStep
+          goToStep,
+          setSharedPaymentMode
         );
         setChatInput("");
         break;
@@ -538,10 +591,14 @@ export const handleConversation = async (
         handleTransactionId(
           addChatMessages,
           chatInput,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           nextStep,
           goToStep,
           setSharedTransactionId,
-          setLoading
+          setLoading,
+          setSharedPaymentMode
         );
 
         setChatInput("");
@@ -553,10 +610,14 @@ export const handleConversation = async (
           addChatMessages,
           chatInput,
           sharedTransactionId,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           goToStep,
           goToStep,
           prevStep,
-          setLoading
+          setLoading,
+          setSharedPaymentMode
         );
         setChatInput("");
         break;
@@ -566,6 +627,10 @@ export const handleConversation = async (
         handleCompleteTransactionId(
           addChatMessages,
           chatInput,
+          formattedRate,
+          walletIsConnected,
+          wallet,
+          telFirstName,
           nextStep,
           goToStep,
           prevStep,

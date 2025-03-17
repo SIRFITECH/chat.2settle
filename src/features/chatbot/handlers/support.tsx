@@ -21,6 +21,8 @@ import {
   displayRegKYC,
   displayThankForKYCReg,
 } from "@/menus/request_paycard";
+import { choiceMenu, helloMenu } from "./general";
+import { WalletAddress } from "@/types/wallet_types";
 
 // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
 
@@ -28,13 +30,25 @@ import {
 export const handleCustomerSupportAssurance = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
-  goToStep: (step: string) => void
+  goToStep: (step: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "0") {
     (() => {
       prevStep();
@@ -42,6 +56,15 @@ export const handleCustomerSupportAssurance = (
     })();
   } else if (chatInput === "1") {
     displayCustomerSupportAssurance(addChatMessages, nextStep);
+    helloMenu(
+      addChatMessages,
+      "hi",
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
     //   helloMenu("hi");
   } else if (chatInput === "2") {
     displayEnterTransactionId(addChatMessages, nextStep);
@@ -61,14 +84,26 @@ export const handleCustomerSupportAssurance = (
 export const handleTransactionId = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   setSharedTransactionId: (step: string) => void,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput !== "0") {
     const transaction_id = chatInput.trim();
     setLoading(true);
@@ -111,18 +146,39 @@ export const handleMakeComplain = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   sharedTransactionId: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -187,6 +243,10 @@ export const handleMakeComplain = async (
 export const handleCompleteTransactionId = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  formattedRate: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
@@ -194,11 +254,30 @@ export const handleCompleteTransactionId = async (
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "0") {
     (() => {
       prevStep();
-      // choiceMenu("2");
+      choiceMenu(
+        addChatMessages,
+        "2",
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        formattedRate,
+        nextStep,
+        prevStep,
+        goToStep,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "1") {
     displayEnterCompleteTransactionId(addChatMessages, nextStep);
@@ -215,16 +294,36 @@ export const handleCompleteTransactionId = async (
 export const handleKYCInfo = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
-  goToStep: (step: string) => void
+  goToStep: (step: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "1") {
     displayKYCInfo(addChatMessages, nextStep);
   } else if (chatInput === "2") {
-    // helloMenu("hi");
+    helloMenu(
+      addChatMessages,
+      "hi",
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
     goToStep("start");
   } else {
     addChatMessages([
@@ -242,16 +341,36 @@ export const handleKYCInfo = (
 export const handleRegKYC = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
-  goToStep: (step: string) => void
+  goToStep: (step: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "1") {
     displayRegKYC(addChatMessages, nextStep);
   } else if (chatInput === "2") {
-    // helloMenu("hi");
+    helloMenu(
+      addChatMessages,
+      "hi",
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
     goToStep("start");
   } else {
     addChatMessages([
@@ -269,18 +388,37 @@ export const handleRegKYC = (
 export const handleThankForKYCReg = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
-  goToStep: (step: string) => void
+  goToStep: (step: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "1") {
     displayThankForKYCReg(addChatMessages, nextStep);
-    // helloMenu("hi");
   } else if (chatInput === "2") {
     goToStep("start");
-    // helloMenu("hi");
+    helloMenu(
+      addChatMessages,
+      "hi",
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else {
     addChatMessages([
       {

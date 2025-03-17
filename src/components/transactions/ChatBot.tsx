@@ -10,7 +10,6 @@ import React, {
 import { useAccount } from "wagmi";
 import { useSharedState } from "../../context/SharedStateContext";
 import {
-  checkGiftExists,
   checkRequestExists,
   createTransaction,
   fetchCoinPrice,
@@ -29,10 +28,7 @@ import {
   saveChatId,
 } from "../../utils/utilities";
 
-import {
-  displaySendPayment,
-  displayTransferMoney,
-} from "@/menus/transact_crypto";
+import { displaySendPayment } from "@/menus/transact_crypto";
 import {
   differenceInDays,
   differenceInHours,
@@ -42,15 +38,9 @@ import {
   isYesterday,
 } from "date-fns";
 import { useChatNavigation } from "../../hooks/useChatNavigation";
-import { displayCustomerSupportWelcome } from "../../menus/customer_support";
-import {
-  displayReportlyNote,
-  displayReportlyPhoneNumber,
-} from "../../menus/reportly";
 import {
   displayEnterId,
   displayGiftFeedbackMessage,
-  displayTransactIDWelcome,
 } from "../../menus/transaction_id";
 
 import {
@@ -66,49 +56,9 @@ import ChatInput from "../chatbot/ChatInput";
 import ChatMessages from "../chatbot/ChatMessages";
 import { withErrorHandling } from "../withErrorHandling";
 
-import {
-  handleBankAccountNumber,
-  handleSearchBank,
-  handleSelectBank,
-} from "@/features/chatbot/handlers/banking";
-import { choiceMenu, helloMenu } from "@/features/chatbot/handlers/general";
-import {
-  handleEnterFraudsterWalletAddress,
-  handleEnterReporterPhoneNumber,
-  handleEnterReporterWalletAddress,
-  handleReporterFarwell,
-  handleReporterName,
-  handleReportlyNote,
-  handleReportlyWelcome,
-} from "@/features/chatbot/handlers/reportly";
-import {
-  handleCompleteTransactionId,
-  handleCustomerSupportAssurance,
-  handleKYCInfo,
-  handleMakeComplain,
-  handleRegKYC,
-  handleThankForKYCReg,
-  handleTransactionId,
-} from "@/features/chatbot/handlers/support";
-import {
-  handleCharge,
-  handleEstimateAsset,
-  handleMakeAChoice,
-  handleNetwork,
-  handlePayOptions,
-  handleTransferMoney,
-} from "@/features/chatbot/handlers/transact";
-import {
-  handleConfirmTransaction,
-  handleContinueToPay,
-  handleCryptoPayment,
-  handlePhoneNumber,
-  handleTransactionProcessing,
-} from "@/features/chatbot/handlers/transactionClosing";
-import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
-import { getRates } from "@/services/chatBotService";
-import { handleGiftRequestId } from "@/features/chatbot/handlers/gift";
+import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
+import { getRates } from "@/services/chatBotService";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -441,7 +391,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
             setLoading(false);
             displayGiftFeedbackMessage(addChatMessages, nextStep);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -460,7 +409,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -491,7 +439,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -516,7 +463,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -704,7 +650,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           receiver_name: bankData.receiver_name,
           receiver_amount: formatCurrency(
             sharedPaymentNairaEstimate,
-            // "200000",
             "NGN",
             "en-NG"
           ),
@@ -713,23 +658,19 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           Date: date,
           status: "Processing",
           receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-          customer_phoneNumber: formatPhoneNumber(phoneNumber),
+          customer_phoneNumber: null,
           transac_id: transactionID.toString(),
           request_id: requestID.toString(),
-          settle_walletLink: "",
+          settle_walletLink: null,
           chat_id: chatId,
           current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
           merchant_rate: merchantRate,
           profit_rate: profitRate,
-          name: "",
-          asset_price:
-            sharedCrypto.toLowerCase() != "usdt"
-              ? formatCurrency(sharedAssetPrice, "USD")
-              : formatCurrency(sharedRate, "NGN", "en-NG"),
+          name: null,
+          asset_price: null,
         };
         await createTransaction(userDate).then(() => {
           // clear the ref code from the cleint
-
           localStorage.removeItem("referralCode");
           localStorage.removeItem("referralCategory");
         });
@@ -752,7 +693,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         );
         setLoading(false);
         nextStep("start");
-        // helloMenu("hi");
         helloMenu(
           addChatMessages,
           "hi",
@@ -896,6 +836,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         fraudsterWalletAddress,
         sharedReportlyReportType,
         reportId,
+        formattedRate,
         setSharedAmount,
         setSharedCharge,
         setSharedPaymentAssetEstimate,
@@ -1050,6 +991,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 fraudsterWalletAddress,
                 sharedReportlyReportType,
                 reportId,
+                formattedRate,
                 setSharedAmount,
                 setSharedCharge,
                 setSharedPaymentAssetEstimate,
@@ -1151,6 +1093,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 fraudsterWalletAddress,
                 sharedReportlyReportType,
                 reportId,
+                formattedRate,
                 setSharedAmount,
                 setSharedCharge,
                 setSharedPaymentAssetEstimate,

@@ -24,19 +24,38 @@ export const handleContinueToPay = async (
   sharedSelectedBankCode: string,
   sharedSelectedBankName: string,
   sharedPaymentMode: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
   goToStep: (step: string) => void,
   updateBankData: (newData: Partial<UserBankData>) => void,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
-  } else if (chatInput === "00") {
+helloMenu(
+  addChatMessages,
+  chatInput,
+  nextStep,
+  walletIsConnected,
+  wallet,
+  telFirstName,
+  setSharedPaymentMode
+);  } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      //   helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        'hi',
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {
@@ -116,17 +135,37 @@ export const handleContinueToPay = async (
 export const handlePhoneNumber = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   prevStep: () => void,
-  goToStep: (step: string) => void
+  goToStep: (step: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "0") {
     (() => {
@@ -146,6 +185,9 @@ export const handleCryptoPayment = async (
   sharedPaymentMode: string,
   ethConnect: boolean,
   sharedPaymentAssetEstimate: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   setSharedPhone: (phoneNumber: string) => void,
   processTransaction: (
     phoneNumber: string,
@@ -156,17 +198,35 @@ export const handleCryptoPayment = async (
     lastAssignedTime?: Date
   ) => Promise<void>,
   goToStep: (step: string) => void,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  nextStep: (step: string) => void,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   const phoneNumber = chatInput.trim();
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput === "00") {
     (() => {
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput != "0") {
     setLoading(true);
@@ -328,18 +388,38 @@ export const handleConfirmTransaction = async (
   sharedTransactionId: string,
   procesingStatus: string,
   cancelledStatus: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   setSharedTransactionId: (step: string) => void,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
   } else if (chatInput.trim() === "00") {
     goToStep("start");
-    // helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "0") {
   } else if (chatInput.trim().length > 3) {
     console.log("Input is:", chatInput.trim());
