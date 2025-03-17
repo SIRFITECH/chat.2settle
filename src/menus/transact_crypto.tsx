@@ -1,6 +1,4 @@
-import React, {
-  ReactNode,
-} from "react";
+import React, { ReactNode } from "react";
 import { MessageType, Result } from "../types/general_types";
 import { formatCurrency } from "../helpers/format_currency";
 import { checkRequestExists } from "@/helpers/api_calls";
@@ -528,14 +526,16 @@ export const displaySendPayment = async (
   transactionID: number,
   sharedNetwork: string,
   sharedPaymentMode: string,
-  giftID: number,
   connectedWallet: boolean,
+  giftID?: number,
+  requestID?: number,
   lastAssignedTime?: Date
 ) => {
   const allowedTime = 5;
   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
   const isGift = sharedPaymentMode.toLowerCase() === "gift";
+  const isRequest = sharedPaymentMode.toLowerCase() === "request";
 
   const copyableTransactionID = (
     <>
@@ -552,9 +552,9 @@ export const displaySendPayment = async (
 
   const copyableGiftID = isGift ? (
     <>
-      Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+      Tap to copy Gift ID 👇🏾 : {giftID?.toString()}
       <CopyableText
-        text={giftID.toString()}
+        text={giftID?.toString() || ""}
         label={"Gift ID"}
         addChatMessages={addChatMessages}
         nextStep={nextStep}

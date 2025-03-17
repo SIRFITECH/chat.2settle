@@ -566,8 +566,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          giftID,
           ethConnect,
+          giftID,
+          0,
           lastAssignedTime
         );
 
@@ -625,8 +626,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           if (requestStatus) {
           }
         }
-
-        console.log("USER WANTS TO REQUEST PAYMENT");
 
         // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
         const transactionID = generateTransactionId();
@@ -687,8 +686,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          requestID,
           ethConnect,
+          0,
+          requestID,
           lastAssignedTime
         );
         setLoading(false);
@@ -745,8 +745,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          0,
           ethConnect,
+          0,
+          0,
           lastAssignedTime
         );
 
