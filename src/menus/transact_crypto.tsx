@@ -562,6 +562,18 @@ export const displaySendPayment = async (
       />
     </>
   ) : null;
+  const copyableRequestID = isRequest ? (
+    <>
+      Tap to copy Request ID 👇🏾 : {requestID?.toString()}
+      <CopyableText
+        text={requestID?.toString() || ""}
+        label={"Request ID"}
+        addChatMessages={addChatMessages}
+        nextStep={nextStep}
+        lastAssignedTime={lastAssignedTime}
+      />
+    </>
+  ) : null;
 
   const copyableWalletddress = (
     <>
@@ -580,7 +592,18 @@ export const displaySendPayment = async (
 
   // helper function to generate transaction message
   const generateTransactionMessage = (extraContent?: ReactNode) => {
-    return (
+    return isRequest ? (
+      <span>
+        You will recieve{" "}
+        <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>.
+        <br />
+        {extraContent}
+        <br />
+        Disclaimer: You would get your payment as soon as your request is
+        fulfilled
+        <br />
+      </span>
+    ) : (
       <span>
         <b>
           {paymentAsset} =
@@ -626,6 +649,13 @@ export const displaySendPayment = async (
             />
             {copyableWalletddress}
             {copyableGiftID}
+          </>
+        ) : isRequest ? (
+          <>
+            Note: You are Requesting for payment of{" "}
+            <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+            <br />
+            {copyableRequestID}
           </>
         ) : (
           <>Tap to copy 👇🏾: {copyableTransactionID}</>
