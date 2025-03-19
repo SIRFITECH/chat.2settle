@@ -635,7 +635,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         const date = getFormattedDateTime();
 
         setLoading(false);
-        console.log("testing for request crypto:", sharedPaymentNairaEstimate);
         // let's save the transaction details to db
         const userDate = {
           crypto: null,
@@ -674,7 +673,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           localStorage.removeItem("referralCategory");
         });
 
-        console.log("request payment data created", userDate);
 
         displaySendPayment(
           addChatMessages,
