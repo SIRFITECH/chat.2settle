@@ -112,6 +112,7 @@ export const checkRequestExists = async (
     const response = await axios.get("/api/confirm_request", {
       params: { request_id: requestID },
     });
+    console.log(`Request: ${response.data}`);
     return response.data;
   } catch (error) {
     console.error("Error checking request existence:", error);
