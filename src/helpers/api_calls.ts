@@ -122,25 +122,12 @@ export const checkReferralExists = async (
 export const checkTranscationExists = async (
   transac_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
-  // if (!navigator.onLine) {
-  //   console.error("No internet connection");
-  //   return { error: "No internet connection" };
-  // }
   try {
     const response = await axios.get("/api/check_transaction", {
       params: { transac_id: transac_id },
     });
     return response.data;
   } catch (error) {
-    // if (!error.response) {
-    //   // Handle network error
-    //   console.error("No internet connection");
-    //   return { error: "No internet connection" };
-    // } else {
-    //   // Handle other errors
-    //   console.error("Error:", error.response.status);
-    //   return { error: "Something went wrong" };
-    // }
     console.error("Error checking user existence:", error);
     return { exists: false, user: undefined };
   }
@@ -153,7 +140,45 @@ export const checkGiftExists = async (
     const response = await axios.get("/api/check_gift", {
       params: { gift_id: gift_id },
     });
-    return response.data;
+    const { exists, user } = response.data;
+
+    if (!exists || !user) {
+      return { exists: false };
+    }
+    // const gift = user[0].transaction;
+
+    const newUser: userData = {
+      crypto: user.crypto,
+      network: user.network,
+      estimation: user.estimation,
+      Amount: user.Amount,
+      charges: user.charges,
+      mode_of_payment: user.mode_of_payment,
+      acct_number: user.acct_number,
+      bank_name: user.bank_name,
+      receiver_name: user.receiver_name,
+      receiver_amount: user.receiver_amount,
+      crypto_sent: user.crypto_sent,
+      wallet_address: user.wallet_address,
+      status: "Processing",
+      Date: user.Date,
+      customer_phoneNumber: user.customer_phoneNumber,
+      transac_id: user.transac_id,
+      settle_walletLink: user.settle_walletLink,
+      chat_id: user.chat_id,
+      current_rate: user.current_rate,
+      merchant_rate: user.merchant_rate,
+      gift_status: user.gift_status,
+      receiver_phoneNumber: user.receiver_phoneNumber,
+      gift_chatID: user.gift_chatID,
+      name: user.name,
+      asset_price: user.asset_price,
+      request_id: user.request_id,
+      ref_code: user.ref_code,
+    };
+
+    return { exists: true, user: newUser };
+    // return response.data;
   } catch (error) {
     console.error("Error checking user existence:", error);
     throw error;
@@ -167,8 +192,42 @@ export const checkRequestExists = async (
     const response = await axios.get("/api/confirm_request", {
       params: { request_id: requestID },
     });
-    console.log(`Request: ${response.data}`);
-    return response.data;
+    const { exists, transactions } = response.data;
+    if (!exists || !transactions || transactions.length === 0) {
+      return { exists: false };
+    }
+    const request = transactions[0].transaction;
+
+    const user: userData = {
+      crypto: request.crypto,
+      network: request.network,
+      estimation: request.estimation,
+      Amount: request.Amount,
+      charges: request.charges,
+      mode_of_payment: request.mode_of_payment,
+      acct_number: request.acct_number,
+      bank_name: request.bank_name,
+      receiver_name: request.receiver_name,
+      receiver_amount: request.receiver_amount,
+      crypto_sent: request.crypto_sent,
+      wallet_address: request.wallet_address,
+      status: "Processing",
+      Date: request.Date,
+      customer_phoneNumber: request.customer_phoneNumber,
+      transac_id: request.transac_id,
+      settle_walletLink: request.settle_walletLink,
+      chat_id: request.chat_id,
+      current_rate: request.current_rate,
+      merchant_rate: request.merchant_rate,
+      gift_status: request.gift_status,
+      receiver_phoneNumber: request.receiver_phoneNumber,
+      gift_chatID: request.gift_chatID,
+      name: request.name,
+      asset_price: request.asset_price,
+      request_id: request.request_id,
+      ref_code: request.ref_code,
+    };
+    return { exists: true, user };
   } catch (error) {
     console.error("Error checking request existence:", error);
     throw error;
@@ -320,6 +379,28 @@ export const updateGiftTransaction = async (
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       // Server responded with a status other than 2xx
+      console.error("Server error:", error.response?.data);
+    } else if (error instanceof Error) {
+      // Network or other error
+      console.error("Network error:", error.message);
+    } else {
+      // Some other unknown error
+      console.error("An unknown error occurred");
+    }
+  }
+};
+export const updateRequest = async (
+  request_id: string,
+  updateData: Record<string, any>
+) => {
+  try {
+    const response = await axios.post("/api/update_gift", {
+      request_id,
+      ...updateData,
+    });
+    console.log(response.data); 
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
       console.error("Server error:", error.response?.data);
     } else if (error instanceof Error) {
       // Network or other error

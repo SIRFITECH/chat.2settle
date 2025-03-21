@@ -86,6 +86,7 @@ export const handleSearchBank = async (
       setLoading(true);
       setSharedGiftId(gift_id);
       let giftExists = (await checkGiftExists(gift_id)).exists;
+      console.log("Gift is", giftExists);
       setLoading(false);
       // IF GIFT_ID EXIST IN DB,
       if (giftExists) {

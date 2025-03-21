@@ -15,6 +15,7 @@ import {
   fetchCoinPrice,
   isGiftValid,
   updateGiftTransaction,
+  updateRequest,
 } from "../../helpers/api_calls";
 import { formatCurrency } from "../../helpers/format_currency";
 import { getFormattedDateTime } from "../../helpers/format_date";
@@ -621,89 +622,157 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
         console.log("USER WANTS TO DO A REQUEST TRANSACTION");
-        if (sharedGiftId) {
-          const requestStatus = (await checkRequestExists(sharedGiftId)).exists;
-          if (requestStatus) {
-          }
-        }
+        const request = await checkRequestExists(sharedGiftId);
+        const requestExists = request.exists;
+        console.log("requestExists", requestExists);
+        if (requestExists) {
+          const user = request.user;
+          const paymentAssetEstimate = "85000";
+          const paymentAsset = ` ${parseFloat(paymentAssetEstimate)
+            .toFixed(8)
+            .toString()} ${sharedCrypto} `;
 
-        // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
-        const transactionID = generateTransactionId();
-        const requestID = generateTransactionId();
-        setSharedTransactionId(transactionID.toString());
-        window.localStorage.setItem("transactionID", transactionID.toString());
-        const date = getFormattedDateTime();
-
-        setLoading(false);
-        // let's save the transaction details to db
-        const userDate = {
-          crypto: null,
-          network: null,
-          estimation: sharedEstimateAsset,
-          Amount: null,
-          charges: null,
-          mode_of_payment: sharedPaymentMode,
-          acct_number: bankData.acct_number,
-          bank_name: bankData.bank_name,
-          receiver_name: bankData.receiver_name,
-          receiver_amount: formatCurrency(
+          const userDate = {
+            crypto: sharedCrypto,
+            network: sharedNetwork,
+            estimation: sharedEstimateAsset,
+            Amount: parseFloat(paymentAssetEstimate).toFixed(8).toString(),
+            charges: sharedChargeForDB,
+            mode_of_payment: user?.mode_of_payment,
+            acct_number: user?.acct_number,
+            bank_name: user?.bank_name,
+            receiver_name: user?.receiver_name,
+            receiver_amount: user?.receiver_amount,
+            crypto_sent: paymentAsset,
+            wallet_address: activeWallet,
+            Date: user?.Date,
+            status: "Processing",
+            receiver_phoneNumber: user?.receiver_phoneNumber,
+            customer_phoneNumber: formatPhoneNumber(phoneNumber),
+            transac_id: user?.transac_id,
+            request_id: user?.request_id,
+            settle_walletLink: null,
+            chat_id: user?.chat_id,
+            current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+            merchant_rate: user?.merchant_rate,
+            profit_rate: user?.profit_rat,
+            name: null,
+            asset_price:
+              sharedCrypto.toLowerCase() != "usdt"
+                ? formatCurrency(sharedAssetPrice, "USD")
+                : formatCurrency(sharedRate, "NGN", "en-NG"),
+          };
+          console.log("UserData", userDate);
+          // await updateRequest(sharedGiftId, userDate);
+          const transactionID = parseInt(user?.transac_id || "0");
+          const requestID = parseInt(user?.request_id || "0");
+          displaySendPayment(
+            addChatMessages,
+            nextStep,
+            activeWallet ?? "",
+            sharedCrypto,
+            sharedPaymentAssetEstimate,
             sharedPaymentNairaEstimate,
-            "NGN",
-            "en-NG"
-          ),
-          crypto_sent: null,
-          wallet_address: null,
-          Date: date,
-          status: "Processing",
-          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-          customer_phoneNumber: null,
-          transac_id: transactionID.toString(),
-          request_id: requestID.toString(),
-          settle_walletLink: null,
-          chat_id: chatId,
-          current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
-          merchant_rate: merchantRate,
-          profit_rate: profitRate,
-          name: null,
-          asset_price: null,
-        };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
+            transactionID,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            0,
+            requestID,
+            lastAssignedTime
+          );
+          setLoading(false);
+          nextStep("start");
+          helloMenu(
+            addChatMessages,
+            "hi",
+            nextStep,
+            walletIsConnected,
+            wallet,
+            telFirstName,
+            setSharedPaymentMode
+          );
+        } else {
+          // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
+          const transactionID = generateTransactionId();
+          const requestID = generateTransactionId();
+          setSharedTransactionId(transactionID.toString());
+          window.localStorage.setItem(
+            "transactionID",
+            transactionID.toString()
+          );
+          const date = getFormattedDateTime();
 
+          setLoading(false);
+          // let's save the transaction details to db
+          const userDate = {
+            crypto: null,
+            network: null,
+            estimation: sharedEstimateAsset,
+            Amount: null,
+            charges: null,
+            mode_of_payment: sharedPaymentMode,
+            acct_number: bankData.acct_number,
+            bank_name: bankData.bank_name,
+            receiver_name: bankData.receiver_name,
+            receiver_amount: formatCurrency(
+              sharedPaymentNairaEstimate,
+              "NGN",
+              "en-NG"
+            ),
+            crypto_sent: null,
+            wallet_address: null,
+            Date: date,
+            status: "Processing",
+            receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+            customer_phoneNumber: null,
+            transac_id: transactionID.toString(),
+            request_id: requestID.toString(),
+            settle_walletLink: null,
+            chat_id: chatId,
+            current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+            merchant_rate: merchantRate,
+            profit_rate: profitRate,
+            name: null,
+            asset_price: null,
+          };
 
-        displaySendPayment(
-          addChatMessages,
-          nextStep,
-          activeWallet ?? "",
-          sharedCrypto,
-          sharedPaymentAssetEstimate,
-          sharedPaymentNairaEstimate,
-          transactionID,
-          sharedNetwork,
-          sharedPaymentMode,
-          ethConnect,
-          0,
-          requestID,
-          lastAssignedTime
-        );
-        setLoading(false);
-        nextStep("start");
-        helloMenu(
-          addChatMessages,
-          "hi",
-          nextStep,
-          walletIsConnected,
-          wallet,
-          telFirstName,
-          setSharedPaymentMode
-        );
+          await createTransaction(userDate).then(() => {
+            // clear the ref code from the cleint
+            localStorage.removeItem("referralCode");
+            localStorage.removeItem("referralCategory");
+          });
+
+          displaySendPayment(
+            addChatMessages,
+            nextStep,
+            activeWallet ?? "",
+            sharedCrypto,
+            sharedPaymentAssetEstimate,
+            sharedPaymentNairaEstimate,
+            transactionID,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            0,
+            requestID,
+            lastAssignedTime
+          );
+          setLoading(false);
+          nextStep("start");
+          helloMenu(
+            addChatMessages,
+            "hi",
+            nextStep,
+            walletIsConnected,
+            wallet,
+            telFirstName,
+            setSharedPaymentMode
+          );
+        }
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
-        // React.useMemo(()=>getFormattedDateTime(), []);
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
         if (

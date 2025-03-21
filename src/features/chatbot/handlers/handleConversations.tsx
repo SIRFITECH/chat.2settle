@@ -219,6 +219,7 @@ export const handleConversation = async (
           setSharedPaymentMode,
           setSharedWallet,
           setSharedEstimateAsset,
+          setSharedGiftId,
           setLoading
         );
         setChatInput("");

@@ -1116,20 +1116,6 @@ export const displayCharge = async (
             : 0;
         const cryptoPaymentEstimate =
           parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
-        // setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        // setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        // setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        // setSharedNairaCharge(
-        //   `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        // );
-        // // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        // setSharedChargeForDB(
-        //   `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
-        //     charge.toString(),
-        //     "NGN",
-        //     "en-NG"
-        //   )}`
-        // );
 
         // SET ALL THE STATE VARIABLES
         updateTransactionState({

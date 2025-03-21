@@ -1,6 +1,7 @@
 import { MessageType } from "@/types/general_types";
 import {
   displayCharge,
+  displayEnterPhone,
   displayHowToEstimation,
   displayPayIn,
   displayRequestPaymentSummary,
@@ -118,6 +119,7 @@ export const handleTransferMoney = async (
   setSharedPaymentMode: (mode: string) => void,
   setSharedWallet: (ticker: string) => void,
   setSharedEstimateAsset: (crypto: string) => void,
+  setSharedGiftId: (giftId: string) => void,
   setLoading: React.Dispatch<SetStateAction<boolean>>
 ) => {
   setSharedWallet("");
@@ -169,11 +171,45 @@ export const handleTransferMoney = async (
     try {
       // check if request exist and proceed accordingly
       setLoading(true);
-      const request = await checkRequestExists(chatInput);
+      const request = await checkRequestExists(chatInput.trim());
       const requestExists = request.exists;
+      //  const userDateToUse = {
+      //    crypto: sharedCrypto,
+      //    network: sharedNetwork,
+      //    estimation: sharedEstimateAsset,
+      //    Amount: parseFloat(sharedPaymentAssetEstimate)
+      //      .toFixed(8)
+      //      .toString(),
+      //    charges: sharedChargeForDB,
+      //    mode_of_payment: sharedPaymentMode,
+      //    acct_number: bankData.acct_number,
+      //    bank_name: bankData.bank_name,
+      //    receiver_name: bankData.receiver_name,
+      //    receiver_amount: formatCurrency(
+      //      sharedPaymentNairaEstimate,
+      //      "NGN",
+      //      "en-NG"
+      //    ),
+      //    crypto_sent: paymentAsset,
+      //    wallet_address: activeWallet,
+      //    Date: date,
+      //    status: "Processing",
+      //    customer_phoneNumber: formatPhoneNumber(phoneNumber),
+      //    transac_id: transactionID.toString(),
+      //    settle_walletLink: "",
+      //    chat_id: chatId,
+      //    current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+      //    merchant_rate: merchantRate,
+      //    profit_rate: profitRate,
+      //    name: "",
+      //    asset_price:
+      //      sharedCrypto.toLowerCase() != "usdt"
+      //        ? formatCurrency(sharedAssetPrice, "USD")
+      //        : formatCurrency(sharedRate, "NGN", "en-NG"),
+      //  };
       if (requestExists) {
         // populate the userData with available data
-        console.log("request is", request.user?.acct_number);
+        setSharedGiftId(chatInput.trim());
         setLoading(false);
         displayTransferMoney(addChatMessages);
         nextStep("estimateAsset");
@@ -275,12 +311,19 @@ export const handleEstimateAsset = async (
       setSharedPaymentMode
     );
   } else if (chatInput === "1") {
-    displayHowToEstimation(addChatMessages, "Bitcoin (BTC)", sharedPaymentMode);
+    if (sharedPaymentMode.toLowerCase() === "request") {
+      displayEnterPhone(addChatMessages, nextStep);
+    } else {
+      displayHowToEstimation(
+        addChatMessages,
+        "Bitcoin (BTC)",
+        sharedPaymentMode
+      );
+      nextStep("payOptions");
+    }
     setSharedTicker("BTCUSDT");
     setSharedCrypto("BTC");
     setSharedNetwork("BTC");
-    // if request skip to enter phone
-    nextStep("payOptions");
   } else if (chatInput === "2") {
     const parsedInput = "Ethereum (ETH)";
 
