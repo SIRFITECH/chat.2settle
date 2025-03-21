@@ -15,12 +15,21 @@ import { helloMenu } from "./general";
 import { greetings } from "../helpers/ChatbotConsts";
 import { welcomeMenu } from "./menus";
 import { WalletAddress } from "@/types/wallet_types";
+import { checkRequestExists } from "@/helpers/api_calls";
+import { SetStateAction } from "react";
 
 /**
  * handle crypto transaction, payment request and gifts
  */
 
-// HANDLE THE CHOICE FROM ABOVE
+/**
+   Allow user to choose what action they want to perform - 
+    1. Transact Crypto
+    2. Request for paycard
+    3. Customer support
+    4. Transaction ID
+    5. Reportly
+    *  */
 export const handleMakeAChoice = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
@@ -95,7 +104,7 @@ export const handleMakeAChoice = (
 };
 
 // HANDLE TRANSFER MONEY MENU
-export const handleTransferMoney = (
+export const handleTransferMoney = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   walletIsConnected: boolean,
@@ -108,7 +117,8 @@ export const handleTransferMoney = (
   goToStep: (step: string) => void,
   setSharedPaymentMode: (mode: string) => void,
   setSharedWallet: (ticker: string) => void,
-  setSharedEstimateAsset: (crypto: string) => void
+  setSharedEstimateAsset: (crypto: string) => void,
+  setLoading: React.Dispatch<SetStateAction<boolean>>
 ) => {
   setSharedWallet("");
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -155,8 +165,40 @@ export const handleTransferMoney = (
 
     setSharedPaymentMode("request");
   } else if (sharedPaymentMode.toLowerCase() === "request") {
-    displayTransferMoney(addChatMessages);
-    nextStep("estimateAsset");
+    console.log("Lets see what is sent", chatInput);
+    try {
+      // check if request exist and proceed accordingly
+      setLoading(true);
+      const request = await checkRequestExists(chatInput);
+      const requestExists = request.exists;
+      if (requestExists) {
+        // populate the userData with available data
+        console.log("request is", request.user?.acct_number);
+        setLoading(false);
+        displayTransferMoney(addChatMessages);
+        nextStep("estimateAsset");
+      } else {
+        setLoading(false);
+        addChatMessages([
+          {
+            type: "incoming",
+            content: `Invalid request_id. Try again`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    } catch (error) {
+      setLoading(false);
+      addChatMessages([
+        {
+          type: "incoming",
+          content: "Error fetching request. Please try again.",
+          timestamp: new Date(),
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   } else {
     addChatMessages([
       {
@@ -237,6 +279,7 @@ export const handleEstimateAsset = async (
     setSharedTicker("BTCUSDT");
     setSharedCrypto("BTC");
     setSharedNetwork("BTC");
+    // if request skip to enter phone
     nextStep("payOptions");
   } else if (chatInput === "2") {
     const parsedInput = "Ethereum (ETH)";

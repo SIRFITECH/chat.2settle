@@ -19,6 +19,8 @@ import { WalletAddress } from "@/types/wallet_types";
 
 // OPERATINAL FUNCTIONS
 // ON HI | HELLO | HOWDY | HEY PROMPT
+
+// Welcome message for the user with instruction on how to start a chat
 export const helloMenu = (
   addChatMessages?: (messages: MessageType[]) => void,
   chatInput?: string,
@@ -171,6 +173,8 @@ export const welcomeMenu = (
 };
 
 // TRANSACT CRYPTO SEQUENCE FUNCTIONS
+
+// Allow user to choose whether to use wallet or not
 export const choiceMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,

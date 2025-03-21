@@ -99,7 +99,7 @@ export const displayCompleteTrxFeedbackMessage = (
   addChatMessages(newMessages);
 };
 
-// ENTER GIFT ID
+// Allow user to enter gift or request id to complete transaction
 export const displayEnterId = async (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void,
@@ -122,6 +122,7 @@ export const displayEnterId = async (
     },
   ];
   console.log("Next is giftFeedBack");
+  // We have to check the request here and fill in the userData
   sharedPaymentMode === "Claim Gift"
     ? nextStep("enterBankSearchWord")
     : nextStep("transferMoney");

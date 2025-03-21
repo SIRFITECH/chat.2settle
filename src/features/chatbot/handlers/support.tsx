@@ -239,57 +239,60 @@ export const handleMakeComplain = async (
     ]);
   }
 };
-// ENTER TRANSACTION ID TO COMPLETE TRANSACTION
-export const handleCompleteTransactionId = async (
-  addChatMessages: (messages: MessageType[]) => void,
-  chatInput: string,
-  formattedRate: string,
-  walletIsConnected: boolean,
-  wallet: WalletAddress,
-  telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
-  prevStep: () => void,
-  setSharedPaymentMode: (mode: string) => void
-) => {
-  if (greetings.includes(chatInput.trim().toLowerCase())) {
-    goToStep("start");
-    helloMenu(
-      addChatMessages,
-      chatInput,
-      nextStep,
-      walletIsConnected,
-      wallet,
-      telFirstName,
-      setSharedPaymentMode
-    );
-  } else if (chatInput.trim() === "0") {
-    (() => {
-      prevStep();
-      choiceMenu(
-        addChatMessages,
-        "2",
-        walletIsConnected,
-        wallet,
-        telFirstName,
-        formattedRate,
-        nextStep,
-        prevStep,
-        goToStep,
-        setSharedPaymentMode
-      );
-    })();
-  } else if (chatInput === "1") {
-    displayEnterCompleteTransactionId(addChatMessages, nextStep);
-  } else if (chatInput === "2") {
-    console.log("Let's see what is going on HERE!!!");
-    displayEnterId(addChatMessages, nextStep, "Claim Gift");
-    setSharedPaymentMode("Claim Gift");
-  } else if (chatInput === "3") {
-    displayEnterId(addChatMessages, nextStep, "request");
-    setSharedPaymentMode("request");
-  }
-};
+
+
+// // Allow user to enter transaction id to complete transaction
+
+// export const handleCompleteTransactionId = async (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   chatInput: string,
+//   formattedRate: string,
+//   walletIsConnected: boolean,
+//   wallet: WalletAddress,
+//   telFirstName: string,
+//   nextStep: (step: string) => void,
+//   goToStep: (step: string) => void,
+//   prevStep: () => void,
+//   setSharedPaymentMode: (mode: string) => void
+// ) => {
+//   if (greetings.includes(chatInput.trim().toLowerCase())) {
+//     goToStep("start");
+//     helloMenu(
+//       addChatMessages,
+//       chatInput,
+//       nextStep,
+//       walletIsConnected,
+//       wallet,
+//       telFirstName,
+//       setSharedPaymentMode
+//     );
+//   } else if (chatInput.trim() === "0") {
+//     (() => {
+//       prevStep();
+//       choiceMenu(
+//         addChatMessages,
+//         "2",
+//         walletIsConnected,
+//         wallet,
+//         telFirstName,
+//         formattedRate,
+//         nextStep,
+//         prevStep,
+//         goToStep,
+//         setSharedPaymentMode
+//       );
+//     })();
+//   } else if (chatInput === "1") {
+//     displayEnterCompleteTransactionId(addChatMessages, nextStep);
+//   } else if (chatInput === "2") {
+//     console.log("Let's see what is going on HERE!!!");
+//     displayEnterId(addChatMessages, nextStep, "Claim Gift");
+//     setSharedPaymentMode("Claim Gift");
+//   } else if (chatInput === "3") {
+//     displayEnterId(addChatMessages, nextStep, "request");
+//     setSharedPaymentMode("request");
+//   }
+// };
 
 export const handleKYCInfo = (
   addChatMessages: (messages: MessageType[]) => void,

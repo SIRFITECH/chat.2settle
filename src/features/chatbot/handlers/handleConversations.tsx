@@ -12,7 +12,10 @@ import {
   handleSelectBank,
   handleBankAccountNumber,
 } from "./banking";
-import { handleGiftRequestId } from "./gift";
+import {
+  handleCompleteTransactionId,
+  handleGiftRequestId,
+} from "./completeTransaction";
 import {
   handleReportlyWelcome,
   handleReporterName,
@@ -29,7 +32,6 @@ import {
   handleCustomerSupportAssurance,
   handleTransactionId,
   handleMakeComplain,
-  handleCompleteTransactionId,
 } from "./support";
 import {
   handleMakeAChoice,
@@ -144,6 +146,7 @@ export const handleConversation = async (
     switch (currentStep) {
       case "start":
         console.log("current step is start");
+        // Welcome message for the user with instruction on how to start a chat
         helloMenu(
           addChatMessages,
           chatInput,
@@ -159,7 +162,7 @@ export const handleConversation = async (
 
       case "chooseAction":
         console.log("current step is chooseAction");
-
+        // Allow user to choose whether to use wallet or not
         choiceMenu(
           addChatMessages,
           chatInput,
@@ -177,7 +180,14 @@ export const handleConversation = async (
 
       case "transactCrypto":
         console.log("current step is transactCrypto");
-
+        /**
+         Allow user to choose what action they want to perform - 
+          1. Transact Crypto
+          2. Request for paycard
+          3. Customer support
+          4. Transaction ID
+          5. Reportly
+          *  */
         handleMakeAChoice(
           addChatMessages,
           chatInput,
@@ -194,7 +204,7 @@ export const handleConversation = async (
 
       case "transferMoney":
         console.log("Current step is transferMoney ");
-
+        // If user choose to transact crypto - transfer money, gift or request payment
         handleTransferMoney(
           addChatMessages,
           chatInput,
@@ -208,14 +218,15 @@ export const handleConversation = async (
           goToStep,
           setSharedPaymentMode,
           setSharedWallet,
-          setSharedEstimateAsset
+          setSharedEstimateAsset,
+          setLoading
         );
         setChatInput("");
         break;
 
       case "estimateAsset":
         console.log("Current step is estimateAsset ");
-
+        // Allow user to choose estimate asset - BTC, ETH, BNB, TRX  or USDT
         handleEstimateAsset(
           addChatMessages,
           chatInput,
@@ -236,7 +247,7 @@ export const handleConversation = async (
 
       case "network":
         console.log("Current step is network ");
-
+        // User chooses the usdt network they want to use
         handleNetwork(
           addChatMessages,
           chatInput,
@@ -258,6 +269,7 @@ export const handleConversation = async (
 
       case "payOptions":
         console.log("Current step is payOptions ");
+        // Allow user to choose payment option - naira, dollar or crypto
 
         handlePayOptions(
           addChatMessages,
@@ -282,7 +294,7 @@ export const handleConversation = async (
 
       case "charge":
         console.log("Current step is charge ");
-
+        // Allow user to select how they want to pay platform fees
         handleCharge(
           addChatMessages,
           chatInput,
@@ -311,6 +323,7 @@ export const handleConversation = async (
 
       case "enterBankSearchWord":
         console.log("Current step is enterBankSearchWord");
+        // handle user bank search - using first 3 letters of the user bank
         let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
         let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
         let wantsToRequestPayment =
@@ -369,6 +382,7 @@ export const handleConversation = async (
 
       case "selectBank":
         console.log("Current step is selectBank ");
+        // Allow user to select their bank from the populated list of banks
         handleSelectBank(
           addChatMessages,
           chatInput,
@@ -399,6 +413,7 @@ export const handleConversation = async (
 
       case "enterAccountNumber":
         console.log("Current step is enterAccountNumber ");
+        // Allow user to enter their bank number
         handleBankAccountNumber(
           addChatMessages,
           chatInput,
@@ -420,7 +435,7 @@ export const handleConversation = async (
 
       case "continueToPay":
         console.log("Current step is continueToPay ");
-
+        // Allow user to confirm their bank details
         handleContinueToPay(
           addChatMessages,
           chatInput,
@@ -442,7 +457,7 @@ export const handleConversation = async (
 
       case "enterPhone":
         console.log("Current step is enterPhone ");
-
+        // Ask users to provide their phone number
         handlePhoneNumber(
           addChatMessages,
           chatInput,
@@ -459,7 +474,7 @@ export const handleConversation = async (
 
       case "sendPayment":
         console.log("Current step is sendPayment ");
-
+        // Generate and display wallet for the user to make payment
         await handleCryptoPayment(
           addChatMessages,
           chatInput,
@@ -483,7 +498,7 @@ export const handleConversation = async (
 
       case "confirmTransaction":
         console.log("Current step is confirmTransaction ");
-
+        // Allow user to confirm that they have made the payment
         handleConfirmTransaction(
           addChatMessages,
           chatInput,
@@ -505,6 +520,7 @@ export const handleConversation = async (
 
       case "paymentProcessing":
         console.log("Current step is paymentProcessing ");
+        // Allow user to confirm if they have gotten their payment or contact support otherwise
         handleTransactionProcessing(
           addChatMessages,
           chatInput,
@@ -518,7 +534,7 @@ export const handleConversation = async (
         );
         setChatInput("");
         break;
-
+      // Allow user to enter their KYC info for paycard
       case "kycInfo":
         console.log("Current step is kycInfo ");
         handleKYCInfo(
@@ -536,6 +552,7 @@ export const handleConversation = async (
 
       case "kycReg":
         console.log("Current step is kycReg ");
+        // Allow user to register with their KYC for paycard
         handleRegKYC(
           addChatMessages,
           chatInput,
@@ -551,6 +568,7 @@ export const handleConversation = async (
 
       case "thankForKYCReg":
         console.log("Current step is thankForKYCReg ");
+        // conclude for the paycard reg
         handleThankForKYCReg(
           addChatMessages,
           chatInput,
@@ -566,12 +584,14 @@ export const handleConversation = async (
 
       case "supportWelcome":
         console.log("Current step is supportWelcome ");
+        // Welcome user when they want reach support
         displayCustomerSupportWelcome(addChatMessages, nextStep);
         setChatInput("");
         break;
 
       case "assurance":
         console.log("Current step is assurance ");
+        // Give user feed back after they report to suport
         handleCustomerSupportAssurance(
           addChatMessages,
           chatInput,
@@ -588,6 +608,7 @@ export const handleConversation = async (
 
       case "entreTrxId":
         console.log("Current step is entreTrxId ");
+        //
         handleTransactionId(
           addChatMessages,
           chatInput,
@@ -624,6 +645,7 @@ export const handleConversation = async (
 
       case "completeTransactionId":
         console.log("Current step is completeTransactionId ");
+        // Allow user to enter gift or request id to complete transaction
         handleCompleteTransactionId(
           addChatMessages,
           chatInput,

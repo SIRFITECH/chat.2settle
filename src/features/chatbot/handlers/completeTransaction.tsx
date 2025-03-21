@@ -7,9 +7,11 @@ import { displayTransferMoney } from "@/menus/transact_crypto";
 import {
   displayTransactIDWelcome,
   displayGiftFeedbackMessage,
+  displayEnterCompleteTransactionId,
+  displayEnterId,
 } from "@/menus/transaction_id";
 import { greetings } from "../helpers/ChatbotConsts";
-import { helloMenu } from "./general";
+import { choiceMenu, helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
 import { WalletAddress } from "@/types/wallet_types";
 
@@ -120,5 +122,58 @@ export const handleGiftRequestId = async (
     } finally {
       setLoading(false);
     }
+  }
+};
+
+// Allow user to enter transaction id to complete transaction
+
+export const handleCompleteTransactionId = async (
+  addChatMessages: (messages: MessageType[]) => void,
+  chatInput: string,
+  formattedRate: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
+  nextStep: (step: string) => void,
+  goToStep: (step: string) => void,
+  prevStep: () => void,
+  setSharedPaymentMode: (mode: string) => void
+) => {
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    goToStep("start");
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
+  } else if (chatInput.trim() === "0") {
+    (() => {
+      prevStep();
+      choiceMenu(
+        addChatMessages,
+        "2",
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        formattedRate,
+        nextStep,
+        prevStep,
+        goToStep,
+        setSharedPaymentMode
+      );
+    })();
+  } else if (chatInput === "1") {
+    displayEnterCompleteTransactionId(addChatMessages, nextStep);
+  } else if (chatInput === "2") {
+    console.log("Let's see what is going on HERE!!!");
+    displayEnterId(addChatMessages, nextStep, "Claim Gift");
+    setSharedPaymentMode("Claim Gift");
+  } else if (chatInput === "3") {
+    displayEnterId(addChatMessages, nextStep, "request");
+    setSharedPaymentMode("request");
   }
 };
