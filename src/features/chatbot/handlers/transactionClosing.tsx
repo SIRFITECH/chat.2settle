@@ -36,20 +36,21 @@ export const handleContinueToPay = async (
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-helloMenu(
-  addChatMessages,
-  chatInput,
-  nextStep,
-  walletIsConnected,
-  wallet,
-  telFirstName,
-  setSharedPaymentMode
-);  } else if (chatInput === "00") {
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
+  } else if (chatInput === "00") {
     (() => {
       goToStep("start");
       helloMenu(
         addChatMessages,
-        'hi',
+        "hi",
         nextStep,
         walletIsConnected,
         wallet,
@@ -284,10 +285,6 @@ export const handleCryptoPayment = async (
                     connectedWallet={ethConnect}
                     amount={sharedPaymentAssetEstimate}
                   />
-                  {/* <MemoizedConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    network={network}
-                  /> */}
                 </div>
               ),
               timestamp: new Date(),
@@ -302,10 +299,7 @@ export const handleCryptoPayment = async (
                     Do you understand that you need to complete your payment
                     within <b>5 minutes</b>, otherwise you may lose your money.
                   </p>
-                  {/* <MemoizedConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    network={network}
-                  /> */}
+
                   <ConfirmAndProceedButton
                     phoneNumber={phoneNumber}
                     setLoading={setLoading}

@@ -622,12 +622,23 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
         console.log("USER WANTS TO DO A REQUEST TRANSACTION");
-        const request = await checkRequestExists(sharedGiftId);
-        const requestExists = request.exists;
+        const request =
+          sharedGiftId !== "" ? await checkRequestExists(sharedGiftId) : null;
+        const requestExists = request?.exists;
         console.log("requestExists", requestExists);
         if (requestExists) {
           const user = request.user;
-          const paymentAssetEstimate = "85000";
+          const recieverAmount = parseInt(
+            user?.receiver_amount?.replace(/[^\d.]/g, "") || "0"
+          );
+          const dollar = recieverAmount / parseInt(sharedRate);
+          const assetPrice =
+            sharedCrypto.toLowerCase() != "usdt"
+              ? sharedAssetPrice
+              : sharedRate;
+          const paymentAssetEstimate = (
+            dollar / parseInt(assetPrice)
+          ).toString();
           const paymentAsset = ` ${parseFloat(paymentAssetEstimate)
             .toFixed(8)
             .toString()} ${sharedCrypto} `;
@@ -636,14 +647,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             crypto: sharedCrypto,
             network: sharedNetwork,
             estimation: sharedEstimateAsset,
-            Amount: parseFloat(paymentAssetEstimate).toFixed(8).toString(),
+            Amount: paymentAsset,
             charges: sharedChargeForDB,
             mode_of_payment: user?.mode_of_payment,
             acct_number: user?.acct_number,
             bank_name: user?.bank_name,
             receiver_name: user?.receiver_name,
             receiver_amount: user?.receiver_amount,
-            crypto_sent: paymentAsset,
+            crypto_sent: parseFloat(paymentAssetEstimate).toFixed(8).toString(),
             wallet_address: activeWallet,
             Date: user?.Date,
             status: "Processing",
@@ -655,13 +666,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             chat_id: user?.chat_id,
             current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
             merchant_rate: user?.merchant_rate,
-            profit_rate: user?.profit_rat,
+            profit_rate: user?.profit_rate,
             name: null,
-            asset_price:
-              sharedCrypto.toLowerCase() != "usdt"
-                ? formatCurrency(sharedAssetPrice, "USD")
-                : formatCurrency(sharedRate, "NGN", "en-NG"),
+            asset_price: assetPrice,
           };
+
           console.log("UserData", userDate);
           // await updateRequest(sharedGiftId, userDate);
           const transactionID = parseInt(user?.transac_id || "0");
@@ -1206,5 +1215,4 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   );
 };
 
-// export default ChatBot;
 export default withErrorHandling(ChatBot);

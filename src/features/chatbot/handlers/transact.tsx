@@ -31,6 +31,7 @@ import { SetStateAction } from "react";
     4. Transaction ID
     5. Reportly
     *  */
+
 export const handleMakeAChoice = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,

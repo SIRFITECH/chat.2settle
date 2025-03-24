@@ -138,6 +138,7 @@ export const displayHowToEstimation = async (
   console.log("Next is estimationAmount");
   addChatMessages(newMessages);
 };
+
 export const displayRequestPaymentSummary = async (
   addChatMessages: (messages: MessageType[]) => void,
   input: string,
@@ -650,6 +651,24 @@ export const displaySendPayment = async (
             {copyableWalletddress}
             {copyableGiftID}
           </>
+        ) : requestID ? (
+          <>
+            Note: You are sending{" "}
+            <b>
+              {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")} ={" "}
+              {paymentAsset}{" "}
+            </b>{" "}
+            only to 2Settle wallet address
+            <CopyableText
+              text={assetPayment.toFixed(8)}
+              label={`${sharedCrypto} amount`}
+              addChatMessages={addChatMessages}
+              nextStep={nextStep}
+              lastAssignedTime={lastAssignedTime}
+            />
+            {copyableWalletddress}
+            {copyableGiftID}
+          </>
         ) : isRequest ? (
           <>
             Note: You are Requesting for payment of{" "}
@@ -829,9 +848,6 @@ export const displayCharge = async (
    * - input > 1,000,000 == NGN 1,500
    */
   if (sharedCrypto.toLowerCase() === "usdt") {
-    // if (sharedPaymentMode.toLowerCase() === 'request') {
-    // } else
-
     if (sharedEstimateAsset.toLowerCase() === "naira") {
       max = 2000000;
       min = 20000;
