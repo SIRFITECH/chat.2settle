@@ -173,7 +173,7 @@ export const handleCompleteTransactionId = async (
     displayEnterId(addChatMessages, nextStep, "Claim Gift");
     setSharedPaymentMode("Claim Gift");
   } else if (chatInput === "3") {
-    displayEnterId(addChatMessages, nextStep, "request");
-    setSharedPaymentMode("request");
+    displayEnterId(addChatMessages, nextStep, "payRequest");
+    setSharedPaymentMode("payRequest");
   }
 };

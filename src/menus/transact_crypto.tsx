@@ -537,6 +537,7 @@ export const displaySendPayment = async (
   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
   const isGift = sharedPaymentMode.toLowerCase() === "gift";
   const isRequest = sharedPaymentMode.toLowerCase() === "request";
+  const isRequestPayment = sharedPaymentMode.toLowerCase() === "payRequest";
 
   const copyableTransactionID = (
     <>
@@ -651,13 +652,13 @@ export const displaySendPayment = async (
             {copyableWalletddress}
             {copyableGiftID}
           </>
-        ) : requestID ? (
+        ) : isRequestPayment ? (
           <>
-            Note: You are sending{" "}
+            Note: You are sending
             <b>
               {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")} ={" "}
-              {paymentAsset}{" "}
-            </b>{" "}
+              {paymentAsset}
+            </b>
             only to 2Settle wallet address
             <CopyableText
               text={assetPayment.toFixed(8)}
@@ -667,11 +668,11 @@ export const displaySendPayment = async (
               lastAssignedTime={lastAssignedTime}
             />
             {copyableWalletddress}
-            {copyableGiftID}
+            {copyableRequestID}
           </>
         ) : isRequest ? (
           <>
-            Note: You are Requesting for payment of{" "}
+            Note: You are Requesting for payment of
             <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
             <br />
             {copyableRequestID}

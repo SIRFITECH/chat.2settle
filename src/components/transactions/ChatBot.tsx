@@ -639,6 +639,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           const paymentAssetEstimate = (
             dollar / parseInt(assetPrice)
           ).toString();
+          setSharedPaymentAssetEstimate(paymentAssetEstimate);
           const paymentAsset = ` ${parseFloat(paymentAssetEstimate)
             .toFixed(8)
             .toString()} ${sharedCrypto} `;
@@ -672,7 +673,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           };
 
           console.log("UserData", userDate);
-          // await updateRequest(sharedGiftId, userDate);
+          await updateRequest(sharedGiftId, userDate);
           const transactionID = parseInt(user?.transac_id || "0");
           const requestID = parseInt(user?.request_id || "0");
           displaySendPayment(
@@ -809,7 +810,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        // React.useMemo(()=>getFormattedDateTime(), []);
 
         displaySendPayment(
           addChatMessages,
