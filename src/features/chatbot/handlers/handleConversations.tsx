@@ -203,7 +203,7 @@ export const handleConversation = async (
         break;
 
       case "transferMoney":
-        console.log("Current step is transferMoney ");
+        console.log("Current step is transferMoney ", sharedPaymentMode);
         // If user choose to transact crypto - transfer money, gift or request payment
         handleTransferMoney(
           addChatMessages,

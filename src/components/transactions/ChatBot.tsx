@@ -641,27 +641,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           const paymentAssetEstimate = (
             dollar / parseInt(assetPrice)
           ).toString();
+          setSharedPaymentAssetEstimate(paymentAssetEstimate);
           const paymentAsset = ` ${parseFloat(paymentAssetEstimate)
             .toFixed(8)
             .toString()} ${sharedCrypto} `;
 
-          const transactionID = parseInt(user?.transac_id || "0");
-          const requestID = parseInt(user?.request_id || "0");
-          displaySendPayment(
-            addChatMessages,
-            nextStep,
-            activeWallet ?? "",
-            sharedCrypto,
-            sharedPaymentAssetEstimate,
-            sharedPaymentNairaEstimate,
-            transactionID,
-            sharedNetwork,
-            sharedPaymentMode,
-            ethConnect,
-            0,
-            requestID,
-            lastAssignedTime
-          );
           const userDate = {
             crypto: sharedCrypto,
             network: sharedNetwork,
@@ -691,6 +675,24 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           };
 
           console.log("UserData", userDate);
+          await updateRequest(sharedGiftId, userDate);
+          const transactionID = parseInt(user?.transac_id || "0");
+          const requestID = parseInt(user?.request_id || "0");
+          displaySendPayment(
+            addChatMessages,
+            nextStep,
+            activeWallet ?? "",
+            sharedCrypto,
+            sharedPaymentAssetEstimate,
+            sharedPaymentNairaEstimate,
+            transactionID,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            0,
+            requestID,
+            lastAssignedTime
+          );
           setLoading(false);
           nextStep("start");
           helloMenu(
@@ -811,7 +813,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        // React.useMemo(()=>getFormattedDateTime(), []);
 
         displaySendPayment(
           addChatMessages,

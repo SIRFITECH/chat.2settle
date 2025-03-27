@@ -105,7 +105,7 @@ export const displayEnterId = async (
   nextStep: (step: string) => void,
   sharedPaymentMode: string
 ) => {
-  const queryId = sharedPaymentMode !== "request" ? "Gift ID" : "Request ID";
+  const queryId = sharedPaymentMode !== "payRequest" ? "Gift ID" : "Request ID";
   const newMessages: MessageType[] = [
     {
       type: "incoming",

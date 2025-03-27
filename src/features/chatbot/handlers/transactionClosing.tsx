@@ -255,13 +255,14 @@ export const handleCryptoPayment = async (
     const isGift = sharedPaymentMode.toLowerCase() === "claim gift";
     const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
     const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+    const payPayment = sharedPaymentMode.toLowerCase() === "payrequest";
 
     const network =
       sharedCrypto.toLowerCase() === "usdt"
         ? sharedNetwork.toLowerCase()
         : sharedCrypto.toLowerCase();
 
-    if (!isGift && !requestPayment) {
+    if (!isGift && !requestPayment && !payPayment) {
       const assetPayment = parseFloat(sharedPaymentAssetEstimate);
       const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
 
@@ -317,6 +318,63 @@ export const handleCryptoPayment = async (
 
       setLoading(false);
       addChatMessages(newMessages);
+    } else if (payPayment) {
+       const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+       const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+
+       const newMessages: MessageType[] = ethConnect
+         ? [
+             {
+               type: "incoming",
+               content: (
+                 <div className="flex flex-col items-center">
+                   <p className="mb-4">
+                     You are going to be charged <b>{paymentAsset}</b> directly
+                     from your {sharedCrypto} ({sharedNetwork}) wallet.
+                   </p>
+                   //{" "}
+                   <ConfirmAndProceedButton
+                     phoneNumber={phoneNumber}
+                     setLoading={setLoading}
+                     sharedPaymentMode={sharedPaymentMode}
+                     processTransaction={processTransaction}
+                     network={network}
+                     connectedWallet={ethConnect}
+                     amount={sharedPaymentAssetEstimate}
+                   />
+                 </div>
+               ),
+               timestamp: new Date(),
+             },
+           ]
+         : [
+             {
+               type: "incoming",
+               content: (
+                 <div className="flex flex-col items-center">
+                   <p className="mb-4">
+                     Do you understand that you need to complete your payment
+                     within <b>5 minutes</b>, otherwise you may lose your money.
+                   </p>
+
+                   <ConfirmAndProceedButton
+                     phoneNumber={phoneNumber}
+                     setLoading={setLoading}
+                     sharedPaymentMode={sharedPaymentMode}
+                     processTransaction={processTransaction}
+                     network={network}
+                     connectedWallet={ethConnect}
+                     amount={sharedPaymentAssetEstimate}
+                   />
+                 </div>
+               ),
+               timestamp: new Date(),
+             },
+           ];
+
+       setLoading(false);
+       addChatMessages(newMessages);
+
     } else {
       console.log(
         "Calling processTransaction with:",
