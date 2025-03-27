@@ -349,6 +349,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     activeWallet?: string,
     lastAssignedTime?: Date
   ) {
+    32;
     // one last check is for USER WANT TO PAY REQUEST
     try {
       if (isGift) {
@@ -625,8 +626,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         const request =
           sharedGiftId !== "" ? await checkRequestExists(sharedGiftId) : null;
         const requestExists = request?.exists;
-        console.log("requestExists", requestExists);
-        if (requestExists) {
+        console.log("request exists", requestExists);
+        if (request && requestExists) {
+          console.log("we are fulfilling request!!!");
           const user = request.user;
           const recieverAmount = parseInt(
             user?.receiver_amount?.replace(/[^\d.]/g, "") || "0"
@@ -643,12 +645,29 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             .toFixed(8)
             .toString()} ${sharedCrypto} `;
 
+          const transactionID = parseInt(user?.transac_id || "0");
+          const requestID = parseInt(user?.request_id || "0");
+          displaySendPayment(
+            addChatMessages,
+            nextStep,
+            activeWallet ?? "",
+            sharedCrypto,
+            sharedPaymentAssetEstimate,
+            sharedPaymentNairaEstimate,
+            transactionID,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            0,
+            requestID,
+            lastAssignedTime
+          );
           const userDate = {
             crypto: sharedCrypto,
             network: sharedNetwork,
             estimation: sharedEstimateAsset,
             Amount: paymentAsset,
-            charges: sharedChargeForDB,
+            charges: user?.charges,
             mode_of_payment: user?.mode_of_payment,
             acct_number: user?.acct_number,
             bank_name: user?.bank_name,
@@ -672,24 +691,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           };
 
           console.log("UserData", userDate);
-          // await updateRequest(sharedGiftId, userDate);
-          const transactionID = parseInt(user?.transac_id || "0");
-          const requestID = parseInt(user?.request_id || "0");
-          displaySendPayment(
-            addChatMessages,
-            nextStep,
-            activeWallet ?? "",
-            sharedCrypto,
-            sharedPaymentAssetEstimate,
-            sharedPaymentNairaEstimate,
-            transactionID,
-            sharedNetwork,
-            sharedPaymentMode,
-            ethConnect,
-            0,
-            requestID,
-            lastAssignedTime
-          );
           setLoading(false);
           nextStep("start");
           helloMenu(
@@ -703,6 +704,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           );
         } else {
           // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
+          console.log("we are creating a requests!!!");
           const transactionID = generateTransactionId();
           const requestID = generateTransactionId();
           setSharedTransactionId(transactionID.toString());

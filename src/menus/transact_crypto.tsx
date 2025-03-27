@@ -849,8 +849,8 @@ export const displayCharge = async (
    */
   if (sharedCrypto.toLowerCase() === "usdt") {
     if (sharedEstimateAsset.toLowerCase() === "naira") {
-      max = 2000000;
-      min = 20000;
+      max = 2_000_000;
+      min = 20_000;
       const nairaValue = parseFloat(parsedInput);
       if (nairaValue <= max && nairaValue >= min) {
         var basic = 500 / rate;
@@ -858,18 +858,18 @@ export const displayCharge = async (
         var premium = 1500 / rate;
 
         charge =
-          nairaValue <= 100000
+          nairaValue <= 100_000
             ? 500
-            : nairaValue > 100000 && nairaValue <= 1000000
-            ? 1000
-            : 1500;
+            : nairaValue > 100_000 && nairaValue <= 1_000_000
+            ? 1_000
+            : 1_500;
 
         const cryptoCharge =
           charge === 500
             ? basic
-            : charge === 1000
+            : charge === 1_000
             ? median
-            : charge === 1500
+            : charge === 1_500
             ? premium
             : 0;
         const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
@@ -938,21 +938,21 @@ export const displayCharge = async (
       min = lowerDollar;
       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
         charge =
-          dollarValue <= 100000
+          dollarValue <= 100_000
             ? 500
-            : dollarValue > 100000 && dollarValue <= 1000000
-            ? 1000
-            : 1500;
+            : dollarValue > 100_000 && dollarValue <= 1_000_000
+            ? 1_000
+            : 1_500;
 
         var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
+        var median = 1_000 / rate;
+        var premium = 1_500 / rate;
         const cryptoCharge =
           charge === 500
             ? basic
-            : charge === 1000
+            : charge === 1_000
             ? median
-            : charge === 1500
+            : charge === 1_500
             ? premium
             : 0;
         const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
