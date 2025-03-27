@@ -79,7 +79,9 @@ const useConfirmAndProceedState = ({
         });
 
         const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-        const requestPayment = sharedPaymentMode.toLowerCase() === "request";
+        const requestPayment =
+          sharedPaymentMode.toLowerCase() === "request" ||
+          sharedPaymentMode.toLowerCase() === "payrequest";
 
         setLoading(true);
         await processTransaction(
@@ -89,6 +91,7 @@ const useConfirmAndProceedState = ({
           requestPayment,
           wallet
         );
+        console.log("requestPayment from state", requestPayment);
       }
     } catch (error) {
       console.error("Error processing the transaction:", error);

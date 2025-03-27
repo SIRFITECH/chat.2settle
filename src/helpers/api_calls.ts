@@ -394,11 +394,11 @@ export const updateRequest = async (
   updateData: Record<string, any>
 ) => {
   try {
-    const response = await axios.post("/api/update_gift", {
+    const response = await axios.post("/api/update_request", {
       request_id,
       ...updateData,
     });
-    console.log(response.data); 
+    console.log(response.data);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       console.error("Server error:", error.response?.data);

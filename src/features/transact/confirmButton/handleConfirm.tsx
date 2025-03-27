@@ -55,9 +55,17 @@ export const handleConfirm = async ({
     }));
 
     const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-    const requestPayment = sharedPaymentMode.toLowerCase() === "request";
-
+    const requestPayment =
+      sharedPaymentMode.toLowerCase() === "request" ||
+      sharedPaymentMode.toLowerCase() === "payrequest";
     setLoading(true);
+     console.log("Calling processTransaction with:", {
+       phoneNumber,
+       isGiftTrx,
+       requestPayment,
+       activeWallet,
+       assignedTime,
+     });
     await processTransaction(
       phoneNumber,
       false,

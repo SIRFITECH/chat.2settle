@@ -556,7 +556,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        console.log("sharedPaymentNairaEstimate", sharedPaymentNairaEstimate);
 
         displaySendPayment(
           addChatMessages,
@@ -630,6 +629,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         if (request && requestExists) {
           console.log("we are fulfilling request!!!");
           const user = request.user;
+
           const recieverAmount = parseInt(
             user?.receiver_amount?.replace(/[^\d.]/g, "") || "0"
           );
@@ -638,20 +638,30 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             sharedCrypto.toLowerCase() != "usdt"
               ? sharedAssetPrice
               : sharedRate;
-          const paymentAssetEstimate = (
-            dollar / parseInt(assetPrice)
-          ).toString();
+          // naira converted to asset
+          const charge = calculateCharge(
+            user?.receiver_amount || "0",
+            sharedPaymentMode,
+            sharedRate,
+            assetPrice
+          );
+
+          console.log("Before we continue, charge is:", charge);
+          const finalPayable = dollar / parseFloat(assetPrice);
+          const paymentAssetEstimate = (finalPayable + charge).toString();
+
           setSharedPaymentAssetEstimate(paymentAssetEstimate);
-          const paymentAsset = ` ${parseFloat(paymentAssetEstimate)
+          setSharedPaymentNairaEstimate(user?.receiver_amount || "0");
+          const paymentAsset = `${parseFloat(paymentAssetEstimate)
             .toFixed(8)
-            .toString()} ${sharedCrypto} `;
+            .toString()} ${sharedCrypto}`;
 
           const userDate = {
             crypto: sharedCrypto,
             network: sharedNetwork,
             estimation: sharedEstimateAsset,
             Amount: paymentAsset,
-            charges: user?.charges,
+            charges: charge,
             mode_of_payment: user?.mode_of_payment,
             acct_number: user?.acct_number,
             bank_name: user?.bank_name,
@@ -678,13 +688,24 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           await updateRequest(sharedGiftId, userDate);
           const transactionID = parseInt(user?.transac_id || "0");
           const requestID = parseInt(user?.request_id || "0");
+
+          console.log(
+            "Lets see sharedPaymentAssetEstimate ",
+            paymentAssetEstimate
+          );
+
+          console.log(
+            "Lets see sharedPaymentNairaEstimate ",
+            user?.receiver_amount ?? "0"
+          );
+
           displaySendPayment(
             addChatMessages,
             nextStep,
             activeWallet ?? "",
             sharedCrypto,
-            sharedPaymentAssetEstimate,
-            sharedPaymentNairaEstimate,
+            paymentAssetEstimate,
+            (user?.receiver_amount ?? "0").replace(/[^\d.]/g, ""),
             transactionID,
             sharedNetwork,
             sharedPaymentMode,
@@ -1219,3 +1240,48 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 };
 
 export default withErrorHandling(ChatBot);
+
+export function calculateCharge(
+  amount: string,
+  payment_mode: string,
+  shared_rate: string,
+  asset_price: string
+) {
+  const numAmount = parseFloat(amount.replace(/[^\d.]/g, ""));
+  let basic, median, premium;
+  const rate = parseFloat(shared_rate);
+  const assetPrice = parseFloat(asset_price);
+
+  if (!rate || !assetPrice) {
+    console.error("Invalid rate or asset price:", { rate, assetPrice });
+    return 0;
+  }
+
+  if (payment_mode.toLowerCase().trim() === "usdt") {
+    basic = 500 / rate;
+    median = 1_000 / rate;
+    premium = 1_500 / rate;
+  } else {
+    basic = 500 / rate / assetPrice;
+    median = 1000 / rate / assetPrice;
+    premium = 1500 / rate / assetPrice;
+  }
+
+  const nairaCharge =
+    numAmount <= 100_000
+      ? 500
+      : numAmount > 100_000 && numAmount <= 1_000_000
+      ? 1_000
+      : 1_500;
+
+  const cryptoCharge =
+    nairaCharge === 500
+      ? basic
+      : nairaCharge === 1_000
+      ? median
+      : nairaCharge === 1_500
+      ? premium
+      : 0;
+
+  return cryptoCharge;
+}

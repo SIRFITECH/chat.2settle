@@ -537,7 +537,7 @@ export const displaySendPayment = async (
   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
   const isGift = sharedPaymentMode.toLowerCase() === "gift";
   const isRequest = sharedPaymentMode.toLowerCase() === "request";
-  const isRequestPayment = sharedPaymentMode.toLowerCase() === "payRequest";
+  const isRequestPayment = sharedPaymentMode.toLowerCase() === "payrequest";
 
   const copyableTransactionID = (
     <>
@@ -608,7 +608,7 @@ export const displaySendPayment = async (
     ) : (
       <span>
         <b>
-          {paymentAsset} =
+          {paymentAsset} ={""}
           {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
         </b>{" "}
         will be deducted from your {sharedCrypto} ({sharedNetwork}) wallet.
@@ -625,6 +625,12 @@ export const displaySendPayment = async (
     );
   };
   // Define initial message
+  /**
+   * isGift - for creating gift
+   * isRquestPayment - for fulfilling a request
+   * isRequest - making a request
+   * last option - for making a regular transtion
+   */
   const initialMessages: MessageType[] = [
     {
       type: "incoming",
@@ -654,12 +660,12 @@ export const displaySendPayment = async (
           </>
         ) : isRequestPayment ? (
           <>
-            Note: You are sending
+            Note: You are sending{" "}
             <b>
               {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")} ={" "}
               {paymentAsset}
-            </b>
-            only to 2Settle wallet address
+            </b>{" "}
+            only to 2Settle wallet address to fulfill the request
             <CopyableText
               text={assetPayment.toFixed(8)}
               label={`${sharedCrypto} amount`}
@@ -855,8 +861,8 @@ export const displayCharge = async (
       const nairaValue = parseFloat(parsedInput);
       if (nairaValue <= max && nairaValue >= min) {
         var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
+        var median = 1_000 / rate;
+        var premium = 1_500 / rate;
 
         charge =
           nairaValue <= 100_000
