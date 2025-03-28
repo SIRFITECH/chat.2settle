@@ -660,14 +660,14 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             crypto: sharedCrypto,
             network: sharedNetwork,
             estimation: sharedEstimateAsset,
-            Amount: paymentAsset,
+            Amount: parseFloat(paymentAssetEstimate).toFixed(8),
             charges: charge,
             mode_of_payment: user?.mode_of_payment,
             acct_number: user?.acct_number,
             bank_name: user?.bank_name,
             receiver_name: user?.receiver_name,
             receiver_amount: user?.receiver_amount,
-            crypto_sent: parseFloat(paymentAssetEstimate).toFixed(8).toString(),
+            crypto_sent: paymentAsset,
             wallet_address: activeWallet,
             Date: user?.Date,
             status: "Processing",
@@ -681,7 +681,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             merchant_rate: user?.merchant_rate,
             profit_rate: user?.profit_rate,
             name: null,
-            asset_price: assetPrice,
+            asset_price:
+              sharedCrypto.toLowerCase() != "usdt"
+                ? formatCurrency(sharedAssetPrice, "USD")
+                : formatCurrency(sharedRate, "NGN", "en-NG"),
           };
 
           console.log("UserData", userDate);
