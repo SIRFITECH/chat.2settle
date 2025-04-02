@@ -4,7 +4,7 @@ import { handleConfirm } from "@/features/transact/confirmButton/handleConfirm";
 import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
 import { CountdownTimer } from "@/helpers/format_date";
 import { CheckCircle } from "lucide-react";
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import useConfirmAndProceedState from "./useConfirmAndProceedState";
 
 export interface ConfirmAndProceedButtonProps {
