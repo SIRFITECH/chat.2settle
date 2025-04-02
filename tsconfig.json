@@ -19,15 +19,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["jest", "@testing-library/jest-dom"],
     "incremental": true
   },
-  "include": [
-    "src",
-    "__tests__",
-    "jest.setup.ts",
-    "jest.config.ts",
-    "global.d.ts"
-  ],
+  "include": ["src", "__tests__", "global.d.ts"],
   "exclude": ["node_modules"]
 }
