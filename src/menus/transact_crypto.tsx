@@ -564,6 +564,7 @@ export const displaySendPayment = async (
       />
     </>
   ) : null;
+
   const copyableRequestID = isRequest ? (
     <>
       Tap to copy Request ID 👇🏾 : {requestID?.toString()}

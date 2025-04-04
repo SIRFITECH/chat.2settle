@@ -84,6 +84,7 @@ const useConfirmAndProceedState = ({
           sharedPaymentMode.toLowerCase() === "payrequest";
 
         setLoading(true);
+        
         await processTransaction(
           phoneNumber,
           false,

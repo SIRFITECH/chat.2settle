@@ -341,6 +341,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     });
   }, [chatMessages]);
+  
   async function processTransaction(
     phoneNumber: string,
     isGift: boolean,
