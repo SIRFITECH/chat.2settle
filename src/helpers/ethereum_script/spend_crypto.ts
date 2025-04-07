@@ -965,10 +965,11 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
       contractAddressUSDTERC20
     );
 
-    const gasEstimate = USDTERC20Contract.methods
+    const rawGasEstimate = await USDTERC20Contract.methods
       .transfer(wallet, valueInSmalestUnit)
-      .estimateGas({ from: spender })
-      .toString();
+      .estimateGas({ from: spender });
+
+    const gasEstimate = rawGasEstimate.toString();
 
     const receipt = await USDTERC20Contract.methods
       .transfer(wallet, valueInSmalestUnit)
@@ -989,8 +990,10 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
         throw new Error("Error:", rpcError.data.message || rpcError.message);
       } else {
         throw new Error(
-          "Unknown Error:",
-          rpcError.data.message || rpcError.message || ""
+          "Unknown Error: " +
+            (rpcError.data?.message ||
+              rpcError.message ||
+              "Something went wrong")
         );
       }
     }
@@ -1069,8 +1072,8 @@ export async function spendBEP20(wallet: EthereumAddress, amount: string) {
     const spender = accounts[0];
 
     const USDTBEP20Contract = new web3.eth.Contract(
-      contractABIUSDTERC20,
-      contractAddressUSDTERC20
+      contractUSDTBEP20ABI,
+      contractAddressUSDTBEP20
     );
 
     const gasEstimate = await USDTBEP20Contract.methods
