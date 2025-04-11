@@ -53,7 +53,8 @@
     "twilio": "^5.3.6",
     "viem": "2.9.31",
     "wagmi": "^2.13.3",
-    "web3": "^4.16.0"
+    "web3": "^4.16.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
