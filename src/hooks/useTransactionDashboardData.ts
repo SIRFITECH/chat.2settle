@@ -16,7 +16,6 @@ const useTransactionDashboardData = () => {
           if (!transactionData) {
             throw new Error("No data received");
           }
-          console.log("From the hook:", response.data);
 
           return response.data;
         }),

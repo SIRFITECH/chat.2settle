@@ -1,16 +1,23 @@
-import { TableRow, TableHead, TableBody, TableCell } from "@mui/material";
-import { Table } from "lucide-react";
 import React from "react";
-import { TableHeader } from "../ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 import useTransactionDashboardData from "@/hooks/useTransactionDashboardData";
 import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
 
 const DisplayTransactions = () => {
-  const {
-    data: filteredTransactions,
-    isLoading,
-    error,
-  } = useTransactionDashboardData();
+  const { data: filteredTransactions, isLoading } =
+    useTransactionDashboardData();
+  console.log("From DisplayTransactions()", filteredTransactions);
+
+  const hasTransactions =
+    filteredTransactions?.transactions &&
+    filteredTransactions.transactions.length > 0;
 
   return (
     <Table>
@@ -18,22 +25,23 @@ const DisplayTransactions = () => {
         <TableRow>
           <TableHead className="hidden md:table-cell">Date</TableHead>
           <TableHead className="hidden md:table-cell">Tx ID</TableHead>
-          <TableHead>Amount</TableHead>
-          <TableHead>Crypto</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="hidden md:table-cell">Charges</TableHead>
-          <TableHead>Receiver</TableHead>
+          <TableHead>Naira Amount</TableHead>
+          <TableHead>Crypto Amount</TableHead>
+          <TableHead>Rate</TableHead>
+          <TableHead className="hidden md:table-cell">Charge</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {isLoading ? (
           // <DashboardSkeleton />
-          <div>Loading...</div>
-        ) : filteredTransactions?.transactions.length || 0 > 0 ? (
+          <TableRow>
+            <TableCell colSpan={6} className="text-center py-4">
+              Loading...
+            </TableCell>
+          </TableRow>
+        ) : hasTransactions ? (
           <DashboardFilteredTransactions
             filteredTransactions={filteredTransactions}
-            isLoading={isLoading}
-            error={error}
           />
         ) : (
           <TableRow>
@@ -46,5 +54,7 @@ const DisplayTransactions = () => {
     </Table>
   );
 };
+
+
 
 export default DisplayTransactions;

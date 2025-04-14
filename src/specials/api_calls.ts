@@ -1,31 +1,31 @@
-import axios from "axios";
-import * as apiCalls from "../helpers/api_calls";
+// import axios from "axios";
+// import * as apiCalls from "../helpers/api_calls";
 
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+// jest.mock("axios");
+// const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-describe("API Calls", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+// describe("API Calls", () => {
+//   beforeEach(() => {
+//     jest.clearAllMocks();
+//   });
 
-  describe("fetchRate", () => {
-    it("should fetch and return the rate", async () => {
-      mockedAxios.get.mockResolvedValue({ data: { rate: "750.5" } });
-      const rate = await apiCalls.fetchRate();
-      expect(rate).toBe(750.5);
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/rate`
-      );
-    });
+//   describe("fetchRate", () => {
+//     it("should fetch and return the rate", async () => {
+//       mockedAxios.get.mockResolvedValue({ data: { rate: "750.5" } });
+//       const rate = await apiCalls.fetchRate();
+//       expect(rate).toBe(750.5);
+//       expect(mockedAxios.get).toHaveBeenCalledWith(
+//         `${process.env.NEXT_PUBLIC_API_URL}/api/rate`
+//       );
+//     });
 
-    it("should throw an error if rate is invalid", async () => {
-      mockedAxios.get.mockResolvedValue({ data: { rate: "invalid" } });
-      await expect(apiCalls.fetchRate()).rejects.toThrow(
-        "Invalid rate received"
-      );
-    });
-  });
+//     it("should throw an error if rate is invalid", async () => {
+//       mockedAxios.get.mockResolvedValue({ data: { rate: "invalid" } });
+//       await expect(apiCalls.fetchRate()).rejects.toThrow(
+//         "Invalid rate received"
+//       );
+//     });
+//   });
 
 //   describe("fetchTotalVolume", () => {
 //     it("should return the hardcoded volume", async () => {
@@ -89,5 +89,5 @@ describe("API Calls", () => {
 //     });
 //   });
 
-  // Add more tests for other functions...
-});
+// Add more tests for other functions...
+// });

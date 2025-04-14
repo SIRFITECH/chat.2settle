@@ -5,7 +5,6 @@ import Logo from "./Logo";
 import ConnectWallet from "./ConnectWallet";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import DisplayTransactions from "./DisplayTransactions";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -20,9 +19,6 @@ export default function Footer() {
   const pathname = usePathname();
   return (
     <footer>
-      <div className="flex justify-center align-middle mt-6">
-        {/* <DisplayTransactions /> */}
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[10%]  bg-white mx-[10%] my-[5%]">
         {/* Left Section */}
         <div className=" col-span-1 justify-self-start max-w-sm text-start md:text-left">

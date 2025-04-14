@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import ErrorBoundary from "./TelegramError";
 import useRate from "@/hooks/useRate";
 import useTotalVolume from "@/hooks/useTotalVolume";
+import DisplayTransactions from "./shared/DisplayTransactions";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -165,26 +166,27 @@ export default function Body() {
         </span>
       </Button>
     ) : isDeskTop ? (
-      <Button
-        className={`fixed bottom-8 right-8 h-32 w-32 rounded-full bg-blue-500 transition-transform transform ${
-          isOpen ? "rotate-90" : ""
-        } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
-          isMobile && isOpen ? "hidden" : ""
-        }`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? "Close chat" : "Open chat"}
-      >
-        <span className="text-white relative">
-          {isOpen ? (
-            <CloseIcon className="h-24 w-24" />
-          ) : (
-            <>
-              <ChatBubbleOutlineIcon className="h-24 w-24" />
-              {/* <span className="absolute bottom-0 right-0 w-4 h-4 bg-red-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span> */}
-            </>
-          )}
-        </span>
-      </Button>
+      <>
+        <Button
+          className={`fixed bottom-8 right-8 h-32 w-32 rounded-full bg-blue-500 transition-transform transform ${
+            isOpen ? "rotate-90" : ""
+          } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
+            isMobile && isOpen ? "hidden" : ""
+          }`}
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label={isOpen ? "Close chat" : "Open chat"}
+        >
+          <span className="text-white relative">
+            {isOpen ? (
+              <CloseIcon className="h-24 w-24" />
+            ) : (
+              <>
+                <ChatBubbleOutlineIcon className="h-24 w-24" />
+              </>
+            )}
+          </span>
+        </Button>
+      </>
     ) : (
       <Button
         className={`fixed bottom-8 right-8 h-24 w-24 rounded-full bg-blue-500 transition-transform transform ${
@@ -333,105 +335,18 @@ export default function Body() {
           </ErrorBoundary>
         </div>
       )}
+      {/* Transaction Table Section */}
+      <div className="w-full max-w-6xl mx-auto px-4 mt-8 mb-12 relative z-20 ">
+        <h2 className="text-2xl font-bold text-center mb-6 bg-white bg-opacity-90 py-2 rounded-lg">
+          Recent Transactions
+        </h2>
+        <div
+          className="bg-white bg-opacity-90 rounded-lg shadow-lg p-4 overflow-auto"
+          style={{ height: 165 }}
+        >
+          <DisplayTransactions />
+        </div>
+      </div>
     </div>
   );
 }
-
-{
-  /* <div
-          className="absolute bg-blue-500 text-white text-sm text-nowrap font-Poppins px-5 py-2 rounded-full w-28 h-9"
-          style={{
-            transform: "rotate(-12.75deg)",
-            top: "33%",
-            right: "36%",
-            zIndex: "10",
-          }}
-        >
-          with crypto
-        </div> */
-}
-
-{
-  /* <h3 className="font-bold font-Poppins text-sm md:text-lg text-black">
-          Todays rate is:
-        </h3>
-        <div className="text-center font-Poppins  text-black bg-gradient-to-tr from-purple-300 via-grey-400 to-white bg-opacity-90 px-8 py-3 rounded-full shadow-lg mb-6 border-2 border-white ">
-          {loading ? (
-            <h2 className="font-Poppins text-sm md:text-xl ">
-           
-              Loading Exchange rate...
-            </h2>
-          ) : (
-            <span className="text-blue-700 font-Poppins text-xl md:text-2xl font-bold animate-pulse">
-              <b> {formattedRate}/$1</b>
-            </span>
-          )}
-        </div> */
-}
-
-//  <div className="text-center bg-white font-Poppins  text-black  px-8 py-2 rounded-full shadow-lg mb-6 border-2 border-white">
-//    {tvtLoading ? (
-//      <h2 className="font-Poppins text-xs md:text-sm animate-pulse">
-//        Loading Total Volume Traded YTD...
-//      </h2>
-//    ) : (
-//      <h3 className="font-bold font-Poppins text-sm md:text-lg text-black">
-//        Volume(YTD):
-//        <span className="text-green-600 text-sm md:text-lg animate-pulse">
-//          <b> {formattedTotalVolume}</b>
-//        </span>
-//      </h3>
-//    )}
-//  </div>;
-
-{
-  /* <Button
-        className={`fixed bottom-8 right-8 h-16 w-16 rounded-full bg-blue-500 transition-transform transform ${
-          isOpen ? "rotate-90" : ""
-        } hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)] overflow-hidden ${
-          isMobile && isOpen ? "hidden" : ""
-        }`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? "Close chat" : "Open chat"}
-      >
-        <span className="text-white relative">
-          {isOpen ? (
-            <CloseIcon className="h-8 w-8" />
-          ) : (
-            <>
-              <ChatBubbleOutlineIcon className="h-8 w-8" />
-              <span className="absolute bottom-0 right-0 w-4 h-4 bg-blue-500 transform rotate-45 translate-x-1/2 translate-y-1/2"></span>
-            </>
-          )}
-        </span>
-      </Button> */
-}
-
-// const fetchData = async () => {
-//   setLoading(true);
-//   try {
-//     const fetchedRate = await fetchRate();
-//     const rateFormated = formatCurrency(
-//       fetchedRate.toString(),
-//       "NGN",
-//       "en-NG"
-//     );
-//     setFormattedRate(rateFormated);
-//     setLoading(false);
-//   } catch (error) {
-//     console.error("Failed to fetch rate:", error);
-//   }
-// };
-
-// const fetchTVT = async () => {
-//   setTVTLoading(true);
-//   try {
-//     const totalVolume = await fetchTotalVolume();
-//     const formattedTotalVolume = formatCurrency(
-//       totalVolume.toString(),
-//       "USD"
-//     );
-//     setFormattedTotalVolume(formattedTotalVolume);
-//     setTVTLoading(false);
-//   } catch (error) {}
-// };
