@@ -1180,3 +1180,57 @@ export async function spendTRC20(wallet: EthereumAddress, amount: string) {
   //   throw error; // Re-throw the error for the calling function to handle
   // }
 }
+
+// utils/btc/sendTx.ts
+export async function sendBTC({
+  senderAddress,
+  recipient,
+  amount,
+  signPsbtFn,
+}: {
+  senderAddress: string;
+  recipient: string;
+  amount: number;
+  signPsbtFn: (base64Psbt: string) => Promise<string>; // e.g. from wallet SDK
+}) {
+  // 1. Request PSBT from server
+  const res = await fetch('/api/build_btc_tx', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senderAddress, recipient, amount }),
+  });
+
+  const { psbt } = await res.json();
+  if (!psbt) throw new Error('Failed to build transaction');
+
+  // 2. Ask user wallet to sign PSBT
+  const signedPsbt = await signPsbtFn(psbt);
+  if (!signedPsbt) throw new Error('User did not sign');
+
+  // 3. Broadcast
+  const broadcastRes = await fetch('/api/broadcast_btc_tx', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ signedPsbtBase64: signedPsbt }),
+  });
+
+  const broadcastData = await broadcastRes.json();
+  return broadcastData.txid;
+}
+
+// HOW TO CALL THE FUNCTION
+
+/**
+ * const txid = await sendBTC({
+  senderAddress: userAddress,
+  recipient: 'tb1qxyzabc...', // BTC testnet address
+  amount: 10000, // 10k sats
+  signPsbtFn: async (psbt) => {
+    const result = await (window as any).unisat.signPsbt(psbt, {
+      autoFinalized: false,
+    });
+    return result;
+  },
+});
+
+ */
