@@ -13,6 +13,7 @@ import { Button } from "../ui/button";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import Logo from "./Logo";
+import ConnectBTCButton from "./ConnectBTCButton";
 // import ConnectTronWallet from "../ConnectTronWallet";
 
 const ConnectWallet = () => {
@@ -61,7 +62,8 @@ const ConnectWallet = () => {
                           alt="BTC"
                           className="h-5 w-5 mr-4"
                         />
-                        <ConnectButton />
+                        {/* <ConnectButton /> */}
+                        <ConnectBTCButton />
                       </div>
                     </div>
                   </Button>

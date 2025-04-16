@@ -48,6 +48,7 @@
     "react-qr-barcode-scanner": "^1.0.6",
     "react-virtualized-auto-sizer": "^1.0.24",
     "react-window": "^1.8.10",
+    "sats-connect": "^3.4.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "tronweb": "^6.0.1",
