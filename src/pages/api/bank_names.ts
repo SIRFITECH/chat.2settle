@@ -39,7 +39,7 @@ export default async function handler(
       );
       res.status(200).json({ message: bank_names });
     } else {
-      res.status(200).json({ message: "Bank not found. Try again" });
+      res.status(404).json({ message: "Bank not found. Try again" });
     }
   } catch (err) {
     console.error(

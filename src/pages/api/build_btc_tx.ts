@@ -1,8 +1,8 @@
 import axios from "axios";
-import bitcoin from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const NETWORK = bitcoin.networks.testnet; // bitcoin.networks.bitcoin;
+const NETWORK = bitcoin.networks.bitcoin; // bitcoin.networks.bitcoin;
 
 interface BuildTxRequest {
   senderAddress: string;
@@ -14,18 +14,19 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== "POST")
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
 
   const { senderAddress, recipient, amount } = req.body as BuildTxRequest;
 
   if (!senderAddress || !recipient || !amount) {
-    return res.status(400).json({ error: "All fields required" });
+    return res.status(400).send({ error: "All fields required" });
   }
 
   try {
     const { data: utxos } = await axios.get(
-      `https://blockstream.info/testnet/api/address/${senderAddress}/utxo`
-      //   `https://blockstream.info/api/address/${senderAddress}/utxo`
+      // `https://blockstream.info/testnet/api/address/${senderAddress}/utxo`
+      `https://blockstream.info/api/address/${senderAddress}/utxo`
     );
 
     const psbt = new bitcoin.Psbt({ network: NETWORK });

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import bitcoin from "bitcoinjs-lib";
+import * as bitcoin from "bitcoinjs-lib";
 import axios from "axios";
 
-const NETWORK = bitcoin.networks.testnet; // bitcoin.networks.bitcoin;
+const NETWORK = bitcoin.networks.bitcoin; // bitcoin.networks.bitcoin;
 
 type BroadcastTxRequest = {
   signedPsbtBase64: string;
@@ -25,8 +25,8 @@ export default async function handler(
     const rawTxHex = tx.toHex();
 
     const { data: txid } = await axios.post(
-      "https://blockstream.info/testnet/api/tx",
-      //"https://blockstream.info/api/tx",
+      // "https://blockstream.info/testnet/api/tx",
+      "https://blockstream.info/api/tx",
       rawTxHex
     );
 
