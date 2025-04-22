@@ -45,6 +45,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-element-to-jsx-string": "^15.0.0",
+    "react-icons": "^5.5.0",
     "react-qr-barcode-scanner": "^1.0.6",
     "react-virtualized-auto-sizer": "^1.0.24",
     "react-window": "^1.8.10",

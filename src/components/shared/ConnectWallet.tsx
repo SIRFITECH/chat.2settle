@@ -14,16 +14,19 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import Logo from "./Logo";
 import ConnectBTCButton from "./ConnectBTCButton";
-// import ConnectTronWallet from "../ConnectTronWallet";
+import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 
 const ConnectWallet = () => {
   const { isConnected } = useAccount();
+  const { isConnected: isBTCConnected } = useBTCWallet();
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         {isConnected ? (
           <ConnectButton />
+        ) : isBTCConnected ? (
+          <ConnectBTCButton />
         ) : (
           <Button
             className="bg-blue-500 hover:bg-blue-400 hover:text-white-4 text-white rounded-full"
@@ -62,7 +65,6 @@ const ConnectWallet = () => {
                           alt="BTC"
                           className="h-5 w-5 mr-4"
                         />
-                        {/* <ConnectButton /> */}
                         <ConnectBTCButton />
                       </div>
                     </div>
