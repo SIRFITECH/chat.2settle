@@ -7,6 +7,7 @@ import { MessageType } from "@/types/general_types";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
+import ConnectBTCButton from "@/components/shared/ConnectBTCButton";
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (
@@ -110,6 +111,8 @@ export const choiceMenu = (
   setSharedPaymentMode: (mode: string) => void
 ) => {
   const choice = chatInput.trim();
+  const isEth = wallet?.includes("0x");
+  console.log("is ETH", isEth);
   if (greetings.includes(choice.toLowerCase())) {
     helloMenu(
       addChatMessages,
@@ -137,7 +140,7 @@ export const choiceMenu = (
       addChatMessages([
         {
           type: "incoming",
-          content: <ConnectButton />,
+          content: isEth ? <ConnectButton /> : <ConnectBTCButton />,
           timestamp: new Date(),
         },
         {

@@ -33,7 +33,12 @@ const ConnectBTCButton = () => {
     <div className="relative">
       {isConnected ? (
         <div className="flex items-center gap-2">
-          <span className="bg-white px-4 py-1 rounded-xl text-lg font-bold border-gray-100 border-2">
+          <span className="flex  items-center bg-white px-4 py-1 rounded-xl text-lg font-bold border-gray-100 border-2">
+            <img
+              src="https://img.icons8.com/color/20/000000/bitcoin--v1.png"
+              alt="BTC"
+              className="h-5 w-5 mr-4"
+            />
             Bitcoin
           </span>
           <Dialog>
@@ -48,7 +53,9 @@ const ConnectBTCButton = () => {
             <DialogContent className="sm:max-w-[400px]">
               <DialogHeader>
                 <DialogTitle>
-                  <div className="flex items-center text-xl font-bold">BTC Wallet</div>
+                  <div className="flex items-center text-xl font-bold">
+                    BTC Wallet
+                  </div>
                 </DialogTitle>
 
                 <DialogDescription>

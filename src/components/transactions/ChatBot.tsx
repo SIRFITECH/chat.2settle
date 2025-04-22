@@ -60,12 +60,15 @@ import { withErrorHandling } from "../withErrorHandling";
 import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import { getRates } from "@/services/chatBotService";
+import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
+import { WalletAddress } from "@/types/wallet_types";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
+  const { paymentAddress, isConnected: isBTCConnected } = useBTCWallet();
   const account = useAccount();
-  const wallet = account.address;
-  let walletIsConnected = account.isConnected;
+  const wallet = account.address ?? (paymentAddress as WalletAddress);
+  let walletIsConnected = account.isConnected || isBTCConnected;
 
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
@@ -341,7 +344,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     });
   }, [chatMessages]);
-  
+
   async function processTransaction(
     phoneNumber: string,
     isGift: boolean,

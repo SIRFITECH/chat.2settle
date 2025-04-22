@@ -8,16 +8,6 @@ interface WalletState {
   isConnected: boolean;
   setWallet: (wallet: Partial<WalletState>) => void;
   disconnect: () => void;
-
-  // paymentAddress: string | null;
-  // ordinalsAddress: string | null;
-  // stacksAddress: string | null;
-  // setWallet: (wallet: {
-  //   paymentAddress: string;
-  //   ordinalsAddress: string;
-  //   stacksAddress: string;
-  // }) => void;
-  // resetWallet: () => void;
 }
 
 export const useBTCWallet = create(
