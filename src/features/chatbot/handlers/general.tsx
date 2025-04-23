@@ -82,6 +82,25 @@ export const helloMenu = (
       console.log("Wallet not connected");
     }
     nextStep?.("chooseAction");
+  } else {
+    addChatMessages?.([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            👋 How far {telFirstName}!
+            <br />
+            <br />I didn't catch that. To start a conversation with me, kindly
+            say something like <b>"hi"</b>, <b>"hello"</b>,<b> "howdy"</b>, or{" "}
+            <b>"hey"</b>
+            <br />
+            <br />
+            I'm ready when you are 😄
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
   }
 };
 
