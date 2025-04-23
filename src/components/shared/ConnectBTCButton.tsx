@@ -33,7 +33,7 @@ const ConnectBTCButton = () => {
     <div className="relative">
       {isConnected ? (
         <div className="flex items-center gap-2">
-          <span className="flex  items-center bg-white px-4 py-1 rounded-xl text-lg font-bold border-gray-100 border-2">
+          <span className="flex items-center bg-white px-6 py-1 rounded-xl text-base font-bold border-gray-100 border-2">
             <img
               src="https://img.icons8.com/color/20/000000/bitcoin--v1.png"
               alt="BTC"
@@ -43,7 +43,7 @@ const ConnectBTCButton = () => {
           </span>
           <Dialog>
             <DialogTrigger asChild>
-              <button className="bg-gray-100 px-4 py-1 rounded-xl font-bold border-white border-2">
+              <button className="bg-gray-100 px-4 py-1 rounded-xl text-base font-bold border-white border-2">
                 <div className="flex items-center gap-1">
                   <ShortenedAddress wallet={paymentAddress} />
                   <MdKeyboardArrowDown />

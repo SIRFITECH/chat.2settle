@@ -18,6 +18,7 @@ import { welcomeMenu } from "./menus";
 import { WalletAddress } from "@/types/wallet_types";
 import { checkRequestExists } from "@/helpers/api_calls";
 import { SetStateAction } from "react";
+import { getWalletType } from "@/helpers/transaction/transact_crypto";
 
 /**
  * handle crypto transaction, payment request and gifts
@@ -249,6 +250,7 @@ export const handleTransferMoney = async (
 };
 
 // HANDLE ESTIMATE PAYMENT IN ASSET MENU
+
 export const handleEstimateAsset = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
@@ -313,6 +315,17 @@ export const handleEstimateAsset = async (
       setSharedPaymentMode
     );
   } else if (chatInput === "1") {
+    const walletType = getWalletType(wallet);
+    if (walletIsConnected && walletType !== "BTC") {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: `BTC is only supported when BTC wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
@@ -327,6 +340,17 @@ export const handleEstimateAsset = async (
     setSharedCrypto("BTC");
     setSharedNetwork("BTC");
   } else if (chatInput === "2") {
+    const walletType = getWalletType(wallet);
+    if (walletIsConnected && walletType !== "EVM") {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: `ETH is only supported when ETH wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
@@ -341,6 +365,17 @@ export const handleEstimateAsset = async (
     setSharedCrypto("ETH");
     setSharedNetwork("ERC20");
   } else if (chatInput === "3") {
+    const walletType = getWalletType(wallet);
+    if (walletIsConnected && walletType !== "EVM") {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: `BNB is only supported when BNB/ETH wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
@@ -355,6 +390,17 @@ export const handleEstimateAsset = async (
     setSharedCrypto("BNB");
     setSharedNetwork("BEP20");
   } else if (chatInput === "4") {
+    const walletType = getWalletType(wallet);
+    if (walletIsConnected && walletType !== "TRX") {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: `TRX is only supported when TRX wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
@@ -365,6 +411,17 @@ export const handleEstimateAsset = async (
     setSharedCrypto("TRX");
     setSharedNetwork("TRC20");
   } else if (chatInput === "5") {
+    const walletType = getWalletType(wallet);
+    if (walletIsConnected && walletType !== "EVM" && walletType !== "TRX") {
+      addChatMessages([
+        {
+          type: "incoming",
+          content: `USDT is only supported when ETH or TRX wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
     const newMessages: MessageType[] = [
       {
         type: "incoming",

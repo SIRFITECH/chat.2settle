@@ -1,4 +1,4 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import ConnectWallet from "../../../components/shared/ConnectWallet";
 import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
@@ -217,7 +217,7 @@ export const choiceMenu = (
       addChatMessages([
         {
           type: "incoming",
-          content: <ConnectButton />,
+          content: <ConnectWallet />,
           timestamp: new Date(),
         },
         {
@@ -238,7 +238,7 @@ export const choiceMenu = (
       addChatMessages([
         {
           type: "incoming",
-          content: <ConnectButton />,
+          content: <ConnectWallet />,
           timestamp: new Date(),
         },
         {

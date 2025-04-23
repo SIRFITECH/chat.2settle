@@ -13,8 +13,6 @@ import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
 const DisplayTransactions = () => {
   const { data: filteredTransactions, isLoading } =
     useTransactionDashboardData();
-  console.log("From DisplayTransactions()", filteredTransactions);
-
   const hasTransactions =
     filteredTransactions?.transactions &&
     filteredTransactions.transactions.length > 0;

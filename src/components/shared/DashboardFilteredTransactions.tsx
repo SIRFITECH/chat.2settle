@@ -12,11 +12,6 @@ interface Props {
 }
 
 const DashboardFilteredTransactions = ({ filteredTransactions }: Props) => {
-  console.log(
-    "filteredTransactions from DashboardFilteredTransactions():",
-    filteredTransactions
-  );
-
   return filteredTransactions?.transactions
     .slice(0, 20)
     .map((transaction, index) => (
@@ -39,6 +34,5 @@ const DashboardFilteredTransactions = ({ filteredTransactions }: Props) => {
       </TableRow>
     ));
 };
-
 
 export default DashboardFilteredTransactions;

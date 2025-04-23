@@ -8,12 +8,13 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import ConnectBTCButton from "@/components/shared/ConnectBTCButton";
+import { WalletAddress } from "@/types/wallet_types";
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   walletIsConnected: boolean,
-  wallet: `0x${string}` | undefined,
+  wallet: WalletAddress,
   telFirstName: string,
   formattedRate: string
 ) => {
@@ -101,7 +102,7 @@ export const choiceMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   walletIsConnected: boolean,
-  wallet: `0x${string}` | undefined,
+  wallet: WalletAddress,
   telFirstName: string,
   formattedRate: string,
   nextStep: (step: string) => void,
