@@ -2,6 +2,7 @@ import { EthereumAddress } from "@/types/general_types";
 import { Web3 } from "web3";
 import TronWeb from "tronweb";
 import dotenv from "dotenv";
+import { WalletAddress } from "@/types/wallet_types";
 dotenv.config();
 
 // SETUP
@@ -1188,8 +1189,8 @@ export async function sendBTC({
   amount,
   signPsbtFn,
 }: {
-  senderAddress: string;
-  recipient: string;
+  senderAddress: WalletAddress;
+  recipient: WalletAddress;
   amount: number;
   signPsbtFn: (base64Psbt: string) => Promise<string>; // e.g. from wallet SDK
 }) {

@@ -456,6 +456,180 @@ export const handleEstimateAsset = async (
   }
 };
 
+// export const handleEstimateAsset = async (
+//   addChatMessages: (messages: MessageType[]) => void,
+//   chatInput: string,
+//   walletIsConnected: boolean,
+//   wallet: WalletAddress,
+//   telFirstName: string,
+//   sharedPaymentMode: string,
+//   nextStep: (step: string) => void,
+//   prevStep: () => void,
+//   goToStep: (step: string) => void,
+//   setSharedPaymentMode: (mode: string) => void,
+//   setSharedTicker: (ticker: string) => void,
+//   setSharedCrypto: (crypto: string) => void,
+//   setSharedNetwork: (network: string) => void
+// ) => {
+//   const walletType = getWalletType(wallet);
+//   const lowerInput = chatInput.trim().toLowerCase();
+
+//   const assetConfig: Record<
+//     string,
+//     {
+//       name: string;
+//       ticker: string;
+//       crypto: string;
+//       network: string;
+//       requiredWalletType: "BTC" | "EVM" | "TRX" | "EVM|TRX";
+//     }
+//   > = {
+//     "1": {
+//       name: "Bitcoin (BTC)",
+//       ticker: "BTCUSDT",
+//       crypto: "BTC",
+//       network: "BTC",
+//       requiredWalletType: "BTC",
+//     },
+//     "2": {
+//       name: "Ethereum (ETH)",
+//       ticker: "ETHUSDT",
+//       crypto: "ETH",
+//       network: "ERC20",
+//       requiredWalletType: "EVM",
+//     },
+//     "3": {
+//       name: "Binance (BNB)",
+//       ticker: "BNBUSDT",
+//       crypto: "BNB",
+//       network: "BEP20",
+//       requiredWalletType: "EVM",
+//     },
+//     "4": {
+//       name: "Tron (TRX)",
+//       ticker: "TRXUSDT",
+//       crypto: "TRX",
+//       network: "TRC20",
+//       requiredWalletType: "TRX",
+//     },
+//     "5": {
+//       name: "USDT",
+//       ticker: "USDT",
+//       crypto: "USDT",
+//       network: "",
+//       requiredWalletType: "EVM|TRX",
+//     },
+//   };
+
+//   const showError = (msg: string) =>
+//     addChatMessages([
+//       { type: "incoming", content: msg, timestamp: new Date() },
+//     ]);
+
+//   const handleEstimation = (assetKey: string) => {
+//     const config = assetConfig[assetKey];
+
+//     const isUSDTWallet = config.requiredWalletType.split("|");
+
+//     const isValidWallet = isUSDTWallet
+//       ? config.requiredWalletType.split("|").includes(walletType)
+//       : walletType !== config.requiredWalletType;
+
+//     if (walletIsConnected && !isValidWallet) {
+//       return showError(
+//         `${
+//           config.name
+//         } is only supported when ${config.requiredWalletType.replace(
+//           "|",
+//           " or "
+//         )} wallet is connected. \n Please select the asset of the connected wallet. \n Try again`
+//       );
+//     }
+
+//     if (sharedPaymentMode.toLowerCase() === "payrequest") {
+//       displayEnterPhone(addChatMessages, nextStep);
+//     } else if (assetKey === "5") {
+//       // THAT WOULD BE USDT
+//       addChatMessages([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               select Network: <br />
+//               <br />
+//               1. ERC20 <br />
+//               2. TRC20 <br />
+//               3. BEP20 <br />
+//               <br />
+//               0. Go back <br />
+//               00. Exit
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       nextStep("network");
+//     } else {
+//       displayHowToEstimation(addChatMessages, config.crypto, sharedPaymentMode);
+//     }
+
+//     setSharedTicker(config.ticker);
+//     setSharedCrypto(config.crypto);
+//     if (config.network) setSharedNetwork(config.network);
+//   };
+
+//   // ===== Chat input routing logic =====
+//   if (greetings.includes(lowerInput)) {
+//     goToStep("start");
+//     helloMenu(
+//       addChatMessages,
+//       chatInput,
+//       nextStep,
+//       walletIsConnected,
+//       wallet,
+//       telFirstName,
+//       setSharedPaymentMode
+//     );
+//   } else if (chatInput === "0") {
+//     prevStep();
+//     addChatMessages([
+//       {
+//         type: "incoming",
+//         content: (
+//           <span>
+//             Here is your menu:
+//             <br />
+//             <br />
+//             1. Transfer money
+//             <br />
+//             2. Send Gift
+//             <br />
+//             3. Request for payment
+//             <br />
+//             0. Go back
+//           </span>
+//         ),
+//         timestamp: new Date(),
+//       },
+//     ]);
+//   } else if (chatInput === "00") {
+//     goToStep("chooseAction");
+//     helloMenu(
+//       addChatMessages,
+//       "hi",
+//       nextStep,
+//       walletIsConnected,
+//       wallet,
+//       telFirstName,
+//       setSharedPaymentMode
+//     );
+//   } else if (assetConfig[chatInput]) {
+//     handleEstimation(chatInput);
+//   } else {
+//     showError("Invalid choice. Choose a valid estimate asset");
+//   }
+// };
+
 // HANDLE NETWORK FOR DOLLAR TRANSFER
 export const handleNetwork = async (
   addChatMessages: (messages: MessageType[]) => void,

@@ -1,5 +1,6 @@
 import { getDirectDebitWallet } from "@/helpers/api_calls";
 import {
+  sendBTC,
   spendBEP20,
   spendBNB,
   spendERC20,
@@ -9,6 +10,8 @@ import { EthereumAddress } from "@/types/general_types";
 import { useEffect, useState } from "react";
 import { TransactionReceipt } from "web3";
 import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
+import { useBTCWallet } from "./stores/btcWalletStore";
+import { WalletAddress } from "@/types/wallet_types";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -30,6 +33,8 @@ const useConfirmAndProceedState = ({
     hasCopyButtonBeenClicked: false,
   });
 
+  const { paymentAddress } = useBTCWallet();
+
   const handleBlockchainPayment = async () => {
     setState((prev) => {
       if (
@@ -50,6 +55,8 @@ const useConfirmAndProceedState = ({
     try {
       const wallet = await getDirectDebitWallet();
       let reciept: TransactionReceipt | null = null;
+      let btcSent = false;
+
       if (wallet) {
         switch (network.toLowerCase()) {
           case "eth":
@@ -63,6 +70,21 @@ const useConfirmAndProceedState = ({
             break;
           case "bep20":
             reciept = await spendBEP20(wallet as EthereumAddress, amount);
+            break;
+          case "btc":
+            const txid = await sendBTC({
+              senderAddress: paymentAddress as WalletAddress,
+              recipient: "38nzSnCY5Yh2pTeUGNLFSpxwJjzeNS8NwA",
+              amount: parseInt(amount),
+              signPsbtFn: async (psbt: string) => {
+                const result = await (window as any).unisat.signPsbt(psbt, {
+                  autofinalized: false,
+                });
+
+                return result;
+              },
+            });
+            btcSent = !!txid;
             break;
           default:
             break;
@@ -84,7 +106,33 @@ const useConfirmAndProceedState = ({
           sharedPaymentMode.toLowerCase() === "payrequest";
 
         setLoading(true);
-        
+
+        await processTransaction(
+          phoneNumber,
+          false,
+          isGiftTrx,
+          requestPayment,
+          wallet
+        );
+        console.log("requestPayment from state", requestPayment);
+      }
+
+      if (btcSent) {
+        setState((prev) => {
+          if (prev.activeWallet === wallet) return prev;
+          return {
+            ...prev,
+            activeWallet: wallet,
+          };
+        });
+
+        const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+        const requestPayment =
+          sharedPaymentMode.toLowerCase() === "request" ||
+          sharedPaymentMode.toLowerCase() === "payrequest";
+
+        setLoading(true);
+
         await processTransaction(
           phoneNumber,
           false,
