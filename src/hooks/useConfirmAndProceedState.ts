@@ -36,7 +36,6 @@ const useConfirmAndProceedState = ({
   const { paymentAddress } = useBTCWallet();
 
   const handleBlockchainPayment = async () => {
-    console.log("In the handleBlockchainPayment...")
     setState((prev) => {
       if (
         prev.isDialogOpen === false &&
@@ -59,7 +58,6 @@ const useConfirmAndProceedState = ({
       let btcSent = false;
 
       if (wallet) {
-        
         switch (network.toLowerCase()) {
           case "eth":
             reciept = await spendETH(wallet as EthereumAddress, amount);
@@ -74,17 +72,23 @@ const useConfirmAndProceedState = ({
             reciept = await spendBEP20(wallet as EthereumAddress, amount);
             break;
           case "btc":
-            console.log("Processing btc trx...");
             const txid = await sendBTC({
               senderAddress: paymentAddress as WalletAddress,
               recipient: wallet as WalletAddress,
-              amount: parseInt(amount),
+              amount: parseFloat(amount),
               signPsbtFn: async (psbt: string) => {
-                const result = await (window as any).unisat.signPsbt(psbt, {
-                  autofinalized: false,
-                });
+                const result = await (
+                  window as any
+                ).xverse?.bitcoin?.signedPsbt(psbt);
+                console.log("Transaction is", result);
+                if (!result || !result.psbt) {
+                  throw new Error("Failed to sign PSBT with Xverse");
+                }
+                // await (window as any).unisat.signPsbt(psbt, {
+                //   autofinalized: false,
+                // });
 
-                return result;
+                return result.psbt;
               },
             });
             btcSent = !!txid;

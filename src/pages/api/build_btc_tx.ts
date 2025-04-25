@@ -20,6 +20,7 @@ export default async function handler(
   const { senderAddress, recipient, amount } = req.body as BuildTxRequest;
 
   if (!senderAddress || !recipient || !amount) {
+    console.log("Provided values", { senderAddress, recipient, amount });
     return res.status(400).send({ error: "All fields required" });
   }
 
