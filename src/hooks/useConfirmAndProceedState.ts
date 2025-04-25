@@ -36,6 +36,7 @@ const useConfirmAndProceedState = ({
   const { paymentAddress } = useBTCWallet();
 
   const handleBlockchainPayment = async () => {
+    console.log("In the handleBlockchainPayment...")
     setState((prev) => {
       if (
         prev.isDialogOpen === false &&
@@ -53,11 +54,12 @@ const useConfirmAndProceedState = ({
       };
     });
     try {
-      const wallet = await getDirectDebitWallet();
+      const wallet = await getDirectDebitWallet(network.toLowerCase());
       let reciept: TransactionReceipt | null = null;
       let btcSent = false;
 
       if (wallet) {
+        
         switch (network.toLowerCase()) {
           case "eth":
             reciept = await spendETH(wallet as EthereumAddress, amount);
@@ -72,9 +74,10 @@ const useConfirmAndProceedState = ({
             reciept = await spendBEP20(wallet as EthereumAddress, amount);
             break;
           case "btc":
+            console.log("Processing btc trx...");
             const txid = await sendBTC({
               senderAddress: paymentAddress as WalletAddress,
-              recipient: "38nzSnCY5Yh2pTeUGNLFSpxwJjzeNS8NwA",
+              recipient: wallet as WalletAddress,
               amount: parseInt(amount),
               signPsbtFn: async (psbt: string) => {
                 const result = await (window as any).unisat.signPsbt(psbt, {

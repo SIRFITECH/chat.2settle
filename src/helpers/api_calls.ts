@@ -283,22 +283,47 @@ export const getAvaialableWallet = async (
   }
 };
 
-export const getDirectDebitWallet = async (): Promise<string> => {
+// export const getDirectDebitWallet = async (): Promise<string> => {
+//   try {
+//     const response = await axios.get("/api/get_direct_debit_wallet");
+//     if (response.status === 200) {
+//       console.log("wallet is:", response.data.wallet);
+//       return response.data.wallet;
+//     } else if (response.status === 500) {
+//       return "Internal error occured";
+//     } else if (response.status === 404) {
+//       return "Wallet not found";
+//     }
+//     return "walet";
+//   } catch (error) {
+//     return "Unexpected response from server";
+//   }
+// };
+
+export const getDirectDebitWallet = async (type: string): Promise<string> => {
+  const serial_id = 14;
+
   try {
-    const response = await axios.get("/api/get_direct_debit_wallet");
+    const response = await axios.get("/api/get_direct_debit_wallet", {
+      params: { type, id: serial_id },
+    });
+
     if (response.status === 200) {
-      console.log("wallet is:", response.data.wallet);
+      console.log("Wallet is:", response.data.wallet);
       return response.data.wallet;
-    } else if (response.status === 500) {
-      return "Internal error occured";
     } else if (response.status === 404) {
       return "Wallet not found";
+    } else if (response.status === 500) {
+      return "Internal error occurred";
     }
-    return "walet";
-  } catch (error) {
+
+    return "Unexpected response";
+  } catch (error: any) {
+    console.error("Error fetching wallet:", error);
     return "Unexpected response from server";
   }
 };
+
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {

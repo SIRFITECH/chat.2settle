@@ -195,7 +195,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     sharedNetwork.trim().toLowerCase() === "erc20" ||
     sharedNetwork.trim().toLowerCase() === "bep20";
 
-  let ethConnect = walletIsConnected && isETH;
+  let ethConnect = walletIsConnected || (walletIsConnected && isETH);
 
   // LOAD CHATS FROM LOCALSTORAGE
   const [local, setLocal] = useState(getLocalStorageData());
