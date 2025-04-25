@@ -68,7 +68,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const { paymentAddress, isConnected: isBTCConnected } = useBTCWallet();
   const account = useAccount();
   const wallet = account.address ?? (paymentAddress as WalletAddress);
-  let walletIsConnected = account.isConnected || isBTCConnected;
 
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
@@ -187,6 +186,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
   const [isTelUser, setIsTelUser] = useState(false);
   const code = localStorage.getItem("referralCode") ?? "";
+  let walletIsConnected = account.isConnected || isBTCConnected;
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
