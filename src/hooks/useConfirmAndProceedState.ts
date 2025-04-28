@@ -12,12 +12,7 @@ import { TransactionReceipt } from "web3";
 import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
 import { useBTCWallet } from "./stores/btcWalletStore";
 import { WalletAddress } from "@/types/wallet_types";
-import {
-  request,
-  BitcoinNetworkType,
-  RpcErrorCode,
-  AddressPurpose,
-} from "sats-connect";
+import { request, RpcErrorCode } from "sats-connect";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -83,19 +78,19 @@ const useConfirmAndProceedState = ({
               recipient: wallet as WalletAddress,
               amount: parseFloat(amount),
               signPsbtFn: async (psbt: string) => {
-                console.log("Signing PSBT with Xverse", psbt);
                 try {
-                  console.log("Payment address", paymentAddress);
-                  //                  const connectedWallet = await request("getAddresses", null);
-                  // console.log("getAccounts ~ response:", connectedWallet);
-                  // if (connectedWallet.status === "success") {
-                  //   const paymentAddressItem = connectedWallet.result.find(
-                  //     (address : WalletAddress) => address?.purpose === AddressPurpose.Payment,
-                  //   );
+                  // console.log("Payment address", paymentAddress);
+                  // console.log("Full object:", {
+                  //   [paymentAddress!]: [0],
+                  // });
+                  if (!paymentAddress) {
+                    throw new Error("Payment address is undefined.");
+                  }
+
                   const response = await request("signPsbt", {
                     psbt: psbt,
                     signInputs: {
-                      paymentAddress: [0],
+                      [paymentAddress!]: [0],
                     },
                   });
 
