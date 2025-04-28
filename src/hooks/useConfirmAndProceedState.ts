@@ -12,6 +12,12 @@ import { TransactionReceipt } from "web3";
 import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
 import { useBTCWallet } from "./stores/btcWalletStore";
 import { WalletAddress } from "@/types/wallet_types";
+import {
+  request,
+  BitcoinNetworkType,
+  RpcErrorCode,
+  AddressPurpose,
+} from "sats-connect";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -77,18 +83,45 @@ const useConfirmAndProceedState = ({
               recipient: wallet as WalletAddress,
               amount: parseFloat(amount),
               signPsbtFn: async (psbt: string) => {
-                const result = await (
-                  window as any
-                ).xverse?.bitcoin?.signedPsbt(psbt);
-                console.log("Transaction is", result);
-                if (!result || !result.psbt) {
-                  throw new Error("Failed to sign PSBT with Xverse");
-                }
-                // await (window as any).unisat.signPsbt(psbt, {
-                //   autofinalized: false,
-                // });
+                console.log("Signing PSBT with Xverse", psbt);
+                try {
+                  console.log("Payment address", paymentAddress);
+                  //                  const connectedWallet = await request("getAddresses", null);
+                  // console.log("getAccounts ~ response:", connectedWallet);
+                  // if (connectedWallet.status === "success") {
+                  //   const paymentAddressItem = connectedWallet.result.find(
+                  //     (address : WalletAddress) => address?.purpose === AddressPurpose.Payment,
+                  //   );
+                  const response = await request("signPsbt", {
+                    psbt: psbt,
+                    signInputs: {
+                      paymentAddress: [0],
+                    },
+                  });
 
-                return result.psbt;
+                  // if the transaction is ready to broadcast and you want to broadcast
+                  // it yourself at this point, then remember to finalize the inputs in
+                  // the returned PSBT before broadcasting
+
+                  if (response.status === "success") {
+                    // handle success response
+                    return response.result.psbt;
+                  } else {
+                    if (response.error.code === RpcErrorCode.USER_REJECTION) {
+                      console.log("User cancelled the signing process");
+                      throw new Error("User cancelled the signing process.");
+                      // handle user request cancelation
+                    } else {
+                      throw new Error(
+                        `Error signing PSBT: ${response.error.message}`
+                      );
+                      // handle error
+                    }
+                  }
+                } catch (err) {
+                  console.log(err);
+                  throw new Error("Failed to sign PSBT.");
+                }
               },
             });
             btcSent = !!txid;

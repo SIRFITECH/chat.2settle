@@ -1143,8 +1143,6 @@ export async function sendBTC({
     // 2. Ask user wallet to sign PSBT
     const signedPsbt = await signPsbtFn(psbt);
     if (!signedPsbt) throw new Error("User did not sign");
-    console.log("Signed Partially Signed Btc Trx", signedPsbt);
-
     // 3. Broadcast
     const broadcastRes = await axios.post("/api/broadcast_btc_tx", {
       signedPsbtBase64: signedPsbt,
