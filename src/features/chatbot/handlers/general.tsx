@@ -1,4 +1,4 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import ConnectWallet from "../../../components/shared/ConnectWallet";
 import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
@@ -19,12 +19,14 @@ import { WalletAddress } from "@/types/wallet_types";
 
 // OPERATINAL FUNCTIONS
 // ON HI | HELLO | HOWDY | HEY PROMPT
+
+// Welcome message for the user with instruction on how to start a chat
 export const helloMenu = (
   addChatMessages?: (messages: MessageType[]) => void,
   chatInput?: string,
   nextStep?: (step: string) => void,
   walletIsConnected?: boolean,
-  wallet?: `0x${string}` | undefined,
+  wallet?: WalletAddress,
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
@@ -80,6 +82,25 @@ export const helloMenu = (
       console.log("Wallet not connected");
     }
     nextStep?.("chooseAction");
+  } else {
+    addChatMessages?.([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            👋 How far {telFirstName}!
+            <br />
+            <br />I didn't catch that. To start a conversation with me, kindly
+            say something like <b>"hi"</b>, <b>"hello"</b>,<b> "howdy"</b>, or{" "}
+            <b>"hey"</b>
+            <br />
+            <br />
+            I'm ready when you are 😄
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
   }
 };
 
@@ -171,6 +192,8 @@ export const welcomeMenu = (
 };
 
 // TRANSACT CRYPTO SEQUENCE FUNCTIONS
+
+// Allow user to choose whether to use wallet or not
 export const choiceMenu = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
@@ -213,7 +236,7 @@ export const choiceMenu = (
       addChatMessages([
         {
           type: "incoming",
-          content: <ConnectButton />,
+          content: <ConnectWallet />,
           timestamp: new Date(),
         },
         {
@@ -234,7 +257,7 @@ export const choiceMenu = (
       addChatMessages([
         {
           type: "incoming",
-          content: <ConnectButton />,
+          content: <ConnectWallet />,
           timestamp: new Date(),
         },
         {

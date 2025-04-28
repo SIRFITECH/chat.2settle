@@ -10,12 +10,14 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { transac_id, status } = req.body;
+  const { request_id, ...fieldsToUpdate } = req.body;
 
-  if (!transac_id || !status) {
-    return res
-      .status(400)
-      .json({ message: "Transaction ID and status are required" });
+  if (!request_id) {
+    return res.status(400).json({ message: "Request ID is required" });
+  }
+
+  if (Object.keys(fieldsToUpdate).length === 0) {
+    return res.status(400).json({ message: "No fields to update" });
   }
 
   const dbHost = process.env.host;
@@ -31,15 +33,23 @@ export default async function handler(
       database: dbName,
     });
 
-    const [result] = await connection.execute<mysql.ResultSetHeader>(
-      "UPDATE `settle_database`.`2settle_transaction_table` SET `status` = ? WHERE `transac_id` = ?",
-      [status, transac_id]
-    );
+    // Dynamically build the query
+    const setClause = Object.keys(fieldsToUpdate)
+      .map((field) => `${field} = ?`)
+      .join(", ");
+    const values = Object.values(fieldsToUpdate);
+
+    const query = `UPDATE settle_database.2settle_transaction_table SET ${setClause} WHERE request_id = ?`;
+
+    const [result] = await connection.execute<mysql.ResultSetHeader>(query, [
+      ...values,
+      request_id,
+    ]);
 
     await connection.end();
 
     if (result.affectedRows > 0) {
-      res.status(200).json({ message: "Status updated successfully" });
+      res.status(200).json({ message: "Transaction updated successfully" });
     } else {
       res.status(404).json({ message: "Transaction not found" });
     }

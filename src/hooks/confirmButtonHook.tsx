@@ -107,7 +107,6 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
           "Generating wallet for you..."
         ) : state.isButtonClicked ? (
           <span>
-            {" "}
             Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
           </span>
         ) : (

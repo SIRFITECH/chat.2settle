@@ -2,6 +2,8 @@ import { EthereumAddress } from "@/types/general_types";
 import { Web3 } from "web3";
 import TronWeb from "tronweb";
 import dotenv from "dotenv";
+import { WalletAddress } from "@/types/wallet_types";
+import axios from "axios";
 dotenv.config();
 
 // SETUP
@@ -965,10 +967,11 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
       contractAddressUSDTERC20
     );
 
-    const gasEstimate = USDTERC20Contract.methods
+    const rawGasEstimate = await USDTERC20Contract.methods
       .transfer(wallet, valueInSmalestUnit)
-      .estimateGas({ from: spender })
-      .toString();
+      .estimateGas({ from: spender });
+
+    const gasEstimate = rawGasEstimate.toString();
 
     const receipt = await USDTERC20Contract.methods
       .transfer(wallet, valueInSmalestUnit)
@@ -989,8 +992,10 @@ export async function spendERC20(wallet: EthereumAddress, amount: string) {
         throw new Error("Error:", rpcError.data.message || rpcError.message);
       } else {
         throw new Error(
-          "Unknown Error:",
-          rpcError.data.message || rpcError.message || ""
+          "Unknown Error: " +
+            (rpcError.data?.message ||
+              rpcError.message ||
+              "Something went wrong")
         );
       }
     }
@@ -1069,8 +1074,8 @@ export async function spendBEP20(wallet: EthereumAddress, amount: string) {
     const spender = accounts[0];
 
     const USDTBEP20Contract = new web3.eth.Contract(
-      contractABIUSDTERC20,
-      contractAddressUSDTERC20
+      contractUSDTBEP20ABI,
+      contractAddressUSDTBEP20
     );
 
     const gasEstimate = await USDTBEP20Contract.methods
@@ -1102,6 +1107,55 @@ export async function spendBEP20(wallet: EthereumAddress, amount: string) {
     }
     console.error("Error sending the transaction", error);
     throw new Error("Error sending the transaction");
+  }
+}
+// utils/btc/sendTx.ts
+export async function sendBTC({
+  senderAddress,
+  recipient,
+  amount,
+  signPsbtFn,
+}: {
+  senderAddress: WalletAddress;
+  recipient: WalletAddress;
+  amount: number;
+  signPsbtFn: (base64Psbt: string) => Promise<string>;
+}) {
+  const SATOSHIS_PER_BTC = 100_000_000;
+
+  const satoshiAmount = Math.round(amount * SATOSHIS_PER_BTC);
+  try {
+    // 1. Request PSBT from server
+    const buildRes = await axios.post("/api/build_btc_tx", {
+      senderAddress,
+      recipient,
+      amount: satoshiAmount,
+    });
+
+    const { psbt } = buildRes.data;
+    if (!psbt) throw new Error("Failed to build transaction");
+    console.log("Partially Signed Btc Trx", psbt);
+
+    if (typeof signPsbtFn !== "function") {
+      throw new Error("Invalid or missing signing function (signPsbtFn)");
+    }
+
+    // 2. Ask user wallet to sign PSBT
+    const signedPsbt = await signPsbtFn(psbt);
+    if (!signedPsbt) throw new Error("User did not sign");
+    // 3. Broadcast
+    const broadcastRes = await axios.post("/api/broadcast_btc_tx", {
+      signedPsbtBase64: signedPsbt,
+    });
+
+     const { txid } = broadcastRes.data;
+     if (!txid) throw new Error("Broadcast failed: No transaction ID returned");
+
+     return txid;
+    // return broadcastRes.data.txid;
+  } catch (error: any) {
+    console.error("Error in sendBTC:", error?.response?.data || error.message);
+    throw new Error("Failed to send BTC transaction");
   }
 }
 

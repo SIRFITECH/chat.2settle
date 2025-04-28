@@ -1,6 +1,4 @@
-import React, {
-  ReactNode,
-} from "react";
+import React, { ReactNode } from "react";
 import { MessageType, Result } from "../types/general_types";
 import { formatCurrency } from "../helpers/format_currency";
 import { checkRequestExists } from "@/helpers/api_calls";
@@ -140,6 +138,7 @@ export const displayHowToEstimation = async (
   console.log("Next is estimationAmount");
   addChatMessages(newMessages);
 };
+
 export const displayRequestPaymentSummary = async (
   addChatMessages: (messages: MessageType[]) => void,
   input: string,
@@ -528,14 +527,17 @@ export const displaySendPayment = async (
   transactionID: number,
   sharedNetwork: string,
   sharedPaymentMode: string,
-  giftID: number,
   connectedWallet: boolean,
+  giftID?: number,
+  requestID?: number,
   lastAssignedTime?: Date
 ) => {
   const allowedTime = 5;
   const assetPayment = parseFloat(sharedPaymentAssetEstimate);
   const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
   const isGift = sharedPaymentMode.toLowerCase() === "gift";
+  const isRequest = sharedPaymentMode.toLowerCase() === "request";
+  const isRequestPayment = sharedPaymentMode.toLowerCase() === "payrequest";
 
   const copyableTransactionID = (
     <>
@@ -552,10 +554,23 @@ export const displaySendPayment = async (
 
   const copyableGiftID = isGift ? (
     <>
-      Tap to copy Gift ID 👇🏾 : {giftID.toString()}
+      Tap to copy Gift ID 👇🏾 : {giftID?.toString()}
       <CopyableText
-        text={giftID.toString()}
+        text={giftID?.toString() || ""}
         label={"Gift ID"}
+        addChatMessages={addChatMessages}
+        nextStep={nextStep}
+        lastAssignedTime={lastAssignedTime}
+      />
+    </>
+  ) : null;
+
+  const copyableRequestID = isRequest ? (
+    <>
+      Tap to copy Request ID 👇🏾 : {requestID?.toString()}
+      <CopyableText
+        text={requestID?.toString() || ""}
+        label={"Request ID"}
         addChatMessages={addChatMessages}
         nextStep={nextStep}
         lastAssignedTime={lastAssignedTime}
@@ -580,10 +595,21 @@ export const displaySendPayment = async (
 
   // helper function to generate transaction message
   const generateTransactionMessage = (extraContent?: ReactNode) => {
-    return (
+    return isRequest ? (
+      <span>
+        You will recieve{" "}
+        <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>.
+        <br />
+        {extraContent}
+        <br />
+        Disclaimer: You would get your payment as soon as your request is
+        fulfilled
+        <br />
+      </span>
+    ) : (
       <span>
         <b>
-          {paymentAsset} =
+          {paymentAsset} ={""}
           {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
         </b>{" "}
         will be deducted from your {sharedCrypto} ({sharedNetwork}) wallet.
@@ -600,6 +626,12 @@ export const displaySendPayment = async (
     );
   };
   // Define initial message
+  /**
+   * isGift - for creating gift
+   * isRquestPayment - for fulfilling a request
+   * isRequest - making a request
+   * last option - for making a regular transtion
+   */
   const initialMessages: MessageType[] = [
     {
       type: "incoming",
@@ -626,6 +658,31 @@ export const displaySendPayment = async (
             />
             {copyableWalletddress}
             {copyableGiftID}
+          </>
+        ) : isRequestPayment ? (
+          <>
+            Note: You are sending{" "}
+            <b>
+              {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")} ={" "}
+              {paymentAsset}
+            </b>{" "}
+            only to 2Settle wallet address to fulfill the request
+            <CopyableText
+              text={assetPayment.toFixed(8)}
+              label={`${sharedCrypto} amount`}
+              addChatMessages={addChatMessages}
+              nextStep={nextStep}
+              lastAssignedTime={lastAssignedTime}
+            />
+            {copyableWalletddress}
+            {copyableRequestID}
+          </>
+        ) : isRequest ? (
+          <>
+            Note: You are Requesting for payment of
+            <b>{formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}</b>
+            <br />
+            {copyableRequestID}
           </>
         ) : (
           <>Tap to copy 👇🏾: {copyableTransactionID}</>
@@ -799,31 +856,28 @@ export const displayCharge = async (
    * - input > 1,000,000 == NGN 1,500
    */
   if (sharedCrypto.toLowerCase() === "usdt") {
-    // if (sharedPaymentMode.toLowerCase() === 'request') {
-    // } else
-
     if (sharedEstimateAsset.toLowerCase() === "naira") {
-      max = 2000000;
-      min = 20000;
+      max = 2_000_000;
+      min = 20_000;
       const nairaValue = parseFloat(parsedInput);
       if (nairaValue <= max && nairaValue >= min) {
         var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
+        var median = 1_000 / rate;
+        var premium = 1_500 / rate;
 
         charge =
-          nairaValue <= 100000
+          nairaValue <= 100_000
             ? 500
-            : nairaValue > 100000 && nairaValue <= 1000000
-            ? 1000
-            : 1500;
+            : nairaValue > 100_000 && nairaValue <= 1_000_000
+            ? 1_000
+            : 1_500;
 
         const cryptoCharge =
           charge === 500
             ? basic
-            : charge === 1000
+            : charge === 1_000
             ? median
-            : charge === 1500
+            : charge === 1_500
             ? premium
             : 0;
         const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
@@ -892,21 +946,21 @@ export const displayCharge = async (
       min = lowerDollar;
       if (parseFloat(parsedInput) <= max && parseFloat(parsedInput) >= min) {
         charge =
-          dollarValue <= 100000
+          dollarValue <= 100_000
             ? 500
-            : dollarValue > 100000 && dollarValue <= 1000000
-            ? 1000
-            : 1500;
+            : dollarValue > 100_000 && dollarValue <= 1_000_000
+            ? 1_000
+            : 1_500;
 
         var basic = 500 / rate;
-        var median = 1000 / rate;
-        var premium = 1500 / rate;
+        var median = 1_000 / rate;
+        var premium = 1_500 / rate;
         const cryptoCharge =
           charge === 500
             ? basic
-            : charge === 1000
+            : charge === 1_000
             ? median
-            : charge === 1500
+            : charge === 1_500
             ? premium
             : 0;
         const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
@@ -1086,20 +1140,6 @@ export const displayCharge = async (
             : 0;
         const cryptoPaymentEstimate =
           parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
-        // setSharedCharge(cryptoCharge.toString()); // the charge the user would pay in the choosen asset
-        // setSharedPaymentAssetEstimate(cryptoPaymentEstimate.toString()); // this is the asset the person will send
-        // setSharedPaymentNairaEstimate(parsedInput); // this is the naira the person will recieve
-        // setSharedNairaCharge(
-        //   `${formatCurrency(charge.toString(), "NGN", "en-NG")}`
-        // );
-        // // setSharedNairaCharge(charge.toString()); // this is the charge in naira
-        // setSharedChargeForDB(
-        //   `${cryptoPaymentEstimate.toString()} ${sharedCrypto} = ${formatCurrency(
-        //     charge.toString(),
-        //     "NGN",
-        //     "en-NG"
-        //   )}`
-        // );
 
         // SET ALL THE STATE VARIABLES
         updateTransactionState({

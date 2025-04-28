@@ -10,12 +10,12 @@ import React, {
 import { useAccount } from "wagmi";
 import { useSharedState } from "../../context/SharedStateContext";
 import {
-  checkGiftExists,
   checkRequestExists,
   createTransaction,
   fetchCoinPrice,
   isGiftValid,
   updateGiftTransaction,
+  updateRequest,
 } from "../../helpers/api_calls";
 import { formatCurrency } from "../../helpers/format_currency";
 import { getFormattedDateTime } from "../../helpers/format_date";
@@ -29,10 +29,7 @@ import {
   saveChatId,
 } from "../../utils/utilities";
 
-import {
-  displaySendPayment,
-  displayTransferMoney,
-} from "@/menus/transact_crypto";
+import { displaySendPayment } from "@/menus/transact_crypto";
 import {
   differenceInDays,
   differenceInHours,
@@ -42,15 +39,9 @@ import {
   isYesterday,
 } from "date-fns";
 import { useChatNavigation } from "../../hooks/useChatNavigation";
-import { displayCustomerSupportWelcome } from "../../menus/customer_support";
-import {
-  displayReportlyNote,
-  displayReportlyPhoneNumber,
-} from "../../menus/reportly";
 import {
   displayEnterId,
   displayGiftFeedbackMessage,
-  displayTransactIDWelcome,
 } from "../../menus/transaction_id";
 
 import {
@@ -66,54 +57,17 @@ import ChatInput from "../chatbot/ChatInput";
 import ChatMessages from "../chatbot/ChatMessages";
 import { withErrorHandling } from "../withErrorHandling";
 
-import {
-  handleBankAccountNumber,
-  handleSearchBank,
-  handleSelectBank,
-} from "@/features/chatbot/handlers/banking";
-import { choiceMenu, helloMenu } from "@/features/chatbot/handlers/general";
-import {
-  handleEnterFraudsterWalletAddress,
-  handleEnterReporterPhoneNumber,
-  handleEnterReporterWalletAddress,
-  handleReporterFarwell,
-  handleReporterName,
-  handleReportlyNote,
-  handleReportlyWelcome,
-} from "@/features/chatbot/handlers/reportly";
-import {
-  handleCompleteTransactionId,
-  handleCustomerSupportAssurance,
-  handleKYCInfo,
-  handleMakeComplain,
-  handleRegKYC,
-  handleThankForKYCReg,
-  handleTransactionId,
-} from "@/features/chatbot/handlers/support";
-import {
-  handleCharge,
-  handleEstimateAsset,
-  handleMakeAChoice,
-  handleNetwork,
-  handlePayOptions,
-  handleTransferMoney,
-} from "@/features/chatbot/handlers/transact";
-import {
-  handleConfirmTransaction,
-  handleContinueToPay,
-  handleCryptoPayment,
-  handlePhoneNumber,
-  handleTransactionProcessing,
-} from "@/features/chatbot/handlers/transactionClosing";
-import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { helloMenu } from "@/features/chatbot/handlers/general";
+import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import { getRates } from "@/services/chatBotService";
-import { handleGiftRequestId } from "@/features/chatbot/handlers/gift";
+import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
+import { WalletAddress } from "@/types/wallet_types";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
+  const { paymentAddress, isConnected: isBTCConnected } = useBTCWallet();
   const account = useAccount();
-  const wallet = account.address;
-  let walletIsConnected = account.isConnected;
+  const wallet = account.address ?? (paymentAddress as WalletAddress);
 
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
@@ -232,6 +186,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const [telegramUser, setTelegramUser] = useState<telegramUser | null>(null);
   const [isTelUser, setIsTelUser] = useState(false);
   const code = localStorage.getItem("referralCode") ?? "";
+  let walletIsConnected = account.isConnected || isBTCConnected;
 
   // REF HOOKS
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -240,7 +195,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     sharedNetwork.trim().toLowerCase() === "erc20" ||
     sharedNetwork.trim().toLowerCase() === "bep20";
 
-  let ethConnect = walletIsConnected && isETH;
+  let ethConnect = walletIsConnected || (walletIsConnected && isETH);
 
   // LOAD CHATS FROM LOCALSTORAGE
   const [local, setLocal] = useState(getLocalStorageData());
@@ -389,6 +344,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     });
   }, [chatMessages]);
+
   async function processTransaction(
     phoneNumber: string,
     isGift: boolean,
@@ -397,6 +353,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     activeWallet?: string,
     lastAssignedTime?: Date
   ) {
+    32;
     // one last check is for USER WANT TO PAY REQUEST
     try {
       if (isGift) {
@@ -440,7 +397,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 
             setLoading(false);
             displayGiftFeedbackMessage(addChatMessages, nextStep);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -459,7 +415,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -490,7 +445,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -515,7 +469,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 timestamp: new Date(),
               },
             ]);
-            // helloMenu("hi");
             helloMenu(
               addChatMessages,
               "hi",
@@ -607,7 +560,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        console.log("sharedPaymentNairaEstimate", sharedPaymentNairaEstimate);
 
         displaySendPayment(
           addChatMessages,
@@ -619,8 +571,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          giftID,
           ethConnect,
+          giftID,
+          0,
           lastAssignedTime
         );
 
@@ -673,98 +626,194 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         console.log("User gift data created", userDate);
       } else if (requestPayment) {
         console.log("USER WANTS TO DO A REQUEST TRANSACTION");
-        if (sharedGiftId) {
-          const requestStatus = (await checkRequestExists(sharedGiftId)).exists;
-          if (requestStatus) {
-          }
-        }
+        const request =
+          sharedGiftId !== "" ? await checkRequestExists(sharedGiftId) : null;
+        const requestExists = request?.exists;
+        console.log("request exists", requestExists);
+        if (request && requestExists) {
+          console.log("we are fulfilling request!!!");
+          const user = request.user;
 
-        console.log("USER WANTS TO REQUEST PAYMENT");
-
-        // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
-        const transactionID = generateTransactionId();
-        const requestID = generateTransactionId();
-        setSharedTransactionId(transactionID.toString());
-        window.localStorage.setItem("transactionID", transactionID.toString());
-        const date = getFormattedDateTime();
-
-        setLoading(false);
-        console.log("testing for request crypto:", sharedPaymentNairaEstimate);
-        // let's save the transaction details to db
-        const userDate = {
-          crypto: null,
-          network: null,
-          estimation: sharedEstimateAsset,
-          Amount: null,
-          charges: null,
-          mode_of_payment: sharedPaymentMode,
-          acct_number: bankData.acct_number,
-          bank_name: bankData.bank_name,
-          receiver_name: bankData.receiver_name,
-          receiver_amount: formatCurrency(
-            sharedPaymentNairaEstimate,
-            // "200000",
-            "NGN",
-            "en-NG"
-          ),
-          crypto_sent: null,
-          wallet_address: null,
-          Date: date,
-          status: "Processing",
-          receiver_phoneNumber: formatPhoneNumber(phoneNumber),
-          customer_phoneNumber: formatPhoneNumber(phoneNumber),
-          transac_id: transactionID.toString(),
-          request_id: requestID.toString(),
-          settle_walletLink: "",
-          chat_id: chatId,
-          current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
-          merchant_rate: merchantRate,
-          profit_rate: profitRate,
-          name: "",
-          asset_price:
+          const recieverAmount = parseInt(
+            user?.receiver_amount?.replace(/[^\d.]/g, "") || "0"
+          );
+          const dollar = recieverAmount / parseInt(sharedRate);
+          const assetPrice =
             sharedCrypto.toLowerCase() != "usdt"
-              ? formatCurrency(sharedAssetPrice, "USD")
-              : formatCurrency(sharedRate, "NGN", "en-NG"),
-        };
-        await createTransaction(userDate).then(() => {
-          // clear the ref code from the cleint
+              ? sharedAssetPrice
+              : sharedRate;
+          // naira converted to asset
+          const charge = calculateCharge(
+            user?.receiver_amount || "0",
+            sharedPaymentMode,
+            sharedRate,
+            assetPrice
+          );
 
-          localStorage.removeItem("referralCode");
-          localStorage.removeItem("referralCategory");
-        });
+          console.log("Before we continue, charge is:", charge);
+          const finalPayable = dollar / parseFloat(assetPrice);
+          const paymentAssetEstimate = (finalPayable + charge).toString();
 
-        console.log("request payment data created", userDate);
+          setSharedPaymentAssetEstimate(paymentAssetEstimate);
+          setSharedPaymentNairaEstimate(user?.receiver_amount || "0");
+          const paymentAsset = `${parseFloat(paymentAssetEstimate)
+            .toFixed(8)
+            .toString()} ${sharedCrypto}`;
 
-        displaySendPayment(
-          addChatMessages,
-          nextStep,
-          activeWallet ?? "",
-          sharedCrypto,
-          sharedPaymentAssetEstimate,
-          sharedPaymentNairaEstimate,
-          transactionID,
-          sharedNetwork,
-          sharedPaymentMode,
-          requestID,
-          ethConnect,
-          lastAssignedTime
-        );
-        setLoading(false);
-        nextStep("start");
-        // helloMenu("hi");
-        helloMenu(
-          addChatMessages,
-          "hi",
-          nextStep,
-          walletIsConnected,
-          wallet,
-          telFirstName,
-          setSharedPaymentMode
-        );
+          const userDate = {
+            crypto: sharedCrypto,
+            network: sharedNetwork,
+            estimation: sharedEstimateAsset,
+            Amount: parseFloat(paymentAssetEstimate).toFixed(8),
+            charges: charge,
+            mode_of_payment: user?.mode_of_payment,
+            acct_number: user?.acct_number,
+            bank_name: user?.bank_name,
+            receiver_name: user?.receiver_name,
+            receiver_amount: user?.receiver_amount,
+            crypto_sent: paymentAsset,
+            wallet_address: activeWallet,
+            Date: user?.Date,
+            status: "Processing",
+            receiver_phoneNumber: user?.receiver_phoneNumber,
+            customer_phoneNumber: formatPhoneNumber(phoneNumber),
+            transac_id: user?.transac_id,
+            request_id: user?.request_id,
+            settle_walletLink: null,
+            chat_id: user?.chat_id,
+            current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+            merchant_rate: user?.merchant_rate,
+            profit_rate: user?.profit_rate,
+            name: null,
+            asset_price:
+              sharedCrypto.toLowerCase() != "usdt"
+                ? formatCurrency(sharedAssetPrice, "USD")
+                : formatCurrency(sharedRate, "NGN", "en-NG"),
+          };
+
+          console.log("UserData", userDate);
+          await updateRequest(sharedGiftId, userDate);
+          const transactionID = parseInt(user?.transac_id || "0");
+          const requestID = parseInt(user?.request_id || "0");
+
+          console.log(
+            "Lets see sharedPaymentAssetEstimate ",
+            paymentAssetEstimate
+          );
+
+          console.log(
+            "Lets see sharedPaymentNairaEstimate ",
+            user?.receiver_amount ?? "0"
+          );
+
+          displaySendPayment(
+            addChatMessages,
+            nextStep,
+            activeWallet ?? "",
+            sharedCrypto,
+            paymentAssetEstimate,
+            (user?.receiver_amount ?? "0").replace(/[^\d.]/g, ""),
+            transactionID,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            0,
+            requestID,
+            lastAssignedTime
+          );
+          setLoading(false);
+          nextStep("start");
+          helloMenu(
+            addChatMessages,
+            "hi",
+            nextStep,
+            walletIsConnected,
+            wallet,
+            telFirstName,
+            setSharedPaymentMode
+          );
+        } else {
+          // if requestId exists, user is paying for a request, otherwise, user is requesting for a payment
+          console.log("we are creating a requests!!!");
+          const transactionID = generateTransactionId();
+          const requestID = generateTransactionId();
+          setSharedTransactionId(transactionID.toString());
+          window.localStorage.setItem(
+            "transactionID",
+            transactionID.toString()
+          );
+          const date = getFormattedDateTime();
+
+          setLoading(false);
+          // let's save the transaction details to db
+          const userDate = {
+            crypto: null,
+            network: null,
+            estimation: sharedEstimateAsset,
+            Amount: null,
+            charges: null,
+            mode_of_payment: sharedPaymentMode,
+            acct_number: bankData.acct_number,
+            bank_name: bankData.bank_name,
+            receiver_name: bankData.receiver_name,
+            receiver_amount: formatCurrency(
+              sharedPaymentNairaEstimate,
+              "NGN",
+              "en-NG"
+            ),
+            crypto_sent: null,
+            wallet_address: null,
+            Date: date,
+            status: "Processing",
+            receiver_phoneNumber: formatPhoneNumber(phoneNumber),
+            customer_phoneNumber: null,
+            transac_id: transactionID.toString(),
+            request_id: requestID.toString(),
+            settle_walletLink: null,
+            chat_id: chatId,
+            current_rate: formatCurrency(sharedRate, "NGN", "en-NG"),
+            merchant_rate: merchantRate,
+            profit_rate: profitRate,
+            name: null,
+            asset_price: null,
+          };
+
+          await createTransaction(userDate).then(() => {
+            // clear the ref code from the cleint
+            localStorage.removeItem("referralCode");
+            localStorage.removeItem("referralCategory");
+          });
+
+          displaySendPayment(
+            addChatMessages,
+            nextStep,
+            activeWallet ?? "",
+            sharedCrypto,
+            sharedPaymentAssetEstimate,
+            sharedPaymentNairaEstimate,
+            transactionID,
+            sharedNetwork,
+            sharedPaymentMode,
+            ethConnect,
+            0,
+            requestID,
+            lastAssignedTime
+          );
+          setLoading(false);
+          nextStep("start");
+          helloMenu(
+            addChatMessages,
+            "hi",
+            nextStep,
+            walletIsConnected,
+            wallet,
+            telFirstName,
+            setSharedPaymentMode
+          );
+        }
       } else {
         console.log("USER WANTS TO MAKE A REGULAR TRX");
         const transactionID = generateTransactionId();
-        // React.useMemo(()=>getFormattedDateTime(), []);
         setSharedTransactionId(transactionID.toString());
         window.localStorage.setItem("transactionID", transactionID.toString());
         if (
@@ -792,7 +841,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           .toFixed(8)
           .toString()} ${sharedCrypto} `;
         const date = getFormattedDateTime();
-        // React.useMemo(()=>getFormattedDateTime(), []);
 
         displaySendPayment(
           addChatMessages,
@@ -804,8 +852,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
           transactionID,
           sharedNetwork,
           sharedPaymentMode,
-          0,
           ethConnect,
+          0,
+          0,
           lastAssignedTime
         );
 
@@ -858,607 +907,79 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   }
 
   // THE ROOT FUNCTION
-
-  const handleConversation = async (chatInput: string) => {
-    setLoading(true);
-    try {
-      if (chatInput.trim()) {
-        const newMessage: MessageType = {
-          type: "outgoing",
-          content: <span>{chatInput}</span>,
-          timestamp: new Date(),
-        };
-        addChatMessages([newMessage]);
-        setChatInput("");
-      }
-
-      if (greetings.includes(chatInput.trim().toLowerCase())) {
-        goToStep("start");
-      }
-
-      switch (currentStep) {
-        case "start":
-          console.log("current step is start");
-          helloMenu(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            walletIsConnected,
-            wallet,
-            telFirstName,
-            setSharedPaymentMode
-          );
-          // helloMenu(chatInput);
-          setChatInput("");
-          setSharedPaymentMode("");
-          break;
-
-        case "chooseAction":
-          console.log("current step is chooseAction");
-
-          choiceMenu(
-            addChatMessages,
-            chatInput,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            sharedRate,
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedPaymentMode
-          );
-          setChatInput("");
-          break;
-
-        case "transactCrypto":
-          console.log("current step is transactCrypto");
-
-          handleMakeAChoice(
-            addChatMessages,
-            chatInput,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedPaymentMode
-          );
-          setChatInput("");
-          break;
-
-        case "transferMoney":
-          console.log("Current step is transferMoney ");
-
-          handleTransferMoney(
-            addChatMessages,
-            chatInput,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            sharedPaymentMode,
-            sharedRate,
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedPaymentMode,
-            setSharedWallet,
-            setSharedEstimateAsset
-          );
-          setChatInput("");
-          break;
-
-        case "estimateAsset":
-          console.log("Current step is estimateAsset ");
-
-          handleEstimateAsset(
-            addChatMessages,
-            chatInput,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            sharedPaymentMode,
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedPaymentMode,
-            setSharedTicker,
-            setSharedCrypto,
-            setSharedNetwork
-          );
-          setChatInput("");
-          break;
-
-        case "network":
-          console.log("Current step is network ");
-
-          handleNetwork(
-            addChatMessages,
-            chatInput,
-            sharedPaymentMode,
-            sharedGiftId,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedTicker,
-            setSharedCrypto,
-            setSharedNetwork,
-            setSharedTicker
-          );
-          setChatInput("");
-          break;
-
-        case "payOptions":
-          console.log("Current step is payOptions ");
-
-          handlePayOptions(
-            addChatMessages,
-            chatInput,
-            sharedPaymentMode,
-            sharedCrypto,
-            sharedNetwork,
-            sharedRate,
-            sharedTicker,
-            sharedAssetPrice,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedEstimateAsset,
-            setSharedPaymentMode
-          );
-          setChatInput("");
-          break;
-
-        case "charge":
-          console.log("Current step is charge ");
-
-          handleCharge(
-            addChatMessages,
-            chatInput,
-            sharedPaymentMode,
-            sharedEstimateAsset,
-            sharedCrypto,
-            sharedNetwork,
-            sharedRate,
-            sharedAssetPrice,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedAmount,
-            setSharedCharge,
-            setSharedPaymentAssetEstimate,
-            setSharedPaymentNairaEstimate,
-            setSharedNairaCharge,
-            setSharedChargeForDB,
-            setSharedPaymentMode
-          );
-          setChatInput("");
-          break;
-
-        case "enterBankSearchWord":
-          console.log("Current step is enterBankSearchWord");
-          let wantsToClaimGift =
-            sharedPaymentMode.toLowerCase() === "claim gift";
-          let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
-          let wantsToRequestPayment =
-            sharedPaymentMode.toLowerCase() === "request";
-          let wnatsToTransactCrypto =
-            sharedPaymentMode.toLowerCase() === "transfermoney";
-
-          wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
-            ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
-              handleSearchBank(
-                addChatMessages,
-                chatInput,
-                sharedCharge,
-                sharedPaymentMode,
-                sharedCrypto,
-                sharedPaymentAssetEstimate,
-                sharedRate,
-                sharedPaymentNairaEstimate,
-                sharedAssetPrice,
-                sharedEstimateAsset,
-                sharedNairaCharge,
-                nextStep,
-                prevStep,
-                goToStep,
-                setSharedGiftId,
-                setSharedPaymentAssetEstimate,
-                setSharedPaymentNairaEstimate,
-                setSharedChargeForDB,
-                setLoading
-              ))
-            : (console.log(
-                "CURRENT STEP IS continueToPay IN enterBankSearchWord "
-              ),
-              handleContinueToPay(
-                addChatMessages,
-                chatInput,
-                sharedSelectedBankCode,
-                sharedSelectedBankName,
-                sharedPaymentMode,
-                nextStep,
-                prevStep,
-                goToStep,
-                updateBankData,
-                setLoading
-              ));
-          setChatInput("");
-          break;
-
-        case "selectBank":
-          console.log("Current step is selectBank ");
-          handleSelectBank(
-            addChatMessages,
-            chatInput,
-            sharedPaymentMode,
-            sharedCrypto,
-            sharedAmount,
-            sharedRate,
-            sharedAssetPrice,
-            sharedEstimateAsset,
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedBankNames,
-            setSharedPaymentAssetEstimate,
-            setSharedPaymentNairaEstimate,
-            setSharedChargeForDB,
-            setSharedCharge,
-            setSharedNairaCharge,
-            setSharedBankCodes,
-            setLoading
-          );
-          setChatInput("");
-          break;
-
-        case "enterAccountNumber":
-          console.log("Current step is enterAccountNumber ");
-          handleBankAccountNumber(
-            addChatMessages,
-            chatInput,
-            sharedBankCodes,
-            sharedBankNames,
-            nextStep,
-            prevStep,
-            goToStep,
-            setSharedBankCodes,
-            setSharedSelectedBankCode,
-            setSharedSelectedBankName
-          );
-          setChatInput("");
-          break;
-
-        case "continueToPay":
-          console.log("Current step is continueToPay ");
-
-          handleContinueToPay(
-            addChatMessages,
-            chatInput,
-            sharedSelectedBankCode,
-            sharedSelectedBankName,
-            sharedPaymentMode,
-            nextStep,
-            prevStep,
-            goToStep,
-            updateBankData,
-            setLoading
-          );
-          setChatInput("");
-          break;
-
-        case "enterPhone":
-          console.log("Current step is enterPhone ");
-
-          handlePhoneNumber(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            prevStep,
-            goToStep
-          );
-          setChatInput("");
-          break;
-
-        case "sendPayment":
-          console.log("Current step is sendPayment ");
-
-          await handleCryptoPayment(
-            addChatMessages,
-            chatInput,
-            sharedCrypto,
-            sharedNetwork,
-            sharedPaymentMode,
-            ethConnect,
-            sharedPaymentAssetEstimate,
-            setSharedPhone,
-            processTransaction,
-            goToStep,
-            setLoading
-          );
-          setChatInput("");
-          break;
-
-        case "confirmTransaction":
-          console.log("Current step is confirmTransaction ");
-
-          handleConfirmTransaction(
-            addChatMessages,
-            chatInput,
-            sharedTransactionId,
-            procesingStatus,
-            cancelledStatus,
-            nextStep,
-            goToStep,
-            setSharedTransactionId,
-            setLoading
-          );
-          setChatInput("");
-
-          break;
-
-        case "paymentProcessing":
-          console.log("Current step is paymentProcessing ");
-          handleTransactionProcessing(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            prevStep,
-            goToStep
-          );
-          setChatInput("");
-          break;
-
-        case "kycInfo":
-          console.log("Current step is kycInfo ");
-          handleKYCInfo(addChatMessages, chatInput, nextStep, goToStep);
-          setChatInput("");
-          break;
-
-        case "kycReg":
-          console.log("Current step is kycReg ");
-          handleRegKYC(addChatMessages, chatInput, nextStep, goToStep);
-          setChatInput("");
-          break;
-
-        case "thankForKYCReg":
-          console.log("Current step is thankForKYCReg ");
-          handleThankForKYCReg(addChatMessages, chatInput, nextStep, goToStep);
-          setChatInput("");
-          break;
-
-        case "supportWelcome":
-          console.log("Current step is supportWelcome ");
-          displayCustomerSupportWelcome(addChatMessages, nextStep);
-          setChatInput("");
-          break;
-
-        case "assurance":
-          console.log("Current step is assurance ");
-          handleCustomerSupportAssurance(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            prevStep,
-            goToStep
-          );
-          setChatInput("");
-          break;
-
-        case "entreTrxId":
-          console.log("Current step is entreTrxId ");
-          handleTransactionId(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            goToStep,
-            setSharedTransactionId,
-            setLoading
-          );
-
-          setChatInput("");
-          break;
-
-        case "makeComplain":
-          console.log("Current step is makeComplain ");
-          handleMakeComplain(
-            addChatMessages,
-            chatInput,
-            sharedTransactionId,
-            goToStep,
-            goToStep,
-            prevStep,
-            setLoading
-          );
-          setChatInput("");
-          break;
-
-        case "completeTransactionId":
-          console.log("Current step is completeTransactionId ");
-          handleCompleteTransactionId(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            goToStep,
-            prevStep,
-            setSharedPaymentMode
-          );
-          setChatInput("");
-          break;
-
-        case "giftFeedBack":
-          console.log("Current step is giftFeedBack ");
-          handleGiftRequestId(
-            addChatMessages,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            sharedPaymentMode,
-            chatInput,
-            nextStep,
-            goToStep,
-            prevStep,
-            setSharedPaymentMode,
-            setSharedGiftId,
-            setLoading
-          );
-          setChatInput("");
-          break;
-
-        case "makeReport":
-          console.log("Current step is makeReport ");
-          handleReportlyWelcome(
-            addChatMessages,
-            walletIsConnected,
-            wallet,
-            telFirstName || "",
-            sharedRate,
-            chatInput,
-            nextStep,
-            goToStep,
-            prevStep,
-            setSharedReportlyReportType
-          );
-          setChatInput("");
-          break;
-
-        case "reporterName":
-          console.log("Current step is reporterName ");
-          handleReporterName(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            goToStep,
-            setSharedReportlyReportType
-          );
-          setChatInput("");
-          break;
-
-        case "reporterPhoneNumber":
-          console.log("Current step is reporterPhoneNumber ");
-          handleEnterReporterPhoneNumber(
-            addChatMessages,
-            chatInput,
-            reporterName,
-            nextStep,
-            goToStep,
-            setReporterName,
-            displayReportlyPhoneNumber
-          );
-          setChatInput("");
-          break;
-
-        case "reporterWallet":
-          console.log("Current step is reporterWallet");
-          handleEnterReporterWalletAddress(
-            addChatMessages,
-            chatInput,
-            reporterPhoneNumber,
-            nextStep,
-            goToStep,
-            prevStep,
-            setReporterPhoneNumber
-          );
-          setChatInput("");
-          break;
-
-        case "fraudsterWallet":
-          console.log("Current step is fraudsterWallet");
-          handleEnterFraudsterWalletAddress(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            goToStep,
-            prevStep,
-            setReportId,
-            setReporterWalletAddress,
-            displayReportlyPhoneNumber
-          );
-          setChatInput("");
-          break;
-
-        case "reportlyNote":
-          console.log("Current step is reportlyNote");
-          handleReportlyNote(
-            addChatMessages,
-            chatInput,
-            nextStep,
-            goToStep,
-            prevStep,
-            setFraudsterWalletAddress,
-            displayReportlyNote
-          );
-          setChatInput("");
-          break;
-
-        case "reporterFarwell":
-          console.log("Current step is reporterFarwell");
-          handleReporterFarwell(
-            addChatMessages,
-            chatInput,
-            reporterName,
-            reporterPhoneNumber,
-            reporterWalletAddress,
-            fraudsterWalletAddress,
-            sharedReportlyReportType,
-            reportId,
-            nextStep,
-            goToStep,
-            prevStep,
-            setDescriptionNote,
-            setReporterPhoneNumber,
-            setReporterWalletAddress,
-            setFraudsterWalletAddress,
-            setReporterName,
-            setLoading
-          );
-
-          setChatInput("");
-          break;
-
-        default:
-          addChatMessages([
-            {
-              type: "incoming",
-              content: "Invalid choice, You can say 'Hi' or 'Hello' start over",
-              timestamp: new Date(),
-            },
-          ]);
-          setChatInput("");
-          break;
-      }
-    } catch (error) {
-      console.error("Error in conversation:", error);
-      onError?.(
-        error instanceof Error ? error : new Error("An unknown error occurred")
-      );
-      addChatMessages([
-        {
-          type: "incoming",
-          content:
-            "I'm sorry, but an error occurred. Please try again or contact support if the problem persists.",
-          timestamp: new Date(),
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleConversation(chatInput);
+      handleConversation(
+        addChatMessages,
+        chatInput,
+        currentStep,
+        walletIsConnected,
+        wallet,
+        sharedGiftId,
+        telFirstName || "",
+        sharedPaymentMode,
+        sharedRate,
+        sharedCrypto,
+        sharedTicker,
+        sharedAssetPrice,
+        sharedEstimateAsset,
+        sharedNetwork,
+        sharedCharge,
+        sharedPaymentAssetEstimate,
+        sharedPaymentNairaEstimate,
+        sharedNairaCharge,
+        sharedSelectedBankCode,
+        sharedSelectedBankName,
+        sharedAmount,
+        sharedBankCodes,
+        sharedBankNames,
+        ethConnect,
+        sharedTransactionId,
+        procesingStatus,
+        cancelledStatus,
+        reporterName,
+        reporterPhoneNumber,
+        reporterWalletAddress,
+        fraudsterWalletAddress,
+        sharedReportlyReportType,
+        reportId,
+        formattedRate,
+        setSharedAmount,
+        setSharedCharge,
+        setSharedPaymentAssetEstimate,
+        setSharedPaymentNairaEstimate,
+        setSharedNairaCharge,
+        setSharedChargeForDB,
+        updateBankData,
+        setChatInput,
+        goToStep,
+        nextStep,
+        prevStep,
+        setSharedPaymentMode,
+        setSharedTicker,
+        setSharedCrypto,
+        setSharedNetwork,
+        setSharedWallet,
+        setSharedEstimateAsset,
+        setSharedGiftId,
+        setSharedBankNames,
+        setSharedBankCodes,
+        setSharedSelectedBankCode,
+        setSharedSelectedBankName,
+        setLoading,
+        setSharedPhone,
+        setSharedTransactionId,
+        setSharedReportlyReportType,
+        setReporterName,
+        setReporterPhoneNumber,
+        setReportId,
+        setReporterWalletAddress,
+        setFraudsterWalletAddress,
+        setDescriptionNote,
+        onError,
+        processTransaction
+      );
     }
   };
 
@@ -1543,7 +1064,78 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             textareaRef={textareaRef}
             onChange={(e) => setChatInput(e.target.value)}
             handleKeyPress={handleKeyPress}
-            handleConversation={() => handleConversation(chatInput)}
+            handleConversation={() =>
+              handleConversation(
+                addChatMessages,
+                chatInput,
+                currentStep,
+                walletIsConnected,
+                wallet,
+                sharedGiftId,
+                telFirstName || "",
+                sharedPaymentMode,
+                sharedRate,
+                sharedCrypto,
+                sharedTicker,
+                sharedAssetPrice,
+                sharedEstimateAsset,
+                sharedNetwork,
+                sharedCharge,
+                sharedPaymentAssetEstimate,
+                sharedPaymentNairaEstimate,
+                sharedNairaCharge,
+                sharedSelectedBankCode,
+                sharedSelectedBankName,
+                sharedAmount,
+                sharedBankCodes,
+                sharedBankNames,
+                ethConnect,
+                sharedTransactionId,
+                procesingStatus,
+                cancelledStatus,
+                reporterName,
+                reporterPhoneNumber,
+                reporterWalletAddress,
+                fraudsterWalletAddress,
+                sharedReportlyReportType,
+                reportId,
+                formattedRate,
+                setSharedAmount,
+                setSharedCharge,
+                setSharedPaymentAssetEstimate,
+                setSharedPaymentNairaEstimate,
+                setSharedNairaCharge,
+                setSharedChargeForDB,
+                updateBankData,
+                setChatInput,
+                goToStep,
+                nextStep,
+                prevStep,
+                setSharedPaymentMode,
+                setSharedTicker,
+                setSharedCrypto,
+                setSharedNetwork,
+                setSharedWallet,
+                setSharedEstimateAsset,
+                setSharedGiftId,
+                setSharedBankNames,
+                setSharedBankCodes,
+                setSharedSelectedBankCode,
+                setSharedSelectedBankName,
+                setLoading,
+                setSharedPhone,
+                setSharedTransactionId,
+                setSharedReportlyReportType,
+                setReporterName,
+                setReporterPhoneNumber,
+                setReportId,
+                setReporterWalletAddress,
+                setFraudsterWalletAddress,
+                setDescriptionNote,
+                onError,
+                processTransaction
+              )
+            }
             chatInput={chatInput}
           />
         </div>
@@ -1574,7 +1166,78 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             textareaRef={textareaRef}
             onChange={(e) => setChatInput(e.target.value)}
             handleKeyPress={handleKeyPress}
-            handleConversation={() => handleConversation(chatInput)}
+            handleConversation={() =>
+              handleConversation(
+                addChatMessages,
+                chatInput,
+                currentStep,
+                walletIsConnected,
+                wallet,
+                sharedGiftId,
+                telFirstName || "",
+                sharedPaymentMode,
+                sharedRate,
+                sharedCrypto,
+                sharedTicker,
+                sharedAssetPrice,
+                sharedEstimateAsset,
+                sharedNetwork,
+                sharedCharge,
+                sharedPaymentAssetEstimate,
+                sharedPaymentNairaEstimate,
+                sharedNairaCharge,
+                sharedSelectedBankCode,
+                sharedSelectedBankName,
+                sharedAmount,
+                sharedBankCodes,
+                sharedBankNames,
+                ethConnect,
+                sharedTransactionId,
+                procesingStatus,
+                cancelledStatus,
+                reporterName,
+                reporterPhoneNumber,
+                reporterWalletAddress,
+                fraudsterWalletAddress,
+                sharedReportlyReportType,
+                reportId,
+                formattedRate,
+                setSharedAmount,
+                setSharedCharge,
+                setSharedPaymentAssetEstimate,
+                setSharedPaymentNairaEstimate,
+                setSharedNairaCharge,
+                setSharedChargeForDB,
+                updateBankData,
+                setChatInput,
+                goToStep,
+                nextStep,
+                prevStep,
+                setSharedPaymentMode,
+                setSharedTicker,
+                setSharedCrypto,
+                setSharedNetwork,
+                setSharedWallet,
+                setSharedEstimateAsset,
+                setSharedGiftId,
+                setSharedBankNames,
+                setSharedBankCodes,
+                setSharedSelectedBankCode,
+                setSharedSelectedBankName,
+                setLoading,
+                setSharedPhone,
+                setSharedTransactionId,
+                setSharedReportlyReportType,
+                setReporterName,
+                setReporterPhoneNumber,
+                setReportId,
+                setReporterWalletAddress,
+                setFraudsterWalletAddress,
+                setDescriptionNote,
+                onError,
+                processTransaction
+              )
+            }
             chatInput={chatInput}
           />
         </div>
@@ -1583,5 +1246,49 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   );
 };
 
-// export default ChatBot;
 export default withErrorHandling(ChatBot);
+
+export function calculateCharge(
+  amount: string,
+  payment_mode: string,
+  shared_rate: string,
+  asset_price: string
+) {
+  const numAmount = parseFloat(amount.replace(/[^\d.]/g, ""));
+  let basic, median, premium;
+  const rate = parseFloat(shared_rate);
+  const assetPrice = parseFloat(asset_price);
+
+  if (!rate || !assetPrice) {
+    console.error("Invalid rate or asset price:", { rate, assetPrice });
+    return 0;
+  }
+
+  if (payment_mode.toLowerCase().trim() === "usdt") {
+    basic = 500 / rate;
+    median = 1_000 / rate;
+    premium = 1_500 / rate;
+  } else {
+    basic = 500 / rate / assetPrice;
+    median = 1000 / rate / assetPrice;
+    premium = 1500 / rate / assetPrice;
+  }
+
+  const nairaCharge =
+    numAmount <= 100_000
+      ? 500
+      : numAmount > 100_000 && numAmount <= 1_000_000
+      ? 1_000
+      : 1_500;
+
+  const cryptoCharge =
+    nairaCharge === 500
+      ? basic
+      : nairaCharge === 1_000
+      ? median
+      : nairaCharge === 1_500
+      ? premium
+      : 0;
+
+  return cryptoCharge;
+}

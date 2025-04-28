@@ -19,7 +19,7 @@ import { MessageType } from "@/types/general_types";
 import { formatPhoneNumber, phoneNumberPattern } from "@/utils/utilities";
 import { reportData } from "../../../types/reportly_types";
 import { greetings } from "../helpers/ChatbotConsts";
-import { welcomeMenu } from "./general";
+import { helloMenu, welcomeMenu } from "./general";
 import { WalletAddress } from "@/types/wallet_types";
 
 type DisplayReportlyPhoneNumber = (
@@ -40,16 +40,33 @@ export const handleReportlyWelcome = async (
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
-  setSharedReportlyReportType: (reportlyType: string) => void
+  setSharedReportlyReportType: (reportlyType: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -59,7 +76,7 @@ export const handleReportlyWelcome = async (
         sharedRate,
         walletIsConnected,
         wallet,
-        telFirstName,
+        telFirstName
       );
     })();
   } else if (chatInput === "1") {
@@ -89,19 +106,39 @@ export const handleReportlyWelcome = async (
 export const handleReporterName = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
-  setSharedReportlyReportType: (reportlyType: string) => void
+  setSharedReportlyReportType: (reportlyType: string) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     console.log("Going back to start");
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput === "1") {
     setSharedReportlyReportType("Track Transaction");
@@ -132,20 +169,41 @@ export const handleEnterReporterPhoneNumber = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   reporterName: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   setReporterName: (reporterName: string) => void,
-  displayReportlyPhoneNumber: DisplayReportlyPhoneNumber
+  displayReportlyPhoneNumber: DisplayReportlyPhoneNumber,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     console.log("Going back to start");
     goToStep("start");
-    //  helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      //    helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -180,20 +238,40 @@ export const handleEnterReporterWalletAddress = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   reporterPhoneNumber: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
-  setReporterPhoneNumber: (phoneNumber: React.SetStateAction<string>) => void
+  setReporterPhoneNumber: (phoneNumber: React.SetStateAction<string>) => void,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     console.log("Going back to start");
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -227,22 +305,42 @@ export const handleEnterReporterWalletAddress = async (
 export const handleEnterFraudsterWalletAddress = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
   setReportId: (reportId: string) => void,
   setReporterWalletAddress: (wallet: string) => void,
-  displayReportlyPhoneNumber: DisplayReportlyPhoneNumber
+  displayReportlyPhoneNumber: DisplayReportlyPhoneNumber,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     console.log("Going back to start");
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -288,21 +386,41 @@ export const handleEnterFraudsterWalletAddress = async (
 export const handleReportlyNote = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
   setFraudsterWalletAddress: (wallet: string) => void,
-  displayReportlyNote: DisplayReportlyPhoneNumber
+  displayReportlyNote: DisplayReportlyPhoneNumber,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     console.log("Going back to start");
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -347,6 +465,9 @@ export const handleReporterFarwell = async (
   fraudsterWalletAddress: string,
   sharedReportlyReportType: string,
   reportId: string,
+  walletIsConnected: boolean,
+  wallet: WalletAddress,
+  telFirstName: string,
   nextStep: (step: string) => void,
   goToStep: (step: string) => void,
   prevStep: () => void,
@@ -355,17 +476,34 @@ export const handleReporterFarwell = async (
   setReporterWalletAddress: (wallet: string) => void,
   setFraudsterWalletAddress: (fraudsterWallet: string) => void,
   setReporterName: (reporterName: string) => void,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     console.log("Going back to start");
     goToStep("start");
-    //   helloMenu(chatInput);
+    helloMenu(
+      addChatMessages,
+      chatInput,
+      nextStep,
+      walletIsConnected,
+      wallet,
+      telFirstName,
+      setSharedPaymentMode
+    );
   } else if (chatInput.trim() === "00") {
     (() => {
       console.log("Going back from handleReportlyWelcome");
       goToStep("start");
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
     })();
   } else if (chatInput.trim() === "0") {
     (() => {
@@ -421,7 +559,15 @@ export const handleReporterFarwell = async (
       setFraudsterWalletAddress("");
       setDescriptionNote("");
       displayReportlyFarwell(addChatMessages, nextStep);
-      // helloMenu("hi");
+      helloMenu(
+        addChatMessages,
+        "hi",
+        nextStep,
+        walletIsConnected,
+        wallet,
+        telFirstName,
+        setSharedPaymentMode
+      );
       setLoading(false);
     } catch (error) {
       setLoading(false);

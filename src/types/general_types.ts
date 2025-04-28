@@ -66,7 +66,7 @@ export interface userData {
   chat_id?: string | null;
   current_rate?: string | null;
   merchant_rate?: string | null;
-  profit_rat?: string | null;
+  profit_rate?: string | null;
   name?: string | null;
   gift_status?: string | null;
   gift_chatID?: string | null;
