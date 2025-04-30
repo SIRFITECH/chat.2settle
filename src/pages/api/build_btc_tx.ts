@@ -10,6 +10,10 @@ interface BuildTxRequest {
   amount: number; // amount in satoshi
 }
 
+function isSegwitAddress(address: string): boolean {
+  return address.startsWith("bc1");
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -34,16 +38,42 @@ export default async function handler(
 
     let totalInput = 0;
     for (const utxo of utxos) {
-      psbt.addInput({
-        hash: utxo.txid,
-        index: utxo.vout,
-        witnessUtxo: {
-          script: bitcoin.address.toOutputScript(senderAddress, NETWORK),
-          value: utxo.value,
-        },
-      });
+      const { txid, vout, value } = utxo;
 
-      totalInput += utxos.value;
+      if (isSegwitAddress(senderAddress)) {
+        // SegWit (bech32)
+        psbt.addInput({
+          hash: txid,
+          index: vout,
+          witnessUtxo: {
+            script: bitcoin.address.toOutputScript(senderAddress, NETWORK),
+            value,
+          },
+        });
+      } else {
+        // Legacy or P2SH (requires full raw transaction hex)
+        const { data: rawTx } = await axios.get(
+          `https://blockstream.info/api/tx/${txid}/hex`
+        );
+
+        psbt.addInput({
+          hash: txid,
+          index: vout,
+          nonWitnessUtxo: Buffer.from(rawTx, "hex"),
+        });
+      }
+
+      // psbt.addInput({
+      //   hash: utxo.txid,
+      //   index: utxo.vout,
+      //   witnessUtxo: {
+      //     script: bitcoin.address.toOutputScript(senderAddress, NETWORK),
+      //     value: utxo.value,
+      //   },
+      // });
+
+      // totalInput += utxos.value;
+      totalInput += value;
 
       if (totalInput >= amount + 200) break;
     }

@@ -1148,13 +1148,21 @@ export async function sendBTC({
       signedPsbtBase64: signedPsbt,
     });
 
-     const { txid } = broadcastRes.data;
-     if (!txid) throw new Error("Broadcast failed: No transaction ID returned");
+    const { txid } = broadcastRes.data;
+    if (!txid) throw new Error("Broadcast failed: No transaction ID returned");
 
-     return txid;
+    return txid;
     // return broadcastRes.data.txid;
   } catch (error: any) {
-    console.error("Error in sendBTC:", error?.response?.data || error.message);
+    const serverMessage = error?.response?.data?.error;
+    if (serverMessage === "Insufficient balance") {
+      throw new Error("Insufficient balance");
+    }
+    // Handle network/other specific messages as needed
+    if (serverMessage) {
+      throw new Error(serverMessage);
+    }
+    console.error("Error in sendBTC:", error.message);
     throw new Error("Failed to send BTC transaction");
   }
 }
