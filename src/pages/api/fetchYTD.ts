@@ -51,15 +51,23 @@ export default async function handler(
     });
 
     const [rows]: any = await connection.execute(
-      `SELECT amount FROM 2settle_transaction_table WHERE status = 'Successful'`
+      `SELECT receiver_amount, current_rate  FROM 2settle_transaction_table WHERE status = 'Successful'`
     );
 
     await connection.end();
 
-    const dbVolume = rows.reduce(
-      (total: number, row: any) => total + parseFloat(row.amount || 0),
-      0
-    );
+    const dbVolume = rows.reduce((total: number, row: any) => {
+      const rawAmount = (row.receiver_amount || "").replace(/[₦, ]/g, "");
+      const nairaAmount = parseFloat(rawAmount);
+      const rawRate = (row.current_rate || "").replace(/[₦,]/g, "");
+      const rate = parseFloat(rawRate);
+
+      if (!isNaN(nairaAmount) && !isNaN(rate) && rate !== 0) {
+        return total + nairaAmount / rate;
+      }
+
+      return total;
+    }, 0);
 
     res.status(200).json({ ytdVolume: value, dbVolume: dbVolume.toFixed(8) });
   } catch (e) {

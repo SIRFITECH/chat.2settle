@@ -40,6 +40,10 @@ export default async function handler(
       query += " AND `status` = ?";
       values.push(status);
     }
+    // query +=
+    //   " AND CAST(REPLACE(REPLACE(`receiver_amount`, '₦', ''), ',', '') AS UNSIGNED) > 0";
+
+    query += " ORDER BY `Date` ";
 
     const [rows] = await connection.execute(query, values);
     await connection.end();
