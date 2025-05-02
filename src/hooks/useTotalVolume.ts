@@ -10,13 +10,14 @@ const useTotalVolume = () => {
       axios.get<ServerData>(`${apiURL}/api/fetchYTD`).then((response) => {
         const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
         const ytdVolume = parseFloat(rawVolume);
-        console.log("YTD", rawVolume);
+        const dbVolume = parseFloat(response.data.dbVolume);
+        console.log("YTD", { ytdVolume, dbVolume });
 
-        if (isNaN(ytdVolume)) {
+        if (isNaN(ytdVolume) || isNaN(dbVolume)) {
           throw new Error("Invalid rate received");
         }
 
-        return ytdVolume;
+        return ytdVolume + dbVolume;
       }),
     staleTime: 5 * 60 * 1000, // 15 mins
   });
