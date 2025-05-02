@@ -1,11 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { google } from "googleapis";
-import fs from "fs";
-import path from "path";
-
-// const credentials = JSON.parse(
-//   fs.readFileSync(path.join(process.cwd(), "config/credentials.json"), "utf-8")
-// );
+import mysql from "mysql2/promise";
 
 const getGoogleCredentials = () => {
   const base64 = process.env.GOOGLE_CREDENTIALS_BASE64;
@@ -43,7 +38,30 @@ export default async function handler(
 
     const value = response.data.values ? response.data.values[0][0] : null;
 
-    res.status(200).json({ ytdVolume: value });
+    const dbHost = process.env.host;
+    const dbUser = process.env.user;
+    const dbPassword = process.env.password;
+    const dbName = process.env.database;
+
+    const connection = await mysql.createConnection({
+      host: dbHost,
+      user: dbUser,
+      password: dbPassword,
+      database: dbName,
+    });
+
+    const [rows]: any = await connection.execute(
+      `SELECT amount FROM 2settle_transaction_table WHERE status = 'Successful'`
+    );
+
+    await connection.end();
+
+    const dbVolume = rows.reduce(
+      (total: number, row: any) => total + parseFloat(row.amount || 0),
+      0
+    );
+
+    res.status(200).json({ ytdVolume: value, dbVolume: dbVolume.toFixed(8) });
   } catch (e) {
     console.log("Error fetching Year To Date Volume", e);
     res.status(500).send("Failed to retrieve YTD Volume");
