@@ -5,4 +5,5 @@ export type TransactionTableData = {
   crypto_sent?: string;
   current_rate?: string;
   charges?: string;
+  receiver_amount?: string;
 };

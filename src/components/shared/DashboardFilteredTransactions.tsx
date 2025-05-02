@@ -23,8 +23,9 @@ const DashboardFilteredTransactions = ({ filteredTransactions }: Props) => {
           {transaction.transac_id || "N/A"}
         </TableCell>
         <TableCell>
-          {/* {transaction.Amount || "N/A"} */}
-          {formatCurrency(transaction.Amount || "0", "NGN", "en-NG") || "N/A"}
+          {transaction.receiver_amount || "N/A"}
+          {/* {formatCurrency(transaction.receiver_amount || "0", "NGN", "en-NG") ||
+            "N/A"} */}
         </TableCell>
         <TableCell>{transaction.crypto_sent || "N/A"}</TableCell>
         <TableCell>{transaction.current_rate || "N/A"}</TableCell>

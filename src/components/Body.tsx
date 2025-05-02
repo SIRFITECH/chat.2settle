@@ -337,7 +337,7 @@ export default function Body() {
       )}
       {/* Transaction Table Section */}
       <div className="w-full max-w-6xl mx-auto px-4 mt-8 mb-12 relative z-20 ">
-        <h2 className="text-2xl font-bold text-center mb-6 bg-white bg-opacity-90 py-2 rounded-lg">
+        <h2 className="text-2xl font-bold text-left pl-4 mb-6 bg-white bg-opacity-90 py-2 rounded-lg">
           Recent Transactions
         </h2>
         <div
