@@ -606,6 +606,28 @@ export const displaySendPayment = async (
         fulfilled
         <br />
       </span>
+    ) : !connectedWallet ? (
+      <>
+        Note: You are sending{" "}
+        <b>
+          {paymentAsset} =
+          {formatCurrency(sharedPaymentNairaEstimate, "NGN", "en-NG")}
+        </b>{" "}
+        only to 2Settle wallet address to complete your transaction
+        <CopyableText
+          text={assetPayment.toFixed(8)}
+          label={`${sharedCrypto} amount`}
+          addChatMessages={addChatMessages}
+          nextStep={nextStep}
+          lastAssignedTime={lastAssignedTime}
+        />
+        {copyableWalletddress}
+        <span>
+          This wallet address expires in{" "}
+          <b>{allowedTime.toString()} minutes </b>
+        </span>
+        {/* {copyableTransactionID} */}
+      </>
     ) : (
       <span>
         <b>
@@ -698,6 +720,7 @@ export const displaySendPayment = async (
       timestamp: new Date(),
     },
   ];
+
   addChatMessages(initialMessages);
 };
 
