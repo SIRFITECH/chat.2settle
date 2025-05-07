@@ -4,7 +4,12 @@ import Link from "next/link";
 import Logo from "./Logo";
 import ConnectWallet from "./ConnectWallet";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { Settings } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import ManualTransactionForm from "../shared/ManualTransactionForm";
+import { useSession, signOut } from "next-auth/react";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -17,6 +22,30 @@ const navigation = [
 
 export default function Footer() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState({
+    settings: false,
+    logout: false,
+  });
+  const { data: session, status } = useSession();
+
+  // Check if the user is authenticated
+  const isAuthorized = () => {
+    if (status === "authenticated" && session) {
+      return true;
+    }
+    return false;
+  };
+
+  const handleSettingsClick = () => {
+    if (isAuthorized()) {
+      setIsFormOpen(true);
+    } else {
+      router.push("/login");
+    }
+  };
+
   return (
     <footer>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-[10%]  bg-white mx-[10%] my-[5%]">
@@ -98,7 +127,121 @@ export default function Footer() {
                 <path d="M11.5,6c-3.01977,0 -5.5,2.48023 -5.5,5.5v3.16016c-0.00765,0.54095 0.27656,1.04412 0.74381,1.31683c0.46725,0.27271 1.04514,0.27271 1.51238,0c0.46725,-0.27271 0.75146,-0.77588 0.74381,-1.31683v-3.16016c0,-1.39823 1.10177,-2.5 2.5,-2.5h25c1.39823,0 2.5,1.10177 2.5,2.5v13.5c-0.00765,0.54095 0.27656,1.04412 0.74381,1.31683c0.46725,0.27271 1.04514,0.27271 1.51238,0c0.46725,-0.27271 0.75146,-0.77588 0.74381,-1.31683v-13.5c0,-3.01977 -2.48023,-5.5 -5.5,-5.5zM24.16211,12.00195c-3.519,0.024 -6.2305,1.21597 -8.0625,3.54297c-1.614,2.053 -2.44756,4.8948 -2.47656,8.4668c0.028,3.551 0.86156,6.39136 2.47656,8.44336c1.831,2.327 4.54403,3.51897 8.08203,3.54297c3.128,-0.021 5.33897,-0.84778 7.16797,-2.67578c2.43,-2.428 2.35378,-5.4737 1.55078,-7.3457c-0.58,-1.352 -1.67678,-2.44606 -3.17578,-3.16406c-0.035,-0.018 -0.07142,-0.03378 -0.10742,-0.05078c-0.264,-3.38 -2.21392,-5.32275 -5.41992,-5.34375c-1.944,0 -3.56445,0.83552 -4.56445,2.35352c-0.112,0.17 -0.06744,0.39862 0.10156,0.51563l1.66797,1.14453c0.083,0.057 0.1852,0.07759 0.2832,0.05859c0.098,-0.019 0.18719,-0.07811 0.24219,-0.16211c0.604,-0.915 1.56788,-1.10547 2.29688,-1.10547c0.886,0.005 1.54403,0.25047 1.95703,0.73047c0.223,0.259 0.39372,0.59777 0.51172,1.00977c-0.757,-0.091 -1.5623,-0.11245 -2.4043,-0.06445c-3.106,0.179 -5.1038,2.01908 -4.9668,4.58008c0.069,1.306 0.71908,2.43102 1.83008,3.16602c0.918,0.605 2.09727,0.90494 3.32227,0.83594c1.621,-0.089 2.89602,-0.71252 3.79102,-1.85352c0.573,-0.729 0.95973,-1.62461 1.17773,-2.72461c0.422,0.341 0.73178,0.74036 0.92578,1.19336c0.455,1.058 0.47888,2.80047 -0.95312,4.23047c-1.294,1.293 -2.86323,1.85409 -5.24023,1.87109c-2.642,-0.02 -4.63201,-0.85824 -5.91602,-2.49023c-1.219,-1.55 -1.85005,-3.80613 -1.87305,-6.70312c0.023,-2.903 0.65405,-5.16094 1.87305,-6.71094c1.284,-1.632 3.27416,-2.47123 5.91016,-2.49024c2.665,0.02 4.69234,0.86381 6.02734,2.50781c0.653,0.804 1.15333,1.8223 1.48633,3.0293c0.055,0.198 0.26098,0.31467 0.45898,0.26367l1.95508,-0.52148c0.097,-0.025 0.17852,-0.08978 0.22852,-0.17578c0.049,-0.088 0.06116,-0.19011 0.03516,-0.28711c-0.431,-1.585 -1.11516,-2.9608 -2.03516,-4.0918c-1.882,-2.315 -4.62106,-3.50139 -8.16406,-3.52539zM7.47656,18.88281c-0.82766,0.01293 -1.48844,0.69381 -1.47656,1.52148v16.0957c0,3.01977 2.48023,5.5 5.5,5.5h25c3.01977,0 5.5,-2.48023 5.5,-5.5v-3.71289c0.00765,-0.54095 -0.27656,-1.04412 -0.74381,-1.31683c-0.46725,-0.27271 -1.04514,-0.27271 -1.51238,0c-0.46725,0.27271 -0.75146,0.77588 -0.74381,1.31683v3.71289c0,1.39823 -1.10177,2.5 -2.5,2.5h-25c-1.39823,0 -2.5,-1.10177 -2.5,-2.5v-16.0957c0.00582,-0.40562 -0.15288,-0.7963 -0.43991,-1.08296c-0.28703,-0.28666 -0.67792,-0.44486 -1.08353,-0.43852zM25.12305,24.67383c0.597,0 1.16626,0.04662 1.69727,0.14063c-0.284,2.414 -1.41605,2.80914 -2.49805,2.86914c-0.742,0.029 -1.4298,-0.15639 -1.8418,-0.52539c-0.251,-0.225 -0.3873,-0.50503 -0.4043,-0.83203c-0.038,-0.721 0.56319,-1.52781 2.36719,-1.63281c0.23,-0.013 0.45669,-0.01953 0.67969,-0.01953z" />
               </svg>
             </Link>
+
+            {/* Settings Icon */}
+            {/* <div>
+              <button
+                onClick={handleSettingsClick}
+                onMouseEnter={() =>
+                  setShowTooltip((prevState) => ({
+                    ...prevState,
+                    settings: true,
+                  }))
+                }
+                onMouseLeave={() =>
+                  setShowTooltip((prevState) => ({
+                    ...prevState,
+                    settings: false,
+                  }))
+                }
+                className="p-2 bg-white rounded-full hover:text-[#19485F]/70 focus:outline-none hover:bg-gray-200 transition-colors"
+                aria-label="Add Transaction Manually - Admin Only"
+              >
+                <Settings size={16} className="text-black " />
+              </button>
+              {showTooltip?.settings && (
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-md z-10 whitespace-nowrap">
+                  Add transaction manually
+                </div>
+              )}
+            </div> */}
+
+            {/* Settings Icon */}
+            <div className="relative inline-block">
+              <button
+                onClick={handleSettingsClick}
+                onMouseEnter={() =>
+                  setShowTooltip((prevState) => ({
+                    ...prevState,
+                    settings: true,
+                  }))
+                }
+                onMouseLeave={() =>
+                  setShowTooltip((prevState) => ({
+                    ...prevState,
+                    settings: false,
+                  }))
+                }
+                className="p-2 bg-white rounded-full hover:text-[#19485F]/70 focus:outline-none hover:bg-gray-200 transition-colors"
+                aria-label="Add Transaction Manually - Admin Only"
+              >
+                <Settings size={16} className="text-black" />
+              </button>
+              {showTooltip.settings && isAuthorized() ? (
+                <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs rounded px-2 py-1 shadow-md z-50 whitespace-nowrap w-max">
+                  Add Transaction Manually
+                </div>
+              ) : (
+                showTooltip.settings && (
+                  <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs rounded px-2 py-1 shadow-md z-50 whitespace-nowrap w-max">
+                    Login to access
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* Logout Button - Only visible when logged in */}
+            {isAuthorized() && (
+              <div className="relative">
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onMouseEnter={() =>
+                    setShowTooltip((prevState) => ({
+                      ...prevState,
+                      logout: true,
+                    }))
+                  }
+                  onMouseLeave={() =>
+                    setShowTooltip((prevState) => ({
+                      ...prevState,
+                      logout: false,
+                    }))
+                  }
+                  className="p-2 bg-white rounded-full hover:text-red-500 focus:outline-none hover:bg-gray-200 transition-colors ml-1"
+                  aria-label="Logout"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-black hover:text-red-500"
+                  >
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  {showTooltip?.logout && (
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-md z-10 whitespace-nowrap">
+                      Logout
+                    </div>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Crypto Transaction Form Dialog */}
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogContent className="sm:max-w-[700px]">
+              <ManualTransactionForm onClose={() => setIsFormOpen(false)} />
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Middle Section */}
