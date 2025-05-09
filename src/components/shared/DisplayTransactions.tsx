@@ -21,11 +21,11 @@ const DisplayTransactions = () => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="hidden md:table-cell">Date</TableHead>
+          <TableHead>Date</TableHead>
           <TableHead className="hidden md:table-cell">Tx ID</TableHead>
           <TableHead>Naira Amount</TableHead>
           <TableHead>Crypto Amount</TableHead>
-          <TableHead>Rate</TableHead>
+          <TableHead className="hidden md:table-cell">Rate</TableHead>
           <TableHead className="hidden md:table-cell">Charge</TableHead>
         </TableRow>
       </TableHeader>
@@ -52,7 +52,5 @@ const DisplayTransactions = () => {
     </Table>
   );
 };
-
-
 
 export default DisplayTransactions;

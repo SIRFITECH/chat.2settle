@@ -9,7 +9,7 @@ const useTransactionDashboardData = () => {
     queryFn: () =>
       axios
         .get<{ transactions: TransactionTableData[] }>(
-          `${apiURL}/api/fetch_transactions?status=Successful`
+          `${apiURL}/api/dashboard/fetch_transactions?status=Successful`
         )
         .then((response) => {
           const transactionData = response.data;
