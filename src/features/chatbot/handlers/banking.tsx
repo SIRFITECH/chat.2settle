@@ -404,8 +404,6 @@ export const handleSelectBank = async (
     try {
       const bankNames = await fetchBankNames(
         chatInput.trim()
-        // handleError,
-        // setLoading
       );
       bankList = bankNames["message"];
 

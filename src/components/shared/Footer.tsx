@@ -7,8 +7,6 @@ import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Settings } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import ManualTransactionForm from "./manualTransactionForm/ManualTransactionForm";
 import { useSession, signOut } from "next-auth/react";
 
 const navigation = [
@@ -41,7 +39,7 @@ export default function Footer() {
 
   const handleSettingsClick = () => {
     if (isAuthorized()) {
-      setIsFormOpen(true);
+        router.push("/newTrx");
     } else {
       router.push("/login");
     }
@@ -200,7 +198,7 @@ export default function Footer() {
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                   </svg>
                   {showTooltip?.logout && (
-                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-md z-10 whitespace-nowrap">
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2  bg-blue-600 text-white text-xs rounded px-2 py-1 shadow-md z-10 whitespace-nowrap">
                       Logout
                     </div>
                   )}
@@ -208,13 +206,6 @@ export default function Footer() {
               </div>
             )}
           </div>
-
-          {/* Crypto Transaction Form Dialog */}
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogContent className="sm:max-w-[700px] z-[60]">
-              <ManualTransactionForm onClose={() => setIsFormOpen(false)} />
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Middle Section */}
