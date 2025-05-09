@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Settings } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import ManualTransactionForm from "../shared/ManualTransactionForm";
+import ManualTransactionForm from "./manualTransactionForm/ManualTransactionForm";
 import { useSession, signOut } from "next-auth/react";
 
 const navigation = [
@@ -36,6 +36,7 @@ export default function Footer() {
       return true;
     }
     return false;
+    // return true
   };
 
   const handleSettingsClick = () => {
@@ -129,34 +130,6 @@ export default function Footer() {
             </Link>
 
             {/* Settings Icon */}
-            {/* <div>
-              <button
-                onClick={handleSettingsClick}
-                onMouseEnter={() =>
-                  setShowTooltip((prevState) => ({
-                    ...prevState,
-                    settings: true,
-                  }))
-                }
-                onMouseLeave={() =>
-                  setShowTooltip((prevState) => ({
-                    ...prevState,
-                    settings: false,
-                  }))
-                }
-                className="p-2 bg-white rounded-full hover:text-[#19485F]/70 focus:outline-none hover:bg-gray-200 transition-colors"
-                aria-label="Add Transaction Manually - Admin Only"
-              >
-                <Settings size={16} className="text-black " />
-              </button>
-              {showTooltip?.settings && (
-                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded px-2 py-1 shadow-md z-10 whitespace-nowrap">
-                  Add transaction manually
-                </div>
-              )}
-            </div> */}
-
-            {/* Settings Icon */}
             <div className="relative inline-block">
               <button
                 onClick={handleSettingsClick}
@@ -238,7 +211,7 @@ export default function Footer() {
 
           {/* Crypto Transaction Form Dialog */}
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogContent className="sm:max-w-[700px]">
+            <DialogContent className="sm:max-w-[700px] z-[60]">
               <ManualTransactionForm onClose={() => setIsFormOpen(false)} />
             </DialogContent>
           </Dialog>
