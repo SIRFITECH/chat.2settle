@@ -21,6 +21,11 @@
     },
     "incremental": true
   },
-  "include": ["src", "__tests__", "global.d.ts"],
+  "include": [
+    "src",
+    "__tests__",
+    "global.d.ts",
+    "src/components/shared/manualTransactionForm/ManualTransactionForm.tsx"
+  ],
   "exclude": ["node_modules"]
 }
