@@ -15,6 +15,10 @@ import { useAccount } from "wagmi";
 import Logo from "./Logo";
 import ConnectBTCButton from "./ConnectBTCButton";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import { useWallet } from "@/hooks/wallet/useWallet";
+import { WalletType } from "@/lib/wallets/types";
+import { WalletContext } from "@/lib/wallets";
 
 const ConnectWallet = () => {
   const { isConnected } = useAccount();
@@ -104,4 +108,24 @@ const ConnectWallet = () => {
   );
 };
 
+// const ConnectWallet = () => {
+//   const { walletType, setWalletType, clearWalletType } = useWalletStore();
+
+//   const wallet = useWallet();
+
+//   const handleConnect = async (type: WalletType) => {
+//     setWalletType(type);
+//     const walletInstance = new WalletContext(type);
+//     await walletInstance.connect();
+//   };
+
+//   const handleDisconnect = async () => {
+//     if (!walletType) return;
+
+//     const walletInstance = new WalletContext(walletType);
+//     await walletInstance.disconnect();
+//     clearWalletType();
+//   };
+
+// };
 export default ConnectWallet;

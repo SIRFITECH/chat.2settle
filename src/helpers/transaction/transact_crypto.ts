@@ -1,4 +1,5 @@
-import { WalletAddress, WalletType } from "@/types/wallet_types";
+
+import { WalletAddress, WalletType } from "@/lib/wallets/types";
 
 export const getWalletType = (wallet: WalletAddress | null): WalletType => {
   if (!wallet) return "UNKNOWN";
