@@ -15,10 +15,10 @@ import { useAccount } from "wagmi";
 import Logo from "./Logo";
 import ConnectBTCButton from "./ConnectBTCButton";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
-import { useWalletStore } from "@/hooks/wallet/useWalletStore";
-import { useWallet } from "@/hooks/wallet/useWallet";
-import { WalletType } from "@/lib/wallets/types";
-import { WalletContext } from "@/lib/wallets";
+// import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+// import { useWallet } from "@/hooks/wallet/useWallet";
+// import { WalletType } from "@/lib/wallets/types";
+// import { WalletContext } from "@/lib/wallets";
 
 const ConnectWallet = () => {
   const { isConnected } = useAccount();

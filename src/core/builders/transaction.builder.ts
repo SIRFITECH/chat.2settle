@@ -2,7 +2,6 @@ import {
   BuilderTransaction,
   TransactionStatus,
 } from "@/types/core_types/builder_types";
-import { WalletAddress } from "@/types/wallet_types";
 
 export class TransactionBuilder {
   private transaction: Partial<BuilderTransaction> = {

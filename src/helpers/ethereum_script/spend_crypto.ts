@@ -2,8 +2,8 @@ import { EthereumAddress } from "@/types/general_types";
 import { Web3 } from "web3";
 import TronWeb from "tronweb";
 import dotenv from "dotenv";
-import { WalletAddress } from "@/types/wallet_types";
 import axios from "axios";
+import { WalletAddress } from "@/lib/wallets/types";
 dotenv.config();
 
 // SETUP

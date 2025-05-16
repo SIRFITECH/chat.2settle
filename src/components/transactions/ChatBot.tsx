@@ -61,7 +61,7 @@ import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import { getRates } from "@/services/chatBotService";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES

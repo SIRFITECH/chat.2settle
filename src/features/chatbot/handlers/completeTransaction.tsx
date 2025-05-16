@@ -13,7 +13,7 @@ import {
 import { greetings } from "../helpers/ChatbotConsts";
 import { choiceMenu, helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 // ALLOW USERS ENTER GIFT ID
 export const handleGiftRequestId = async (

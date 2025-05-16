@@ -1,11 +1,21 @@
+export interface TransactionRequest{
+
+}
+
 
 export interface WalletStrategy {
-  isConnected: boolean
-  getWalletAddress(): WalletAddress;
-  getBalance(): number;
-  getENS(): string;
-  connect(): Promise<string>;
-  disconnect(): Promise<string>;
+  readonly type: WalletType;
+  connect(): Promise<void>; // Trigger connection to wallet
+  disconnect(): Promise<void>; // Disconnect wallet
+  isConnected: boolean;
+  getAddress(): Promise<string>; // Get current wallet address
+  getNetwork(): Promise<string | number>; // EVM: chainId, BTC: network name
+  sendTransaction(tx: TransactionRequest ): Promise<string>
+  signMessage?(msg: string): Promise<string>
+
+  onAccountChanged?( callback: (address: string)=> void): void
+  onNetworkChanged?( callback: (network: string| number )=> void):void
+
 }
 
 export type WalletAddress =

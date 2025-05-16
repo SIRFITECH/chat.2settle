@@ -2,7 +2,7 @@ import ConnectWallet from "../../../components/shared/ConnectWallet";
 import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 /**
  *
