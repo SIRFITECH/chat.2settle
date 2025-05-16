@@ -15,6 +15,7 @@ import { useAccount } from "wagmi";
 import Logo from "./Logo";
 import ConnectBTCButton from "./ConnectBTCButton";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
+import ConnectTronWallet from "./ConnectTronWallet";
 // import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 // import { useWallet } from "@/hooks/wallet/useWallet";
 // import { WalletType } from "@/lib/wallets/types";
@@ -83,7 +84,7 @@ const ConnectWallet = () => {
                       <ConnectButton />
                     </div>
                   </Button>
-                  {/* <Button
+                  <Button
                     className="mb-3 bg-red-700 hover:bg-red-400"
                     type="button"
                   >
@@ -97,7 +98,7 @@ const ConnectWallet = () => {
                         <ConnectTronWallet />
                       </div>
                     </div>
-                  </Button> */}
+                  </Button>
                 </>
               )}
             </div>
