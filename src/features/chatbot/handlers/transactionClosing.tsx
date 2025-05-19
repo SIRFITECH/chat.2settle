@@ -15,7 +15,7 @@ import { MessageType, UserBankData } from "@/types/general_types";
 import { phoneNumberPattern } from "@/utils/utilities";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
 export const handleContinueToPay = async (

@@ -11,8 +11,8 @@ import { useEffect, useState } from "react";
 import { TransactionReceipt } from "web3";
 import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
 import { useBTCWallet } from "./stores/btcWalletStore";
-import { WalletAddress } from "@/types/wallet_types";
 import { request, RpcErrorCode } from "sats-connect";
+import { WalletAddress } from "@/lib/wallets/types";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -47,9 +47,9 @@ const useConfirmAndProceedState = ({
         return prev;
       return {
         ...prev,
-        isDialogOpen: false,
-        isButtonClicked: true,
-        isProcessing: true,
+        isDialogOpen: true,
+        isButtonClicked: false,
+        isProcessing: false,
         error: null,
       };
     });

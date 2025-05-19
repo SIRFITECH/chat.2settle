@@ -1,5 +1,4 @@
 import { MessageType, UserBankData } from "@/types/general_types";
-import { WalletAddress } from "@/types/wallet_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { choiceMenu, helloMenu } from "./general";
 import { displayCustomerSupportWelcome } from "@/menus/customer_support";
@@ -49,6 +48,7 @@ import {
   handleTransactionProcessing,
 } from "./transactionClosing";
 import { SetStateAction } from "react";
+import { WalletAddress } from "@/lib/wallets/types";
 
 export const handleConversation = async (
   addChatMessages: (messages: MessageType[]) => void,

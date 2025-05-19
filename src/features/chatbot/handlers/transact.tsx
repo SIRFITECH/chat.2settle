@@ -15,10 +15,10 @@ import { displayTransactIDWelcome } from "@/menus/transaction_id";
 import { helloMenu } from "./general";
 import { greetings } from "../helpers/ChatbotConsts";
 import { welcomeMenu } from "./menus";
-import { WalletAddress } from "@/types/wallet_types";
 import { checkRequestExists } from "@/helpers/api_calls";
 import { SetStateAction } from "react";
 import { getWalletType } from "@/helpers/transaction/transact_crypto";
+import { WalletAddress } from "@/lib/wallets/types";
 
 /**
  * handle crypto transaction, payment request and gifts

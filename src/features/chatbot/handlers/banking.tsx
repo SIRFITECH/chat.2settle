@@ -15,7 +15,7 @@ import { displayTransactIDWelcome } from "@/menus/transaction_id";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 // GET USER BANK DETAILS FROM NUBAN
 export const handleSearchBank = async (

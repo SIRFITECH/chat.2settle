@@ -22,7 +22,7 @@ import {
   displayThankForKYCReg,
 } from "@/menus/request_paycard";
 import { choiceMenu, helloMenu } from "./general";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
 

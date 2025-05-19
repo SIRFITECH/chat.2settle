@@ -20,7 +20,7 @@ import { formatPhoneNumber, phoneNumberPattern } from "@/utils/utilities";
 import { reportData } from "../../../types/reportly_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu, welcomeMenu } from "./general";
-import { WalletAddress } from "@/types/wallet_types";
+import { WalletAddress } from "@/lib/wallets/types";
 
 type DisplayReportlyPhoneNumber = (
   addChatMessages: (messages: MessageType[]) => void,
