@@ -47,9 +47,9 @@ const useConfirmAndProceedState = ({
         return prev;
       return {
         ...prev,
-        isDialogOpen: false,
-        isButtonClicked: true,
-        isProcessing: true,
+        isDialogOpen: true,
+        isButtonClicked: false,
+        isProcessing: false,
         error: null,
       };
     });
