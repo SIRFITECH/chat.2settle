@@ -15,17 +15,40 @@ const ConnectTronWallet = () => {
   const [network, setNetwork] = useState("");
   const [balance, setBalance] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"install" | "unlock" | null>(null);
 
   useEffect(() => {
-    if (!window.tronWeb) {
-      setIsModalOpen(true);
-    } else if (window.tronWeb.ready) {
+    let poll: NodeJS.Timeout;
+
+    const detectWallet = () => {
+      if (!window.tronWeb) {
+        setModalType("install");
+        setIsModalOpen(true);
+        return;
+      }
+
+      if (!window.tronWeb.ready) {
+        setModalType("unlock");
+        setIsModalOpen(true);
+        poll = setInterval(() => {
+          if (window.tronWeb.ready) {
+            clearInterval(poll);
+            setIsModalOpen(false);
+            setModalType(null);
+            connectTronWallet();
+          }
+        }, 500);
+        return;
+      }
+
       connectTronWallet();
-    } else {
-      window.addEventListener("tronWeb#initialized", () => {
-        connectTronWallet();
-      });
-    }
+    };
+
+    detectWallet();
+
+    return () => {
+      if (poll) clearInterval(poll);
+    };
   }, []);
 
   const connectTronWallet = async () => {
@@ -43,14 +66,6 @@ const ConnectTronWallet = () => {
       //   setBalance(balanceTRX);
     } else {
       console.log("Please connect Tron wallet.");
-    }
-
-    if (window.tronWeb && window.tronWeb.ready) {
-      const userAddress = window.tronWeb.defaultAddress.base58;
-      console.log("User address:", userAddress);
-      console.log("TronLink is connected");
-    } else {
-      console.log("TronLink not connected or not installed");
     }
   };
 
