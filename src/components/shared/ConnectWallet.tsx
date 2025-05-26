@@ -194,6 +194,7 @@ const ConnectWallet = () => {
                   <Button
                     className="mb-3 bg-red-700 hover:bg-red-400"
                     type="button"
+                    onClick={() => setShowTronConnect(true)}
                   >
                     <div className="pt-4 pb-3 border-t border-gray-200">
                       <div className="flex justify-center px-4">
@@ -202,11 +203,14 @@ const ConnectWallet = () => {
                           alt="Tron"
                           className="h-5 w-5 mr-4"
                         />
-                        <ConnectTronWallet />
+                        {showTronConnect ? (
+                          <ConnectTronWallet />
+                        ) : (
+                          "Connect Wallet"
+                        )}
                       </div>
                     </div>
                   </Button>
-            
                 </>
               )}
             </div>

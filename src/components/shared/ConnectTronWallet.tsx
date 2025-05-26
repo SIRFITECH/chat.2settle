@@ -1,183 +1,265 @@
-"use client";
+// "use client";
+// import React, { useEffect, useState } from "react";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogDescription,
+// } from "../ui/dialog";
 
-import { useEffect, useState } from "react";
+// const ConnectTronWallet = () => {
+//   const [showInitializing, setShowInitializing] = useState(false);
+//   const [showWalletNotReady, setShowWalletNotReady] = useState(false);
+//   const [walletConnected, setWalletConnected] = useState(false);
+
+//   const [address, setAddress] = useState("");
+//   const [network, setNetwork] = useState("");
+//   const [balance, setBalance] = useState("");
+
+//   useEffect(() => {
+//     const checkWallet = async () => {
+//       if (typeof window === "undefined") return;
+
+//       const tronWeb = window.tronWeb;
+
+//       if (!tronWeb) {
+//         console.log("Wallet not found: Tron wallet is not installed.");
+//         setShowInitializing(true);
+//         setTimeout(() => {
+//           window.open("https://www.tronlink.org", "_blank");
+//         }, 2000);
+//         return;
+//       }
+
+//       if (tronWeb.ready) {
+//         try {
+//           const userAddress = tronWeb.defaultAddress.base58;
+//           setAddress(userAddress);
+
+//           const networkType = tronWeb.fullNode.host.includes("shasta")
+//             ? "Shasta Testnet"
+//             : tronWeb.fullNode.host.includes("nile")
+//             ? "Nile Testnet"
+//             : "Mainnet";
+//           setNetwork(networkType);
+
+//           const balanceSun = await tronWeb.trx.getBalance(userAddress);
+//           const balanceTRX = tronWeb.fromSun(balanceSun).toString();
+//           setBalance(balanceTRX);
+
+//           setWalletConnected(true);
+//           console.log("Tron wallet connected:", userAddress);
+//         } catch (error) {
+//           console.error("Error retrieving wallet info:", error);
+//         }
+//       } else {
+//         console.log(
+//           "Wallet found but not connected (locked or no wallet created)."
+//         );
+
+//         // TronLink will use default empty address when locked or no wallet created
+//         const fallbackAddress = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+//         if (
+//           !tronWeb.defaultAddress.base58 ||
+//           tronWeb.defaultAddress.base58 === fallbackAddress
+//         ) {
+//           setShowWalletNotReady(true);
+//           // Poll for readiness
+//           const interval = setInterval(async () => {
+//             if (
+//               window.tronWeb?.ready &&
+//               window.tronWeb.defaultAddress.base58 !== fallbackAddress
+//             ) {
+//               clearInterval(interval);
+//               console.log("Wallet is now connected after unlock.");
+//               setShowWalletNotReady(false);
+//               await checkWallet(); // Retry wallet check
+//             }
+//           }, 1000);
+//         }
+//       }
+//     };
+
+//     checkWallet();
+//   }, []);
+
+//   return (
+//     <>
+//       {/* Dialog for Wallet Not Installed */}
+//       <Dialog open={showInitializing}>
+//         <DialogContent className="text-center">
+//           <DialogHeader>
+//             <DialogTitle>Tron Wallet Required</DialogTitle>
+//             <DialogDescription>
+//               <div className="flex flex-col items-center justify-center space-y-4 mt-4">
+//                 <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500" />
+//                 <p>
+//                   Please install{" "}
+//                   <a
+//                     href="https://www.tronlink.org"
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     className="text-blue-500 underline"
+//                   >
+//                     TronLink wallet
+//                   </a>{" "}
+//                   to continue.
+//                 </p>
+//               </div>
+//             </DialogDescription>
+//           </DialogHeader>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Dialog for Wallet Not Ready */}
+//       <Dialog open={showWalletNotReady}>
+//         <DialogContent className="text-center">
+//           <DialogHeader>
+//             <DialogTitle>Unlock or Create Wallet</DialogTitle>
+//             <DialogDescription>
+//               <div className="flex flex-col items-center justify-center space-y-4 mt-4">
+//                 <img
+//                   src="/wallet-not-ready.png" // Replace with actual image path
+//                   alt="Wallet Not Ready"
+//                   className="w-24 h-24"
+//                 />
+//                 <p>
+//                   You haven&apos;t created or unlocked your wallet yet. Please
+//                   open TronLink and complete setup.
+//                 </p>
+//               </div>
+//             </DialogDescription>
+//           </DialogHeader>
+//         </DialogContent>
+//       </Dialog>
+
+//       {/* Main App or Wallet Info */}
+//       {walletConnected && (
+//         <div className="p-4 text-sm">
+//           <p>
+//             <strong>Address:</strong> {address}
+//           </p>
+//           <p>
+//             <strong>Network:</strong> {network}
+//           </p>
+//           <p>
+//             <strong>Balance:</strong> {balance} TRX
+//           </p>
+//         </div>
+//       )}
+//     </>
+//   );
+// };
+
+// export default ConnectTronWallet;
+
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "../ui/dialog";
-import { Button } from "../ui/button";
-import tronweb from "tronweb/lib/esm/tronweb";
-import { useTronWeb } from "@/hooks/wallet/useTronWeb";
 
 const ConnectTronWallet = () => {
+  const [showInitializing, setShowInitializing] = useState(false);
   const [address, setAddress] = useState("");
   const [network, setNetwork] = useState("");
   const [balance, setBalance] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"install" | "unlock" | null>(null);
-  const { tronWeb, isReady } = useTronWeb();
 
-  // useEffect(() => {
-  //   let poll: NodeJS.Timeout;
+  useEffect(() => {
+    const checkWallet = async () => {
+      if (typeof window !== "undefined") {
+        const tronWeb = window.tronWeb;
 
-  //   const detectWallet = () => {
-  //     if (!window.tronWeb) {
-  //       setModalType("install");
-  //       return;
-  //     }
+        if (!tronWeb) {
+          console.log("Wallet not found: Tron wallet is not installed.");
+          setShowInitializing(true);
+          setTimeout(() => {
+            window.open("https://www.tronlink.org", "_blank");
+          }, 2000);
+        } else if (tronWeb.ready) {
+          console.log("Tron wallet found and connected.");
+          try {
+            const userAddress = window.tronWeb.defaultAddress.base58;
+            setAddress(userAddress);
 
-  //     if (!window.tronWeb.ready) {
-  //       setModalType("unlock");
-  //       poll = setInterval(() => {
-  //         if (window.tronWeb?.ready) {
-  //           clearInterval(poll);
-  //           setIsModalOpen(false);
-  //           setModalType(null);
-  //           connectTronWallet();
-  //         }
-  //       }, 500);
-  //       return;
-  //     }
+            // Determine network
+            const networkType = window.tronWeb.fullNode.host.includes("shasta")
+              ? "Shasta Testnet"
+              : window.tronWeb.fullNode.host.includes("nile")
+              ? "Nile Testnet"
+              : "Mainnet";
+            setNetwork(networkType);
 
-  //     connectTronWallet();
-  //   };
+            // Get balance
+            const balanceSun = await window.tronWeb.trx.getBalance(userAddress);
+            const balanceTRX = window.tronWeb.fromSun(balanceSun).toString();
+            setBalance(balanceTRX);
 
-  //   detectWallet();
+            console.log("TronLink is connected:", userAddress);
+            // setIsModalOpen(false);
+          } catch (error) {
+            console.error("Error connecting to Tron wallet:", error);
+          }
+        } else {
+          console.log("Wallet found: Tron wallet is not connected.");
 
-  //   return () => {
-  //     if (poll) clearInterval(poll);
-  //   };
-  // }, []);
-
-  const connectTronWallet = async () => {
-    if (window.tronWeb && window.tronWeb.ready) {
-      try {
-        const userAddress = window.tronWeb.defaultAddress.base58;
-        setAddress(userAddress);
-
-        // Determine network
-        const networkType = window.tronWeb.fullNode.host.includes("shasta")
-          ? "Shasta Testnet"
-          : window.tronWeb.fullNode.host.includes("nile")
-          ? "Nile Testnet"
-          : "Mainnet";
-        setNetwork(networkType);
-
-        // Get balance
-        const balanceSun = await window.tronWeb.trx.getBalance(userAddress);
-        const balanceTRX = window.tronWeb.fromSun(balanceSun).toString();
-        setBalance(balanceTRX);
-
-        console.log("TronLink is connected:", userAddress);
-        setIsModalOpen(false);
-      } catch (error) {
-        console.error("Error connecting to Tron wallet:", error);
+          // 🔁 Try forcing user interaction to prompt login
+          try {
+            const address = tronWeb.defaultAddress.base58;
+            if (!address || address === "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
+              alert("Please unlock your TronLink wallet to continue.");
+              // Optionally poll for readiness
+              const interval = setInterval(() => {
+                if (window.tronWeb.ready) {
+                  console.log("Wallet now connected.");
+                  clearInterval(interval);
+                }
+              }, 1000);
+            }
+          } catch (err) {
+            console.error("Failed to access TronLink wallet address", err);
+          }
+        }
       }
-    } else {
-      console.log("Please connect Tron wallet.");
-      if (!window.tronWeb) {
-        setModalType("install");
-        setIsModalOpen(true);
-      } else if (!window.tronWeb.ready) {
-        setModalType("unlock");
-        setIsModalOpen(true);
-      }
-    }
-  };
+    };
 
-  const handleConnectClick = () => {
-    if (!window.tronWeb) {
-      setModalType("install");
-      setIsModalOpen(true);
-    } else if (!window.tronWeb.ready) {
-      setModalType("unlock");
-      setIsModalOpen(true);
-    } else {
-      connectTronWallet();
-    }
-  };
+    checkWallet();
+  }, []);
 
   return (
-    <div>
-      {address ? (
-        <div className="flex flex-col space-y-2 p-2">
-          <p className="text-sm">
-            <strong>Address:</strong> {address.slice(0, 6)}...
-            {address.slice(-4)}
-          </p>
-          <p className="text-sm">
-            <strong>Network:</strong> {network}
-          </p>
-          <p className="text-sm">
-            <strong>Balance:</strong> {Number.parseFloat(balance).toFixed(4)}{" "}
-            TRX
-          </p>
-        </div>
-      ) : (
-        <Button
-          className="bg-transparent h-6 border border-transparent shadow-none hover:bg-red-400"
-          onClick={handleConnectClick}
-        >
-          Connect Wallet
-        </Button>
-      )}
-
-      {/* <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent>
+    <>
+      <Dialog open={showInitializing}>
+        <DialogContent className="text-center">
           <DialogHeader>
-            <DialogTitle>
-              {modalType === "install"
-                ? "Install a Tron Wallet"
-                : "Unlock Your Tron Wallet"}
-            </DialogTitle>
+            <DialogTitle>Initializing...</DialogTitle>
             <DialogDescription>
-              {modalType === "install"
-                ? "To connect your wallet, please install TronLink or Trust Wallet."
-                : "Please unlock your TronLink wallet by opening the extension and entering your password."}
+              <div className="flex flex-col items-center justify-center space-y-4 mt-4">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500" />
+                <p>
+                  Please login to your{" "}
+                  <a
+                    href="https://www.tronlink.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    TronLink wallet
+                  </a>{" "}
+                  to connect.
+                </p>
+              </div>
             </DialogDescription>
           </DialogHeader>
-
-          {modalType === "install" ? (
-            <div className="flex flex-col space-y-4">
-              <Button asChild variant="outline">
-                <a
-                  href="https://www.tronlink.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Install TronLink
-                </a>
-              </Button>
-              <Button asChild variant="outline">
-                <a
-                  href="https://trustwallet.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Install Trust Wallet
-                </a>
-              </Button>
-            </div>
-          ) : modalType === "unlock" ? (
-            <div className="flex flex-col space-y-4">
-              <p className="text-sm text-muted-foreground">
-                After unlocking your wallet, this dialog will close
-                automatically.
-              </p>
-              <Button
-                onClick={() => connectTronWallet()}
-                className="bg-red-700 hover:bg-red-600"
-              >
-                Check Connection Again
-              </Button>
-            </div>
-          ) : null}
         </DialogContent>
-      </Dialog> */}
-    </div>
+      </Dialog>
+
+      <div>ConnectTronWallet</div>
+    </>
   );
 };
 
