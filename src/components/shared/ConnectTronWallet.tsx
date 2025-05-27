@@ -212,14 +212,14 @@ const ConnectTronWallet = () => {
           try {
             const address = tronWeb.defaultAddress.base58;
             if (!address || address === "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
-              alert("Please unlock your TronLink wallet to continue.");
+              alert("Please unlock your TronLink wallet and try again to continue.");
               // Optionally poll for readiness
-              const interval = setInterval(() => {
-                if (window.tronWeb.ready) {
-                  console.log("Wallet now connected.");
-                  clearInterval(interval);
-                }
-              }, 1000);
+              // const interval = setInterval(() => {
+              //   if (window.tronWeb.ready) {
+              //     console.log("Wallet now connected.");
+              //     clearInterval(interval);
+              //   }
+              // }, 1000);
             }
           } catch (err) {
             console.error("Failed to access TronLink wallet address", err);
