@@ -126,10 +126,12 @@ import ConnectBTCButton from "./ConnectBTCButton";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 import ConnectTronWallet from "./ConnectTronWallet";
 import { useState } from "react";
+import useTronWallet from "@/hooks/stores/tronWalletStore";
 
 const ConnectWallet = () => {
   const { isConnected } = useAccount();
   const { isConnected: isBTCConnected } = useBTCWallet();
+  const { connected: isTronConnected } = useTronWallet();
   const [showTronConnect, setShowTronConnect] = useState(false);
 
   return (
@@ -139,6 +141,8 @@ const ConnectWallet = () => {
           <ConnectButton />
         ) : isBTCConnected ? (
           <ConnectBTCButton />
+        ) : isTronConnected ? (
+          <ConnectTronWallet />
         ) : (
           <Button
             className="bg-blue-500 hover:bg-blue-400 hover:text-white-4 text-white rounded-full"
