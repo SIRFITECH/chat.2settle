@@ -86,9 +86,8 @@
 
 // export default ConnectBTCButton;
 
-// export default ConnectTronWallet;
-// Import React, zustand store, and required hooks/components
-import React, { useEffect, useState } from "react"; // React and hooks for state/effect
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -96,42 +95,44 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
-} from "../ui/dialog"; // UI components for dialog (if needed)
+} from "../ui/dialog";
 import ShortenedAddress from "./ShortenAddress";
 import { MdContentCopy, MdKeyboardArrowDown, MdLogout } from "react-icons/md";
 import useTronWallet from "@/hooks/stores/tronWalletStore";
-// Define the ConnectTronWallet component
+import { useRouter } from "next/navigation";
+
 const ConnectTronWallet = () => {
   // Local state for modal/UI logic
   const [showInitializing, setShowInitializing] = useState(false); // Track initializing state
+  const router = useRouter();
 
   // Zustand store actions/state
   const {
-    setWalletAddress, // Function to set wallet address in store
-    setTrxBalance, // Function to set TRX balance in store
-    setUSDTBalance, // Function to set USDT balance in store
-    setConnected, // Function to set connection state in store
-    clearWallet, // Function to clear wallet data in store
-    connected, // Boolean: is wallet connected
-    walletAddress, // Current wallet address in store
-    trxBalance, // Current TRX balance in store
-    usdtBalance, // Current USDT balance in store
-  } = useTronWallet(); // Use zustand store
+    setWalletAddress,
+    setTrxBalance,
+    setUSDTBalance,
+    setConnected,
+    clearWallet,
+    connected,
+    walletAddress,
+    trxBalance,
+    usdtBalance,
+  } = useTronWallet();
 
   // Function to fetch balances (TRX + USDT)
   const fetchBalances = async (address: string) => {
     // Fetch TRX balance
-    const trxBalance = await window.tronWeb.trx.getBalance(address); // in SUN
-    setTrxBalance(window.tronWeb.fromSun(trxBalance)); // Convert to TRX and set in store
+    const trxBalance = await window.tronWeb.trx.getBalance(address);
+    setTrxBalance(window.tronWeb.fromSun(trxBalance));
 
-    // USDT contract address on TRON mainnet
-    const USDT_CONTRACT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj"; // Mainnet USDT
+    // // USDT contract address on TRON mainnet
+    // const USDT_CONTRACT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
 
-    // Get USDT contract instance
-    const contract = await window.tronWeb.contract().at(USDT_CONTRACT);
-    // Call balanceOf method
-    const usdtRaw = await contract.balanceOf(address).call(); // USDT in6 decimals
-    setUSDTBalance(usdtRaw / 1_000_000); // Convert to readable USDT and set in store
+    // // Get USDT contract instance
+    // const contract = await window.tronWeb.contract().at(USDT_CONTRACT);
+    // // Call balanceOf method
+    // const usdtRaw = await contract.balanceOf(address).call();
+    // setUSDTBalance(usdtRaw / 1_000_000);
   };
 
   // Connect wallet logic
@@ -139,35 +140,37 @@ const ConnectTronWallet = () => {
     console.log("Connecting to TronLink...");
     if (!window.tronLink) {
       // TronLink is not installed
-      setShowInitializing(true); // Show modal/UI
+      setShowInitializing(true);
       setTimeout(() => {
-        window.open("https://www.tronlink.org/", "_blank"); // Prompt install
-        setShowInitializing(false); // Hide after opening link
+        window.open("https://www.tronlink.org/", "_blank");
+        setShowInitializing(false);
       }, 2000);
       return;
     }
     // Request account access
     try {
+      console.log("Requesting TronLink accounts...");
       // Try to request accounts (will trigger popup if locked)
       await window.tronLink.request({ method: "tron_requestAccounts" });
       // After user logs in/unlocks, get address
       const userAddress = window.tronWeb.defaultAddress.base58;
-      setWalletAddress(userAddress); // Save in zustand
-      // const walletBal = await fetchBalances(userAddress); // Fetch and save balances
-      setConnected(true); // Mark as connected in store
-      // console.log("Wallet balance", walletBal);
+      setWalletAddress(userAddress);
+      const walletBal = await fetchBalances(userAddress); // Fetch and save balances
+      setConnected(true);
+      console.log("Wallet balance", walletBal);
     } catch (err) {
       // User rejected or not logged in, try to prompt login
-      setShowInitializing(true); // Show modal/UI
+      setShowInitializing(true);
       setTimeout(() => {
         setShowInitializing(false);
-      }, 2000); // Hide after 2s
+      }, 2000);
     }
   };
 
   // Disconnect wallet
   const disconnect = () => {
-    clearWallet(); // Clear all from zustand
+    clearWallet();
+    router.refresh();
   };
 
   const handleCopy = async () => {
@@ -181,9 +184,9 @@ const ConnectTronWallet = () => {
   useEffect(() => {
     if (window.tronWeb && window.tronWeb.ready) {
       const address = window.tronWeb.defaultAddress.base58;
-      setWalletAddress(address); // Save address
-      fetchBalances(address); // Save balances
-      setConnected(true); // Set connected
+      setWalletAddress(address);
+      fetchBalances(address);
+      setConnected(true);
     }
   }, []);
 
@@ -211,6 +214,7 @@ const ConnectTronWallet = () => {
   //     )}
   //   </div>
   // );
+
   return (
     <div className="relative">
       {connected ? (
@@ -246,12 +250,10 @@ const ConnectTronWallet = () => {
                       <ShortenedAddress wallet={walletAddress} />
                       <ul>
                         <li>
-
-                      <p>TRX Balance: {trxBalance.toString()}</p>
+                          <p>TRX Balance: {trxBalance.toString()}</p>
                         </li>
                         <li>
-
-                      <p>USDT Balance: {usdtBalance}</p>
+                          <p>USDT Balance: {usdtBalance}</p>
                         </li>
                       </ul>
                     </div>
@@ -289,7 +291,7 @@ const ConnectTronWallet = () => {
   );
 };
 
-export default ConnectTronWallet; // Export component
+export default ConnectTronWallet;
 
 // "use client";
 // import React, { useEffect, useState } from "react";
