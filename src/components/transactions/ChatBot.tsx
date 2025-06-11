@@ -72,13 +72,11 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     useTronWallet();
   const account = useAccount();
 
-  console.log("Tron Account address:", tronWalletAddress);
   const wallet =
     account.address ||
     (btcWalletAddress as WalletAddress) ||
     (tronWalletAddress as WalletAddress);
 
-  console.log("Connected Account address:", wallet);
 
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";

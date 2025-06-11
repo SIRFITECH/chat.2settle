@@ -5,6 +5,7 @@ import {
   spendBNB,
   spendERC20,
   spendETH,
+  spendTRX,
 } from "@/helpers/ethereum_script/spend_crypto";
 import { EthereumAddress } from "@/types/general_types";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ const useConfirmAndProceedState = ({
   const { paymentAddress } = useBTCWallet();
 
   const handleBlockchainPayment = async () => {
+    console.log("handleBlockchainPayment called with network:", network);
     setState((prev) => {
       if (
         prev.isDialogOpen === false &&
@@ -120,6 +122,10 @@ const useConfirmAndProceedState = ({
               },
             });
             btcSent = !!txid;
+            break;
+          case "trx":
+            console.log("TRX network is not supported yet.");
+            await spendTRX(wallet as EthereumAddress, amount);
             break;
           default:
             break;

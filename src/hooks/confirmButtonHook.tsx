@@ -49,6 +49,25 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
     amount,
   });
 
+
+  // const handleConfirmCallback = useCallback(() => {
+  //   handleConfirm({
+  //     setState,
+  //     phoneNumber,
+  //     setLoading,
+  //     sharedPaymentMode,
+  //     processTransaction,
+  //     network,
+  //   });
+  // }, [
+  //   setState,
+  //   phoneNumber,
+  //   setLoading,
+  //   sharedPaymentMode,
+  //   processTransaction,
+  //   network,
+  // ]);
+
   const handleConfirmCallback = useCallback(() => {
     handleConfirm({
       setState,
