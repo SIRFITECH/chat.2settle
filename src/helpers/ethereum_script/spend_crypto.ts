@@ -1185,9 +1185,9 @@ export async function spendTRX(wallet: EthereumAddress, amount: string) {
   //   }
   //   // create a transaction object
   //   const transaction = await window.tronWeb.trx.sign(
-  //     wallet,
-  //     amountInSun,
-  //     spender
+  //     wallet as string,
+  //     amountInSun.toString(),
+  //     spender as string
   //   );
   //   const signedTransaction = await window.tronWeb.trx.sign(transaction);
   //   if (!signedTransaction.signature) {
