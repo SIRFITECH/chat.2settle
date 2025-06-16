@@ -5,6 +5,7 @@ import {
   spendBNB,
   spendERC20,
   spendETH,
+  spendTRX,
 } from "@/helpers/ethereum_script/spend_crypto";
 import { EthereumAddress } from "@/types/general_types";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ const useConfirmAndProceedState = ({
   const { paymentAddress } = useBTCWallet();
 
   const handleBlockchainPayment = async () => {
+    console.log("handleBlockchainPayment called with network:", network);
     setState((prev) => {
       if (
         prev.isDialogOpen === false &&
@@ -57,6 +59,7 @@ const useConfirmAndProceedState = ({
       const wallet = await getDirectDebitWallet(network.toLowerCase());
       let reciept: TransactionReceipt | null = null;
       let btcSent = false;
+      let trxSent = false;
 
       if (wallet) {
         switch (network.toLowerCase()) {
@@ -121,6 +124,11 @@ const useConfirmAndProceedState = ({
             });
             btcSent = !!txid;
             break;
+          case "trx":
+            console.log("TRX network is not supported yet.");
+            await spendTRX(wallet as EthereumAddress, amount);
+            trxSent= true;
+            break;
           default:
             break;
         }
@@ -151,8 +159,35 @@ const useConfirmAndProceedState = ({
         );
         console.log("requestPayment from state", requestPayment);
       }
+      
 
       if (btcSent) {
+        setState((prev) => {
+          if (prev.activeWallet === wallet) return prev;
+          return {
+            ...prev,
+            activeWallet: wallet,
+          };
+        });
+
+        const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+        const requestPayment =
+          sharedPaymentMode.toLowerCase() === "request" ||
+          sharedPaymentMode.toLowerCase() === "payrequest";
+
+        setLoading(true);
+
+        await processTransaction(
+          phoneNumber,
+          false,
+          isGiftTrx,
+          requestPayment,
+          wallet
+        );
+        console.log("requestPayment from state", requestPayment);
+      }
+
+      if (trxSent) {
         setState((prev) => {
           if (prev.activeWallet === wallet) return prev;
           return {

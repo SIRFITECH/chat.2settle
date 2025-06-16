@@ -1168,46 +1168,39 @@ export async function sendBTC({
 }
 
 export async function spendTRX(wallet: EthereumAddress, amount: string) {
-  // try {
-  //   // check if user has wallet connected
-  //   if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
-  //     throw new Error("You need to connect TronLink wallet");
-  //   }
-  //   // get the connected wallet address
-  //   const spender = window.tronWeb.defaultAddress.base58;
-  //   // convert the amount to SUN
-  //   const amountInSun = window.tronWeb.toSun(amount);
-  //   // check if the user have enough balance
-  //   const balance = await window.tronWeb.trx.getBalance(spender);
-  //   if (balance < amountInSun) {
-  //     console.log("Insufficient balance for transaction");
-  //     throw new Error("Insufficient balance");
-  //   }
-  //   // create a transaction object
-  //   const transaction = await window.tronWeb.trx.sign(
-  //     wallet,
-  //     amountInSun,
-  //     spender
-  //   );
-  //   const signedTransaction = await window.tronWeb.trx.sign(transaction);
-  //   if (!signedTransaction.signature) {
-  //     throw new Error(
-  //       "Could not sign transaction, unlock your wallet and sign the transaction"
-  //     );
-  //   }
-  //   const broadcast = await window.tronWeb.trx.sendRawTransaction(
-  //     signedTransaction
-  //   );
-  //   if (broadcast.result) {
-  //     console.log("Transaction successfull TXID:", broadcast.txid);
-  //     return broadcast.result;
-  //   } else {
-  //     throw new Error("Transaction broadcast failed");
-  //   }
-  // } catch (error) {
-  //   // forward the error for the calling function to handle
-  //   throw error;
-  // }
+  try {
+    // check if user has wallet connected
+    if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
+      throw new Error("You need to connect TronLink wallet");
+    }
+    // get the connected wallet address
+    const spender = window.tronWeb.defaultAddress.base58;
+    // convert the amount to SUN
+    const sunAmount = window.tronWeb.toSun(amount);
+    const amountInSun = Math.floor(sunAmount);
+    //
+
+    // check if the user have enough balance
+    const balance = await window.tronWeb.trx.getBalance(spender);
+    if (balance < amountInSun) {
+      console.log("Insufficient balance for transaction");
+      throw new Error("Insufficient balance");
+    }
+    // create a transaction object
+    const transaction = await window.tronWeb.trx.sendTransaction(
+      wallet as string,
+      amountInSun
+    );
+    if (transaction?.result) {
+      console.log("Transaction successful. TXID:", transaction.txid);
+      return transaction;
+    } else {
+      throw new Error("Transaction broadcast failed");
+    }
+  } catch (error) {
+    // forward the error for the calling function to handle
+    throw error;
+  }
 }
 
 export async function spendTRC20(wallet: EthereumAddress, amount: string) {

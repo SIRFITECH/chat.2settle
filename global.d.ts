@@ -3,8 +3,10 @@ import { TronWeb } from "tronweb";
 export {};
 declare global {
   interface Window {
+    tronLink?: any;
     tronWeb: TronWeb & {
       ready: boolean;
+      isTronLink: boolean;
       defaultAddress: {
         base58: string;
         hex: string;

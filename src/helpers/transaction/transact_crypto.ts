@@ -1,4 +1,3 @@
-
 import { WalletAddress, WalletType } from "@/lib/wallets/types";
 
 export const getWalletType = (wallet: WalletAddress | null): WalletType => {
@@ -10,5 +9,12 @@ export const getWalletType = (wallet: WalletAddress | null): WalletType => {
     wallet.startsWith("bc1")
   )
     return "BTC";
+
+  if (
+    (wallet.startsWith("T") && wallet.length === 34) ||
+    (wallet.startsWith("41") && wallet.length === 42) ||
+    (wallet.startsWith("0x41") && wallet.length === 44)
+  )
+    return "TRX";
   return "UNKNOWN";
 };
