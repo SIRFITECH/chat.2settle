@@ -5,6 +5,7 @@ import {
   spendBNB,
   spendERC20,
   spendETH,
+  spendTRC20,
   spendTRX,
 } from "@/helpers/ethereum_script/spend_crypto";
 import { EthereumAddress } from "@/types/general_types";
@@ -75,6 +76,13 @@ const useConfirmAndProceedState = ({
           case "bep20":
             reciept = await spendBEP20(wallet as EthereumAddress, amount);
             break;
+          case "trc20":
+            const usdtTrnsaction = await spendTRC20(
+              wallet as EthereumAddress,
+              amount
+            );
+            trxSent = !!usdtTrnsaction;
+            break;
           case "btc":
             const txid = await sendBTC({
               senderAddress: paymentAddress as WalletAddress,
@@ -126,8 +134,11 @@ const useConfirmAndProceedState = ({
             break;
           case "trx":
             console.log("TRX network is not supported yet.");
-            await spendTRX(wallet as EthereumAddress, amount);
-            trxSent= true;
+            const transaction = await spendTRX(
+              wallet as EthereumAddress,
+              amount
+            );
+            trxSent = !!transaction.txid;
             break;
           default:
             break;
@@ -159,7 +170,6 @@ const useConfirmAndProceedState = ({
         );
         console.log("requestPayment from state", requestPayment);
       }
-      
 
       if (btcSent) {
         setState((prev) => {
