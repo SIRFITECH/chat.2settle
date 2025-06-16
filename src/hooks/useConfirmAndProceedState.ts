@@ -59,6 +59,7 @@ const useConfirmAndProceedState = ({
       const wallet = await getDirectDebitWallet(network.toLowerCase());
       let reciept: TransactionReceipt | null = null;
       let btcSent = false;
+      let trxSent = false;
 
       if (wallet) {
         switch (network.toLowerCase()) {
@@ -126,6 +127,7 @@ const useConfirmAndProceedState = ({
           case "trx":
             console.log("TRX network is not supported yet.");
             await spendTRX(wallet as EthereumAddress, amount);
+            trxSent= true;
             break;
           default:
             break;
@@ -157,8 +159,35 @@ const useConfirmAndProceedState = ({
         );
         console.log("requestPayment from state", requestPayment);
       }
+      
 
       if (btcSent) {
+        setState((prev) => {
+          if (prev.activeWallet === wallet) return prev;
+          return {
+            ...prev,
+            activeWallet: wallet,
+          };
+        });
+
+        const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
+        const requestPayment =
+          sharedPaymentMode.toLowerCase() === "request" ||
+          sharedPaymentMode.toLowerCase() === "payrequest";
+
+        setLoading(true);
+
+        await processTransaction(
+          phoneNumber,
+          false,
+          isGiftTrx,
+          requestPayment,
+          wallet
+        );
+        console.log("requestPayment from state", requestPayment);
+      }
+
+      if (trxSent) {
         setState((prev) => {
           if (prev.activeWallet === wallet) return prev;
           return {

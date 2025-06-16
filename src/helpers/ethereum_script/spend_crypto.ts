@@ -1176,7 +1176,10 @@ export async function spendTRX(wallet: EthereumAddress, amount: string) {
     // get the connected wallet address
     const spender = window.tronWeb.defaultAddress.base58;
     // convert the amount to SUN
-    const amountInSun = window.tronWeb.toSun(amount);
+    const sunAmount = window.tronWeb.toSun(amount);
+    const amountInSun = Math.floor(sunAmount);
+    //
+
     // check if the user have enough balance
     const balance = await window.tronWeb.trx.getBalance(spender);
     if (balance < amountInSun) {
@@ -1194,8 +1197,6 @@ export async function spendTRX(wallet: EthereumAddress, amount: string) {
     } else {
       throw new Error("Transaction broadcast failed");
     }
-
-
   } catch (error) {
     // forward the error for the calling function to handle
     throw error;
