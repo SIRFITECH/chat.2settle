@@ -19,6 +19,7 @@ import { checkRequestExists } from "@/helpers/api_calls";
 import { SetStateAction } from "react";
 import { getWalletType } from "@/helpers/transaction/transact_crypto";
 import { WalletAddress } from "@/lib/wallets/types";
+import { add } from "lodash";
 
 /**
  * handle crypto transaction, payment request and gifts
@@ -647,6 +648,7 @@ export const handleNetwork = async (
   setSharedNetwork: (network: string) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
+  const walletType = getWalletType(wallet);
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     goToStep("start");
     helloMenu(
@@ -680,12 +682,23 @@ export const handleNetwork = async (
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
-      displayHowToEstimation(
-        addChatMessages,
-        "USDT (ERC20)",
-        sharedPaymentMode
-      );
-      nextStep("payOptions");
+      if (walletIsConnected && walletType !== "EVM") {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: `USDT (ERC20) is only supported when EVM wallet is connected. \n Please select the asset of the wallet connected`,
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      } else {
+        displayHowToEstimation(
+          addChatMessages,
+          "USDT (ERC20)",
+          sharedPaymentMode
+        );
+        nextStep("payOptions");
+      }
     }
 
     setSharedTicker("USDT");
@@ -695,13 +708,24 @@ export const handleNetwork = async (
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
-      displayHowToEstimation(
-        addChatMessages,
-        "USDT (TRC20)",
-        sharedPaymentMode
-      );
+      if (walletIsConnected && walletType !== "TRX") {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: `TRC20 is only supported when TRX wallet is connected. \n Please select the asset of the wallet connected`,
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      } else {
+        displayHowToEstimation(
+          addChatMessages,
+          "USDT (TRC20)",
+          sharedPaymentMode
+        );
 
-      nextStep("payOptions");
+        nextStep("payOptions");
+      }
     }
     setSharedTicker("USDT");
     setSharedCrypto("USDT");
@@ -711,12 +735,23 @@ export const handleNetwork = async (
     if (sharedPaymentMode.toLowerCase() === "payrequest") {
       displayEnterPhone(addChatMessages, nextStep);
     } else {
-      displayHowToEstimation(
-        addChatMessages,
-        "USDT (BEP20)",
-        sharedPaymentMode
-      );
-      nextStep("payOptions");
+      if (walletIsConnected && walletType !== "EVM") {
+        addChatMessages([
+          {
+            type: "incoming",
+            content: `USDT (BEP20) is only supported when EVM wallet is connected. \n Please select the asset of the wallet connected`,
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      } else {
+        displayHowToEstimation(
+          addChatMessages,
+          "USDT (BEP20)",
+          sharedPaymentMode
+        );
+        nextStep("payOptions");
+      }
     }
     setSharedTicker("USDT");
     setSharedCrypto("USDT");
