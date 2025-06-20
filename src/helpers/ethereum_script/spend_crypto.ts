@@ -1204,31 +1204,50 @@ export async function spendTRX(wallet: EthereumAddress, amount: string) {
 }
 
 export async function spendTRC20(wallet: EthereumAddress, amount: string) {
-  // // Ensure tronweb provider is injected
-  // try {
-  //   if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
-  //     throw new Error("TronLink wallet is not connected.");
-  //   }
-  //   // get the users connected wallet
-  //   const spender = window.tronWeb.defaultAddress.base58;
-  //   // USDT TRC20 contract address on the Tron blockchain
-  //   const USDT_CONTRACT_ADDRESS = "TXLAQ63Xg1NAzckPwKHvzwE7HdRc8Q5hU4";
-  //   const amountInSmallestUnit = TronWeb.toBigNumber(amount)
-  //     .multiplyBy(1e6)
-  //     .toString();
-  //   const USDTTRC20Contract = await window.tronWeb
-  //     .contract()
-  //     .at(USDT_CONTRACT_ADDRESS);
-  //   const balance = await USDTTRC20Contract.methods.balanceOf(spender).call();
-  //   if (TronWeb.toBigNumber(balance).lt(amountInSmallestUnit)) {
-  //     throw new Error("Insufficient USDT balance in the connected wallet.");
-  //   }
-  //   const transfer = await USDTTRC20Contract.methods
-  //     .transfer(wallet, amountInSmallestUnit)
-  //     .send();
-  //   console.log("Transaction successful! TXID:", transaction);
-  // } catch (error) {
-  //   console.error("Error during USDT transfer:");
-  //   throw error; // Re-throw the error for the calling function to handle
-  // }
+  try {
+    // Check if user has TronLink connected
+    if (!window.tronWeb || !window.tronWeb.defaultAddress.base58) {
+      throw new Error("You need to connect TronLink wallet");
+    }
+
+    // Get the connected wallet address
+    const sender = window.tronWeb.defaultAddress.base58;
+
+    // Convert amount to token's smallest unit (USDT uses 6 decimals)
+    const amountInSun = Math.floor(parseFloat(amount) * 1e6);
+    // const tokenContractAddress = "TXLAQ63Xg1NAzckPwKHvzwE7HdRc8Q5hU4"; 
+    const tokenContractAddress = process.env.NEXT_PUBLIC_USDT_TRC20_CONTRACT;
+
+    if (!tokenContractAddress) {
+      throw new Error("USDT contract address is not defined");
+    }
+
+
+    // Load the TRC20 contract
+    const contract = await window.tronWeb.contract().at(tokenContractAddress);
+
+    // Check if user has enough TRC20 balance
+    const balanceRaw = await contract.methods.balanceOf(sender).call();
+    const balance = parseFloat(balanceRaw.toString());
+
+    if (balance < amountInSun) {
+      console.log("Insufficient token balance for transaction");
+      throw new Error("Insufficient token balance");
+    }
+
+    // Send tokens
+    const transaction = await contract.methods
+      .transfer(wallet, amountInSun)
+      .send();
+
+    if (transaction) {
+      console.log("TRC20 transfer successful. TXID:", transaction);
+      return transaction;
+    } else {
+      throw new Error("TRC20 transfer failed to broadcast");
+    }
+  } catch (error) {
+    // Forward the error for the calling function to handle
+    throw error;
+  }
 }

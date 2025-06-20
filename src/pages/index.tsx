@@ -59,14 +59,53 @@ const Home: NextPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-custom-blue via-custom-pink to-pink-500">
       <Head>
-        <title>2Settle Livechat</title>
-        <meta content="2Settle Livechat" name="spend,send,integrate" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="apple-touch-icon.png"
+        <title>2Settle – Crypto to Fiat Payments for Africa</title>
+        <meta
+          name="spend,send,integrate"
+          content="Send, spend, and integrate crypto payments seamlessly in Africa with 2Settle. Fast, secure, and reliable crypto-to-fiat conversion and payments."
+        />
+        <meta
+          name="keywords"
+          content="crypto to fiat Africa, send crypto Nigeria, crypto payments, stablecoin payments, 2Settle, spend crypto, crypto to naira, crypto commerce"
+        />
+        <meta name="author" content="2Settle Team" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#ffffff" />
+
+        {/* Open Graph (for Facebook, LinkedIn) */}
+        <meta
+          property="og:title"
+          content="2Settle – Crypto to Fiat Payments for Africa"
+        />
+        <meta
+          property="og:description"
+          content="Send, spend, and integrate crypto payments across Africa using 2Settle's fast, reliable gateway."
+        />
+        <meta property="og:url" content="https://spend.2settle.io" />
+        <meta
+          property="og:image"
+          content="https://spend.2settle.io/og-image.jpg"
+        />
+        <meta property="og:type" content="website" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="2Settle – Crypto to Fiat Payments for Africa"
+        />
+        <meta
+          name="twitter:description"
+          content="Seamless crypto-to-fiat payments for African users and businesses."
+        />
+        <meta
+          name="twitter:image"
+          content="https://spend.2settle.io/og-image.jpg"
         />
         {/* web favicon */}
+        <link rel="me" href="https://twitter.com/2settlehq" />
+        <link rel="me" href="https://t.me/2settle" />
+        <link rel="me" href="https://linkedin.com/company/2settle" />
         <link
           rel="icon"
           type="image/png"
@@ -86,6 +125,7 @@ const Home: NextPage = () => {
         <meta name="msapplication-config" content="browserconfig.xml" />
         <meta name="theme-color" content="#ffffff"></meta>
       </Head>
+
       <Layout>
         <PageBody />
       </Layout>
@@ -94,12 +134,3 @@ const Home: NextPage = () => {
 };
 
 export default Home;
-
-// import { useEffect } from "react";
-// import { useRouter } from "next/router";
-// import { checkReferralExists } from "../helpers/api_calls"; // Adjust the import path as needed
-
-// export default function App({ Component, pageProps }) {
-
-//   return <Component {...pageProps} />;
-// }

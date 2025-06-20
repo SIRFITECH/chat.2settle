@@ -15,9 +15,36 @@ export default function Layout({ children }: Props) {
         strategy="beforeInteractive"
         src="https://telegram.org/js/telegram-web-app.js"
       />
-      <Navbar />
-      <main className="flex-grow">{children}</main>
-      <Footer />
+      <Script
+        id="structured-data"
+        type="application/ld+json"
+        strategy="afterInteractive"
+      >
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "2Settle",
+          url: "https://spend.2settle.io",
+          logo: "https://spend.2settle.io/logo.png",
+          sameAs: [
+            "https://twitter.com/2settlehq",
+            "https://linkedin.com/company/2settle",
+            "https://t.me/yourtelegram",
+          ],
+          description:
+            "2Settle enables Africans to send, receive, and spend crypto easily with instant fiat conversion.",
+        })}
+      </Script>
+      
+      <header>
+        <Navbar />
+      </header>
+      <main role="main" className="flex-grow">
+        {children}
+      </main>
+      <footer>
+        <Footer />
+      </footer>
     </div>
   );
 }

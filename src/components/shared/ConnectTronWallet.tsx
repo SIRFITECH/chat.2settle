@@ -118,12 +118,69 @@ const ConnectTronWallet = () => {
     trxBalance,
     usdtBalance,
   } = useTronWallet();
+  // async function getUSDTBalance() {
+  //   // Ensure tronWeb is injected
+  //   if (!window.tronWeb || !window.tronWeb.ready) {
+  //     throw new Error("Tron wallet not connected");
+  //   }
+
+  //   const tronWeb = window.tronWeb;
+  //   const address = tronWeb.defaultAddress.base58;
+  //   const usdtContractAddress = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
+
+  //   try {
+  //     // Load USDT contract
+  //     const contract = await tronWeb.contract().at(usdtContractAddress);
+
+  //     // Call balanceOf with your wallet address
+  //     const balance = await contract.methods.balanceOf(address).call();
+
+  //     // USDT has 6 decimals, so divide by 1e6
+  //     const usdtBalance = tronWeb.toDecimal(balance) / 1e6;
+
+  //     console.log(`USDT Balance: ${usdtBalance}`);
+  //     return usdtBalance;
+  //   } catch (err) {
+  //     console.error("Failed to fetch USDT balance", err);
+  //   }
+  // }
+
+  async function getUSDTBalance() {
+    if (!window.tronWeb || !window.tronWeb.ready) {
+      throw new Error("Tron wallet not connected");
+    }
+
+    const tronWeb = window.tronWeb;
+    const address = tronWeb.defaultAddress.base58;
+    // const usdtContractAddress =  "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";
+    //  "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
+
+    const usdtContractAddress = process.env.NEXT_PUBLIC_USDT_TRC20_CONTRACT;
+
+    if (!usdtContractAddress) {
+      throw new Error("USDT contract address is not defined");
+    }
+
+    try {
+      const contract = await tronWeb.contract().at(usdtContractAddress);
+      const balance = await contract.methods.balanceOf(address).call();
+
+      // Safely convert balance to number
+      const usdtBalance = parseFloat(balance.toString()) / 1e6;
+
+      console.log(`USDT Balance: ${usdtBalance}`);
+      return usdtBalance;
+    } catch (err) {
+      console.error("Failed to fetch USDT balance", err);
+    }
+  }
 
   // Function to fetch balances (TRX + USDT)
   const fetchBalances = async (address: string) => {
     // Fetch TRX balance
     const trxBalance = await window.tronWeb.trx.getBalance(address);
     setTrxBalance(window.tronWeb.fromSun(trxBalance));
+    const usdtBalance = await getUSDTBalance();
 
     // // USDT contract address on TRON mainnet
     // const USDT_CONTRACT = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj";
@@ -132,7 +189,7 @@ const ConnectTronWallet = () => {
     // const contract = await window.tronWeb.contract().at(USDT_CONTRACT);
     // // Call balanceOf method
     // const usdtRaw = await contract.balanceOf(address).call();
-    // setUSDTBalance(usdtRaw / 1_000_000);
+    setUSDTBalance(usdtBalance ?? 0);
   };
 
   // Connect wallet logic
