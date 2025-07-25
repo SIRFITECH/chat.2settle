@@ -414,6 +414,7 @@ export const updateGiftTransaction = async (
     }
   }
 };
+
 export const updateRequest = async (
   request_id: string,
   updateData: Record<string, any>
@@ -456,6 +457,20 @@ export const createTransaction = async (user: any): Promise<any> => {
     const response = await axios.post<any>(
       `${apiURL}/api/create_transaction`,
       user
+    );
+    console.log("Use transaction created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing user data:", error);
+    throw new Error("Failed to store user data");
+  }
+};
+
+export const OpenAI = async (updatedMessages: any): Promise<any> => {
+  try {
+    const response = await axios.post<any>(
+      `${apiURL}/api/openai`,
+      { messages: updatedMessages }
     );
     console.log("Use transaction created successfully");
     return response.data;
@@ -507,6 +522,7 @@ export async function fetchCoinPrice(ticker: string): Promise<number> {
     throw error;
   }
 }
+
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {
   try {
     const response = await axios.post<BankName>(`${apiURL}/api/bank_names/`, {

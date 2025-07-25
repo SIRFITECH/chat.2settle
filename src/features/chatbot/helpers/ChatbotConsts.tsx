@@ -37,6 +37,7 @@ export const renderDateSeparator = (date: Date) => {
     return format(date, "d MMM, yyyy");
   }
 };
+
 export const initialMessages = [
   {
     type: "incoming",

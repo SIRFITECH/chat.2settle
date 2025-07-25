@@ -3,6 +3,8 @@ import ShortenedAddress from "@/components/shared/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { WalletAddress } from "@/lib/wallets/types";
+import { useEffect, useState } from 'react';
+import { OpenAI } from "@/helpers/api_calls";
 
 /**
  *
@@ -21,7 +23,7 @@ import { WalletAddress } from "@/lib/wallets/types";
 // ON HI | HELLO | HOWDY | HEY PROMPT
 
 // Welcome message for the user with instruction on how to start a chat
-export const helloMenu = (
+export const helloMenu = async (
   addChatMessages?: (messages: MessageType[]) => void,
   chatInput?: string,
   nextStep?: (step: string) => void,
@@ -30,79 +32,32 @@ export const helloMenu = (
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
+  // const [messages, setMessages] = useState([{}]);
+  // const [newMessages, setNewMessages] = useState([]);
+  // const [loading, setLoading] = useState(false);
+
   console.log("we are at the start");
-  if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
+  
     window.localStorage.setItem("transactionID", "");
     setSharedPaymentMode?.("");
-    if (walletIsConnected) {
-      addChatMessages?.([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName} 👋
-              <br />
-              <br />
-              You are connected as{" "}
-              <b>
-                <ShortenedAddress wallet={wallet} />
-              </b>
-              <br />
-              <br />
-              1. To disconnect wallet <br />
-              2. Continue to transact
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-      nextStep?.("chooseAction");
-    } else {
-      setSharedPaymentMode?.("");
-      addChatMessages?.([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName}👋
-              <br />
-              <br />
-              Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
-              assistance, <br />
-              <b>Your wallet is not connected,</b> reply with:
-              <br />
-              <br />
-              1. To connect wallet <br />
-              2. To just continue
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-      console.log("Wallet not connected");
-    }
-    nextStep?.("chooseAction");
-  } else {
+    const messages: any = []
+    const updatedMessages = [...messages, { role: 'user', content: chatInput }];
+     const reply = await OpenAI(
+       updatedMessages 
+     )
+    console.log('this is the response from backend', reply.reply)
+
     addChatMessages?.([
       {
         type: "incoming",
-        content: (
-          <span>
-            👋 How far {telFirstName}!
-            <br />
-            <br />I didn't catch that. To start a conversation with me, kindly
-            say something like <b>"hi"</b>, <b>"hello"</b>,<b> "howdy"</b>, or{" "}
-            <b>"hey"</b>
-            <br />
-            <br />
-            I'm ready when you are 😄
-          </span>
-        ),
+        content: <span>{reply.reply}</span>, // simplified: just the assistant's latest reply
         timestamp: new Date(),
       },
     ]);
+
   }
-};
+
+
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (
@@ -116,7 +71,7 @@ export const welcomeMenu = (
     addChatMessages([
       {
         type: "incoming",
-        content: (
+        content: ( 
           <span>
             How far {telFirstName} 👋
             <br />
