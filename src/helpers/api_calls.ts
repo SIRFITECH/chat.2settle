@@ -1,17 +1,12 @@
 import axios from "axios";
 import {
   BankName,
-  // btcWalletData,
-  // ercWalletData,
-  // PayoutData,
   ReferralUser,
   ServerData,
-  // trcWalletData,
   userData,
   vendorData,
   WalletInfo,
 } from "../types/general_types";
-import useErrorHandler from "@/hooks/useErrorHandler";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -283,23 +278,6 @@ export const getAvaialableWallet = async (
   }
 };
 
-// export const getDirectDebitWallet = async (): Promise<string> => {
-//   try {
-//     const response = await axios.get("/api/get_direct_debit_wallet");
-//     if (response.status === 200) {
-//       console.log("wallet is:", response.data.wallet);
-//       return response.data.wallet;
-//     } else if (response.status === 500) {
-//       return "Internal error occured";
-//     } else if (response.status === 404) {
-//       return "Wallet not found";
-//     }
-//     return "walet";
-//   } catch (error) {
-//     return "Unexpected response from server";
-//   }
-// };
-
 export const getDirectDebitWallet = async (type: string): Promise<string> => {
   const serial_id = 14;
 
@@ -497,7 +475,7 @@ export const createComplain = async (complainData: any): Promise<any> => {
 // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
 export async function fetchCoinPrice(ticker: string): Promise<number> {
   try {
-    const response = await fetch("/api/get_coin_price", {
+    const response = await fetch(`${apiURL}/api/get_coin_price`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -553,3 +531,22 @@ export const fetchBankDetails = async (
     return null;
   }
 };
+export const resolveBankAccount = async (
+  bank_name: string,
+  acc_no: string
+): Promise<any | null> => {
+  try {
+   const bank = await fetchBankNames(bank_name);
+   
+    const bank_details = await fetchBankDetails(bank.bank_code, acc_no);
+    return bank_details.data;
+  } catch (error) {
+    console.error(
+      `Error fetching bank details for bank code ${bank_name} and account number ${acc_no}:`,
+      error
+    );
+    return null;
+  }
+};
+
+

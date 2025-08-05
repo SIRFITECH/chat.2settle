@@ -36,16 +36,15 @@ export const helloMenu = async (
   // const [newMessages, setNewMessages] = useState([]);
   // const [loading, setLoading] = useState(false);
 
-  console.log("we are at the start");
-  
+  try {
+    console.log("we are at the start");
+
     window.localStorage.setItem("transactionID", "");
     setSharedPaymentMode?.("");
-    const messages: any = []
-    const updatedMessages = [...messages, { role: 'user', content: chatInput }];
-     const reply = await OpenAI(
-       updatedMessages 
-     )
-    console.log('this is the response from backend', reply.reply)
+    const messages: any = [];
+    const updatedMessages = [...messages, { role: "user", content: chatInput }];
+    const reply = await OpenAI(updatedMessages);
+    console.log("this is the response from backend", reply.reply);
 
     addChatMessages?.([
       {
@@ -54,6 +53,24 @@ export const helloMenu = async (
         timestamp: new Date(),
       },
     ]);
+  } catch (err) {
+    console.error("There was an error from backend", err);
+
+    addChatMessages?.([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            😓 Sorry, something went wrong while processing your request.
+            <br />
+            Please try again in a moment.
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
+  }
+  
 
   }
 
