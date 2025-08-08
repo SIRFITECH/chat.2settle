@@ -75,11 +75,8 @@ export default async function handler(
         {
           role: "system",
           content: `You are a helpful, cheerful and concise Nigerian crypto assistant for 2settle.
-
                 You help users convert crypto to naira and send to Nigerian bank accounts.
-                
                 Collect these details step-by-step (ask one at a time):
-
                 1. Asset (BTC, ETH, BNB, TRON, USDT)
                 2. Network (only if asset is USDT)
                 3. Estimation type: crypto, naira, or dollar
@@ -112,9 +109,10 @@ export default async function handler(
     const updatedSession = { ...session, ...extracted };
 
     // 4. Auto-fetch info if ready
-    if (updatedSession.asset && !updatedSession.assetPrice) {
+    if (updatedSession.asset && !updatedSession.assetPrice ) {
       // updatedSession.network;
-      updatedSession.assetPrice = await fetchCoinPrice("ETH");
+      console.log("Updated session:", updatedSession)
+      updatedSession.assetPrice = await fetchCoinPrice(updatedSession.network);
     }
 
     if (!updatedSession.rate) {
