@@ -32,18 +32,25 @@ export const helloMenu = async (
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
-  // const [messages, setMessages] = useState([{}]);
-  // const [newMessages, setNewMessages] = useState([]);
-  // const [loading, setLoading] = useState(false);
 
   try {
     console.log("we are at the start");
 
-    window.localStorage.setItem("transactionID", "");
+    // window.localStorage.setItem("transactionID", "");
     setSharedPaymentMode?.("");
     const messages: any = [];
     const updatedMessages = [...messages, { role: "user", content: chatInput }];
-    const reply = await OpenAI(updatedMessages);
+    let sessionId = window.localStorage.getItem("transactionID");
+
+    // ✅ If it doesn't exist, create and store it
+    if (!sessionId) {
+      sessionId = Math.floor(100000 + Math.random() * 900000).toString();
+       window.localStorage.setItem("transactionID", sessionId);
+      console.log("Generated new sessionId:", sessionId);
+    } else {
+      console.log("Using existing sessionId:", sessionId);
+    }
+    const reply = await OpenAI(updatedMessages, sessionId);
     console.log("this is the response from backend", reply.reply);
 
     addChatMessages?.([

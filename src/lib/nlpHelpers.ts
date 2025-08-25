@@ -85,9 +85,11 @@ const openai = new OpenAI({
    ];
 
    const prompt = `
+   
 You are a strict data extractor.
-Extract the following fields from the message: asset, network, estimationType (naira, dollar, crypto), amount, bankName, accountNumber, chargesMode.
- 
+Extract the following fields from the message: asset, network, estimationType (naira, dollar, crypto), amount, bankName, accountNumber,.
+the bankName is any bank name in nigeria including micro-finance banks all and extract the name of the bank.
+the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.
 Strictly return only a valid JSON object like this:
 {
   "asset": "USDT",
@@ -114,7 +116,7 @@ Message:
      });
 
      const raw = res.choices[0].message.content || "{}";
-
+     console.log('from helper function ', raw)
      // Try to extract JSON object from possible surrounding text
      const match = raw.match(/{[\s\S]*}/);
      const jsonString = match ? match[0] : "{}";
@@ -144,7 +146,14 @@ Message:
        console.log("Extracted transaction data:", parsed);
      }
 
-     return parsed;
+     
+// ✅ Remove keys that are null or empty
+const filtered = Object.fromEntries(
+  Object.entries(parsed).filter(([_, value]) => value !== null && value !== "")
+);
+
+return filtered;
+
    } catch (err) {
      console.error("Failed to extract transaction data:", err);
      return expectedFields.reduce((acc, field) => {

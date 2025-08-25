@@ -8,6 +8,7 @@ const sessions: Record<string, SessionData> = {};
 
 export const sessionStore = {
   get: (sessionId: string): SessionData => {
+    console.log('sessions[sessionId]', sessions[sessionId])
     if (!sessions[sessionId]) {
       sessions[sessionId] = {};
     }
@@ -16,9 +17,13 @@ export const sessionStore = {
 
   set: (sessionId: string, data: SessionData) => {
     sessions[sessionId] = { ...sessions[sessionId], ...data };
+
+    console.log('working perfectly',sessions[sessionId])
   },
 
   reset: (sessionId: string) => {
     sessions[sessionId] = {};
   },
 };
+
+
