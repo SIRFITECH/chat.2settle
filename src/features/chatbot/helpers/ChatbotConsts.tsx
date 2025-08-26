@@ -37,6 +37,7 @@ export const renderDateSeparator = (date: Date) => {
     return format(date, "d MMM, yyyy");
   }
 };
+
 export const initialMessages = [
   {
     type: "incoming",
@@ -45,11 +46,7 @@ export const initialMessages = [
         How far👋
         <br />
         <br />
-        Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual assistance,{" "}
-        <br />
-        How may I help you?
-        <br />
-        Say "Hi" let us start
+        Say 'hi' to chat me up!
       </span>
     ),
     timestamp: new Date(),

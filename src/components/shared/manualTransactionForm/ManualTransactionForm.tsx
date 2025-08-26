@@ -125,6 +125,9 @@ export default function CryptoTransactionForm() {
     const merchantRate =
       Number.parseFloat(formData.currentRate) +
       Number.parseFloat(formData.profitRate);
+    
+    const effortNum =  Number.parseFloat(formData.receiverAmount)
+    const effortcal = effortNum * 0.01
 
     // Use the builder pattern to create the transaction
     const transaction = new TransactionBuilder()
@@ -144,7 +147,8 @@ export default function CryptoTransactionForm() {
       .setReceiverName(formData.accountName)
       .setReceiverAmount(
         formatCurrency(formData.receiverAmount, "NGN", "en-NG")
-      )
+    )
+      
       .setCryptoSent(`${formData.cryptoSent} ${formData.asset.split("-")[0]}`)
       .setWalletAddress(formData.walletAddress?.trim())
       .setDate(formattedDate)
@@ -156,7 +160,7 @@ export default function CryptoTransactionForm() {
       .setAssetPrice(formatCurrency(formData.currentRate, "NGN", "en-NG"))
       .setTransacId(transactionId.toString())
       .setSettleWalletLink("")
-      .setRefCode("")
+      .setRefCode("").setEffort(effortcal.toString())
       .buildTransaction();
 
     return transaction;

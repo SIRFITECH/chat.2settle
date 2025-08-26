@@ -1,17 +1,12 @@
 import axios from "axios";
 import {
   BankName,
-  // btcWalletData,
-  // ercWalletData,
-  // PayoutData,
   ReferralUser,
   ServerData,
-  // trcWalletData,
   userData,
   vendorData,
   WalletInfo,
 } from "../types/general_types";
-import useErrorHandler from "@/hooks/useErrorHandler";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -283,23 +278,6 @@ export const getAvaialableWallet = async (
   }
 };
 
-// export const getDirectDebitWallet = async (): Promise<string> => {
-//   try {
-//     const response = await axios.get("/api/get_direct_debit_wallet");
-//     if (response.status === 200) {
-//       console.log("wallet is:", response.data.wallet);
-//       return response.data.wallet;
-//     } else if (response.status === 500) {
-//       return "Internal error occured";
-//     } else if (response.status === 404) {
-//       return "Wallet not found";
-//     }
-//     return "walet";
-//   } catch (error) {
-//     return "Unexpected response from server";
-//   }
-// };
-
 export const getDirectDebitWallet = async (type: string): Promise<string> => {
   const serial_id = 14;
 
@@ -414,6 +392,7 @@ export const updateGiftTransaction = async (
     }
   }
 };
+
 export const updateRequest = async (
   request_id: string,
   updateData: Record<string, any>
@@ -464,6 +443,20 @@ export const createTransaction = async (user: any): Promise<any> => {
     throw new Error("Failed to store user data");
   }
 };
+
+export const OpenAI = async (updatedMessages: any, sessionId: String): Promise<any> => {
+  try {
+    const response = await axios.post<any>(
+      `${apiURL}/api/openai`,
+      { messages: updatedMessages, sessionId: sessionId }
+    );
+    console.log("Use transaction created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing user data:", error);
+    throw new Error("Failed to store user data");
+  }
+};
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
 export const createComplain = async (complainData: any): Promise<any> => {
   try {
@@ -482,7 +475,7 @@ export const createComplain = async (complainData: any): Promise<any> => {
 // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
 export async function fetchCoinPrice(ticker: string): Promise<number> {
   try {
-    const response = await fetch("/api/get_coin_price", {
+    const response = await fetch(`${apiURL}/api/get_coin_price`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -507,6 +500,7 @@ export async function fetchCoinPrice(ticker: string): Promise<number> {
     throw error;
   }
 }
+
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {
   try {
     const response = await axios.post<BankName>(`${apiURL}/api/bank_names/`, {
@@ -537,3 +531,41 @@ export const fetchBankDetails = async (
     return null;
   }
 };
+
+export const resolveBankAccount = async (
+  bank_name: string,
+  acc_no: string
+): Promise<any | null> => {
+  try {
+    const bank = await fetchBankNames(bank_name);
+    
+    const text = bank.message[0]; // "1. OPAY 100004"
+
+// Remove the "1." at the start
+const cleanText = text.replace(/^\d+\.\s*/, ""); // "OPAY 100004"
+
+// Split by space
+const parts = cleanText.split(" ");
+
+// Bank name is everything except the last part
+const bankName = parts.slice(0, -1).join(" "); 
+// "OPAY"
+
+// Bank code is the last part
+const bankCode = parts[parts.length - 1]; 
+
+    const bank_details = await fetchBankDetails(bankCode, acc_no);
+
+    return bank_details[0].account_name;
+
+
+  } catch (error) {
+    console.error(
+      `Error fetching bank details for bank code ${bank_name} and account number ${acc_no}:`,
+      error
+    );
+    return null;
+  }
+};
+
+

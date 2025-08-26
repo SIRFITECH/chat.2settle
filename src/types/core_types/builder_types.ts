@@ -9,6 +9,7 @@ export type BuilderTransaction = {
   network: string;
   estimation: string;
   Amount: string;
+  effort: string;
   charges: string;
   mode_of_payment: string;
   acct_number: string | undefined;

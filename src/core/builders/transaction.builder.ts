@@ -141,6 +141,11 @@ export class TransactionBuilder {
     return this;
   }
 
+  setEffort(effort: string) {
+    this.transaction.effort = effort;
+    return this;
+  }
+
   buildTransaction(): BuilderTransaction {
     // Validate required fields if needed here
     return this.transaction as BuilderTransaction;

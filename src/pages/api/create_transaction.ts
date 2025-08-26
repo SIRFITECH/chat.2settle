@@ -44,6 +44,7 @@ export default async function handler(
     gift_chatID,
     asset_price,
     ref_code,
+    effort
   } = req.body;
 
   const userData = {
