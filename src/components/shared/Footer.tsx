@@ -143,7 +143,7 @@ export default function Footer() {
                     settings: false,
                   }))
                 }
-                className="p-2 bg-white rounded-full hover:text-[#19485F]/70 focus:outline-none hover:bg-gray-200 transition-colors"
+                className="p-2 rounded-full hover:text-[#19485F]/70 focus:outline-none hover:bg-gray-200 transition-colors"
                 aria-label="Add Transaction Manually - Admin Only"
               >
                 <Settings size={16} className="text-black" />
