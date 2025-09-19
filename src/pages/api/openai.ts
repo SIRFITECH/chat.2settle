@@ -44,8 +44,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { OpenAI } from "openai";
 import {
+  createTransaction,
   fetchCoinPrice,
   fetchRate,
+  getAvaialableWallet,
   resolveBankAccount,
 } from "@/helpers/api_calls";
 import { extractTransactionData, getNextMissingField } from "@/lib/nlpHelpers";
@@ -95,8 +97,84 @@ export default async function handler(
 
   // 3. Update session
   const updatedSession = { ...session[sessionId], ...extracted };
-    console.log("Updatedddd session:", updatedSession)
+  console.log("Updatedddd session:", updatedSession)
+  
+    if (
+      updatedSession.bankName &&
+      updatedSession.accountNumber &&
+      !updatedSession.receiverName
+    ) {
+      const name = await resolveBankAccount(
+        updatedSession.bankName,
+        updatedSession.accountNumber
+      );   
+      if (name) updatedSession['receiverName'] = name;
+    }
+  
+  if (updatedSession.phoneNumber) {
+     const lowercase = updatedSession.network.toLowerCase()
+     console.log('this is the network:',lowercase)
+          const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
+            lowercase
+          );
+      updatedSession['activeWallet'] = activeWallet;
+    if (updatedSession.estimationType === 'naira') {
+      updatedSession['numbersOnly'] = updatedSession.amount.replace(/[^0-9.]/g, '');
+      const parsedValue = parseFloat(updatedSession['numbersOnly']);
+      if (!isNaN(parsedValue)) {
+        if (updatedSession['numbersOnly'] <= 2000000 && updatedSession['numbersOnly'] >= 20000) {
+          updatedSession['amountNum'] = updatedSession['numbersOnly'];
+          const nairaValue = Number(updatedSession['amountNum'])
+          updatedSession['amountString'] = nairaValue.toLocaleString()
+          if (updatedSession['amountNum'] <= 100000) {
+            updatedSession['transactionFee'] = 500;
+          } else if (updatedSession['amountNum'] <= 1000000) {
+            updatedSession['transactionFee'] = 1000;
+          } else if (updatedSession['amountNum'] <= 2000000) {
+            updatedSession['transactionFee'] = 1500;
+          } else if (updatedSession['amountNum'] >= 2100000) {
+            updatedSession['transactionFee'] = 2000;
+          }
+             
+          updatedSession['amountNum'] = updatedSession['amountNum'] + updatedSession['transactionFee']
+          updatedSession['dollaramount'] = updatedSession['amountNum'] / updatedSession.rate
+          updatedSession['asset'] = updatedSession['dollaramount'] / updatedSession.assetPrice
+          updatedSession['totalcrypto'] = updatedSession['asset'].toFixed(8)
+          updatedSession['amountNum'] = Number(updatedSession['amountNum'])
+          updatedSession['amountString'] = updatedSession['amountNum'].toLocaleString()
+          updatedSession['effort'] = updatedSession['amountNum'] * 0.01;
+          
 
+        }
+      }
+    } else if (updatedSession.estimationType === 'dollar') {
+      updatedSession['numbersOnly'] = updatedSession.amount.replace(/[^0-9.]/g, '');
+     updatedSession['amountNum'] = parseFloat(updatedSession['numbersOnly']);
+      const less100 = 100000 / updatedSession.rate
+      const less1million = 1000000 / updatedSession.rate
+      const less2million = 2000000 / updatedSession.rate
+      if (updatedSession['amountNum'] <= less100) {
+        updatedSession['transactionFee'] = 500;
+      } else if (updatedSession['amountNum'] <= less1million) {
+        updatedSession['transactionFee'] = 1000;
+      } else if (updatedSession['amountNum'] <= less2million) {
+        updatedSession['transactionFee'] = 1500;
+      }
+       
+      updatedSession['dollarTransactionFee'] = updatedSession['transactionFee'] / updatedSession.rate
+      updatedSession['nairaAmount'] = updatedSession['amountNum'] * updatedSession.rate
+      updatedSession['dollaramount'] = updatedSession['amountNum'] + updatedSession['dollarTransactionFee']
+      updatedSession['asset'] = updatedSession['dollaramount'] / updatedSession.assetPrice
+      updatedSession['totalcrypto'] = updatedSession['asset'].toFixed(8)
+      updatedSession['nairaAmount'] = Number(updatedSession['nairaAmount'])
+      updatedSession['amountString']   =  updatedSession['nairaAmount'].toLocaleString()
+      updatedSession['effort'] = updatedSession['nairaAmount'] * 0.01;
+
+     }
+  }
+  if (updatedSession.activeWallet) {
+     createTransaction(session[sessionId])
+   }
   try {
     // 1. Call OpenAI
     const aiResponse = await openai.chat.completions.create({
@@ -120,7 +198,9 @@ Session data so far:'
 - Estimation Type: ${updatedSession.estimationType}
 - Amount: ${updatedSession.amount}
 - Bank Name: ${updatedSession.bankName}
-- Account Number: ${updatedSession.accountNumber}     
+- Account Number: ${updatedSession.accountNumber} 
+- phone number: ${updatedSession.phoneNumber} 
+- total crypto: ${updatedSession['totalcrypto']}
 
 
 
@@ -131,15 +211,21 @@ Session data so far:'
 5. Bank name
 6. Account number
 7. ask if the account details is correctly Name:${updatedSession.receiverName} Bank name:${updatedSession.bankName} Account number:${updatedSession.accountNumber}
-8. if yes ask for user phone number but no go back to step 5 ask for their bank details again 
-9. 
+8.  phone number
+9. after phone number then display you are sending ${updatedSession['totalcrypto']} ${updatedSession.network} to this wallet address ${updatedSession.activeWallet} and you will be receiving ₦${updatedSession['amountString']}.
+10.this question should follow, would you like to save this person as beneficiary?
+11. if user say YES. ask the user what name will you like to save the beneficiary with? 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            =iug
+  If user says they want to send to "mom", "dad", or another person:
+1. Ask: "What’s your [relation]’s full name?"
 
                 If the user gives multiple values, extract what you can, confirm it, and move to the next question.
                 If the user provides a value but you need another value to compute, extract the value you have,
                 then ask for the value you need to compute the next one
                 eg if a user says he wants to send USDT, you need network to get wallet.
                 If a user choose to use BTC, the network should automatically be BTC and like that, only exception is USDT.
-              `,
+              `
+          ,
         },
         ...messages,
       ],
@@ -159,17 +245,17 @@ Session data so far:'
       updatedSession.rate = await fetchRate();
     }
 
-    if (
-      updatedSession.bankName &&
-      updatedSession.accountNumber &&
-      !updatedSession.receiverName
-    ) {
-      const name = await resolveBankAccount(
-        updatedSession.bankName,
-        updatedSession.accountNumber
-      );   
-      if (name) updatedSession['receiverName'] = name;
-    }
+    // if (
+    //   updatedSession.bankName &&
+    //   updatedSession.accountNumber &&
+    //   !updatedSession.receiverName
+    // ) {
+    //   const name = await resolveBankAccount(
+    //     updatedSession.bankName,
+    //     updatedSession.accountNumber
+    //   );   
+    //   if (name) updatedSession['receiverName'] = name;
+    // }
 
     // 5. Check what is still missing
     const missingField = getNextMissingField(updatedSession);

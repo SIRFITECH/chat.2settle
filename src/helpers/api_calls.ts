@@ -114,6 +114,8 @@ export const checkReferralExists = async (
     throw error;
   }
 };
+
+
 export const checkTranscationExists = async (
   transac_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
@@ -127,6 +129,7 @@ export const checkTranscationExists = async (
     return { exists: false, user: undefined };
   }
 };
+
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
 export const checkGiftExists = async (
   gift_id: string
@@ -229,13 +232,12 @@ export const checkRequestExists = async (
   }
 };
 
-// GET THE AVAILABLE WALLET FROM DB
-
+// GET THE AVAILABLE WALLET FROM DB 
 export const getAvaialableWallet = async (
   network: string
 ): Promise<WalletInfo> => {
   try {
-    const response = await axios.get("/api/get_available_wallet", {
+    const response = await axios.get(`${apiURL}/api/get_available_wallet`, {
       params: { network: network },
     });
 
