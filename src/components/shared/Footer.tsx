@@ -9,13 +9,20 @@ import { useState } from "react";
 import { Settings } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
-const navigation = [
+type NavItem = {
+  name: string;
+  href: string;
+  target?: "_blank" | "_self";
+};
+
+const navigation: NavItem[] = [
   { name: "Home", href: "/" },
   { name: "History", href: "/history" },
   { name: "Reportly", href: "/reportly" },
   { name: "Settings", href: "/setting" },
   { name: "Privacy Policy", href: "/privacy" },
   { name: "Term of service", href: "/terms" },
+  { name: "2settle Market", href: "https://market.2settle.io/",target:"_blank"},
 ] as const;
 
 export default function Footer() {
@@ -216,6 +223,8 @@ export default function Footer() {
               <Link
                 key={item.name}
                 href={item.href}
+                target={item.target ?? "_self"} 
+                rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
                 className={cn(
                   "inline-flex items-center px-1 pt-1 border-b-1 text-xs sm:text-sm md:text-base lg:text-lg font-medium",
                   pathname === item.href

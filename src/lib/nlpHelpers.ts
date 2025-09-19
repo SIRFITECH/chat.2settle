@@ -82,6 +82,8 @@ const openai = new OpenAI({
      "bankName",
      "accountNumber",
      "chargesMode",
+     "phoneNumber",
+     "BeneficiaryName"
    ];
 
    const prompt = `
@@ -90,6 +92,8 @@ You are a strict data extractor.
 Extract the following fields from the message: asset, network, estimationType (naira, dollar, crypto), amount, bankName, accountNumber,.
 the bankName is any bank name in nigeria including micro-finance banks all and extract the name of the bank.
 the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.
+and the phone number is 11 digit number
+BeneficiaryName is name of a person
 Strictly return only a valid JSON object like this:
 {
   "asset": "USDT",
@@ -98,7 +102,9 @@ Strictly return only a valid JSON object like this:
   "amount": "20000",
   "bankName": "Kuda",
   "accountNumber": "1234567890",
-  "chargesMode": "receiver"
+  "chargesMode": "receiver",
+  "phoneNumber":'12345678910'
+  "BeneficiaryName": 'Kelvin'
 }
 
 If any field is not found, set it as null.
@@ -174,7 +180,7 @@ export function getNextMissingField(session: any): string | null {
     "bankName",
     "accountNumber",
     "receiverName",
-  ];
+  ]; 
   for (const key of required) {
     if (!session[key]) return key;
   }
