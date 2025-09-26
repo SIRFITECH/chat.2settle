@@ -42,10 +42,13 @@
 // }
 
 import { NextApiRequest, NextApiResponse } from "next";
+import crypto from "crypto";
 import { OpenAI } from "openai";
 import {
   createTransaction,
   fetchCoinPrice,
+  fetchMerchantRate,
+  fetchProfitRate,
   fetchRate,
   getAvaialableWallet,
   resolveBankAccount,
@@ -83,15 +86,15 @@ export default async function handler(
 
   
   // const sessions = sessionStore.get(sessionId) || {}; 
-// const sessionId = '386490'
+  // const sessionId = '386490'
   if (!session[sessionId]) {
     session[sessionId] = {};
   }
 
   console.log('session...', session)
   console.log('sessionId', sessionId)
-   // 2. Extract info from latest user message using GPT
-   const extracted = await extractTransactionData(
+  // 2. Extract info from latest user message using GPT
+  const extracted = await extractTransactionData(
     messages[messages.length - 1].content
   );
 
@@ -99,25 +102,31 @@ export default async function handler(
   const updatedSession = { ...session[sessionId], ...extracted };
   console.log("Updatedddd session:", updatedSession)
   
-    if (
-      updatedSession.bankName &&
-      updatedSession.accountNumber &&
-      !updatedSession.receiverName
-    ) {
-      const name = await resolveBankAccount(
-        updatedSession.bankName,
-        updatedSession.accountNumber
-      );   
-      if (name) updatedSession['receiverName'] = name;
-    }
+  if (
+    updatedSession.bankName &&
+    updatedSession.accountNumber &&
+    !updatedSession.receiver_name
+  ) {
+    const name = await resolveBankAccount(
+      updatedSession.bankName,
+      updatedSession.accountNumber
+    );
+    if (name) updatedSession['receiver_name'] = name;
+  }
+
+// if (updatedSession.accountNumber && updatedSession.network) {
+//   const lowercase = updatedSession.network.toLowerCase();
+//   getAvaialableWallet(lowercase).then(({ activeWallet }) => {
+//     updatedSession.activeWallet = activeWallet;
+//     session[sessionId] = updatedSession;
+//   }).catch(console.error);
+//   }
+  
   
   if (updatedSession.phoneNumber) {
-     const lowercase = updatedSession.network.toLowerCase()
-     console.log('this is the network:',lowercase)
-          const { activeWallet, lastAssignedTime } = await getAvaialableWallet(
-            lowercase
-          );
-      updatedSession['activeWallet'] = activeWallet;
+    const lowercase = updatedSession.network.toLowerCase();
+    const { activeWallet, lastAssignedTime } = await getAvaialableWallet(lowercase);
+    updatedSession['activeWallet'] = activeWallet;
     if (updatedSession.estimationType === 'naira') {
       updatedSession['numbersOnly'] = updatedSession.amount.replace(/[^0-9.]/g, '');
       const parsedValue = parseFloat(updatedSession['numbersOnly']);
@@ -149,7 +158,7 @@ export default async function handler(
       }
     } else if (updatedSession.estimationType === 'dollar') {
       updatedSession['numbersOnly'] = updatedSession.amount.replace(/[^0-9.]/g, '');
-     updatedSession['amountNum'] = parseFloat(updatedSession['numbersOnly']);
+      updatedSession['amountNum'] = parseFloat(updatedSession['numbersOnly']);
       const less100 = 100000 / updatedSession.rate
       const less1million = 1000000 / updatedSession.rate
       const less2million = 2000000 / updatedSession.rate
@@ -164,17 +173,56 @@ export default async function handler(
       updatedSession['dollarTransactionFee'] = updatedSession['transactionFee'] / updatedSession.rate
       updatedSession['nairaAmount'] = updatedSession['amountNum'] * updatedSession.rate
       updatedSession['dollaramount'] = updatedSession['amountNum'] + updatedSession['dollarTransactionFee']
-      updatedSession['asset'] = updatedSession['dollaramount'] / updatedSession.assetPrice
-      updatedSession['totalcrypto'] = updatedSession['asset'].toFixed(8)
+      updatedSession['assetNum'] = updatedSession['dollaramount'] / updatedSession.assetPrice
+      updatedSession['totalcrypto'] = updatedSession['assetNum'].toFixed(8)
       updatedSession['nairaAmount'] = Number(updatedSession['nairaAmount'])
-      updatedSession['amountString']   =  updatedSession['nairaAmount'].toLocaleString()
+      updatedSession['amountString'] = updatedSession['nairaAmount'].toLocaleString()
       updatedSession['effort'] = updatedSession['nairaAmount'] * 0.01;
 
-     }
+    }
   }
   if (updatedSession.activeWallet) {
-     createTransaction(session[sessionId])
-   }
+  const currentDate = new Date();
+  const day = currentDate.getDate();
+  const month = currentDate.getMonth() + 1; // Month is zero-based, so we add 1
+  const year = currentDate.getFullYear();// Ensure leading zeros for single-digit days and months
+  const formattedDay = day < 10 ? '0' + day : day;
+  const formattedMonth = month < 10 ? '0' + month : month;
+  const formattedDate = `${formattedDay}/${formattedMonth}/${year}`;
+  const hours = currentDate.getHours();
+  const minutes = currentDate.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
+  const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+  const formattedTime = `${formattedHours}:${formattedMinutes}${ampm}`;
+  session[sessionId]['Date']  = formattedTime + " " + formattedDate
+ 
+     const min = 100000; // 6-digit number starting from 100000
+      const max = 999999; // 6-digit number up to 999999
+      const range = max - min + 1;
+     
+      // Generate a random 6-digit number within the specified range
+      session[sessionId]['transac_id'] = crypto.randomBytes(4).readUInt32LE(0) % range + min
+
+    const { asset,estimationType,amount,accountNumber,bankName,phoneNumber,activeWallet,assetPrice,rate, ...rest } = session[sessionId];
+     session[sessionId]= {
+       crypto: asset,
+       estimation: estimationType,
+       Amount: amount,
+       acct_number: accountNumber,
+       bank_name: bankName,
+       receiver_phoneNumber: updatedSession.phoneNumber,
+       wallet_address:  updatedSession['activeWallet'],
+       asset_price: assetPrice,
+       receiver_amount: `₦${updatedSession['amountString']}`,
+       crypto_sent: `${updatedSession['totalcrypto']} ${updatedSession.asset}`,
+       
+      ...rest
+    };
+
+    console.log('All the object that is working', session[sessionId])
+    createTransaction(session[sessionId])
+  }
   try {
     // 1. Call OpenAI
     const aiResponse = await openai.chat.completions.create({
@@ -210,9 +258,9 @@ Session data so far:'
 4. Amount
 5. Bank name
 6. Account number
-7. ask if the account details is correctly Name:${updatedSession.receiverName} Bank name:${updatedSession.bankName} Account number:${updatedSession.accountNumber}
+7. ask if the account details is correctly Name:${updatedSession.receiver_name} Bank name:${updatedSession.bankName} Account number:${updatedSession.accountNumber}
 8.  phone number
-9. after phone number then display you are sending ${updatedSession['totalcrypto']} ${updatedSession.network} to this wallet address ${updatedSession.activeWallet} and you will be receiving ₦${updatedSession['amountString']}.
+9. after phone number then display you are sending ${updatedSession['totalcrypto']} ${updatedSession.asset} to this wallet address ${updatedSession.activeWallet} and you will be receiving ₦${updatedSession['amountString']}.
 10.this question should follow, would you like to save this person as beneficiary?
 11. if user say YES. ask the user what name will you like to save the beneficiary with? 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             =iug
@@ -235,7 +283,7 @@ Session data so far:'
 
    
     // 4. Auto-fetch info if ready
-    if (updatedSession.asset && !updatedSession.assetPrice ) {
+    if (updatedSession.asset && !updatedSession.assetPrice) {
       // updatedSession.network;
       console.log("Updated session:", updatedSession)
       updatedSession.assetPrice = await fetchCoinPrice(updatedSession.network);
@@ -243,6 +291,11 @@ Session data so far:'
 
     if (!updatedSession.rate) {
       updatedSession.rate = await fetchRate();
+      updatedSession.merchantRate = await fetchMerchantRate();
+      updatedSession.profitRate = await fetchProfitRate();
+      updatedSession['current_rate'] = `₦${updatedSession['rate'].toLocaleString()}`
+      updatedSession['merchant_rate'] = `₦${updatedSession['merchantRate'].toLocaleString()}`
+      updatedSession['profit_rate'] = `₦${updatedSession['profitRate'].toLocaleString()}`
     }
 
     // if (
@@ -262,7 +315,7 @@ Session data so far:'
 
     // 6. Prompt accordingly
     let followUp = "";
- if (missingField === "bankName")
+    if (missingField === "bankName")
       followUp = "Which bank are you sending to?";
     else if (missingField === "accountNumber")
       followUp = "Please enter the recipient’s account number.";
@@ -277,17 +330,46 @@ Session data so far:'
     // sessionStore.set(sessionId, updatedSession);
     session[sessionId] = updatedSession
 
-    console.log('the updated sessionss....',session[sessionId])
+    console.log('the updated sessionss....', session[sessionId])
     res.status(200).json({
       reply: reply + "\n\n" + followUp,
       session: updatedSession,
     });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("Error in /api/openai:", err);
-    res.status(500).json({ error: "Something went wrong" });
+
+    if (typeof err === "object" && err !== null && "response" in err) {
+      const error = err as any; // or use AxiosError if you imported it
+
+      if (error.response.status === 400) {
+        res.status(400).json({ error: "Bad request. Please check the input." });
+      } else if (error.response.status === 401) {
+        res.status(401).json({ error: "Unauthorized. Check your API key." });
+      } else if (error.response.status === 429) {
+        res.status(429).json({ error: "Rate limit exceeded. Please slow down and try again." });
+      } else if (error.response.status === 503) {
+        let waitTime = "a few";
+
+        if (error.response?.data?.message) {
+          const match = error.response.data.message.match(/\d+/);
+          if (match) {
+            waitTime = match[0];
+          }
+        }
+
+        res.status(503).json({
+          error: `Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`,
+        });
+      } else {
+        res.status(error.response.status).json({
+          error: error.response.data?.error?.message || "Something went wrong with the request.",
+        });
+      }
+    } else {
+      res.status(500).json({ error: "Something went wrong" });
+    }
   }
 }
-
 
 // 1. Asset (BTC, ETH, BNB, TRON, USDT)
 // 2. Network (only if asset is USDT)

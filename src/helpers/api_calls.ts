@@ -262,10 +262,17 @@ export const getAvaialableWallet = async (
         console.error(`No active wallet found for network ${network}`);
         throw new Error(`No active wallet available for network: ${network}`);
       } else if (error.response.status === 503) {
-        const waitTime = error.response.data.message.match(/\d+/)[0];
-        throw new Error(
-          `Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`
-        );
+       let waitTime = "a few";
+if (error.response?.data?.message) {
+  const match = error.response.data.message.match(/\d+/);
+  if (match && match[0] !== "0") {
+    waitTime = match[0];
+  }
+}
+throw new Error(
+  `Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`
+);
+
       } else {
         console.error(
           `API error for network ${network}:`,
