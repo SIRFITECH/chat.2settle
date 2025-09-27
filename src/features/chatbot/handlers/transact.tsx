@@ -34,7 +34,7 @@ import { add } from "lodash";
     5. Reportly
     *  */
 
-export const handleMakeAChoice = ( 
+export const handleMakeAChoice = (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
   walletIsConnected: boolean,
