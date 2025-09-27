@@ -91,7 +91,7 @@ export const helloMenu = (
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
-  console.log("we are at the start");
+  console.log("we are at the start of the program");
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     window.localStorage.setItem("transactionID", "");
     setSharedPaymentMode?.("");
