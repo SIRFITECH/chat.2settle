@@ -126,7 +126,6 @@ export const handleGiftRequestId = async (
 };
 
 // Allow user to enter transaction id to complete transaction
-
 export const handleCompleteTransactionId = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,

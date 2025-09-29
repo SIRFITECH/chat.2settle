@@ -77,7 +77,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     (btcWalletAddress as WalletAddress) ||
     (tronWalletAddress as WalletAddress);
 
-
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
   const narration = "BwB quiz price";
@@ -410,6 +409,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
               receiver_name: bankData.receiver_name,
               receiver_phoneNumber: formatPhoneNumber(phoneNumber),
               gift_status: "Processing",
+              settled_on: getFormattedDateTime(),
             };
 
             // Only update the status to "Claimed" if payoutMoney is successful
