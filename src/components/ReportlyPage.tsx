@@ -22,8 +22,8 @@ import { phoneNumberPattern } from "@/utils/utilities";
 import { checkUserReports } from "@/helpers/api_call/reportly_page_calls";
 import { sendOTPWithTwilio } from "@/helpers/api_call/history_page_calls";
 import { reportData } from "@/types/reportly_types";
-import ShortenedAddress from "./shared/ShortenAddress";
-import TruncatedText from "./shared/TruncatedText";
+import ShortenedAddress from "../helpers/ShortenAddress";
+import TruncatedText from "../helpers/TruncatedText";
 import { Skeleton } from "./ui/skeleton";
 
 type ToastType = "success" | "error" | "warning" | "info";

@@ -1,9 +1,9 @@
 import ConnectWallet from "../../../components/shared/ConnectWallet";
-import ShortenedAddress from "@/components/shared/ShortenAddress";
+import ShortenedAddress from "@/helpers/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { WalletAddress } from "@/lib/wallets/types";
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import { OpenAI } from "@/helpers/api_calls";
 
 /**
@@ -78,7 +78,6 @@ import { OpenAI } from "@/helpers/api_calls";
 //       },
 //     ]);
 //   }
-  
 
 //   }
 
@@ -165,7 +164,6 @@ export const helloMenu = (
   }
 };
 
-
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (
   addChatMessages: (messages: MessageType[]) => void,
@@ -178,7 +176,7 @@ export const welcomeMenu = (
     addChatMessages([
       {
         type: "incoming",
-        content: ( 
+        content: (
           <span>
             How far {telFirstName} 👋
             <br />

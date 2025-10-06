@@ -1,7 +1,7 @@
 import { MdKeyboardArrowDown, MdContentCopy, MdLogout } from "react-icons/md";
 import { connectXverseWallet } from "@/helpers/btc/connect_btc_wallet";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
-import ShortenedAddress from "./ShortenAddress";
+import ShortenedAddress from "../../helpers/ShortenAddress";
 import {
   Dialog,
   DialogContent,
