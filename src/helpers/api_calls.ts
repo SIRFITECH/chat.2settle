@@ -5,10 +5,9 @@ import {
   ServerData,
   userData,
   vendorData,
-  WalletInfo,
+  WalletInfo
 } from "../types/general_types";
 
-import apiClient from '../services/api-client'
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -456,19 +455,6 @@ export const createTransaction = async (user: any): Promise<any> => {
   }
 };
 
-export const OpenAI = async (updatedMessages: any, sessionId: String): Promise<any> => {
-  try {
-    const response = await axios.post<any>(
-      `${apiURL}/api/openai`,
-      { messages: updatedMessages, sessionId: sessionId }
-    );
-    console.log("Use transaction created successfully");
-    return response.data;
-  } catch (error) {
-    console.error("Error storing user data:", error);
-    throw new Error("Failed to store user data");
-  }
-};
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
 export const createComplain = async (complainData: any): Promise<any> => {
   try {

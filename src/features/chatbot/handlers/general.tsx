@@ -1,10 +1,9 @@
-import ConnectWallet from "../../../components/shared/ConnectWallet";
 import ShortenedAddress from "@/helpers/ShortenAddress";
-import { MessageType } from "@/types/general_types";
-import { greetings } from "../helpers/ChatbotConsts";
 import { WalletAddress } from "@/lib/wallets/types";
-import { useEffect, useState } from "react";
-import { OpenAI } from "@/helpers/api_calls";
+import { MessageType } from "@/types/general_types";
+import ConnectWallet from "../../../components/shared/ConnectWallet";
+import { greetings } from "../helpers/ChatbotConsts";
+import { geminiAi } from "@/services/ai/ai-services";
 
 /**
  *
@@ -23,6 +22,8 @@ import { OpenAI } from "@/helpers/api_calls";
 // ON HI | HELLO | HOWDY | HEY PROMPT
 
 // Welcome message for the user with instruction on how to start a chat
+
+
 
 // export const helloMenu = async (
 //   addChatMessages?: (messages: MessageType[]) => void,
@@ -51,7 +52,9 @@ import { OpenAI } from "@/helpers/api_calls";
 //     } else {
 //       console.log("Using existing sessionId:", sessionId);
 //     }
-//     const reply = await OpenAI(updatedMessages, sessionId);
+    
+//       // const reply = await OpenAI(updatedMessages, sessionId);
+//    const reply = await geminiAi(chatInput, sessionId);
 //     console.log("this is the response from backend", reply.reply);
 
 //     addChatMessages?.([
@@ -162,7 +165,7 @@ export const helloMenu = (
       },
     ]);
   }
-};
+}
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (
