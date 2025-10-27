@@ -61,6 +61,7 @@ export default function Body() {
     }
   }, []);
 
+
   const getBackgroundImage = (): string => {
     if (isMobile) {
       return "https://gbo1qdj0roz2nqut.public.blob.vercel-storage.com/home-bg-sm-x1K8H1Woi3WMjoEJnhjLGpt6gugM9z.png";
@@ -209,11 +210,9 @@ export default function Body() {
       </Button>
     );
   };
-  
+
   // const [showDialog, setShowDialog] = useState(true);
 
-
-  
   // if (showDialog) {
   //   return (
   //     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -232,10 +231,8 @@ export default function Body() {
   //   </div>
   //   )
   //   }
-  
-  
-  return (
 
+  return (
     <div className="relative min-h-screen w-full flex flex-col overflow-hidden">
       <div className={`absolute inset-0 ${isOpen ? "z-0" : "z-10"}`}>
         <Image
@@ -375,4 +372,3 @@ export default function Body() {
     </div>
   );
 }
-  

