@@ -8,10 +8,13 @@
 // await confirmation of the transfer on chain
 
 import { EthereumAddress } from "@/types/general_types";
-import { Web3 } from "web3";
+import { TransactionReceipt, Web3 } from "web3";
 import { getChainIdHex } from "./cryptoConstants";
 
-export async function spendBNB(wallet: EthereumAddress, amount: string) {
+export async function spendBNB(
+  wallet: EthereumAddress,
+  amount: string
+): Promise<TransactionReceipt | null> {
   try {
     // Know if the user has wallet in their browser
     if (typeof window.ethereum === "undefined") {
