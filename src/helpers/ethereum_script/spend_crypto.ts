@@ -817,6 +817,8 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
       throw new Error("No accounts found. Please connect a wallet.");
     }
 
+    console.log("From accounts in spendBNB...", accounts);
+
     const currentChainID = await web3.eth.getChainId();
     const currentChainIDHex = getChainIdHex(currentChainID);
 
@@ -1028,7 +1030,7 @@ export async function spendBEP20(wallet: EthereumAddress, amount: string) {
       throw new Error("No accounts found. Please connect a wallet.");
     }
 
-    const currentChainID = web3.eth.getChainId();
+    const currentChainID = await web3.eth.getChainId();
     const currentChainIDHex = getChainIdHex(currentChainID);
 
     console.log("expectedChainIDHex", expectedChainIDHex);

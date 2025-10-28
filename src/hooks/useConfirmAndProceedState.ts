@@ -1,7 +1,6 @@
 import { getDirectDebitWallet } from "@/helpers/api_calls";
 import {
   sendBTC,
-  spendBEP20,
   spendBNB,
   spendERC20,
   spendETH,
@@ -15,6 +14,9 @@ import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
 import { useBTCWallet } from "./stores/btcWalletStore";
 import { request, RpcErrorCode } from "sats-connect";
 import { WalletAddress } from "@/lib/wallets/types";
+import { useAccount } from "wagmi";
+import { parseUnits } from "ethers/utils";
+import { spendBEP20 } from "@/services/transactionService/cryptoService/bep20Service";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -35,6 +37,9 @@ const useConfirmAndProceedState = ({
     isCopied: false,
     hasCopyButtonBeenClicked: false,
   });
+
+  const account = useAccount();
+  const caller = account.address;
 
   const { paymentAddress } = useBTCWallet();
 
@@ -63,6 +68,7 @@ const useConfirmAndProceedState = ({
       let trxSent = false;
 
       if (wallet) {
+        console.log("Wallet is available and network is:", network);
         switch (network.toLowerCase()) {
           case "eth":
             reciept = await spendETH(wallet as EthereumAddress, amount);
@@ -74,7 +80,13 @@ const useConfirmAndProceedState = ({
             reciept = await spendERC20(wallet as EthereumAddress, amount);
             break;
           case "bep20":
-            reciept = await spendBEP20(wallet as EthereumAddress, amount);
+            console.log("We are doing a BEP20 trx");
+            reciept = await spendBEP20(
+              caller,
+              wallet as EthereumAddress,
+              parseUnits(amount, 18)
+            );
+            console.log("The trx was successfull", reciept);
             break;
           case "trc20":
             const usdtTrnsaction = await spendTRC20(
@@ -90,10 +102,6 @@ const useConfirmAndProceedState = ({
               amount: parseFloat(amount),
               signPsbtFn: async (psbt: string) => {
                 try {
-                  // console.log("Payment address", paymentAddress);
-                  // console.log("Full object:", {
-                  //   [paymentAddress!]: [0],
-                  // });
                   if (!paymentAddress) {
                     throw new Error("Payment address is undefined.");
                   }
