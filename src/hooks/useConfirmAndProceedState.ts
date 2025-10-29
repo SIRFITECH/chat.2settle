@@ -74,54 +74,30 @@ const useConfirmAndProceedState = ({
         switch (network.toLowerCase()) {
           case "eth":
             console.log("We are doing a ETH trx", amount);
-            reciept = await spend({
-              network: "ethereum",
-              receiver: wallet as `0x${string}`,
-              token: "native",
-              amount: parseUnits(amount, 18),
-            });
-            // await spendNative(wallet as `0x${string}`, amount);
+            reciept = await spendNative(wallet as `0x${string}`, amount);
             console.log("The trx was successfull", reciept);
             break;
           case "bnb":
             console.log("We are doing a BNB trx", amount);
-            // reciept = await spendNative(wallet as `0x${string}`, amount);
-            reciept = await spend({
-              network: "bsc",
-              receiver: wallet as `0x${string}`,
-              token: "native",
-              amount: parseUnits(amount, 18),
-            });
+            reciept = await spendNative(wallet as `0x${string}`, amount);
             console.log("The trx was successfull", reciept);
             break;
           case "erc20":
             console.log("We are doing a ERC20 trx");
-
-            // reciept = await spendEVMUSDT(
-            //   wallet as `0x${string}`,
-            //   parseUnits(amount, 6),
-            //   true
-            // );
-            reciept = await spend({
-              network: "ethereum",
-              receiver: wallet as `0x${string}`,
-              token: "usdt",
-              amount: parseUnits(amount, 6),
-            });
+            reciept = await spendEVMUSDT(
+              wallet as `0x${string}`,
+              parseUnits(amount, 6),
+              true
+            );
             console.log("The trx was successfull", reciept);
             break;
           case "bep20":
             console.log("We are doing a BEP20 trx");
-            // reciept = await spendEVMUSDT(
-            //   wallet as `0x${string}`,
-            //   parseUnits(amount, 18)
-            // );
-            reciept = await spend({
-              network: "bsc",
-              receiver: wallet as `0x${string}`,
-              token: "usdt",
-              amount: parseUnits(amount, 18),
-            });
+            reciept = await spendEVMUSDT(
+              wallet as `0x${string}`,
+              parseUnits(amount, 18)
+            );
+
             console.log("The trx was successfull", reciept);
             break;
           case "trc20":
@@ -191,6 +167,128 @@ const useConfirmAndProceedState = ({
             break;
         }
       }
+      // if (wallet) {
+      //   console.log("Wallet is available and network is:", network);
+      //   switch (network.toLowerCase()) {
+      //     case "eth":
+      //       console.log("We are doing a ETH trx", amount);
+      //       reciept = await spend({
+      //         network: "ethereum",
+      //         receiver: wallet as `0x${string}`,
+      //         token: "native",
+      //         amount: parseUnits(amount, 18),
+      //       });
+      //       // await spendNative(wallet as `0x${string}`, amount);
+      //       console.log("The trx was successfull", reciept);
+      //       break;
+      //     case "bnb":
+      //       console.log("We are doing a BNB trx", amount);
+      //       // reciept = await spendNative(wallet as `0x${string}`, amount);
+      //       reciept = await spend({
+      //         network: "bsc",
+      //         receiver: wallet as `0x${string}`,
+      //         token: "native",
+      //         amount: parseUnits(amount, 18),
+      //       });
+      //       console.log("The trx was successfull", reciept);
+      //       break;
+      //     case "erc20":
+      //       console.log("We are doing a ERC20 trx");
+
+      //       // reciept = await spendEVMUSDT(
+      //       //   wallet as `0x${string}`,
+      //       //   parseUnits(amount, 6),
+      //       //   true
+      //       // );
+      //       reciept = await spend({
+      //         network: "ethereum",
+      //         receiver: wallet as `0x${string}`,
+      //         token: "usdt",
+      //         amount: parseUnits(amount, 6),
+      //       });
+      //       console.log("The trx was successfull", reciept);
+      //       break;
+      //     case "bep20":
+      //       console.log("We are doing a BEP20 trx");
+      //       // reciept = await spendEVMUSDT(
+      //       //   wallet as `0x${string}`,
+      //       //   parseUnits(amount, 18)
+      //       // );
+      //       reciept = await spend({
+      //         network: "bsc",
+      //         receiver: wallet as `0x${string}`,
+      //         token: "usdt",
+      //         amount: parseUnits(amount, 18),
+      //       });
+      //       console.log("The trx was successfull", reciept);
+      //       break;
+      //     case "trc20":
+      //       // const usdtTrnsaction = await spendTRC20(
+      //       //   wallet as EthereumAddress,
+      //       //   amount
+      //       // );
+
+      //       const trx = await spendTRC20(wallet, parseInt(amount));
+      //       console.log("TRC20 trx", trx);
+      //       trxSent = !!trx?.result;
+      //       break;
+      //     case "btc":
+      //       const txid = await sendBTC({
+      //         senderAddress: paymentAddress as WalletAddress,
+      //         recipient: wallet as WalletAddress,
+      //         amount: parseFloat(amount),
+      //         signPsbtFn: async (psbt: string) => {
+      //           try {
+      //             if (!paymentAddress) {
+      //               throw new Error("Payment address is undefined.");
+      //             }
+
+      //             const response = await request("signPsbt", {
+      //               psbt: psbt,
+      //               signInputs: {
+      //                 [paymentAddress!]: [0],
+      //               },
+      //             });
+
+      //             // if the transaction is ready to broadcast and you want to broadcast
+      //             // it yourself at this point, then remember to finalize the inputs in
+      //             // the returned PSBT before broadcasting
+
+      //             if (response.status === "success") {
+      //               // handle success response
+      //               return response.result.psbt;
+      //             } else {
+      //               if (response.error.code === RpcErrorCode.USER_REJECTION) {
+      //                 console.log("User cancelled the signing process");
+      //                 throw new Error("User cancelled the signing process.");
+      //                 // handle user request cancelation
+      //               } else {
+      //                 throw new Error(
+      //                   `Error signing PSBT: ${response.error.message}`
+      //                 );
+      //                 // handle error
+      //               }
+      //             }
+      //           } catch (err) {
+      //             console.log(err);
+      //             throw new Error("Failed to sign PSBT.");
+      //           }
+      //         },
+      //       });
+      //       btcSent = !!txid;
+      //       break;
+      //     case "trx":
+      //       console.log("TRX network is not supported yet.");
+      //       const transaction = await spendTRX(
+      //         wallet as EthereumAddress,
+      //         amount
+      //       );
+      //       trxSent = !!transaction.txid;
+      //       break;
+      //     default:
+      //       break;
+      //   }
+      // }
 
       if (reciept && reciept.transactionHash && reciept.status === "success") {
         setState((prev) => {
