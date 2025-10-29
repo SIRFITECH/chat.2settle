@@ -16,6 +16,7 @@ import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
 import { useBTCWallet } from "./stores/btcWalletStore";
 import { TransactionReceipt } from "viem";
 import { useSpendTRC20 } from "@/services/transactionService/cryptoService/useSpendTRC20";
+import { useSpendEVMToken } from "@/services/transactionService/cryptoService/useSpendEVMToken";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -40,6 +41,7 @@ const useConfirmAndProceedState = ({
   const { spendEVMUSDT } = useSpendEVMUSDT();
   const { spendNative } = useSpendNative();
   const { spendTRC20 } = useSpendTRC20();
+  const { spend } = useSpendEVMToken();
 
   const { paymentAddress } = useBTCWallet();
 
@@ -72,33 +74,54 @@ const useConfirmAndProceedState = ({
         switch (network.toLowerCase()) {
           case "eth":
             console.log("We are doing a ETH trx", amount);
-            reciept = await spendNative(wallet as `0x${string}`, amount);
+            reciept = await spend({
+              network: "ethereum",
+              receiver: wallet as `0x${string}`,
+              token: "native",
+              amount: parseUnits(amount, 18),
+            });
+            // await spendNative(wallet as `0x${string}`, amount);
             console.log("The trx was successfull", reciept);
-            // reciept = await spendETH(wallet as EthereumAddress, amount);
             break;
           case "bnb":
             console.log("We are doing a BNB trx", amount);
-            reciept = await spendNative(wallet as `0x${string}`, amount);
+            // reciept = await spendNative(wallet as `0x${string}`, amount);
+            reciept = await spend({
+              network: "bsc",
+              receiver: wallet as `0x${string}`,
+              token: "native",
+              amount: parseUnits(amount, 18),
+            });
             console.log("The trx was successfull", reciept);
-            // reciept = await spendBNB(wallet as EthereumAddress, amount);
             break;
           case "erc20":
             console.log("We are doing a ERC20 trx");
 
-            reciept = await spendEVMUSDT(
-              wallet as `0x${string}`,
-              parseUnits(amount, 6),
-              true
-            );
+            // reciept = await spendEVMUSDT(
+            //   wallet as `0x${string}`,
+            //   parseUnits(amount, 6),
+            //   true
+            // );
+            reciept = await spend({
+              network: "ethereum",
+              receiver: wallet as `0x${string}`,
+              token: "usdt",
+              amount: parseUnits(amount, 6),
+            });
             console.log("The trx was successfull", reciept);
             break;
           case "bep20":
             console.log("We are doing a BEP20 trx");
-            reciept = await spendEVMUSDT(
-              wallet as `0x${string}`,
-              parseUnits(amount, 18),
-            
-            );
+            // reciept = await spendEVMUSDT(
+            //   wallet as `0x${string}`,
+            //   parseUnits(amount, 18)
+            // );
+            reciept = await spend({
+              network: "bsc",
+              receiver: wallet as `0x${string}`,
+              token: "usdt",
+              amount: parseUnits(amount, 18),
+            });
             console.log("The trx was successfull", reciept);
             break;
           case "trc20":
