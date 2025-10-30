@@ -14,25 +14,16 @@ import {
   ERC20_CONTRACT,
 } from "@/services/transactionService/cryptoService/cryptoConstants";
 import { config } from "../../../wagmi";
-// import { TransactionReceipt } from "web3";
+import { useEnsureNetwork } from "./useEnsureNetwork";
+import { CHAINS } from "./chainConfig";
+import { networkType } from "./types";
 
-/**
- * Hook to send BEP20 tokens using Wagmi.
- *
- * @returns { spendBEP20 } - a function to send BEP20 tokens
- * @returns { isPending, isLoading, isSuccess, hash, receipt, error }
- */
 export function useSpendEVMUSDT() {
   const { address: caller } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const { ensureNetwork } = useEnsureNetwork();
   const [error, setError] = useState<Error | null>(null);
 
-  /**
-   * Sends BEP20 tokens and waits for transaction confirmation.
-   * @param receiver - Recipient wallet address
-   * @param amount - Amount in token units (already adjusted for decimals)
-   * @returns {Promise<TransactionReceipt | null>}
-   */
   const spendEVMUSDT = async (
     receiver: Address,
     amount: bigint,
@@ -43,7 +34,11 @@ export function useSpendEVMUSDT() {
       return null;
     }
 
+    let network: networkType = isERC20 ? "eth" : "bnb";
+
     try {
+      const chain = CHAINS[network];
+      await ensureNetwork(chain.network);
       // Send the transaction (returns tx hash)
       const hash = await writeContractAsync({
         address: isERC20 ? ERC20_CONTRACT : BEP20_CONTRACT,

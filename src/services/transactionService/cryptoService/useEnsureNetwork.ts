@@ -1,10 +1,10 @@
 import { useSwitchChain } from "wagmi";
 import { CHAINS } from "./chainConfig";
 
-export function useEnsureNetwork(targetChain: keyof typeof CHAINS) {
+export function useEnsureNetwork() {
   const { switchChainAsync } = useSwitchChain();
 
-  async function ensureNetwork() {
+  async function ensureNetwork(targetChain: keyof typeof CHAINS) {
     const target = CHAINS[targetChain];
     const chainID = window.ethereum?.networkVersion
       ? parseInt(window.ethereum.networkVersion)

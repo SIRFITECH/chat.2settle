@@ -16,7 +16,8 @@ import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
 import { useBTCWallet } from "./stores/btcWalletStore";
 import { TransactionReceipt } from "viem";
 import { useSpendTRC20 } from "@/services/transactionService/cryptoService/useSpendTRC20";
-import { useSpendEVMToken } from "@/services/transactionService/cryptoService/useSpendEVMToken";
+import { networkType } from "@/services/transactionService/cryptoService/types";
+// import { useSpendEVMToken } from "@/services/transactionService/cryptoService/useSpendEVMToken";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -41,7 +42,8 @@ const useConfirmAndProceedState = ({
   const { spendEVMUSDT } = useSpendEVMUSDT();
   const { spendNative } = useSpendNative();
   const { spendTRC20 } = useSpendTRC20();
-  const { spend } = useSpendEVMToken();
+  // const { spend } = useSpendEVMToken();
+  
 
   const { paymentAddress } = useBTCWallet();
 
@@ -74,12 +76,20 @@ const useConfirmAndProceedState = ({
         switch (network.toLowerCase()) {
           case "eth":
             console.log("We are doing a ETH trx", amount);
-            reciept = await spendNative(wallet as `0x${string}`, amount);
+            reciept = await spendNative(
+              wallet as `0x${string}`,
+              amount,
+              network as networkType
+            );
             console.log("The trx was successfull", reciept);
             break;
           case "bnb":
             console.log("We are doing a BNB trx", amount);
-            reciept = await spendNative(wallet as `0x${string}`, amount);
+            reciept = await spendNative(
+              wallet as `0x${string}`,
+              amount,
+              network as networkType
+            );
             console.log("The trx was successfull", reciept);
             break;
           case "erc20":
