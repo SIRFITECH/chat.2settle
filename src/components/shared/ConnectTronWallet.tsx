@@ -10,7 +10,7 @@ import {
 } from "../ui/dialog";
 import ShortenedAddress from "../../helpers/ShortenAddress";
 import { MdContentCopy, MdKeyboardArrowDown, MdLogout } from "react-icons/md";
-import useTronWallet from "@/hooks/stores/tronWalletStore";
+import useTronWallet from "stores/tronWalletStore";
 import { useRouter } from "next/navigation";
 
 const ConnectTronWallet = () => {

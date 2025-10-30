@@ -626,7 +626,6 @@ export const displaySendPayment = async (
           This wallet address expires in{" "}
           <b>{allowedTime.toString()} minutes </b>
         </span>
-        {/* {copyableTransactionID} */}
       </>
     ) : (
       <span>

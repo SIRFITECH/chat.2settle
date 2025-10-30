@@ -60,13 +60,9 @@ import { withErrorHandling } from "../withErrorHandling";
 import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import { getRates } from "@/services/chatBotService";
-import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 import type { WalletAddress } from "@/lib/wallets/types";
-import useTronWallet from "@/hooks/stores/tronWalletStore";
-import { spendBEP20 } from "@/services/transactionService/cryptoService/bep20Service";
-import { spendBNB } from "@/helpers/ethereum_script/spend_crypto";
-import { parseUnits } from "ethers/utils";
-import { useEnsureNetwork } from "@/services/transactionService/cryptoService/useEnsureNetwork";
+import { useBTCWallet } from "stores/btcWalletStore";
+import useTronWallet from "stores/tronWalletStore";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES

@@ -1,6 +1,5 @@
 import { MdKeyboardArrowDown, MdContentCopy, MdLogout } from "react-icons/md";
 import { connectXverseWallet } from "@/helpers/btc/connect_btc_wallet";
-import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 import ShortenedAddress from "../../helpers/ShortenAddress";
 import {
   Dialog,
@@ -10,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useBTCWallet } from "stores/btcWalletStore";
 
 const ConnectBTCButton = () => {
   const { paymentAddress, isConnected, disconnect } = useBTCWallet();

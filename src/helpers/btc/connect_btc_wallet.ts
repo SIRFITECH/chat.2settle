@@ -1,5 +1,5 @@
 import { AddressPurpose, request } from "sats-connect";
-import { useBTCWallet } from "../../hooks/stores/btcWalletStore";
+import { useBTCWallet } from "../../../stores/btcWalletStore";
 
 export async function connectXverseWallet(): Promise<boolean> {
   try {
