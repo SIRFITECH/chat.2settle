@@ -5,16 +5,18 @@ import {
   ServerData,
   userData,
   vendorData,
-  WalletInfo,
+  WalletInfo
 } from "../types/general_types";
 
+
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
+
 
 // FETCH CURRENT EXCHANGE RATE FROM DB
 export const fetchRate = async (): Promise<number> => {
   try {
     const response = await axios.get<ServerData>(`${apiURL}/api/rate`);
-    const rawRate = response.data.rate.replace(/,/g, ""); // Remove commas
+    const rawRate = response.data.rate.replace(/,/g, "");
     const rate = parseFloat(rawRate);
 
     if (isNaN(rate)) {
@@ -453,19 +455,6 @@ export const createTransaction = async (user: any): Promise<any> => {
   }
 };
 
-export const OpenAI = async (updatedMessages: any, sessionId: String): Promise<any> => {
-  try {
-    const response = await axios.post<any>(
-      `${apiURL}/api/openai`,
-      { messages: updatedMessages, sessionId: sessionId }
-    );
-    console.log("Use transaction created successfully");
-    return response.data;
-  } catch (error) {
-    console.error("Error storing user data:", error);
-    throw new Error("Failed to store user data");
-  }
-};
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
 export const createComplain = async (complainData: any): Promise<any> => {
   try {

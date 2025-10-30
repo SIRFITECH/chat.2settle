@@ -4,17 +4,16 @@ interface ShortenedAddressProps {
   wallet: string | undefined;
 }
 
-const ShortenedAddress: React.FC<ShortenedAddressProps> = ({ wallet }) => {
-  if (!wallet || wallet.length <= 9) return <>{wallet}</>;
+const ShortenedAddress = ({
+  wallet,
+}: ShortenedAddressProps): string | undefined => {
+
+  if (!wallet || wallet.length <= 9) return wallet;
 
   const firstPart = wallet.slice(0, 5);
   const lastPart = wallet.slice(-4);
 
-  return (
-    <>
-      {firstPart}...{lastPart}
-    </>
-  );
+  return `${firstPart}...${lastPart}`;
 };
 
 export default ShortenedAddress;

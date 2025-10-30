@@ -2,7 +2,7 @@
  * Handle menus, choices, navigation
  */
 
-import ShortenedAddress from "@/components/shared/ShortenAddress";
+import ShortenedAddress from "@/helpers/ShortenAddress";
 import { MessageType } from "@/types/general_types";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { greetings } from "../helpers/ChatbotConsts";

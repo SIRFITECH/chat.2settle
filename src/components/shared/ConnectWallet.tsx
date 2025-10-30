@@ -123,10 +123,10 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 import Logo from "./Logo";
 import ConnectBTCButton from "./ConnectBTCButton";
-import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
+import { useBTCWallet } from "stores/btcWalletStore";
 import ConnectTronWallet from "./ConnectTronWallet";
 import { useState } from "react";
-import useTronWallet from "@/hooks/stores/tronWalletStore";
+import useTronWallet from "stores/tronWalletStore";
 
 const ConnectWallet = () => {
   const { isConnected } = useAccount();

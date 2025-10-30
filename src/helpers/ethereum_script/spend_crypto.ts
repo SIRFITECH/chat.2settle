@@ -4,6 +4,7 @@ import TronWeb from "tronweb";
 import dotenv from "dotenv";
 import axios from "axios";
 import { WalletAddress } from "@/lib/wallets/types";
+import { getChainIdHex } from "@/services/transactionService/cryptoService/cryptoConstants";
 dotenv.config();
 
 // SETUP
@@ -667,10 +668,6 @@ const contractABIUSDTERC20: any[] = [
   { anonymous: false, inputs: [], name: "Unpause", type: "event" },
 ];
 
-function getChainIdHex(chainID: any) {
-  return `0x${chainID.toString(16)}`;
-}
-
 function errorAccounts(network: string) {
   return `No accounts found, please add ${network} account`;
 }
@@ -759,7 +756,7 @@ export async function spendETH(wallet: EthereumAddress, amount: string) {
         to: wallet,
         value: valueInWei,
       })
-      .on("error", (error) => {
+      .on("error", (error: Error) => {
         throw new Error(error.message);
       });
     return reciept;
@@ -820,6 +817,8 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
       throw new Error("No accounts found. Please connect a wallet.");
     }
 
+    console.log("From accounts in spendBNB...", accounts);
+
     const currentChainID = await web3.eth.getChainId();
     const currentChainIDHex = getChainIdHex(currentChainID);
 
@@ -864,7 +863,7 @@ export async function spendBNB(wallet: EthereumAddress, amount: string) {
         to: wallet,
         value: valueInWei,
       })
-      .on("error", (error) => {
+      .on("error", (error: Error) => {
         throw new Error(error.message);
       });
 
@@ -1031,7 +1030,7 @@ export async function spendBEP20(wallet: EthereumAddress, amount: string) {
       throw new Error("No accounts found. Please connect a wallet.");
     }
 
-    const currentChainID = web3.eth.getChainId();
+    const currentChainID = await web3.eth.getChainId();
     const currentChainIDHex = getChainIdHex(currentChainID);
 
     console.log("expectedChainIDHex", expectedChainIDHex);
@@ -1215,13 +1214,12 @@ export async function spendTRC20(wallet: EthereumAddress, amount: string) {
 
     // Convert amount to token's smallest unit (USDT uses 6 decimals)
     const amountInSun = Math.floor(parseFloat(amount) * 1e6);
-    // const tokenContractAddress = "TXLAQ63Xg1NAzckPwKHvzwE7HdRc8Q5hU4"; 
+    // const tokenContractAddress = "TXLAQ63Xg1NAzckPwKHvzwE7HdRc8Q5hU4";
     const tokenContractAddress = process.env.NEXT_PUBLIC_USDT_TRC20_CONTRACT;
 
     if (!tokenContractAddress) {
       throw new Error("USDT contract address is not defined");
     }
-
 
     // Load the TRC20 contract
     const contract = await window.tronWeb.contract().at(tokenContractAddress);

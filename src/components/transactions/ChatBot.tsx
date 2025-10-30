@@ -60,9 +60,9 @@ import { withErrorHandling } from "../withErrorHandling";
 import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import { getRates } from "@/services/chatBotService";
-import { useBTCWallet } from "@/hooks/stores/btcWalletStore";
 import type { WalletAddress } from "@/lib/wallets/types";
-import useTronWallet from "@/hooks/stores/tronWalletStore";
+import { useBTCWallet } from "stores/btcWalletStore";
+import useTronWallet from "stores/tronWalletStore";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -76,7 +76,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     account.address ||
     (btcWalletAddress as WalletAddress) ||
     (tronWalletAddress as WalletAddress);
-
 
   const procesingStatus = "Processing";
   const cancelledStatus = "Cancel";
@@ -222,10 +221,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   React.useEffect(() => {
     saveLocalStorageData(serializedMessages, currentStep, stepHistory);
   }, [serializedMessages, currentStep, stepHistory]);
-
-  useEffect(() => {
-    console.log("Loading top state changed:", loading);
-  }, [loading]);
 
   // Load telegram data
   useEffect(() => {
@@ -410,6 +405,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
               receiver_name: bankData.receiver_name,
               receiver_phoneNumber: formatPhoneNumber(phoneNumber),
               gift_status: "Processing",
+              settled_on: getFormattedDateTime(),
             };
 
             // Only update the status to "Claimed" if payoutMoney is successful

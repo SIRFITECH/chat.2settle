@@ -1,20 +1,17 @@
 import { getDirectDebitWallet } from "@/helpers/api_calls";
-import {
-  sendBTC,
-  spendBEP20,
-  spendBNB,
-  spendERC20,
-  spendETH,
-  spendTRC20,
-  spendTRX,
-} from "@/helpers/ethereum_script/spend_crypto";
-import { EthereumAddress } from "@/types/general_types";
-import { useEffect, useState } from "react";
-import { TransactionReceipt } from "web3";
-import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
-import { useBTCWallet } from "./stores/btcWalletStore";
-import { request, RpcErrorCode } from "sats-connect";
+import { sendBTC, spendTRX } from "@/helpers/ethereum_script/spend_crypto";
 import { WalletAddress } from "@/lib/wallets/types";
+import { networkType } from "@/services/transactionService/cryptoService/types";
+import { useSpendNative } from "@/services/transactionService/cryptoService/useSpendBepToken";
+import { useSpendTRC20 } from "@/services/transactionService/cryptoService/useSpendTRC20";
+import { EthereumAddress } from "@/types/general_types";
+import { parseUnits } from "ethers/utils";
+import { useEffect, useState } from "react";
+import { request, RpcErrorCode } from "sats-connect";
+import { TransactionReceipt } from "viem";
+import { useSpendEVMUSDT } from "../services/transactionService/cryptoService/useSpendEVMUSDT";
+import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
+import { useBTCWallet } from "../../stores/btcWalletStore";
 
 const useConfirmAndProceedState = ({
   phoneNumber,
@@ -35,6 +32,10 @@ const useConfirmAndProceedState = ({
     isCopied: false,
     hasCopyButtonBeenClicked: false,
   });
+
+  const { spendEVMUSDT } = useSpendEVMUSDT();
+  const { spendNative } = useSpendNative();
+  const { spendTRC20 } = useSpendTRC20();
 
   const { paymentAddress } = useBTCWallet();
 
@@ -63,25 +64,53 @@ const useConfirmAndProceedState = ({
       let trxSent = false;
 
       if (wallet) {
+        console.log("Wallet is available and network is:", network);
         switch (network.toLowerCase()) {
           case "eth":
-            reciept = await spendETH(wallet as EthereumAddress, amount);
+            console.log("We are doing a ETH trx", amount);
+            reciept = await spendNative(
+              wallet as `0x${string}`,
+              amount,
+              network as networkType
+            );
+            console.log("The trx was successfull", reciept);
             break;
           case "bnb":
-            reciept = await spendBNB(wallet as EthereumAddress, amount);
+            console.log("We are doing a BNB trx", amount);
+            reciept = await spendNative(
+              wallet as `0x${string}`,
+              amount,
+              network as networkType
+            );
+            console.log("The trx was successfull", reciept);
             break;
           case "erc20":
-            reciept = await spendERC20(wallet as EthereumAddress, amount);
+            console.log("We are doing a ERC20 trx");
+            reciept = await spendEVMUSDT(
+              wallet as `0x${string}`,
+              parseUnits(amount, 6),
+              true
+            );
+            console.log("The trx was successfull", reciept);
             break;
           case "bep20":
-            reciept = await spendBEP20(wallet as EthereumAddress, amount);
+            console.log("We are doing a BEP20 trx");
+            reciept = await spendEVMUSDT(
+              wallet as `0x${string}`,
+              parseUnits(amount, 18)
+            );
+
+            console.log("The trx was successfull", reciept);
             break;
           case "trc20":
-            const usdtTrnsaction = await spendTRC20(
-              wallet as EthereumAddress,
-              amount
-            );
-            trxSent = !!usdtTrnsaction;
+            // const usdtTrnsaction = await spendTRC20(
+            //   wallet as EthereumAddress,
+            //   amount
+            // );
+
+            const trx = await spendTRC20(wallet, parseInt(amount));
+            console.log("TRC20 trx", trx);
+            trxSent = !!trx?.result;
             break;
           case "btc":
             const txid = await sendBTC({
@@ -90,10 +119,6 @@ const useConfirmAndProceedState = ({
               amount: parseFloat(amount),
               signPsbtFn: async (psbt: string) => {
                 try {
-                  // console.log("Payment address", paymentAddress);
-                  // console.log("Full object:", {
-                  //   [paymentAddress!]: [0],
-                  // });
                   if (!paymentAddress) {
                     throw new Error("Payment address is undefined.");
                   }
@@ -145,7 +170,7 @@ const useConfirmAndProceedState = ({
         }
       }
 
-      if (reciept && reciept?.status === 1) {
+      if (reciept && reciept.transactionHash && reciept.status === "success") {
         setState((prev) => {
           if (prev.activeWallet === wallet) return prev;
           return {

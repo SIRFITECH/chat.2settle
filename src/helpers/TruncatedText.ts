@@ -5,12 +5,11 @@ interface TruncatedTextProps {
   maxLength: number;
 }
 
-const TruncatedText: React.FC<TruncatedTextProps> = ({ text, maxLength }) => {
+const TruncatedText = ({ text, maxLength }: TruncatedTextProps): string => {
   const truncatedText =
     text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
 
-  return <span>{truncatedText}</span>;
+  return truncatedText;
 };
 
 export default TruncatedText;
-

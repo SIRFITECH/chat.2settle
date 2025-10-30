@@ -3,7 +3,6 @@ import {
   fetchProfitRate,
   fetchRate,
 } from "@/helpers/api_calls";
-import { formatCurrency } from "@/helpers/format_currency";
 
 // this would hold all API calls in the chatbot
 export const getRates = async () => {

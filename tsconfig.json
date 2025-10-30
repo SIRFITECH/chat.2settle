@@ -10,7 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -25,7 +25,8 @@
     "src",
     "__tests__",
     "global.d.ts",
-    "src/components/shared/manualTransactionForm/ManualTransactionForm.tsx"
+    "src/components/shared/manualTransactionForm/ManualTransactionForm.tsx",
+    "stores"
   ],
   "exclude": ["node_modules"]
 }
