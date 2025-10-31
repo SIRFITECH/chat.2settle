@@ -12,6 +12,7 @@ import ErrorBoundary from "./TelegramError";
 import useRate from "@/hooks/useRate";
 import useTotalVolume from "@/hooks/useTotalVolume";
 import DisplayTransactions from "./shared/DisplayTransactions";
+import Maintenance from "./Maintenance";
 
 const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -46,6 +47,12 @@ export default function Body() {
     isLoading: TvtLoading,
     error: tvtError,
   } = useTotalVolume();
+  const [showMaintenance, setShowMaintenance] = useState(false);
+
+  // set maintaince by setting showMaintenance = false
+  useEffect(() => {
+    setShowMaintenance(false);
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -60,7 +67,6 @@ export default function Body() {
       localStorage.removeItem("referralCategory");
     }
   }, []);
-
 
   const getBackgroundImage = (): string => {
     if (isMobile) {
@@ -211,27 +217,6 @@ export default function Body() {
     );
   };
 
-  // const [showDialog, setShowDialog] = useState(true);
-
-  // if (showDialog) {
-  //   return (
-  //     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-  //     <div className="bg-white rounded-2xl shadow-lg p-8 w-[60%] max-h-[200%] overflow-auto text-center">
-  //       <h2 className="text-2xl font-semibold mb-4">⚠️ Maintenance Mode</h2>
-  //       <p className="mb-6 text-lg">
-  //         We are under maintenance, check back later!
-  //       </p>
-  //       <button
-  //         onClick={() => setShowDialog(false)}
-  //         className="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600"
-  //       >
-  //         Close
-  //       </button>
-  //     </div>
-  //   </div>
-  //   )
-  //   }
-
   return (
     <div className="relative min-h-screen w-full flex flex-col overflow-hidden">
       <div className={`absolute inset-0 ${isOpen ? "z-0" : "z-10"}`}>
@@ -251,6 +236,8 @@ export default function Body() {
           {imageError}
         </div>
       )}
+
+      {showMaintenance && <Maintenance onMaintainance={showMaintenance} />}
 
       <div
         className={`relative flex-grow flex flex-col items-center justify-center p-4 md:p-8 ${
