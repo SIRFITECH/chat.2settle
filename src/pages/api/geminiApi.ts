@@ -71,7 +71,8 @@ Formatting Instructions: {format_instructions}
         Amount: "the Amount the user to send just the numeric",
         acct_number: "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.",
         receiver_phoneNumber: "the phone number is nigeria phone number 11 digit number",
-        name : "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user"
+        name: "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user",
+        gift_id: 'the gift id is a 6 digit number that a user will use to claim gift'
     })
       // 🧠 Automatically corrects ```json wrapping or malformed output
   const parser = OutputFixingParser.fromLLM(model, outputParser);
