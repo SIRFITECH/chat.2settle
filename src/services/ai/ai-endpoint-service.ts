@@ -17,9 +17,9 @@ export async function chatPrompt(updatedSession: { [x: string]: any; asset: any;
 You collect details step-by-step, but SKIP questions if they have already been provided earlier in the conversation or stored in the session.
 
 Session data so far:'
-- Asset: ${updatedSession.asset}
+- Asset: ${updatedSession.crypto}
 - Network: ${updatedSession.network}
-- Estimation Type: ${updatedSession.estimationType}
+- Estimation Type: ${updatedSession.estimation}
 - Amount: ${updatedSession.amount}
 - Bank Name: ${updatedSession.bank_name}
 - Account Number: ${updatedSession.acct_number} 
@@ -40,12 +40,14 @@ Bank name: ${updatedSession.bank_name}
 Account number: ${updatedSession.acct_number}
 
 8.  phone number
-9. after phone number then display you are sending ${updatedSession['totalcrypto']} ${updatedSession.asset} to this wallet address ${updatedSession.activeWallet} and you will be receiving ₦${updatedSession['amountString']}.
+9. after phone number then display you are sending ${updatedSession['totalcrypto']} ${updatedSession.asset} to this wallet address ${updatedSession.wallet_address} and you will be receiving ₦${updatedSession['amountString']}.
 10.this question should follow, would you like to save this person as beneficiary?
-11. if user say YES. ask the user what name will you like to save the beneficiary with? 
+11. if user say YES. ask the user what name will you like to save the beneficiary with? and if NO end the conversation
+12. After you collect the beneficiary name, let the user know you have the beneficiary
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             =iug
-  If user says they want to send to "mom", "dad", or another person:
-1. Ask: "What’s your [relation]’s full name?"
+THIS IS THE SECTION FOR GIFT, IF USER WANT TO CLAIM GIFT------
+1. If a user to claim gift just tell them to provide their gift id
+2. 
 
                 If the user gives multiple values, extract what you can, confirm it, and move to the next question.
                 If the user provides a value but you need another value to compute, extract the value you have,

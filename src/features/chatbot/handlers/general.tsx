@@ -25,66 +25,7 @@ import { geminiAi } from "@/services/ai/ai-services";
 
 
 
-// export const helloMenu = async (
-//   addChatMessages?: (messages: MessageType[]) => void,
-//   chatInput?: string,
-//   nextStep?: (step: string) => void,
-//   walletIsConnected?: boolean,
-//   wallet?: WalletAddress,
-//   telFirstName?: string,
-//   setSharedPaymentMode?: (mode: string) => void
-// ) => {
-
-//   try {
-//     console.log("we are at the start");
-
-//     // window.localStorage.setItem("transactionID", "");
-//     setSharedPaymentMode?.("");
-//     const messages: any = [];
-//     const updatedMessages = [...messages, { role: "user", content: chatInput }];
-//     let sessionId = window.localStorage.getItem("transactionID");
-
-//     // ✅ If it doesn't exist, create and store it
-//     if (!sessionId) {
-//       sessionId = Math.floor(100000 + Math.random() * 900000).toString();
-//        window.localStorage.setItem("transactionID", sessionId);
-//       console.log("Generated new sessionId:", sessionId);
-//     } else {
-//       console.log("Using existing sessionId:", sessionId);
-//     }
-    
-//       // const reply = await OpenAI(updatedMessages, sessionId);
-//    const reply = await geminiAi(chatInput, sessionId);
-//     console.log("this is the response from backend", reply.reply);
-
-//     addChatMessages?.([
-//       {
-//         type: "incoming",
-//         content: <span>{reply.reply}</span>, // simplified: just the assistant's latest reply
-//         timestamp: new Date(),
-//       },
-//     ]);
-//   } catch (err) {
-//     console.error("There was an error from backend", err);
-
-//     addChatMessages?.([
-//       {
-//         type: "incoming",
-//         content: (
-//           <span>
-//             😓 Sorry, something went wrong while processing your request.
-//             <br />
-//             Please try again in a moment.
-//           </span>
-//         ),
-//         timestamp: new Date(),
-//       },
-//     ]);
-//   }
-
-//   }
-
-export const helloMenu = (
+export const helloMenu = async (
   addChatMessages?: (messages: MessageType[]) => void,
   chatInput?: string,
   nextStep?: (step: string) => void,
@@ -93,79 +34,138 @@ export const helloMenu = (
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
-  console.log("we are at the start of the program");
-  if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
-    window.localStorage.setItem("transactionID", "");
+
+  try {
+    console.log("we are at the start");
+
+    // window.localStorage.setItem("transactionID", "");
     setSharedPaymentMode?.("");
-    if (walletIsConnected) {
-      addChatMessages?.([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName} 👋
-              <br />
-              <br />
-              You are connected as{" "}
-              <b>
-                <ShortenedAddress wallet={wallet} />
-              </b>
-              <br />
-              <br />
-              1. To disconnect wallet <br />
-              2. Continue to transact
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-      nextStep?.("chooseAction");
+    const messages: any = [];
+    const updatedMessages = [...messages, { role: "user", content: chatInput }];
+    let sessionId = window.localStorage.getItem("transactionID");
+
+    // ✅ If it doesn't exist, create and store it
+    if (!sessionId) {
+      sessionId = Math.floor(100000 + Math.random() * 900000).toString();
+       window.localStorage.setItem("transactionID", sessionId);
+      console.log("Generated new sessionId:", sessionId);
     } else {
-      setSharedPaymentMode?.("");
-      addChatMessages?.([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName}👋
-              <br />
-              <br />
-              Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
-              assistance, <br />
-              <b>Your wallet is not connected,</b> reply with:
-              <br />
-              <br />
-              1. To connect wallet <br />
-              2. To just continue
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-      ]);
-      console.log("Wallet not connected");
+      console.log("Using existing sessionId:", sessionId);
     }
-    nextStep?.("chooseAction");
-  } else {
+    
+      // const reply = await OpenAI(updatedMessages, sessionId);
+   const reply = await geminiAi(chatInput, sessionId);
+    console.log("this is the response from backend", reply.reply);
+
+    addChatMessages?.([
+      {
+        type: "incoming",
+        content: <span>{reply.reply}</span>, // simplified: just the assistant's latest reply
+        timestamp: new Date(),
+      },
+    ]);
+  } catch (err) {
+    console.error("There was an error from backend", err);
+
     addChatMessages?.([
       {
         type: "incoming",
         content: (
           <span>
-            👋 How far {telFirstName}!
+            😓 Sorry, something went wrong while processing your request.
             <br />
-            <br />I didn't catch that. To start a conversation with me, kindly
-            say something like <b>"hi"</b>, <b>"hello"</b>,<b> "howdy"</b>, or{" "}
-            <b>"hey"</b>
-            <br />
-            <br />
-            I'm ready when you are 😄
+            Please try again in a moment.
           </span>
         ),
         timestamp: new Date(),
       },
     ]);
   }
-}
+
+  }
+
+// export const helloMenu = (
+//   addChatMessages?: (messages: MessageType[]) => void,
+//   chatInput?: string,
+//   nextStep?: (step: string) => void,
+//   walletIsConnected?: boolean,
+//   wallet?: WalletAddress,
+//   telFirstName?: string,
+//   setSharedPaymentMode?: (mode: string) => void
+// ) => {
+//   console.log("we are at the start of the program");
+//   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
+//     window.localStorage.setItem("transactionID", "");
+//     setSharedPaymentMode?.("");
+//     if (walletIsConnected) {
+//       addChatMessages?.([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               How far {telFirstName} 👋
+//               <br />
+//               <br />
+//               You are connected as{" "}
+//               <b>
+//                 <ShortenedAddress wallet={wallet} />
+//               </b>
+//               <br />
+//               <br />
+//               1. To disconnect wallet <br />
+//               2. Continue to transact
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       nextStep?.("chooseAction");
+//     } else {
+//       setSharedPaymentMode?.("");
+//       addChatMessages?.([
+//         {
+//           type: "incoming",
+//           content: (
+//             <span>
+//               How far {telFirstName}👋
+//               <br />
+//               <br />
+//               Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
+//               assistance, <br />
+//               <b>Your wallet is not connected,</b> reply with:
+//               <br />
+//               <br />
+//               1. To connect wallet <br />
+//               2. To just continue
+//             </span>
+//           ),
+//           timestamp: new Date(),
+//         },
+//       ]);
+//       console.log("Wallet not connected");
+//     }
+//     nextStep?.("chooseAction");
+//   } else {
+//     addChatMessages?.([
+//       {
+//         type: "incoming",
+//         content: (
+//           <span>
+//             👋 How far {telFirstName}!
+//             <br />
+//             <br />I didn't catch that. To start a conversation with me, kindly
+//             say something like <b>"hi"</b>, <b>"hello"</b>,<b> "howdy"</b>, or{" "}
+//             <b>"hey"</b>
+//             <br />
+//             <br />
+//             I'm ready when you are 😄
+//           </span>
+//         ),
+//         timestamp: new Date(),
+//       },
+//     ]);
+//   }
+// };
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (

@@ -8,6 +8,7 @@ import * as dotenv from 'dotenv';
 import { StructuredOutputParser, OutputFixingParser } from "langchain/output_parsers"
 import crypto from "crypto";
 import {
+  createBeneficiary,
   createTransaction,
   fetchCoinPrice,
   fetchMerchantRate,
@@ -27,6 +28,16 @@ declare global {
 
   const session: Sess = global.__SESSIONS__ ?? (global.__SESSIONS__ = {});
 
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __USERACCTDETAIL__: Sess | undefined;
+}
+
+  const userAcctDetail: Sess = global.__USERACCTDETAIL__ ?? (global.__USERACCTDETAIL__ = {});
+
+
+
   // 🧠 Keep userHistories persistent across API calls in Next.js
 
 declare global {
@@ -44,6 +55,7 @@ const model = new ChatGoogleGenerativeAI({
     temperature: 0
  });
 
+ 
 async function extractIntentEntity(phrase: string) { 
     const prompt = ChatPromptTemplate.fromTemplate(`
     Extract information from the following phrase.
@@ -54,11 +66,12 @@ Formatting Instructions: {format_instructions}
     const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
         bank_name: "the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name",
         crypto: "the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER  ",
-        network: "network is the network of the asset if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20",
-        estimation: "estimation is how user will like to estimate their money either dollar, naira , crypto",
+        network: "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto",
+        estimation: "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt ",
         Amount: "the Amount the user to send just the numeric",
         acct_number: "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.",
-        receiver_phoneNumber: "the phone number is nigeria phone number 11 digit number"
+        receiver_phoneNumber: "the phone number is nigeria phone number 11 digit number",
+        name : "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user"
     })
       // 🧠 Automatically corrects ```json wrapping or malformed output
   const parser = OutputFixingParser.fromLLM(model, outputParser);
@@ -76,7 +89,7 @@ Formatting Instructions: {format_instructions}
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
-) {
+) { 
      if (req.method !== "POST")
      return res.status(405).json({ message: "Only POST allowed" });
     
@@ -85,6 +98,9 @@ export default async function handler(
 
       if (!session[chatId]) {
     session[chatId] = {};
+      }
+      if (!userAcctDetail[chatId]) {
+    userAcctDetail[chatId] = {};
   }
     try {
 
@@ -107,9 +123,16 @@ const filtered = Object.fromEntries(
   Object.entries(intentData).filter(([_, value]) => value !== 'undefined' && value !== 'UNDEFINED')
 );
       
-    const updatedSession = { ...session[chatId], ...filtered };
+      let updatedSession = { ...session[chatId], ...filtered };
+      
     console.log("Updatedddd session:", updatedSession)
-       
+      if (updatedSession.crypto === 'BTC') {
+              updatedSession.network = 'BTC'
+            }else if (updatedSession.crypto === 'ETH') {
+              updatedSession.network = 'ETH'
+            }else if (updatedSession.crypto === 'TRON') {
+              updatedSession.network = 'TRC20'
+            }
           // 4. Auto-fetch info if ready
             if (updatedSession.crypto && !updatedSession.assetPrice) {
               // updatedSession.network;
@@ -124,7 +147,17 @@ const filtered = Object.fromEntries(
               updatedSession['merchant_rate'] = `₦${updatedSession['merchantRate'].toLocaleString()}`
               updatedSession['profit_rate'] = `₦${updatedSession['profitRate'].toLocaleString()}`
             }
-     
+      if (updatedSession.name) {
+        const beneficiaryDate = {
+           beneficiary_nickname: updatedSession.name,
+          beneficiary_acctNO: userAcctDetail[chatId].acct_number,
+          beneficiary_acctName: userAcctDetail[chatId].receiver_name,
+          beneficiary_bankName: userAcctDetail[chatId].bank_name,
+          beneficiary_phoneNumber: userAcctDetail[chatId].receiver_phoneNumber
+        }
+          createBeneficiary(beneficiaryDate)
+      }
+      
         if (
           updatedSession.bank_name &&
           updatedSession.acct_number &&
@@ -133,15 +166,19 @@ const filtered = Object.fromEntries(
           const name = await resolveBankAccount(
             updatedSession.bank_name,
             updatedSession.acct_number
-          );
+          ); 
           console.log('name', name)
           if (name) updatedSession['receiver_name'] = name;
+          userAcctDetail[chatId]['bank_name'] = updatedSession.bank_name
+          userAcctDetail[chatId]['acct_number'] = updatedSession.acct_number
+          userAcctDetail[chatId]['receiver_name'] = updatedSession.receiver_name 
         }
       
           if (updatedSession.receiver_phoneNumber) {
-    const lowercase = updatedSession.network.toLowerCase();
+            const lowercase = updatedSession.network.toLowerCase();
+        userAcctDetail[chatId]['receiver_phoneNumber'] = updatedSession.receiver_phoneNumber
     const { activeWallet, lastAssignedTime } = await getAvaialableWallet(lowercase);
-    updatedSession['activeWallet'] = activeWallet;
+    updatedSession['wallet_address'] = activeWallet;
     if (updatedSession.estimation === 'naira') {
       updatedSession['numbersOnly'] = updatedSession.Amount.replace(/[^0-9.]/g, '');
       const parsedValue = parseFloat(updatedSession['numbersOnly']);
@@ -195,8 +232,20 @@ const filtered = Object.fromEntries(
       updatedSession['effort'] = updatedSession['nairaAmount'] * 0.01;
 
     }
-      }      
-        if (updatedSession.activeWallet) {
+      }  
+      
+    
+    const prompt = await chatPrompt(updatedSession)
+        // Get AI response
+        const parser = new StringOutputParser();
+        const chain = prompt.pipe(model).pipe(parser);
+
+      
+        const response = await chain.invoke({
+            word: messageText,
+            chat_history: history
+        });
+           if (updatedSession.wallet_address) {
         const currentDate = new Date();
         const day = currentDate.getDate();
         const month = currentDate.getMonth() + 1; // Month is zero-based, so we add 1
@@ -221,25 +270,24 @@ const filtered = Object.fromEntries(
       
           const { ...rest } =  session[chatId];
             session[chatId]= {
-             receiver_amount: `₦${updatedSession['amountString']}`,
-             crypto_sent: `${updatedSession['totalcrypto']} ${updatedSession.crypto}`,
-            ...rest
+              receiver_amount: `₦${updatedSession['amountString']}`,
+              crypto_sent: `${updatedSession['totalcrypto']} ${updatedSession.crypto}`,
+              customer_phoneNumber: `${updatedSession.receiver_phoneNumber}`,
+              wallet_address: `${updatedSession.wallet_address}`,
+              effort: `${updatedSession.effort}`,
+              mode_of_payment: 'transferMoney',
+             ...rest
           };
-      
+          
           console.log('All the object that is working',  session[chatId])
-          createTransaction( session[chatId])
+          createTransaction(session[chatId])
+          updatedSession = {}
         }
-    const prompt = await chatPrompt(updatedSession)
-        // Get AI response
-        const parser = new StringOutputParser();
-        const chain = prompt.pipe(model).pipe(parser);
-
       
-        const response = await chain.invoke({
-            word: messageText,
-            chat_history: history
-        });
-         session[chatId] = updatedSession
+      // if (Object.keys(updatedSession).length !== 0) {
+      //       session[chatId] = {...session[chatId], ...updatedSession }
+      //     }
+         session[chatId] = updatedSession 
         // Add AI response to history
         history.push(new AIMessage(response));
           console.log('userHistories', userHistories)

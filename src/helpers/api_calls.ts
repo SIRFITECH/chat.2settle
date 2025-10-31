@@ -455,6 +455,21 @@ export const createTransaction = async (user: any): Promise<any> => {
   }
 };
 
+export const createBeneficiary = async (user: any): Promise<any> => {
+  try {
+    const response = await axios.post<any>(
+      `${apiURL}/api/create_beneficiary`,
+      user
+    );
+    console.log("Use transaction created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing user data:", error);
+    throw new Error("Failed to store user data");
+  }
+};
+
+
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
 export const createComplain = async (complainData: any): Promise<any> => {
   try {
