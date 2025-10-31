@@ -5,8 +5,6 @@ export type MessageType = {
   type: string;
   content: React.ReactNode;
   timestamp: Date;
-  // isComponent?: boolean;
-  // componentName?: string;
 };
 
 //WALLET
