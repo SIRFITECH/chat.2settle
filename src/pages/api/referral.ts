@@ -48,14 +48,15 @@
 // }
 import type { NextApiRequest, NextApiResponse } from "next";
 import mysql from "mysql2/promise";
+import connection from "@/lib/mysql";
 
-// Database connection configuration
-const dbConfig = {
-  host: process.env.host,
-  user: process.env.user,
-  password: process.env.password,
-  database: process.env.database,
-};
+// // Database connection configuration
+// const dbConfig = {
+//   host: process.env.host,
+//   user: process.env.user,
+//   password: process.env.password,
+//   database: process.env.database,
+// };
 
 export default async function handler(
   req: NextApiRequest,
@@ -65,8 +66,8 @@ export default async function handler(
     const { referralCode } = req.body;
 
     try {
-      // Create a database connection
-      const connection = await mysql.createConnection(dbConfig);
+      // // Create a database connection
+      // const connection = await mysql.createConnection(dbConfig);
 
       // Query the database
       const [rows] = await connection.execute(

@@ -18,26 +18,30 @@ import mysql from "mysql2/promise";
 //   return connection;
 // }
 
+// if (!global.mysqlPool) {
+//   global.mysqlPool = mysql.createPool(config);
+// }
+
+// let connection: mysql.Pool;
 
 const config = {
   host: process.env.host,
   user: process.env.user,
   password: process.env.password,
   database: process.env.database,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 };
 
-let connection: mysql.Pool;
-
 declare global {
-  // prevent multiple pools in dev
   var mysqlPool: mysql.Pool | undefined;
 }
 
-if (!global.mysqlPool) {
-  global.mysqlPool = mysql.createPool(config);
+export const connection = global.mysqlPool || mysql.createPool(config);
+
+if (process.env.NODE_ENV !== "production") {
+  global.mysqlPool = connection;
 }
 
-connection = global.mysqlPool;
-
 export default connection;
-
