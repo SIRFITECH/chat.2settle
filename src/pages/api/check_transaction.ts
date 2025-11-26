@@ -1,3 +1,4 @@
+import connection from "@/lib/mysql";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -10,10 +11,10 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const dbHost = process.env.host;
-  const dbUser = process.env.user;
-  const dbPassword = process.env.password;
-  const dbName = process.env.database;
+  // const dbHost = process.env.host;
+  // const dbUser = process.env.user;
+  // const dbPassword = process.env.password;
+  // const dbName = process.env.database;
   const { transac_id } = req.query;
 
   if (!transac_id) {
@@ -21,15 +22,16 @@ export default async function handler(
   }
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
     const [rows] = await connection.query<RowDataPacket[]>(
-      "SELECT * FROM `settle_database`.`2settle_transaction_table` WHERE `transac_id` = ?",
+      // "SELECT * FROM `settle_database`.`2settle_transaction_table` WHERE `transac_id` = ?",
+      "SELECT * FROM summary WHERE `transaction_id` = ?",
       [transac_id]
     );
 

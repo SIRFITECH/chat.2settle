@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { formatPhoneNumber } from "@/utils/utilities";
+import connection from "@/lib/mysql";
 
-const db = mysql.createPool({
-  host: process.env.host,
-  user: process.env.user,
-  password: process.env.password,
-  database: process.env.database,
-});
+const db = connection;
+// mysql.createPool({
+//   host: process.env.host,
+//   user: process.env.user,
+//   password: process.env.password,
+//   database: process.env.database,
+// });
 
 export default async function handler(
   req: NextApiRequest,
@@ -23,8 +25,12 @@ export default async function handler(
   }
 
   try {
+    // let queryStr = `
+    //   SELECT * FROM settle_database.2settle_report_table 
+    //   WHERE 1=1
+    // `;
     let queryStr = `
-      SELECT * FROM settle_database.2settle_report_table 
+      SELECT * FROM reports 
       WHERE 1=1
     `;
     const queryParams: (string | null)[] = [];

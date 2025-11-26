@@ -1,3 +1,4 @@
+import connection from "@/lib/mysql";
 import mysql from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next/types";
 
@@ -10,10 +11,10 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const dbHost = process.env.host;
-  const dbUser = process.env.user;
-  const dbPassword = process.env.password;
-  const dbName = process.env.database;
+  // const dbHost = process.env.host;
+  // const dbUser = process.env.user;
+  // const dbPassword = process.env.password;
+  // const dbName = process.env.database;
 
   const {
     transaction_id,
@@ -32,12 +33,12 @@ export default async function handler(
   };
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
     const query = "INSERT INTO 2settle_complain_table SET ?";
     const [result] = await connection.query(query, complainData);

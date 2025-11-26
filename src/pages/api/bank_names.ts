@@ -1,6 +1,7 @@
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 import { BankName } from "../../types/general_types";
+import connection from "@/lib/mysql";
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,23 +12,24 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const dbHost = process.env.host;
-  const dbUser = process.env.user;
-  const dbPassword = process.env.password;
-  const dbName = process.env.database;
+  // const dbHost = process.env.host;
+  // const dbUser = process.env.user;
+  // const dbPassword = process.env.password;
+  // const dbName = process.env.database;
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
     const { message: extracted } = req.body;
 
     const [results] = await connection.query<BankName[]>(
-      "SELECT * FROM 2settle_bank_details WHERE bank_name LIKE ?",
+      // "SELECT * FROM 2settle_bank_details WHERE bank_name LIKE ?",
+      "SELECT * FROM banks WHERE name LIKE ?",
       [`${extracted}%`]
     );
 

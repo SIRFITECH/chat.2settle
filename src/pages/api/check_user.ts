@@ -1,69 +1,16 @@
-// import type { NextApiRequest, NextApiResponse } from "next";
-// import mysql, { RowDataPacket } from "mysql2/promise";
-// import { formatPhoneNumber } from "@/utils/utilities";
+import type { NextApiRequest, NextApiResponse } from "next";
+import mysql, { RowDataPacket } from "mysql2/promise";
+import { formatPhoneNumber } from "@/utils/utilities";
+import connection from "@/lib/mysql";
 
-// const db = mysql.createPool({
+// TODO: we need to work on this
+const db = connection;
+// mysql.createPool({
 //   host: process.env.host,
 //   user: process.env.user,
 //   password: process.env.password,
 //   database: process.env.database,
 // });
-
-// export default async function handler(
-//   req: NextApiRequest,
-//   res: NextApiResponse
-// ) {
-//   const { query } = req;
-//   const { phoneNumber, walletAddress } = query;
-
-//   if (!phoneNumber && !walletAddress) {
-//     return res.status(400).json({
-//       error: "At least one of phone number or wallet address is required",
-//     });
-//   }
-
-//   try {
-//     let queryStr = `
-//       SELECT * FROM settle_database.2settle_transaction_table 
-//       WHERE 1=1
-//     `;
-//     const queryParams: (string | null)[] = [];
-
-//     if (phoneNumber) {
-//       const phoneNo = formatPhoneNumber(phoneNumber as string);
-//       queryStr += " AND customer_phoneNumber = ?";
-//       queryParams.push(phoneNo);
-//     }
-
-//     if (walletAddress) {
-//       queryStr += " AND send_from = ?";
-//       queryParams.push(walletAddress as string);
-//     }
-
-//     const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
-
-//     // Return the rows (transactions) in the "transactions" field
-//     if (rows.length > 0) {
-//       return res.status(200).json({ exists: true, transactions: rows });
-//     } else {
-//       return res.status(404).json({ exists: false, transactions: [] });
-//     }
-//   } catch (error) {
-//     console.error("Error checking user in database:", error);
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// }
-
-import type { NextApiRequest, NextApiResponse } from "next";
-import mysql, { RowDataPacket } from "mysql2/promise";
-import { formatPhoneNumber } from "@/utils/utilities";
-
-const db = mysql.createPool({
-  host: process.env.host,
-  user: process.env.user,
-  password: process.env.password,
-  database: process.env.database,
-});
 
 export default async function handler(
   req: NextApiRequest,

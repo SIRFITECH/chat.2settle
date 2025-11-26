@@ -1,7 +1,7 @@
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import mysql, { RowDataPacket } from "mysql2/promise";
-
+// TODO: We have work to do in this
 // Create a connection pool (replace with your actual DB credentials)
 const db = mysql.createPool({
   host: process.env.host,
@@ -30,13 +30,13 @@ export default async function handler(
   try {
     // Construct the query and query parameters based on the provided inputs
     let queryStr = `
-      SELECT * FROM settle_database.2settle_user 
+      SELECT * FROM payer 
       WHERE 1=1
     `;
     const queryParams: (string | null)[] = [];
 
     if (phoneNumber && pin) {
-      queryStr += " AND phone_number = ? AND pin = ?";
+      queryStr += " AND phone = ? AND pin_hash = ?";
       queryParams.push(phoneNumber as string, pin as string);
     }
 

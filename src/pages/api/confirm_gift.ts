@@ -1,3 +1,4 @@
+import connection from "@/lib/mysql";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -10,10 +11,10 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const dbHost = process.env.host;
-  const dbUser = process.env.user;
-  const dbPassword = process.env.password;
-  const dbName = process.env.database;
+  // const dbHost = process.env.host;
+  // const dbUser = process.env.user;
+  // const dbPassword = process.env.password;
+  // const dbName = process.env.database;
   const { gift_id } = req.query;
 
   if (!gift_id) {
@@ -21,24 +22,36 @@ export default async function handler(
   }
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
+    // const query = `
+    //   SELECT
+    //     *
+    //   FROM
+    //     \`settle_database\`.\`2settle_transaction_table\`
+    //   WHERE
+    //     \`gift_chatID\` = ?
+    //   AND
+    //     \`status\` IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
+    //   AND
+    //     \`gift_status\` IN ('pending', 'Not claimed', 'Claimed')
+    // `;
     const query = `
       SELECT
         *
       FROM
-        \`settle_database\`.\`2settle_transaction_table\`
+        gift
       WHERE
-        \`gift_chatID\` = ?
+        gift_id = ?
       AND
-        \`status\` IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
+        status IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
       AND
-        \`gift_status\` IN ('pending', 'Not claimed', 'Claimed')
+        gift_status IN ('pending', 'Not claimed', 'Claimed')
     `;
 
     const [rows] = await connection.query<RowDataPacket[]>(query, [gift_id]);

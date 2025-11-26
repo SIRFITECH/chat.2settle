@@ -1,3 +1,4 @@
+import connection from "@/lib/mysql";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -10,10 +11,10 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const dbHost = process.env.host;
-  const dbUser = process.env.user;
-  const dbPassword = process.env.password;
-  const dbName = process.env.database;
+  // const dbHost = process.env.host;
+  // const dbUser = process.env.user;
+  // const dbPassword = process.env.password;
+  // const dbName = process.env.database;
   const { request_id } = req.query;
 
   if (!request_id) {
@@ -21,22 +22,22 @@ export default async function handler(
   }
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
     const query = `
       SELECT
         *
       FROM
-        \`settle_database\`.\`2settle_transaction_table\`
+       request
       WHERE
-        \`request_id\` = ?
+        request_id = ?
       AND
-        \`status\` IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
+        status IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
     `;
 
     const [rows] = await connection.query<RowDataPacket[]>(query, [request_id]);

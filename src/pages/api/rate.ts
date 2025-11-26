@@ -1,6 +1,7 @@
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 import { ExchangeRate } from "../../types/general_types";
+// import connection from "@/lib/mysql";
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,7 +27,7 @@ export default async function handler(
     });
 
     const [results] = await connection.query<RowDataPacket[]>(
-      "SELECT * FROM 2Settle_ExchangeRate"
+      "SELECT * FROM settle_db_test.rates"
     );
 
     const result = results[0] as ExchangeRate;
@@ -43,7 +44,7 @@ export default async function handler(
     res.status(200).json({ rate: data });
   } catch (err) {
     console.error(
-      "Error querying the 2Settle_ExchangeRate from database:",
+      "Error querying the rate from rates:",
       err
     );
     res.status(500).send("Server error");
