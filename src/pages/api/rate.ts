@@ -1,7 +1,7 @@
 import mysql, { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 import { ExchangeRate } from "../../types/general_types";
-// import connection from "@/lib/mysql";
+import connection from "@/lib/mysql";
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,12 +19,12 @@ export default async function handler(
   const dbName = process.env.database;
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
     const [results] = await connection.query<RowDataPacket[]>(
       "SELECT * FROM settle_db_test.rates"

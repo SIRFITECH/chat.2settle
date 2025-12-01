@@ -14,7 +14,70 @@ export default async function handler(
 
   try {
     // Build base query
-    let query = "SELECT * FROM `2settle_transaction_table` WHERE 1=1";
+    // let query = "SELECT * FROM `2settle_transaction_table` WHERE 1=1";
+    let query = `SELECT * 
+    FROM(
+    id,
+    gift_id AS reference_id,
+    status,
+    crypto,
+    network,
+    estimate_asset,
+    estimate_amount,
+    amount_payable,
+    charges,
+    crypto_amount,
+    date,
+    receiver_id,
+    payer_id,
+    'gift' AS type
+FROM gifts
+WHERE status = 'Successful'
+
+UNION ALL
+
+SELECT
+    id,
+    request_id AS reference_id,
+    request_status AS status,
+    crypto,
+    network,
+    estimate_asset,
+    estimate_amount,
+    amount_payable,
+    charges,
+    crypto_amount,
+    date,
+    receiver_id,
+    payer_id,
+    'request' AS type
+FROM requests
+ 
+WHERE request_status = 'Successful'
+
+UNION ALL
+
+SELECT
+    id,
+    transfer_id AS reference_id,
+    status,
+    crypto,
+    network,
+    estimate_asset,
+    estimate_amount,
+    amount_payable,
+    charges,
+    crypto_amount,
+    date,
+    receiver_id,
+    payer_id,
+    'transfer' AS type
+FROM transfers
+WHERE status = 'Successful' 
+) AS all_trx
+
+ORDER BY date DESC;
+ WHERE 1=1`;
     const values: any[] = [];
 
     // Add condition for successful transactions if no status is provided

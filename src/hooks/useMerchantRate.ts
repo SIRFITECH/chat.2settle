@@ -7,18 +7,20 @@ const useRate = () => {
   return useQuery<number, Error>({
     queryKey: ["merchant_rate"],
     queryFn: () =>
-      axios.get<ServerData>(`${apiURL}/api/merchant_rate`).then((response) => {
-        const rawRate = response.data.merchantRate.replace(/,/g, "");
-        const merchant_rate = parseFloat(rawRate);
+      axios
+        .get<ServerData>(`${apiURL}/api/rates/merchant_rate`)
+        .then((response) => {
+          const rawRate = response.data.merchantRate.replace(/,/g, "");
+          const merchant_rate = parseFloat(rawRate);
 
-        if (isNaN(merchant_rate)) {
-          throw new Error("Invalid rate received");
-        }
+          if (isNaN(merchant_rate)) {
+            throw new Error("Invalid rate received");
+          }
 
-        return merchant_rate;
-      }),
+          return merchant_rate;
+        }),
     staleTime: 15 * 60 * 1000, // 15 mins
-   });
+  });
 };
 
 export default useRate;

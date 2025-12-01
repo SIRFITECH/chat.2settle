@@ -8,7 +8,7 @@ const useRate = () => {
     queryKey: ["profit_rate"],
     queryFn: () =>
       axios
-        .get<ServerData>(`${apiURL}/api/merchant_profit`)
+        .get<ServerData>(`${apiURL}/api/rates/merchant_profit`)
         .then((response) => {
           const rawRate = response.data.profitRate.replace(/,/g, "");
           const profitRate = parseFloat(rawRate);

@@ -12,18 +12,18 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  // const dbHost = process.env.host;
-  // const dbUser = process.env.user;
-  // const dbPassword = process.env.password;
-  // const dbName = process.env.database;
+  const dbHost = process.env.host;
+  const dbUser = process.env.user;
+  const dbPassword = process.env.password;
+  const dbName = process.env.database;
 
   try {
-    // const connection = await mysql.createConnection({
-    //   host: dbHost,
-    //   user: dbUser,
-    //   password: dbPassword,
-    //   database: dbName,
-    // });
+    const connection = await mysql.createConnection({
+      host: dbHost,
+      user: dbUser,
+      password: dbPassword,
+      database: dbName,
+    });
 
     const { message: extracted } = req.body;
 

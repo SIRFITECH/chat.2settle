@@ -39,18 +39,21 @@ export default async function handler(
     const value = response.data.values ? response.data.values[0][0] : null;
 
     const [rows]: any = await connection.execute(
-      `SELECT receiver_amount, current_rate  FROM 2settle_transaction_table WHERE status = 'Successful'`
+      `SELECT total_dollar  FROM summeries WHERE status = 'Successful'`
     );
 
-
     const dbVolume = rows.reduce((total: number, row: any) => {
-      const rawAmount = (row.receiver_amount || "").replace(/[₦, ]/g, "");
-      const nairaAmount = parseFloat(rawAmount);
-      const rawRate = (row.current_rate || "").replace(/[₦,]/g, "");
-      const rate = parseFloat(rawRate);
+      // const rawAmount = (row.receiver_amount || "").replace(/[₦, ]/g, "");
+      // const nairaAmount = parseFloat(rawAmount);
+      // const rawRate = (row.current_rate || "").replace(/[₦,]/g, "");
+      // const rate = parseFloat(rawRate);
 
-      if (!isNaN(nairaAmount) && !isNaN(rate) && rate !== 0) {
-        return total + nairaAmount / rate;
+      // if (!isNaN(nairaAmount) && !isNaN(rate) && rate !== 0) {
+      //   return total + nairaAmount / rate;
+      // }
+      const dollarAmount = parseFloat(row.total_dollar);
+      if (!isNaN(dollarAmount)) {
+        return total + dollarAmount;
       }
 
       return total;

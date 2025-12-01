@@ -8,11 +8,11 @@ export type MessageType = {
 };
 
 //WALLET
-export type EthereumAddress = `0x${string}`|undefined;
+export type EthereumAddress = `0x${string}` | undefined;
 
 // RATES FROM THE VENDOR TABLE
 export interface ExchangeRate {
-  rate: number;
+  current_rate: number;
   merchant_rate: string;
   profit_rate: string;
 }
