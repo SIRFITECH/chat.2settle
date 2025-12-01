@@ -34,7 +34,6 @@ export default async function handler(
 
     const profitRate = result.profit_rate;
 
-    await connection.end();
 
     res.status(200).json({ profitRate: profitRate });
   } catch (err) {

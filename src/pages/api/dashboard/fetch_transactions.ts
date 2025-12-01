@@ -10,74 +10,63 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { transac_id, status } = req.query;
+  const { transaction_id, status } = req.query;
 
   try {
     // Build base query
-    // let query = "SELECT * FROM `2settle_transaction_table` WHERE 1=1";
-    let query = `SELECT * 
-    FROM(
-    id,
-    gift_id AS reference_id,
-    status,
-    crypto,
-    network,
-    estimate_asset,
-    estimate_amount,
-    amount_payable,
-    charges,
-    crypto_amount,
-    date,
-    receiver_id,
-    payer_id,
-    'gift' AS type
-FROM gifts
-WHERE status = 'Successful'
+    // let query = "SELECT * FROM summaries WHERE 1=1";
+    let query = `
+SELECT *
+FROM (
+    SELECT 
+        t.date AS date,
+        t.transfer_id AS transac_id,
+        t.estimate_amount,
+        t.crypto_amount,
+        t.current_rate, 
+        t.charges,
+        t.amount_payable,
+        s.status,
+        s.transaction_id
+    FROM summaries s
+    LEFT JOIN transfers t ON s.transaction_id = t.id
+    WHERE s.transaction_type = 'transfer'
 
-UNION ALL
+    UNION ALL
 
-SELECT
-    id,
-    request_id AS reference_id,
-    request_status AS status,
-    crypto,
-    network,
-    estimate_asset,
-    estimate_amount,
-    amount_payable,
-    charges,
-    crypto_amount,
-    date,
-    receiver_id,
-    payer_id,
-    'request' AS type
-FROM requests
- 
-WHERE request_status = 'Successful'
+    SELECT
+        g.date AS date,
+        g.gift_id AS transac_id,
+        g.estimate_amount,
+        g.crypto_amount,
+        g.current_rate,
+        g.charges,
+        g.amount_payable,
+        s.status,
+        s.transaction_id
+    FROM summaries s
+    LEFT JOIN gifts g ON s.transaction_id = g.id
+    WHERE s.transaction_type = 'gift'
 
-UNION ALL
+    UNION ALL
 
-SELECT
-    id,
-    transfer_id AS reference_id,
-    status,
-    crypto,
-    network,
-    estimate_asset,
-    estimate_amount,
-    amount_payable,
-    charges,
-    crypto_amount,
-    date,
-    receiver_id,
-    payer_id,
-    'transfer' AS type
-FROM transfers
-WHERE status = 'Successful' 
+    SELECT
+        r.date AS date,
+        r.request_id AS transac_id,
+        r.estimate_amount,
+        r.crypto_amount,
+        r.current_rate,
+        r.charges,
+        r.amount_payable,
+        s.status,
+        s.transaction_id
+    FROM summaries s
+    LEFT JOIN requests r ON s.transaction_id = r.id
+    WHERE s.transaction_type = 'request'
 ) AS all_trx
+WHERE 1=1
+`;
 
-ORDER BY date DESC;
- WHERE 1=1`;
     const values: any[] = [];
 
     // Add condition for successful transactions if no status is provided
@@ -85,18 +74,18 @@ ORDER BY date DESC;
       query += " AND `status` = ?";
       values.push(status);
     } else {
-      query += " AND `status` = ?";
+      query += " AND `all_trx.status` = ?";
       values.push("Successful");
     }
 
     // Optional filter for transaction ID
-    if (transac_id) {
-      query += " AND `transac_id` = ?";
-      values.push(transac_id);
+    if (transaction_id) {
+      query += " AND `all_trx.transaction_id` = ?";
+      values.push(transaction_id);
     }
 
     // Order by date descending to get the most recent transactions
-    query += " ORDER BY STR_TO_DATE(`Date`, '%l:%i%p %d/%m/%Y') DESC,`id` DESC";
+    query += " ORDER BY date DESC";
     // Limit to 20 records
     query += " LIMIT 20";
 
@@ -106,6 +95,8 @@ ORDER BY date DESC;
     return res.status(200).json({ transactions: rows });
   } catch (err) {
     console.error("Error fetching transactions:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({
+      message: "There was an internal error when trying to fetch transactions",
+    });
   }
 }

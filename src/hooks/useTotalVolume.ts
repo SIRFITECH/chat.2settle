@@ -7,18 +7,20 @@ const useTotalVolume = () => {
   return useQuery({
     queryKey: ["total-volume"],
     queryFn: () =>
-      axios.get<ServerData>(`${apiURL}/api/fetchYTD`).then((response) => {
-        const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
-        const ytdVolume = parseFloat(rawVolume);
-        const dbVolume = parseFloat(response.data.dbVolume);
-        console.log("YTD", { ytdVolume, dbVolume });
+      axios
+        .get<ServerData>(`${apiURL}/api/dashboard/fetchYTD`)
+        .then((response) => {
+          const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
+          const ytdVolume = parseFloat(rawVolume);
+          const dbVolume = parseFloat(response.data.dbVolume);
+          console.log("YTD", { ytdVolume, dbVolume });
 
-        if (isNaN(ytdVolume) || isNaN(dbVolume)) {
-          throw new Error("Invalid rate received");
-        }
+          if (isNaN(ytdVolume) || isNaN(dbVolume)) {
+            throw new Error("Invalid rate received");
+          }
 
-        return ytdVolume + dbVolume;
-      }),
+          return ytdVolume + dbVolume;
+        }),
     staleTime: 5 * 60 * 1000, // 15 mins
   });
 };

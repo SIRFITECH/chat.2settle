@@ -33,7 +33,6 @@ export default async function handler(
     const result = results[0] as ExchangeRate;
 
     const merchantRate = result.merchant_rate;
-    await connection.end();
 
     res.status(200).json({ merchantRate: merchantRate });
   } catch (err) {
