@@ -6,15 +6,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from "../../ui/table";
 import useTransactionDashboardData from "@/hooks/useTransactionDashboardData";
 import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
+// import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
 
 const DisplayTransactions = () => {
   const { data: filteredTransactions, isLoading } =
     useTransactionDashboardData();
 
-    console.log("Filtered Transactions:", filteredTransactions);
+  console.log("Filtered Transactions:", filteredTransactions);
   const hasTransactions =
     filteredTransactions?.transactions &&
     filteredTransactions.transactions.length > 0;

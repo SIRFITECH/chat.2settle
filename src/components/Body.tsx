@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import ErrorBoundary from "./TelegramError";
 import useRate from "@/hooks/useRate";
 import useTotalVolume from "@/hooks/useTotalVolume";
-import DisplayTransactions from "./shared/DisplayTransactions";
+import DisplayTransactions from "./shared/dashboard/DisplayTransactions";
 import Maintenance from "./Maintenance";
 
 const useMediaQuery = (query: string) => {
