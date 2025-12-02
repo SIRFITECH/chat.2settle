@@ -23,10 +23,12 @@ FROM (
         t.transfer_id AS transac_id,
         t.estimate_amount,
         t.crypto_amount,
+        t.crypto,
         t.current_rate, 
         t.charges,
         t.amount_payable,
         s.status,
+        s.transaction_type,
         s.transaction_id
     FROM summaries s
     LEFT JOIN transfers t ON s.transaction_id = t.id
@@ -39,10 +41,12 @@ FROM (
         g.gift_id AS transac_id,
         g.estimate_amount,
         g.crypto_amount,
+        g.crypto,
         g.current_rate,
         g.charges,
         g.amount_payable,
         s.status,
+        s.transaction_type,
         s.transaction_id
     FROM summaries s
     LEFT JOIN gifts g ON s.transaction_id = g.id
@@ -55,10 +59,12 @@ FROM (
         r.request_id AS transac_id,
         r.estimate_amount,
         r.crypto_amount,
+        r.crypto,
         r.current_rate,
         r.charges,
         r.amount_payable,
         s.status,
+        s.transaction_type,
         s.transaction_id
     FROM summaries s
     LEFT JOIN requests r ON s.transaction_id = r.id

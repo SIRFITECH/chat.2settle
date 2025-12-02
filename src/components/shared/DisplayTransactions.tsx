@@ -13,6 +13,8 @@ import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
 const DisplayTransactions = () => {
   const { data: filteredTransactions, isLoading } =
     useTransactionDashboardData();
+
+    console.log("Filtered Transactions:", filteredTransactions);
   const hasTransactions =
     filteredTransactions?.transactions &&
     filteredTransactions.transactions.length > 0;
@@ -22,6 +24,7 @@ const DisplayTransactions = () => {
       <TableHeader>
         <TableRow>
           <TableHead>Date</TableHead>
+          <TableHead>Tx Type</TableHead>
           <TableHead className="hidden md:table-cell">Tx ID</TableHead>
           <TableHead>Naira Amount</TableHead>
           <TableHead>Crypto Amount</TableHead>

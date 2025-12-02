@@ -1,7 +1,7 @@
 // import { useEffect, useState } from "react";
 
-export function getFormattedDateTime(): string {
-  const now = new Date();
+export function getFormattedDateTime(date?: Date | string): string {
+  const now = typeof date === "string" ? new Date(date) : new Date();
 
   const hours = now.getHours();
   const minutes = now.getMinutes();
