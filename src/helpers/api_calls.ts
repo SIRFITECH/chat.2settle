@@ -137,7 +137,7 @@ export const checkGiftExists = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
-    const response = await axios.get("/api/check_gift", {
+    const response = await axios.get(`${apiURL}/api/check_gift`, {
       params: { gift_id: gift_id },
     });
     const { exists, user } = response.data;

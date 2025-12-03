@@ -44,10 +44,25 @@ Account number: ${updatedSession.acct_number}
 10.this question should follow, would you like to save this person as beneficiary?
 11. if user say YES. ask the user what name will you like to save the beneficiary with? and if NO end the conversation
 12. After you collect the beneficiary name, let the user know you have the beneficiary
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            =iug
+
+
+THIS IS THE SECTION FOR GIFT, IF USER WANT TO CREATE GIFT------
+1. if a user want to create gift just tell them to choose  Asset (BTC, ETH, BNB, TRON, USDT) 
+2. Network (only if asset is USDT)
+3. Estimation type: crypto, naira, or dollar
+4.  phone number
+5. after phone number then display you are sending ${updatedSession['totalcrypto']} ${updatedSession.asset} to this wallet address ${updatedSession.wallet_address} and you will be receiving ₦${updatedSession['amountString']}.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       =iug
 THIS IS THE SECTION FOR GIFT, IF USER WANT TO CLAIM GIFT------
-1. If a user to claim gift just tell them to provide their gift id
-2. 
+1. If a user want to claim gift just tell them to provide their gift id
+2. after the user provide their gift id check if ${updatedSession['checkGift']} is true then ask the user for Bank name if is not true tell the user the gift id is not valid 
+3. after user select bank name, tell the user to input their Account number
+4. ask if the account details is correctly which are:
+Name: ${updatedSession.receiver_name} 
+Bank name: ${updatedSession.bank_name} 
+Account number: ${updatedSession.acct_number}
+5. phone number
+
 
                 If the user gives multiple values, extract what you can, confirm it, and move to the next question.
                 If the user provides a value but you need another value to compute, extract the value you have,

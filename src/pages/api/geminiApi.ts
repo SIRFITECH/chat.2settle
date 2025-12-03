@@ -8,6 +8,7 @@ import * as dotenv from 'dotenv';
 import { StructuredOutputParser, OutputFixingParser } from "langchain/output_parsers"
 import crypto from "crypto";
 import {
+  checkGiftExists,
   createBeneficiary,
   createTransaction,
   fetchCoinPrice,
@@ -16,6 +17,7 @@ import {
   fetchRate,
   getAvaialableWallet,
   resolveBankAccount,
+  updateGiftTransaction,
 } from "@/helpers/api_calls";
 
 // at top of the file (outside handler)
@@ -127,12 +129,12 @@ const filtered = Object.fromEntries(
       let updatedSession = { ...session[chatId], ...filtered };
       
     console.log("Updatedddd session:", updatedSession)
-      if (updatedSession.crypto === 'BTC') {
+              if (updatedSession.crypto === 'BTC') {
               updatedSession.network = 'BTC'
             }else if (updatedSession.crypto === 'ETH') {
               updatedSession.network = 'ETH'
             }else if (updatedSession.crypto === 'TRON') {
-              updatedSession.network = 'TRC20'
+              updatedSession.network = 'TRX'
             }
           // 4. Auto-fetch info if ready
             if (updatedSession.crypto && !updatedSession.assetPrice) {
@@ -158,7 +160,11 @@ const filtered = Object.fromEntries(
         }
           createBeneficiary(beneficiaryDate)
       }
-      
+      if (updatedSession.gift_id) {
+        const { exists } = await checkGiftExists(updatedSession.gift_id)
+        console.log('checking if gift exits', exists)
+        updatedSession['checkGift'] = exists
+       }
         if (
           updatedSession.bank_name &&
           updatedSession.acct_number &&
@@ -175,8 +181,18 @@ const filtered = Object.fromEntries(
           userAcctDetail[chatId]['receiver_name'] = updatedSession.receiver_name 
         }
       
-          if (updatedSession.receiver_phoneNumber) {
-            const lowercase = updatedSession.network.toLowerCase();
+      if (updatedSession.receiver_phoneNumber) {
+        if (updatedSession['checkGift']) {
+            session[chatId]= {
+              bank_name: updatedSession.bank_name,
+              acct_number: updatedSession.acct_number,
+              receiver_name: updatedSession.receiver_name,
+              receiver_phoneNumber: updatedSession.receiver_phoneNumber,
+              gift_status: 'Processing'
+          };
+           updateGiftTransaction(updatedSession['gift_id'],  session[chatId])
+        } else {
+                   const lowercase = updatedSession.network.toLowerCase();
         userAcctDetail[chatId]['receiver_phoneNumber'] = updatedSession.receiver_phoneNumber
     const { activeWallet, lastAssignedTime } = await getAvaialableWallet(lowercase);
     updatedSession['wallet_address'] = activeWallet;
@@ -233,6 +249,8 @@ const filtered = Object.fromEntries(
       updatedSession['effort'] = updatedSession['nairaAmount'] * 0.01;
 
     }
+            }
+   
       }  
       
     
@@ -270,6 +288,17 @@ const filtered = Object.fromEntries(
              session[chatId]['transac_id'] = crypto.randomBytes(4).readUInt32LE(0) % range + min
       
           const { ...rest } =  session[chatId];
+             if (!updatedSession.bank_name) {
+             session[chatId]= {
+              receiver_amount: `₦${updatedSession['amountString']}`,
+              crypto_sent: `${updatedSession['totalcrypto']} ${updatedSession.crypto}`,
+              customer_phoneNumber: `${updatedSession.receiver_phoneNumber}`,
+              wallet_address: `${updatedSession.wallet_address}`,
+              effort: `${updatedSession.effort}`,
+              mode_of_payment: 'Gift',
+             ...rest
+          };
+          }
             session[chatId]= {
               receiver_amount: `₦${updatedSession['amountString']}`,
               crypto_sent: `${updatedSession['totalcrypto']} ${updatedSession.crypto}`,
@@ -285,9 +314,7 @@ const filtered = Object.fromEntries(
           updatedSession = {}
         }
       
-      // if (Object.keys(updatedSession).length !== 0) {
-      //       session[chatId] = {...session[chatId], ...updatedSession }
-      //     }
+ 
          session[chatId] = updatedSession 
         // Add AI response to history
         history.push(new AIMessage(response));
