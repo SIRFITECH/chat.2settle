@@ -61,41 +61,6 @@ export const componentMap: { [key: string]: React.ComponentType<any> } = {
 
 export const greetings = ["hi", "hello", "hey", "howdy"];
 
-// Replace multiple sequential API calls with Promise.all to batch API calls
-
-export const fetchData = async (
-  setRate: React.Dispatch<React.SetStateAction<string>>,
-  setFormattedRate: React.Dispatch<React.SetStateAction<string>>,
-  setMerchantRate: React.Dispatch<React.SetStateAction<string>>,
-  setProfitRate: React.Dispatch<React.SetStateAction<string>>,
-  setSharedRate: (rate: string) => void
-) => {
-  try {
-    const [fetchedRate, fetchedMerchantRate, fetchedProfitRate] =
-      await Promise.all([fetchRate(), fetchMerchantRate(), fetchProfitRate()]);
-
-    // Batch state updates
-    const updates = {
-      rate: fetchedRate.toString(),
-      formattedRate: formatCurrency(fetchedRate.toString(), "NGN", "en-NG"),
-      merchantRate: formatCurrency(
-        fetchedMerchantRate.toString(),
-        "NGN",
-        "en-NG"
-      ),
-      profitRate: formatCurrency(fetchedProfitRate.toString(), "NGN", "en-NG"),
-    };
-
-    // Update all states at once
-    setRate(updates.rate);
-    setFormattedRate(updates.formattedRate);
-    setMerchantRate(updates.merchantRate);
-    setProfitRate(updates.profitRate);
-    setSharedRate(updates.rate);
-  } catch (error) {
-    console.error("Failed to fetch rates:", error);
-  }
-};
 
 export const initializeChatId = (
   isTelUser: boolean,

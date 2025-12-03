@@ -13,7 +13,6 @@ const useTotalVolume = () => {
           const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
           const ytdVolume = parseFloat(rawVolume);
           const dbVolume = parseFloat(response.data.dbVolume);
-          console.log("YTD", { ytdVolume, dbVolume });
 
           if (isNaN(ytdVolume) || isNaN(dbVolume)) {
             throw new Error("Invalid rate received");

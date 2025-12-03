@@ -50,19 +50,21 @@ import {
 } from "@/features/chatbot/helpers/localStorageUtils";
 import type { ChatBotProps } from "@/types/chatbot_types";
 import type { telegramUser } from "@/types/telegram_types";
-import ErrorBoundary from "../TelegramError";
-import TelegramIntegration from "../TelegramIntegration";
-import ChatHeader from "../chatbot/ChatHeader";
-import ChatInput from "../chatbot/ChatInput";
-import ChatMessages from "../chatbot/ChatMessages";
-import { withErrorHandling } from "../withErrorHandling";
+import ErrorBoundary from "../../components/TelegramError";
+import TelegramIntegration from "../../components/TelegramIntegration";
+import ChatHeader from "../../components/chatbot/ChatHeader";
+import ChatInput from "../../components/chatbot/ChatInput";
+import ChatMessages from "../../components/chatbot/ChatMessages";
+import { withErrorHandling } from "../../components/withErrorHandling";
 
 import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
-import { getRates } from "@/services/chatBotService";
 import type { WalletAddress } from "@/lib/wallets/types";
 import { useBTCWallet } from "stores/btcWalletStore";
 import useTronWallet from "stores/tronWalletStore";
+import useRate from "@/hooks/useRate";
+import useMerchantRate from "@/hooks/useMerchantRate";
+import useProfitRate from "@/hooks/useProfitRate";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -172,16 +174,21 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     goToStep,
   } = useChatNavigation();
 
+  // RATE HOOKS
+  const { data: rate } = useRate();
+  const { data: merchantRate } = useMerchantRate();
+  const { data: profitRate } = useProfitRate();
+
   // STATE HOOKS
   const [isOpen, setIsOpen] = useState(true);
   // hook to collect user input from the chat input form
   const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rate, setRate] = useState("");
-  const [formattedRate, setFormattedRate] = useState<string>("");
+  // const [rate, setRate] = useState("");
+  // const [formattedRate, setFormattedRate] = useState<string>("");
   const [chatId, setChatId] = useState("");
-  const [merchantRate, setMerchantRate] = useState("");
-  const [profitRate, setProfitRate] = useState("");
+  // const [merchantRate, setMerchantRate] = useState("");
+  // const [profitRate, setProfitRate] = useState("");
   const [reporterName, setReporterName] = useState("");
   const [reporterPhoneNumber, setReporterPhoneNumber] = useState("");
   const [reporterWalletAddress, setReporterWalletAddress] = useState("");
@@ -207,7 +214,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   const ethConnect = walletIsConnected || (walletIsConnected && isETH);
 
   // LOAD CHATS FROM LOCALSTORAGE
-  // const [local, setLocal] = '
+
   useState(getLocalStorageData());
   useEffect(() => {
     const storageListener = () => {
@@ -307,40 +314,43 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     initializeChatId();
   }, [chatId]);
 
-  useEffect(() => {
-    async function fetchData() {
-      const rates = await getRates();
-      if (rates) {
-        // Batch state updates
-        const updates = {
-          rate: rates.fetchedRate.toString(),
-          formattedRate: formatCurrency(
-            rates.fetchedRate.toString(),
-            "NGN",
-            "en-NG"
-          ),
-          merchantRate: formatCurrency(
-            rates.fetchedMerchantRate.toString(),
-            "NGN",
-            "en-NG"
-          ),
-          profitRate: formatCurrency(
-            rates.fetchedProfitRate.toString(),
-            "NGN",
-            "en-NG"
-          ),
-        };
-        console.log("Rate is:", rate);
-        // Update all states at once
-        setRate(updates.rate);
-        setFormattedRate(updates.formattedRate);
-        setMerchantRate(updates.merchantRate);
-        setProfitRate(updates.profitRate);
-        setSharedRate(updates.rate);
-      }
-    }
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   // setFormattedRate(rate);
+  //   // setMerchantRate(merchantRate);
+  //   // setProfitRate(profitRate);
+  //   // async function fetchData() {
+  //   //   const rates = await getRates();
+  //   //   if (rates) {
+  //   //     // Batch state updates
+  //   //     const updates = {
+  //   //       rate: rates.fetchedRate.toString(),
+  //   //       formattedRate: formatCurrency(
+  //   //         rates.fetchedRate.toString(),
+  //   //         "NGN",
+  //   //         "en-NG"
+  //   //       ),
+  //   //       merchantRate: formatCurrency(
+  //   //         rates.fetchedMerchantRate.toString(),
+  //   //         "NGN",
+  //   //         "en-NG"
+  //   //       ),
+  //   //       profitRate: formatCurrency(
+  //   //         rates.fetchedProfitRate.toString(),
+  //   //         "NGN",
+  //   //         "en-NG"
+  //   //       ),
+  //   //     };
+  //   //     console.log("Rate is:", rate);
+  //   //     // Update all states at once
+  //   //     setRate(updates.rate);
+  //   //     setFormattedRate(updates.formattedRate);
+  //   //     setMerchantRate(updates.merchantRate);
+  //   //     setProfitRate(updates.profitRate);
+  //   //     setSharedRate(updates.rate);
+  //   //   }
+  //   // }
+  //   // fetchData();
+  // }, []);
 
   useEffect(() => {
     const dateSeparators = document.querySelectorAll(".date-separator");
@@ -972,7 +982,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
         fraudsterWalletAddress,
         sharedReportlyReportType,
         reportId,
-        formattedRate,
+        rate?.toString() || "",
         setSharedAmount,
         setSharedCharge,
         setSharedPaymentAssetEstimate,
@@ -1127,7 +1137,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 fraudsterWalletAddress,
                 sharedReportlyReportType,
                 reportId,
-                formattedRate,
+                rate?.toString() || "",
                 setSharedAmount,
                 setSharedCharge,
                 setSharedPaymentAssetEstimate,
@@ -1229,7 +1239,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
                 fraudsterWalletAddress,
                 sharedReportlyReportType,
                 reportId,
-                formattedRate,
+                rate?.toString() || "",
                 setSharedAmount,
                 setSharedCharge,
                 setSharedPaymentAssetEstimate,

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import ChatBot from "./transactions/ChatBot";
+import ChatBot from "../features/transact/ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
 import SendMoney from "./SendMoney";

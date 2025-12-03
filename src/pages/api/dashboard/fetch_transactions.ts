@@ -14,7 +14,6 @@ export default async function handler(
 
   try {
     // Build base query
-    // let query = "SELECT * FROM summaries WHERE 1=1";
     let query = `
 SELECT *
 FROM (
