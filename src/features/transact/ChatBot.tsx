@@ -57,7 +57,7 @@ import ChatInput from "../../components/chatbot/ChatInput";
 import ChatMessages from "../../components/chatbot/ChatMessages";
 import { withErrorHandling } from "../../components/withErrorHandling";
 
-import { helloMenu } from "@/features/chatbot/handlers/general";
+import { aiChat, helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import type { WalletAddress } from "@/lib/wallets/types";
 import { useBTCWallet } from "stores/btcWalletStore";
@@ -65,6 +65,7 @@ import useTronWallet from "stores/tronWalletStore";
 import useRate from "@/hooks/useRate";
 import useMerchantRate from "@/hooks/useMerchantRate";
 import useProfitRate from "@/hooks/useProfitRate";
+import { calculateCharge } from "@/services/transactionService/transactCryptoService/transactCrypto";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -313,44 +314,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   useEffect(() => {
     initializeChatId();
   }, [chatId]);
-
-  // useEffect(() => {
-  //   // setFormattedRate(rate);
-  //   // setMerchantRate(merchantRate);
-  //   // setProfitRate(profitRate);
-  //   // async function fetchData() {
-  //   //   const rates = await getRates();
-  //   //   if (rates) {
-  //   //     // Batch state updates
-  //   //     const updates = {
-  //   //       rate: rates.fetchedRate.toString(),
-  //   //       formattedRate: formatCurrency(
-  //   //         rates.fetchedRate.toString(),
-  //   //         "NGN",
-  //   //         "en-NG"
-  //   //       ),
-  //   //       merchantRate: formatCurrency(
-  //   //         rates.fetchedMerchantRate.toString(),
-  //   //         "NGN",
-  //   //         "en-NG"
-  //   //       ),
-  //   //       profitRate: formatCurrency(
-  //   //         rates.fetchedProfitRate.toString(),
-  //   //         "NGN",
-  //   //         "en-NG"
-  //   //       ),
-  //   //     };
-  //   //     console.log("Rate is:", rate);
-  //   //     // Update all states at once
-  //   //     setRate(updates.rate);
-  //   //     setFormattedRate(updates.formattedRate);
-  //   //     setMerchantRate(updates.merchantRate);
-  //   //     setProfitRate(updates.profitRate);
-  //   //     setSharedRate(updates.rate);
-  //   //   }
-  //   // }
-  //   // fetchData();
-  // }, []);
 
   useEffect(() => {
     const dateSeparators = document.querySelectorAll(".date-separator");
@@ -944,82 +907,106 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
+  const aiRequest = false;
+
   // THE ROOT FUNCTION
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleConversation(
-        addChatMessages,
-        chatInput,
-        currentStep,
-        walletIsConnected,
-        wallet,
-        sharedGiftId,
-        telFirstName || "",
-        sharedPaymentMode,
-        sharedRate,
-        sharedCrypto,
-        sharedTicker,
-        sharedAssetPrice,
-        sharedEstimateAsset,
-        sharedNetwork,
-        sharedCharge,
-        sharedPaymentAssetEstimate,
-        sharedPaymentNairaEstimate,
-        sharedNairaCharge,
-        sharedSelectedBankCode,
-        sharedSelectedBankName,
-        sharedAmount,
-        sharedBankCodes,
-        sharedBankNames,
-        ethConnect,
-        sharedTransactionId,
-        procesingStatus,
-        cancelledStatus,
-        reporterName,
-        reporterPhoneNumber,
-        reporterWalletAddress,
-        fraudsterWalletAddress,
-        sharedReportlyReportType,
-        reportId,
-        rate?.toString() || "",
-        setSharedAmount,
-        setSharedCharge,
-        setSharedPaymentAssetEstimate,
-        setSharedPaymentNairaEstimate,
-        setSharedNairaCharge,
-        setSharedChargeForDB,
-        updateBankData,
-        setChatInput,
-        goToStep,
-        nextStep,
-        prevStep,
-        setSharedPaymentMode,
-        setSharedTicker,
-        setSharedCrypto,
-        setSharedNetwork,
-        setSharedWallet,
-        setSharedEstimateAsset,
-        setSharedGiftId,
-        setSharedBankNames,
-        setSharedBankCodes,
-        setSharedSelectedBankCode,
-        setSharedSelectedBankName,
-        setLoading,
-        setSharedPhone,
-        setSharedTransactionId,
-        setSharedReportlyReportType,
-        setReporterName,
-        setReporterPhoneNumber,
-        setReportId,
-        setReporterWalletAddress,
-        setFraudsterWalletAddress,
-        setDescriptionNote,
-        onError,
-        processTransaction
-      );
+      aiRequest
+        ? aiChat(addChatMessages, chatInput, setSharedPaymentMode).catch(
+            (error) => {
+              console.error("AI Chat Error:", error);
+            }
+          )
+        : handleConversation(
+            addChatMessages,
+            chatInput,
+            currentStep,
+            walletIsConnected,
+            wallet,
+            sharedGiftId,
+            telFirstName || "",
+            sharedPaymentMode,
+            sharedRate,
+            sharedCrypto,
+            sharedTicker,
+            sharedAssetPrice,
+            sharedEstimateAsset,
+            sharedNetwork,
+            sharedCharge,
+            sharedPaymentAssetEstimate,
+            sharedPaymentNairaEstimate,
+            sharedNairaCharge,
+            sharedSelectedBankCode,
+            sharedSelectedBankName,
+            sharedAmount,
+            sharedBankCodes,
+            sharedBankNames,
+            ethConnect,
+            sharedTransactionId,
+            procesingStatus,
+            cancelledStatus,
+            reporterName,
+            reporterPhoneNumber,
+            reporterWalletAddress,
+            fraudsterWalletAddress,
+            sharedReportlyReportType,
+            reportId,
+            rate?.toString() || "",
+            setSharedAmount,
+            setSharedCharge,
+            setSharedPaymentAssetEstimate,
+            setSharedPaymentNairaEstimate,
+            setSharedNairaCharge,
+            setSharedChargeForDB,
+            updateBankData,
+            setChatInput,
+            goToStep,
+            nextStep,
+            prevStep,
+            setSharedPaymentMode,
+            setSharedTicker,
+            setSharedCrypto,
+            setSharedNetwork,
+            setSharedWallet,
+            setSharedEstimateAsset,
+            setSharedGiftId,
+            setSharedBankNames,
+            setSharedBankCodes,
+            setSharedSelectedBankCode,
+            setSharedSelectedBankName,
+            setLoading,
+            setSharedPhone,
+            setSharedTransactionId,
+            setSharedReportlyReportType,
+            setReporterName,
+            setReporterPhoneNumber,
+            setReportId,
+            setReporterWalletAddress,
+            setFraudsterWalletAddress,
+            setDescriptionNote,
+            onError,
+            processTransaction
+          );
     }
   };
+
+  // load messages on page load or refresh
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      const latestMessage = chatMessages[chatMessages.length - 1];
+      const dateString = renderDateSeparator(new Date(latestMessage.timestamp));
+      setCurrentDate(dateString);
+      setShowDateDropdown(true);
+
+      const timer = setTimeout(() => {
+        setShowDateDropdown(false);
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [chatMessages]);
 
   const renderDateSeparator = (date: Date) => {
     const now = new Date();
@@ -1040,20 +1027,6 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   };
 
-  useEffect(() => {
-    if (chatMessages.length > 0) {
-      const latestMessage = chatMessages[chatMessages.length - 1];
-      const dateString = renderDateSeparator(new Date(latestMessage.timestamp));
-      setCurrentDate(dateString);
-      setShowDateDropdown(true);
-
-      const timer = setTimeout(() => {
-        setShowDateDropdown(false);
-      }, 3000); // 3 seconds
-
-      return () => clearTimeout(timer);
-    }
-  }, [chatMessages]);
   const groupedMessages = useMemo(
     () =>
       chatMessages.reduce((groups, message) => {
@@ -1285,48 +1258,3 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
 };
 
 export default withErrorHandling(ChatBot);
-
-export function calculateCharge(
-  amount: string,
-  payment_mode: string,
-  shared_rate: string,
-  asset_price: string
-) {
-  const numAmount = Number.parseFloat(amount.replace(/[^\d.]/g, ""));
-  let basic, median, premium;
-  const rate = Number.parseFloat(shared_rate);
-  const assetPrice = Number.parseFloat(asset_price);
-
-  if (!rate || !assetPrice) {
-    console.error("Invalid rate or asset price:", { rate, assetPrice });
-    return 0;
-  }
-
-  if (payment_mode.toLowerCase().trim() === "usdt") {
-    basic = 500 / rate;
-    median = 1_000 / rate;
-    premium = 1_500 / rate;
-  } else {
-    basic = 500 / rate / assetPrice;
-    median = 1000 / rate / assetPrice;
-    premium = 1500 / rate / assetPrice;
-  }
-
-  const nairaCharge =
-    numAmount <= 100_000
-      ? 500
-      : numAmount > 100_000 && numAmount <= 1_000_000
-      ? 1_000
-      : 1_500;
-
-  const cryptoCharge =
-    nairaCharge === 500
-      ? basic
-      : nairaCharge === 1_000
-      ? median
-      : nairaCharge === 1_500
-      ? premium
-      : 0;
-
-  return cryptoCharge;
-}

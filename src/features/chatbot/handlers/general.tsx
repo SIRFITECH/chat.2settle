@@ -23,66 +23,58 @@ import { geminiAi } from "@/services/ai/ai-services";
 
 // Welcome message for the user with instruction on how to start a chat
 
+export const aiChat = async (
+  addChatMessages?: (messages: MessageType[]) => void,
+  chatInput?: string,
+  setSharedPaymentMode?: (mode: string) => void
+) => {
+  try {
+    console.log("we are at the start");
 
+    // window.localStorage.setItem("transactionID", "");
+    setSharedPaymentMode?.("");
+    const messages: any = [];
+    const updatedMessages = [...messages, { role: "user", content: chatInput }];
+    let sessionId = window.localStorage.getItem("transactionID");
 
-// export const helloMenu = async (
-//   addChatMessages?: (messages: MessageType[]) => void,
-//   chatInput?: string,
-//   nextStep?: (step: string) => void,
-//   walletIsConnected?: boolean,
-//   wallet?: WalletAddress,
-//   telFirstName?: string,
-//   setSharedPaymentMode?: (mode: string) => void
-// ) => {
+    // ✅ If it doesn't exist, create and store it
+    if (!sessionId) {
+      sessionId = Math.floor(100000 + Math.random() * 900000).toString();
+      window.localStorage.setItem("transactionID", sessionId);
+      console.log("Generated new sessionId:", sessionId);
+    } else {
+      console.log("Using existing sessionId:", sessionId);
+    }
 
-//   try {
-//     console.log("we are at the start");
+    // const reply = await OpenAI(updatedMessages, sessionId);
+    const reply = await geminiAi(chatInput, sessionId);
+    console.log("this is the response from backend", reply.reply);
 
-//     // window.localStorage.setItem("transactionID", "");
-//     setSharedPaymentMode?.("");
-//     const messages: any = [];
-//     const updatedMessages = [...messages, { role: "user", content: chatInput }];
-//     let sessionId = window.localStorage.getItem("transactionID");
+    addChatMessages?.([
+      {
+        type: "incoming",
+        content: <span>{reply.reply}</span>, // simplified: just the assistant's latest reply
+        timestamp: new Date(),
+      },
+    ]);
+  } catch (err) {
+    console.error("There was an error from backend", err);
 
-//     // ✅ If it doesn't exist, create and store it
-//     if (!sessionId) {
-//       sessionId = Math.floor(100000 + Math.random() * 900000).toString();
-//        window.localStorage.setItem("transactionID", sessionId);
-//       console.log("Generated new sessionId:", sessionId);
-//     } else {
-//       console.log("Using existing sessionId:", sessionId);
-//     }
-    
-//       // const reply = await OpenAI(updatedMessages, sessionId);
-//    const reply = await geminiAi(chatInput, sessionId);
-//     console.log("this is the response from backend", reply.reply);
-
-//     addChatMessages?.([
-//       {
-//         type: "incoming",
-//         content: <span>{reply.reply}</span>, // simplified: just the assistant's latest reply
-//         timestamp: new Date(),
-//       },
-//     ]);
-//   } catch (err) {
-//     console.error("There was an error from backend", err);
-
-//     addChatMessages?.([
-//       {
-//         type: "incoming",
-//         content: (
-//           <span>
-//             😓 Sorry, something went wrong while processing your request.
-//             <br />
-//             Please try again in a moment.
-//           </span>
-//         ),
-//         timestamp: new Date(),
-//       },
-//     ]);
-//   }
-
-//   }
+    addChatMessages?.([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            😓 Sorry, something went wrong while processing your request.
+            <br />
+            Please try again in a moment.
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
+  }
+};
 
 export const helloMenu = (
   addChatMessages?: (messages: MessageType[]) => void,
