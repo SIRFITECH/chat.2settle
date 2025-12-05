@@ -52,3 +52,5 @@ export const stepMachine = createMachine({
 
   states: generateStates,
 });
+
+export const stepService = interpret(stepMachine).start();
