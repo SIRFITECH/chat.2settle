@@ -16,6 +16,22 @@ export const steps = [
   "sendPayment",
   "confirmTransaction",
   "paymentProcessing",
+  "kycInfo",
+  "kycReg",
+  "thankForKYCReg",
+  "supportWelcome",
+  "assurance",
+  "entreTrxId",
+  "makeComplain",
+  "completeTransactionId",
+  "giftFeedBack",
+  "makeReport",
+  "reporterName",
+  "reporterPhoneNumber",
+  "reporterWallet",
+  "fraudsterWallet",
+  "reportlyNote",
+  "reporterFarwell",
 ] as const;
 
 export type StepId = (typeof steps)[number];

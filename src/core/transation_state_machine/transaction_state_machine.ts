@@ -1,4 +1,4 @@
-import { createMachine, assign } from "xstate";
+import { createMachine, assign, interpret } from "xstate";
 import { StepId, steps } from "./steps";
 
 // define the context interface
