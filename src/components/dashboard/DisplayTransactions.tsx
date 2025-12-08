@@ -6,9 +6,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../ui/table";
+} from "../ui/table"
 import useTransactionDashboardData from "@/hooks/useTransactionDashboardData";
 import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
+
 
 const DisplayTransactions = () => {
   const { data: filteredTransactions, isLoading } =

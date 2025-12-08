@@ -1,7 +1,7 @@
 import useErrorHandler from "@/hooks/useErrorHandler";
 import { useEffect, useState } from "react";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { Button } from "./ui/button";
+import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
+import { Button } from "../../ui/button";
 import { telegramUser } from "@/types/telegram_types";
 
 export default function TelegramIntegration() {
@@ -15,13 +15,12 @@ export default function TelegramIntegration() {
         try {
           const twa = await import("@twa-dev/sdk");
           if (twa.default.initDataUnsafe.user) {
-            console.log("From the telegram component, we load telegram...")
+            console.log("From the telegram component, we load telegram...");
             setTelegramUser(twa.default.initDataUnsafe.user as telegramUser);
             setIsTelUser(true);
           }
         } catch (error) {
           handleError("Failed to load Telegram Web App SDK");
-          
         }
       }
     };

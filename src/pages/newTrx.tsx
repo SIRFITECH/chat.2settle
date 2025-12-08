@@ -1,4 +1,4 @@
-import ManualTransactionForm from "@/components/shared/manualTransactionForm/ManualTransactionForm";
+import ManualTransactionForm from "@/components/manualTransactionForm/ManualTransactionForm";
 import Navbar from "@/components/shared/NavBar";
 import React from "react";
 import { useRouter } from "next/navigation";

@@ -50,8 +50,8 @@ import {
 } from "@/features/chatbot/helpers/localStorageUtils";
 import type { ChatBotProps } from "@/types/chatbot_types";
 import type { telegramUser } from "@/types/telegram_types";
-import ErrorBoundary from "../../components/TelegramError";
-import TelegramIntegration from "../../components/TelegramIntegration";
+import ErrorBoundary from "../../components/social/telegram/TelegramError";
+import TelegramIntegration from "../../components/social/telegram/TelegramIntegration";
 import ChatHeader from "../../components/chatbot/ChatHeader";
 import ChatInput from "../../components/chatbot/ChatInput";
 import ChatMessages from "../../components/chatbot/ChatMessages";

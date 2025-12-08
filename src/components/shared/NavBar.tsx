@@ -4,10 +4,10 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Logo from "./Logo";
 import { cn } from "@/lib/utils";
-import ConnectWallet from "./ConnectWallet";
+import ConnectWallet from "../crypto/ConnectWallet";
+import { useMediaQuery } from "../dashboard/Body";
 
 const navigation = [
   { name: "Transact", href: "/transact" },
@@ -19,13 +19,19 @@ const navigation = [
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const isMobile = useMediaQuery("(max-width: 425px)");
+  const isTab = useMediaQuery("(max-width: 768px)");
 
   const toggleMenu = useCallback(() => {
     setMobileMenuOpen((prev) => !prev);
   }, []);
 
   return (
-    <nav className="bg-[#F9F9F9] shadow">
+    <nav
+      className={`bg-[#F9F9F9] shadow  rounded-b-3xl ${
+        isMobile ? "mx-4" : isTab ? "mx-6" : "mx-10"
+      } `}
+    >
       <div className="max-w-full mx-auto h-[5rem] px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-[5rem]">
           <div className="flex items-center">
@@ -40,7 +46,7 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "inline-flex items-center px-1 pt-1 border-b-2 text-xs sm:text-sm md:text-base lg:text-xl font-medium",
+                    "inline-flex items-center px-1 pt-1 border-b-2 text-xs sm:text-sm md:text-base lg:text-lg font-medium",
                     pathname === item.href
                       ? "border-blue-500 text-blue-500"
                       : "border-transparent text-black hover:border-blue-500 hover:text-blue-700"

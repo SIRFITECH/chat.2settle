@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Layout from "../components/Layout";
-import PageBody from "../components/Body";
+import PageBody from "../components/dashboard/Body";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { checkReferralExists } from "@/helpers/api_calls";

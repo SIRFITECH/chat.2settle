@@ -2,19 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import ChatBot from "../features/transact/ChatBot";
+import ChatBot from "../../features/transact/ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
 import SendMoney from "./SendMoney";
-import { formatCurrency } from "../helpers/format_currency";
+import { formatCurrency } from "../../helpers/format_currency";
 import { Button } from "@/components/ui/button";
-import ErrorBoundary from "./TelegramError";
+import ErrorBoundary from "../social/telegram/TelegramError";
 import useRate from "@/hooks/useRate";
 import useTotalVolume from "@/hooks/useTotalVolume";
-import DisplayTransactions from "./shared/dashboard/DisplayTransactions";
 import Maintenance from "./Maintenance";
+import DisplayTransactions from "./DisplayTransactions";
 
-const useMediaQuery = (query: string) => {
+export const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {

@@ -6,7 +6,7 @@ import { config } from "../wagmi";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { SharedStateProvider } from "../context/SharedStateContext";
-import ErrorBoundary from "@/components/TelegramError";
+import ErrorBoundary from "@/components/social/telegram/TelegramError";
 import { SessionProvider } from "next-auth/react";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";

@@ -7,8 +7,8 @@ import { MessageType } from "@/types/general_types";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
-import ConnectBTCButton from "@/components/shared/ConnectBTCButton";
 import { WalletAddress } from "@/lib/wallets/types";
+import ConnectBTCButton from "@/components/crypto/ConnectBTCButton";
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (

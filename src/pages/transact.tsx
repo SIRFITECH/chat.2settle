@@ -1,5 +1,5 @@
 import React from "react";
-import PageBody from "../components/Body";
+import PageBody from "../components/dashboard/Body";
 import Layout from "../components/Layout";
 const Transact = () => {
   return (

@@ -1,9 +1,9 @@
 import ShortenedAddress from "@/helpers/ShortenAddress";
 import { WalletAddress } from "@/lib/wallets/types";
 import { MessageType } from "@/types/general_types";
-import ConnectWallet from "../../../components/shared/ConnectWallet";
 import { greetings } from "../helpers/ChatbotConsts";
 import { geminiAi } from "@/services/ai/ai-services";
+import ConnectWallet from "@/components/crypto/ConnectWallet";
 
 /**
  *

@@ -25,7 +25,7 @@
     "src",
     "__tests__",
     "global.d.ts",
-    "src/components/shared/manualTransactionForm/ManualTransactionForm.tsx",
+    "src/components/manualTransactionForm/ManualTransactionForm.tsx",
     "stores"
   ],
   "exclude": ["node_modules"]

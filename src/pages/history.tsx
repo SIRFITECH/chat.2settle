@@ -1,5 +1,5 @@
 import React from "react";
-import HistoryPage from "../components/HistoryPage";
+import HistoryPage from "../components/history/HistoryPage";
 import Layout from "../components/Layout";
 
 const History = () => {
