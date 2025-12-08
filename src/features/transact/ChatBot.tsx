@@ -65,7 +65,7 @@ import useTronWallet from "stores/tronWalletStore";
 import useRate from "@/hooks/useRate";
 import useMerchantRate from "@/hooks/useMerchantRate";
 import useProfitRate from "@/hooks/useProfitRate";
-import { calculateCharge } from "@/services/transactionService/transactCryptoService/transactCrypto";
+import { calculateCharge } from "@/services/transactionService/transferService/transactCrypto";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
