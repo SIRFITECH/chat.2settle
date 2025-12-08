@@ -66,6 +66,7 @@ import useRate from "@/hooks/useRate";
 import useMerchantRate from "@/hooks/useMerchantRate";
 import useProfitRate from "@/hooks/useProfitRate";
 import { calculateCharge } from "@/services/transactionService/transferService/transactCrypto";
+import { greetings } from "../chatbot/helpers/ChatbotConsts";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -907,88 +908,85 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
-  const aiRequest = false;
 
   // THE ROOT FUNCTION
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyPress = async (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      aiRequest
-        ? aiChat(addChatMessages, chatInput, setSharedPaymentMode).catch(
-            (error) => {
-              console.error("AI Chat Error:", error);
-            }
-          )
-        : handleConversation(
-            addChatMessages,
-            chatInput,
-            currentStep,
-            walletIsConnected,
-            wallet,
-            sharedGiftId,
-            telFirstName || "",
-            sharedPaymentMode,
-            sharedRate,
-            sharedCrypto,
-            sharedTicker,
-            sharedAssetPrice,
-            sharedEstimateAsset,
-            sharedNetwork,
-            sharedCharge,
-            sharedPaymentAssetEstimate,
-            sharedPaymentNairaEstimate,
-            sharedNairaCharge,
-            sharedSelectedBankCode,
-            sharedSelectedBankName,
-            sharedAmount,
-            sharedBankCodes,
-            sharedBankNames,
-            ethConnect,
-            sharedTransactionId,
-            procesingStatus,
-            cancelledStatus,
-            reporterName,
-            reporterPhoneNumber,
-            reporterWalletAddress,
-            fraudsterWalletAddress,
-            sharedReportlyReportType,
-            reportId,
-            rate?.toString() || "",
-            setSharedAmount,
-            setSharedCharge,
-            setSharedPaymentAssetEstimate,
-            setSharedPaymentNairaEstimate,
-            setSharedNairaCharge,
-            setSharedChargeForDB,
-            updateBankData,
-            setChatInput,
-            goToStep,
-            nextStep,
-            prevStep,
-            setSharedPaymentMode,
-            setSharedTicker,
-            setSharedCrypto,
-            setSharedNetwork,
-            setSharedWallet,
-            setSharedEstimateAsset,
-            setSharedGiftId,
-            setSharedBankNames,
-            setSharedBankCodes,
-            setSharedSelectedBankCode,
-            setSharedSelectedBankName,
-            setLoading,
-            setSharedPhone,
-            setSharedTransactionId,
-            setSharedReportlyReportType,
-            setReporterName,
-            setReporterPhoneNumber,
-            setReportId,
-            setReporterWalletAddress,
-            setFraudsterWalletAddress,
-            setDescriptionNote,
-            onError,
-            processTransaction
-          );
+
+
+      handleConversation(
+        addChatMessages,
+        chatInput,
+        currentStep,
+        walletIsConnected,
+        wallet,
+        sharedGiftId,
+        telFirstName || "",
+        sharedPaymentMode,
+        sharedRate,
+        sharedCrypto,
+        sharedTicker,
+        sharedAssetPrice,
+        sharedEstimateAsset,
+        sharedNetwork,
+        sharedCharge,
+        sharedPaymentAssetEstimate,
+        sharedPaymentNairaEstimate,
+        sharedNairaCharge,
+        sharedSelectedBankCode,
+        sharedSelectedBankName,
+        sharedAmount,
+        sharedBankCodes,
+        sharedBankNames,
+        ethConnect,
+        sharedTransactionId,
+        procesingStatus,
+        cancelledStatus,
+        reporterName,
+        reporterPhoneNumber,
+        reporterWalletAddress,
+        fraudsterWalletAddress,
+        sharedReportlyReportType,
+        reportId,
+        rate?.toString() || "",
+        setSharedAmount,
+        setSharedCharge,
+        setSharedPaymentAssetEstimate,
+        setSharedPaymentNairaEstimate,
+        setSharedNairaCharge,
+        setSharedChargeForDB,
+        updateBankData,
+        setChatInput,
+        goToStep,
+        nextStep,
+        prevStep,
+        setSharedPaymentMode,
+        setSharedTicker,
+        setSharedCrypto,
+        setSharedNetwork,
+        setSharedWallet,
+        setSharedEstimateAsset,
+        setSharedGiftId,
+        setSharedBankNames,
+        setSharedBankCodes,
+        setSharedSelectedBankCode,
+        setSharedSelectedBankName,
+        setLoading,
+        setSharedPhone,
+        setSharedTransactionId,
+        setSharedReportlyReportType,
+        setReporterName,
+        setReporterPhoneNumber,
+        setReportId,
+        setReporterWalletAddress,
+        setFraudsterWalletAddress,
+        setDescriptionNote,
+        onError,
+        processTransaction
+      );
     }
   };
 

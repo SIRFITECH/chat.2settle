@@ -51,7 +51,7 @@ type HandlerProps = {
   addChatMessages: (messages: MessageType[]) => void;
   nextStep: () => void;
   prevStep: () => void;
-  goToStep: (s: StepId) => void;
+  goToStep: (step: StepId) => void;
 
   // details to be eliminated later
   walletIsConnected: boolean;
@@ -85,6 +85,7 @@ type HandlerProps = {
   sharedReportlyReportType: string;
   reportId: string;
   formattedRate: string;
+  displayReportlyPhoneNumber: DisplayReportlyPhoneNumber;
   setSharedAmount: (sharedAmount: string) => void;
   setSharedCharge: React.Dispatch<SetStateAction<string>>;
   setSharedPaymentAssetEstimate: React.Dispatch<SetStateAction<string>>;
@@ -534,7 +535,7 @@ export const stepHandlers: Record<
       p.walletIsConnected,
       p.wallet,
       p.telFirstName,
-      p.goToStep,
+      p.nextStep,
       p.goToStep,
       p.prevStep,
       p.setLoading,

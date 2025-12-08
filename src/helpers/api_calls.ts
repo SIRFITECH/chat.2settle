@@ -580,5 +580,3 @@ const bankCode = parts[parts.length - 1];
     return null;
   }
 };
-
-

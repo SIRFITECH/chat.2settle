@@ -21,6 +21,7 @@ import { reportData } from "../../../types/reportly_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu, welcomeMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 type DisplayReportlyPhoneNumber = (
   addChatMessages: (messages: MessageType[]) => void,
@@ -37,8 +38,8 @@ export const handleReportlyWelcome = async (
   telFirstName: string,
   sharedRate: string,
   chatInput: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setSharedReportlyReportType: (reportlyType: string) => void,
   setSharedPaymentMode: (mode: string) => void
@@ -109,8 +110,8 @@ export const handleReporterName = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setSharedReportlyReportType: (reportlyType: string) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
@@ -172,8 +173,8 @@ export const handleEnterReporterPhoneNumber = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setReporterName: (reporterName: string) => void,
   displayReportlyPhoneNumber: DisplayReportlyPhoneNumber,
   setSharedPaymentMode: (mode: string) => void
@@ -241,8 +242,8 @@ export const handleEnterReporterWalletAddress = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setReporterPhoneNumber: (phoneNumber: React.SetStateAction<string>) => void,
   setSharedPaymentMode: (mode: string) => void
@@ -308,8 +309,8 @@ export const handleEnterFraudsterWalletAddress = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setReportId: (reportId: string) => void,
   setReporterWalletAddress: (wallet: string) => void,
@@ -389,8 +390,8 @@ export const handleReportlyNote = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setFraudsterWalletAddress: (wallet: string) => void,
   displayReportlyNote: DisplayReportlyPhoneNumber,
@@ -468,8 +469,8 @@ export const handleReporterFarwell = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setDescriptionNote: (note: string) => void,
   setReporterPhoneNumber: (phoneNumber: string) => void,

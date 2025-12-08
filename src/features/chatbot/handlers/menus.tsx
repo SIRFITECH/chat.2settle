@@ -9,6 +9,7 @@ import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
 import ConnectBTCButton from "@/components/crypto/ConnectBTCButton";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (
@@ -105,9 +106,9 @@ export const choiceMenu = (
   wallet: WalletAddress,
   telFirstName: string,
   formattedRate: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setChatInput: (chat: string) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
@@ -157,7 +158,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     } else {
       addChatMessages([
         {
@@ -178,7 +180,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     }
   } else if (choice.toLowerCase() === "2") {
     if (!walletIsConnected) {
@@ -217,7 +220,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     } else {
       addChatMessages([
         {
@@ -257,7 +261,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     }
   } else {
     addChatMessages([

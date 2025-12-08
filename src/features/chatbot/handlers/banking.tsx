@@ -16,6 +16,7 @@ import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
 import { WalletAddress } from "@/lib/wallets/types";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 // GET USER BANK DETAILS FROM NUBAN
 export const handleSearchBank = async (
@@ -33,9 +34,9 @@ export const handleSearchBank = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedGiftId: (giftId: string) => void,
   setSharedPaymentAssetEstimate: (ticker: string) => void,
   setSharedPaymentNairaEstimate: (crypto: string) => void,
@@ -341,9 +342,9 @@ export const handleSelectBank = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedBankNames: (bankName: string[]) => void,
   setSharedPaymentAssetEstimate: React.Dispatch<React.SetStateAction<string>>,
   setSharedPaymentNairaEstimate: React.Dispatch<React.SetStateAction<string>>,
@@ -437,9 +438,9 @@ export const handleBankAccountNumber = (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedBankCodes: React.Dispatch<React.SetStateAction<string[]>>,
   setSharedSelectedBankCode: React.Dispatch<React.SetStateAction<string>>,
   setSharedSelectedBankName: React.Dispatch<React.SetStateAction<string>>,

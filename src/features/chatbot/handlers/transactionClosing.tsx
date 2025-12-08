@@ -16,6 +16,7 @@ import { phoneNumberPattern } from "@/utils/utilities";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME
 export const handleContinueToPay = async (
@@ -27,9 +28,9 @@ export const handleContinueToPay = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   updateBankData: (newData: Partial<UserBankData>) => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setSharedPaymentMode: (mode: string) => void
@@ -139,9 +140,9 @@ export const handlePhoneNumber = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -198,8 +199,8 @@ export const handleCryptoPayment = async (
     activeWallet?: string,
     lastAssignedTime?: Date
   ) => Promise<void>,
-  goToStep: (step: string) => void,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setSharedPaymentMode: (mode: string) => void
 ) => {
@@ -319,62 +320,61 @@ export const handleCryptoPayment = async (
       setLoading(false);
       addChatMessages(newMessages);
     } else if (payPayment) {
-       const assetPayment = parseFloat(sharedPaymentAssetEstimate);
-       const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
+      const assetPayment = parseFloat(sharedPaymentAssetEstimate);
+      const paymentAsset = `${assetPayment.toFixed(8)} ${sharedCrypto}`;
 
-       const newMessages: MessageType[] = ethConnect
-         ? [
-             {
-               type: "incoming",
-               content: (
-                 <div className="flex flex-col items-center">
-                   <p className="mb-4">
-                     You are going to be charged <b>{paymentAsset}</b> directly
-                     from your {sharedCrypto} ({sharedNetwork}) wallet.
-                   </p>
-                   //{" "}
-                   <ConfirmAndProceedButton
-                     phoneNumber={phoneNumber}
-                     setLoading={setLoading}
-                     sharedPaymentMode={sharedPaymentMode}
-                     processTransaction={processTransaction}
-                     network={network}
-                     connectedWallet={ethConnect}
-                     amount={sharedPaymentAssetEstimate}
-                   />
-                 </div>
-               ),
-               timestamp: new Date(),
-             },
-           ]
-         : [
-             {
-               type: "incoming",
-               content: (
-                 <div className="flex flex-col items-center">
-                   <p className="mb-4">
-                     Do you understand that you need to complete your payment
-                     within <b>5 minutes</b>, otherwise you may lose your money.
-                   </p>
+      const newMessages: MessageType[] = ethConnect
+        ? [
+            {
+              type: "incoming",
+              content: (
+                <div className="flex flex-col items-center">
+                  <p className="mb-4">
+                    You are going to be charged <b>{paymentAsset}</b> directly
+                    from your {sharedCrypto} ({sharedNetwork}) wallet.
+                  </p>
+                  //{" "}
+                  <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  />
+                </div>
+              ),
+              timestamp: new Date(),
+            },
+          ]
+        : [
+            {
+              type: "incoming",
+              content: (
+                <div className="flex flex-col items-center">
+                  <p className="mb-4">
+                    Do you understand that you need to complete your payment
+                    within <b>5 minutes</b>, otherwise you may lose your money.
+                  </p>
 
-                   <ConfirmAndProceedButton
-                     phoneNumber={phoneNumber}
-                     setLoading={setLoading}
-                     sharedPaymentMode={sharedPaymentMode}
-                     processTransaction={processTransaction}
-                     network={network}
-                     connectedWallet={ethConnect}
-                     amount={sharedPaymentAssetEstimate}
-                   />
-                 </div>
-               ),
-               timestamp: new Date(),
-             },
-           ];
+                  <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  />
+                </div>
+              ),
+              timestamp: new Date(),
+            },
+          ];
 
-       setLoading(false);
-       addChatMessages(newMessages);
-
+      setLoading(false);
+      addChatMessages(newMessages);
     } else {
       console.log(
         "Calling processTransaction with:",
@@ -391,49 +391,7 @@ export const handleCryptoPayment = async (
     console.log("User input not recognized");
   }
 };
-// export async function processTransaction({
-//   phoneNumber,
-//   isGift,
-//   isGiftTrx,
-//   requestPayment,
-//   activeWallet,
-//   lastAssignedTime,
-//   bankData,
-//   addChatMessages,
-//   setLoading,
-//   sharedGiftId,
-//   sharedPaymentMode,
-//   goToStep,
-//   nextStep,
-// }: TransactionParams) {
-//   try {
-//     if (isGift) {
-//       await processGiftTransaction({
-//         bankData,
-//         addChatMessages,
-//         setLoading,
-//         sharedGiftId,
-//         sharedPaymentMode,
-//         phoneNumber,
-//         activeWallet,
-//         goToStep,
-//         nextStep,
-//       });
-//     } else if (isGiftTrx) {
-//       await processGiftSendTransaction({
-//         phoneNumber,
-//         activeWallet,
-//         lastAssignedTime,
-//       });
-//     } else if (requestPayment) {
-//       await processRequestPayment({ phoneNumber, activeWallet });
-//     } else {
-//       await processRegularTransaction({ phoneNumber, activeWallet });
-//     }
-//   } catch (error) {
-//     console.error("Error processing transaction", error);
-//   }
-// }
+
 export const handleConfirmTransaction = async (
   addChatMessages: (messages: MessageType[]) => void,
   chatInput: string,
@@ -443,8 +401,8 @@ export const handleConfirmTransaction = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setSharedTransactionId: (step: string) => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setSharedPaymentMode: (mode: string) => void
@@ -517,9 +475,9 @@ export const handleTransactionProcessing = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {

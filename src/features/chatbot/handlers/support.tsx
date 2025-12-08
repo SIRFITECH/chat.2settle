@@ -23,6 +23,7 @@ import {
 } from "@/menus/request_paycard";
 import { choiceMenu, helloMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
 
@@ -33,9 +34,9 @@ export const handleCustomerSupportAssurance = (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -87,8 +88,8 @@ export const handleTransactionId = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setSharedTransactionId: (step: string) => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setSharedPaymentMode: (mode: string) => void
@@ -149,8 +150,8 @@ export const handleMakeComplain = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setSharedPaymentMode: (mode: string) => void
@@ -240,7 +241,6 @@ export const handleMakeComplain = async (
   }
 };
 
-
 // // Allow user to enter transaction id to complete transaction
 
 // export const handleCompleteTransactionId = async (
@@ -300,8 +300,8 @@ export const handleKYCInfo = (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -347,8 +347,8 @@ export const handleRegKYC = (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -394,8 +394,8 @@ export const handleThankForKYCReg = (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   if (greetings.includes(chatInput.trim().toLowerCase())) {

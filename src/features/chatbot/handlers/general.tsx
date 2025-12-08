@@ -4,6 +4,7 @@ import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { geminiAi } from "@/services/ai/ai-services";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 /**
  *
@@ -79,7 +80,7 @@ export const aiChat = async (
 export const helloMenu = (
   addChatMessages?: (messages: MessageType[]) => void,
   chatInput?: string,
-  nextStep?: (step: string) => void,
+  nextStep?: () => void,
   walletIsConnected?: boolean,
   wallet?: WalletAddress,
   telFirstName?: string,
@@ -111,7 +112,8 @@ export const helloMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep?.("chooseAction");
+      nextStep?.();
+      // nextStep?.("chooseAction");
     } else {
       setSharedPaymentMode?.("");
       addChatMessages?.([
@@ -136,7 +138,8 @@ export const helloMenu = (
       ]);
       console.log("Wallet not connected");
     }
-    nextStep?.("chooseAction");
+    nextStep?.();
+    // nextStep?.("chooseAction");
   } else {
     addChatMessages?.([
       {
@@ -256,9 +259,9 @@ export const choiceMenu = (
   wallet: WalletAddress,
   telFirstName: string,
   formattedRate: string,
-  nextStep: (step: string) => void,
+  nextStep: () => void,
   prevStep: () => void,
-  goToStep: (step: string) => void,
+  goToStep: (step: StepId) => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
   const choice = chatInput.trim();
@@ -307,7 +310,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     } else {
       addChatMessages([
         {
@@ -328,7 +332,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     }
   } else if (choice.toLowerCase() === "2") {
     if (!walletIsConnected) {
@@ -367,7 +372,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      nextStep();
+      // nextStep("transactCrypto");
     } else {
       addChatMessages([
         {
@@ -407,7 +413,8 @@ export const choiceMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep("transactCrypto");
+      // nextStep("transactCrypto");
+      nextStep();
     }
   } else {
     addChatMessages([

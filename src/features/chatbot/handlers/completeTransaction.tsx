@@ -14,6 +14,7 @@ import { greetings } from "../helpers/ChatbotConsts";
 import { choiceMenu, helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
 import { WalletAddress } from "@/lib/wallets/types";
+import { StepId } from "@/core/transation_state_machine/steps";
 
 // ALLOW USERS ENTER GIFT ID
 export const handleGiftRequestId = async (
@@ -23,8 +24,8 @@ export const handleGiftRequestId = async (
   telFirstName: string,
   sharedPaymentMode: string,
   chatInput: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setSharedPaymentMode: (mode: string) => void,
   setSharedGiftId: (giftId: string) => void,
@@ -98,7 +99,8 @@ export const handleGiftRequestId = async (
           // Handle request exists case
           // displayRequestFeedbackMessage(addChatMessages, nextStep);
           displayTransferMoney(addChatMessages);
-          nextStep("estimateAsset");
+          nextStep();
+          // nextStep("estimateAsset");
         }
       } else {
         addChatMessages([
@@ -133,8 +135,8 @@ export const handleCompleteTransactionId = async (
   walletIsConnected: boolean,
   wallet: WalletAddress,
   telFirstName: string,
-  nextStep: (step: string) => void,
-  goToStep: (step: string) => void,
+  nextStep: () => void,
+  goToStep: (step: StepId) => void,
   prevStep: () => void,
   setSharedPaymentMode: (mode: string) => void
 ) => {
