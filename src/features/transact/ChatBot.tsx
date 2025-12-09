@@ -38,7 +38,7 @@ import {
   isToday,
   isYesterday,
 } from "date-fns";
-import { useChatNavigation } from "../../hooks/useChatNavigation";
+import { useChatNavigation } from "../../hooks/chatbot/useChatNavigation";
 import {
   displayEnterId,
   displayGiftFeedbackMessage,
@@ -62,9 +62,9 @@ import { handleConversation } from "@/features/chatbot/handlers/handleConversati
 import type { WalletAddress } from "@/lib/wallets/types";
 import { useBTCWallet } from "stores/btcWalletStore";
 import useTronWallet from "stores/tronWalletStore";
-import useRate from "@/hooks/useRate";
-import useMerchantRate from "@/hooks/useMerchantRate";
-import useProfitRate from "@/hooks/useProfitRate";
+import useRate from "@/hooks/rates/useRate";
+import useMerchantRate from "@/hooks/rates/useMerchantRate";
+import useProfitRate from "@/hooks/rates/useProfitRate";
 import { calculateCharge } from "@/services/transactionService/transferService/transactCrypto";
 import { greetings } from "../chatbot/helpers/ChatbotConsts";
 
@@ -908,14 +908,12 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
     }
   }
 
-
   // THE ROOT FUNCTION
   const handleKeyPress = async (
     e: React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-
 
       handleConversation(
         addChatMessages,

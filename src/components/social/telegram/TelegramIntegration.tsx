@@ -1,4 +1,4 @@
-import useErrorHandler from "@/hooks/useErrorHandler";
+import useErrorHandler from "@/hooks/chatbot/useErrorHandler";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
 import { Button } from "../../ui/button";

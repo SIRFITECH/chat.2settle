@@ -9,8 +9,8 @@ import SendMoney from "./SendMoney";
 import { formatCurrency } from "../../helpers/format_currency";
 import { Button } from "@/components/ui/button";
 import ErrorBoundary from "../social/telegram/TelegramError";
-import useRate from "@/hooks/useRate";
-import useTotalVolume from "@/hooks/useTotalVolume";
+import useRate from "@/hooks/rates/useRate";
+import useTotalVolume from "@/hooks/dashboard/useTotalVolume";
 import Maintenance from "./Maintenance";
 import DisplayTransactions from "./DisplayTransactions";
 

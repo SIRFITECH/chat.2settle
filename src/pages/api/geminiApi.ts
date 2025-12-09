@@ -20,9 +20,9 @@ import {
   createBeneficiary,
   createTransaction,
   fetchCoinPrice,
-  fetchMerchantRate,
-  fetchProfitRate,
-  fetchRate,
+  // fetchMerchantRate,
+  // fetchProfitRate,
+  // fetchRate,
   getAvaialableWallet,
   resolveBankAccount,
 } from "@/helpers/api_calls";

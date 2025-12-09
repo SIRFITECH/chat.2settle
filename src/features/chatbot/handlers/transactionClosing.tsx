@@ -3,7 +3,7 @@ import {
   fetchBankDetails,
   updateTransaction,
 } from "@/helpers/api_calls";
-import ConfirmAndProceedButton from "@/hooks/confirmButtonHook";
+import ConfirmAndProceedButton from "@/hooks/chatbot/confirmButtonHook";
 import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import {
   displayConfirmPayment,

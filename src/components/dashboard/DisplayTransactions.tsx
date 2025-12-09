@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table"
-import useTransactionDashboardData from "@/hooks/useTransactionDashboardData";
+import useTransactionDashboardData from "@/hooks/dashboard/useTransactionDashboardData";
 import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
 
 

@@ -1,8 +1,3 @@
-import {
-  fetchMerchantRate,
-  fetchProfitRate,
-  fetchRate,
-} from "@/helpers/api_calls";
 import { formatCurrency } from "@/helpers/format_currency";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 

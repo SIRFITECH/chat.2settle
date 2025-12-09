@@ -13,95 +13,95 @@ const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
 
 // FETCH CURRENT EXCHANGE RATE FROM DB
-export const fetchRate = async (): Promise<number> => {
-  try {
-    const response = await axios.get<ServerData>(`${apiURL}/api/rate`);
-    const rawRate = response.data.rate.replace(/,/g, "");
-    const rate = parseFloat(rawRate);
+// export const fetchRate = async (): Promise<number> => {
+//   try {
+//     const response = await axios.get<ServerData>(`${apiURL}/api/rate`);
+//     const rawRate = response.data.rate.replace(/,/g, "");
+//     const rate = parseFloat(rawRate);
 
-    if (isNaN(rate)) {
-      throw new Error("Invalid rate received");
-    }
+//     if (isNaN(rate)) {
+//       throw new Error("Invalid rate received");
+//     }
 
-    return rate;
-  } catch (error) {
-    console.error("Error fetching rates:", error);
-    throw error;
-  }
-};
+//     return rate;
+//   } catch (error) {
+//     console.error("Error fetching rates:", error);
+//     throw error;
+//   }
+// };
 // FETCH CURRENT EXCHANGE RATE FROM DB
-export const fetchTotalVolume = async (): Promise<number> => {
-  try {
-    const response = await axios.get<{ ytdVolume: string; dbVolume: string }>(
-      `${apiURL}/api/fetchYTD`
-    );
-    const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
-    const ytdVolume = parseFloat(rawVolume);
-    const db = parseFloat(response.data.dbVolume);
+// export const fetchTotalVolume = async (): Promise<number> => {
+//   try {
+//     const response = await axios.get<{ ytdVolume: string; dbVolume: string }>(
+//       `${apiURL}/api/fetchYTD`
+//     );
+//     const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
+//     const ytdVolume = parseFloat(rawVolume);
+//     const db = parseFloat(response.data.dbVolume);
 
-    if (isNaN(ytdVolume) || isNaN(db)) {
-      throw new Error("Invalid rate received");
-    }
+//     if (isNaN(ytdVolume) || isNaN(db)) {
+//       throw new Error("Invalid rate received");
+//     }
 
-    return ytdVolume + db;
-  } catch (error) {
-    console.error("Error fetching rates:", error);
-    throw error;
-  }
-};
+//     return ytdVolume + db;
+//   } catch (error) {
+//     console.error("Error fetching rates:", error);
+//     throw error;
+//   }
+// };
 
 // FETCH MERCHANT RATE FROM DB
-export const fetchMerchantRate = async (): Promise<number> => {
-  try {
-    const response = await axios.get<ServerData>(`${apiURL}/api/merchant_rate`);
-    const rawRate = response.data.merchantRate.replace(/,/g, "");
-    const merchant_rate = parseFloat(rawRate);
+// export const fetchMerchantRate = async (): Promise<number> => {
+//   try {
+//     const response = await axios.get<ServerData>(`${apiURL}/api/merchant_rate`);
+//     const rawRate = response.data.merchantRate.replace(/,/g, "");
+//     const merchant_rate = parseFloat(rawRate);
 
-    if (isNaN(merchant_rate)) {
-      throw new Error("Invalid rate received");
-    }
+//     if (isNaN(merchant_rate)) {
+//       throw new Error("Invalid rate received");
+//     }
 
-    return merchant_rate;
-  } catch (error) {
-    console.error("Error fetching merchant rate:", error);
-    throw error;
-  }
-};
+//     return merchant_rate;
+//   } catch (error) {
+//     console.error("Error fetching merchant rate:", error);
+//     throw error;
+//   }
+// };
 
 // FETCH PROFIT RATE FROM DB
-export const fetchProfitRate = async (): Promise<number> => {
-  try {
-    const response = await axios.get<ServerData>(
-      `${apiURL}/api/merchant_profit`
-    );
-    const rawRate = response.data.profitRate.replace(/,/g, "");
-    const profitRate = parseFloat(rawRate);
+// export const fetchProfitRate = async (): Promise<number> => {
+//   try {
+//     const response = await axios.get<ServerData>(
+//       `${apiURL}/api/merchant_profit`
+//     );
+//     const rawRate = response.data.profitRate.replace(/,/g, "");
+//     const profitRate = parseFloat(rawRate);
 
-    if (isNaN(profitRate)) {
-      throw new Error("Invalid profit rate received");
-    }
+//     if (isNaN(profitRate)) {
+//       throw new Error("Invalid profit rate received");
+//     }
 
-    return profitRate;
-  } catch (error) {
-    console.error("Error fetching profit rate:", error);
-    throw error;
-  }
-};
+//     return profitRate;
+//   } catch (error) {
+//     console.error("Error fetching profit rate:", error);
+//     throw error;
+//   }
+// };
 
 // CHECK IF USER EXISTS IN OUR DB RECORDS USING CHATID, SO WE CAN GET THEIR WALLET ADDRESS
-export const checkUserExists = async (
-  phone: string
-): Promise<{ exists: boolean; user?: vendorData }> => {
-  try {
-    const response = await axios.get("/api/check_user", {
-      params: { phone_number: phone },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error checking user existence:", error);
-    throw error;
-  }
-};
+// export const checkUserExists = async (
+//   phone: string
+// ): Promise<{ exists: boolean; user?: vendorData }> => {
+//   try {
+//     const response = await axios.get("/api/check_user", {
+//       params: { phone_number: phone },
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error checking user existence:", error);
+//     throw error;
+//   }
+// };
 
 export const checkReferralExists = async (
   referralCode: string

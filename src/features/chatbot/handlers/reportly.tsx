@@ -23,7 +23,7 @@ import { helloMenu, welcomeMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
 import { StepId } from "@/core/transation_state_machine/steps";
 
-type DisplayReportlyPhoneNumber = (
+export type DisplayReportlyPhoneNumber = (
   addChatMessages: (messages: MessageType[]) => void,
   nextStep: (step: string) => void
 ) => void;

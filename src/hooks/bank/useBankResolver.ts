@@ -16,7 +16,7 @@ export function useBankResolver() {
     async (extracted: string): Promise<BankName> => {
       try {
         const response = await axios.post<BankName>(
-          `${apiURL}/api/bank_names/`,
+          `${apiURL}/api/banks/bank_names/`,
           { message: extracted }
         );
         return response.data;

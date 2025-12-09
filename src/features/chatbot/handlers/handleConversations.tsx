@@ -142,17 +142,18 @@ export const handleConversation = async (
       setChatInput("");
     }
 
-    // channel user to the ai chatbot
-    if (isAIChat) {
-      await aiChat();
-      return;
-    }
+    // // channel user to the ai chatbot
+    // if (isAIChat) {
+    //   await aiChat();
+    //   return;
+    // }
 
     // channel user to the manual chatbot
     if (greetings.includes(chatInput.trim().toLowerCase())) {
       goToStep("start");
     }
 
+    console.log({currentStep})
     await stepHandlers[currentStep as StepId]({
       addChatMessages,
       chatInput,

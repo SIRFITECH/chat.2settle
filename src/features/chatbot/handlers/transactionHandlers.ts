@@ -36,6 +36,7 @@ import {
   handleGiftRequestId,
 } from "./completeTransaction";
 import {
+  DisplayReportlyPhoneNumber,
   handleEnterFraudsterWalletAddress,
   handleEnterReporterPhoneNumber,
   handleEnterReporterWalletAddress,
@@ -44,6 +45,7 @@ import {
   handleReportlyNote,
   handleReportlyWelcome,
 } from "./reportly";
+
 
 type HandlerProps = {
   currentStep: StepId;
@@ -281,13 +283,15 @@ export const stepHandlers: Record<
   enterBankSearchWord: (p) => {
     // TODO: move paymentMode into global state
     // handle user bank search - using first 3 letters of the user bank
-    let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
-    let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
-    let wantsToRequestPayment = sharedPaymentMode.toLowerCase() === "request";
-    let wnatsToTransactCrypto =
-      sharedPaymentMode.toLowerCase() === "transfermoney";
+    // let wantsToClaimGift = sharedPaymentMode.toLowerCase() === "claim gift";
+    // let wantsToSendGift = sharedPaymentMode.toLowerCase() === "gift";
+    // let wantsToRequestPayment = sharedPaymentMode.toLowerCase() === "request";
+    // let wnatsToTransactCrypto =
+    //   sharedPaymentMode.toLowerCase() === "transfermoney";
+    const notTransaction = true;
 
-    wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
+    // wantsToClaimGift || wnatsToTransactCrypto || wantsToRequestPayment
+    notTransaction
       ? (console.log("CURRENT STEP IS search IN enterBankSearchWord "),
         handleSearchBank(
           p.addChatMessages,
@@ -665,7 +669,7 @@ export const stepHandlers: Record<
       p.goToStep,
       p.prevStep,
       p.setFraudsterWalletAddress,
-      p.displayReportlyNote,
+      p.displayReportlyPhoneNumber,
       p.setSharedPaymentMode
     );
     p.setChatInput("");
