@@ -1,4 +1,3 @@
-// export const steps = ["start", "chooseAction", "transactCrypto", "transferMoney",] as const;
 export const steps = [
   "start",
   "chooseAction",

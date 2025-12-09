@@ -1,4 +1,4 @@
-import { createMachine, assign, interpret } from "xstate";
+import { createMachine, assign, createActor } from "xstate";
 import { StepId, steps } from "./steps";
 
 // define the context interface
@@ -30,7 +30,7 @@ const generateStates = steps.reduce((acc, step, index) => {
           if (event.type === "GOTO" && steps.includes(event.step)) {
             return event.step;
           }
-          return steps[index];
+          return steps[0];
         },
       },
     },
@@ -53,4 +53,4 @@ export const stepMachine = createMachine({
   states: generateStates,
 });
 
-export const stepService = interpret(stepMachine).start();
+export const stepService = createActor(stepMachine).start();

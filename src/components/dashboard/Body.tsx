@@ -42,7 +42,7 @@ export default function Body() {
   const [imageError, setImageError] = useState<string | null>(null);
 
   const { data: rate, isLoading: rateLoading, error: rateError } = useRate();
-  const {
+  const { 
     data: tvt,
     isLoading: TvtLoading,
     error: tvtError,

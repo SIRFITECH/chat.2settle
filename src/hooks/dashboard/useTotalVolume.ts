@@ -20,6 +20,14 @@ const useTotalVolume = () => {
 
           return ytdVolume + dbVolume;
         }),
+
+    retry: 3,
+    // retry with exponential backoff and jitter for randomeness
+    retryDelay: (attempt) => {
+      const base = Math.pow(2, attempt) * 1000;
+      const jitter = Math.random() * 1000;
+      return base + jitter;
+    },
     staleTime: 5 * 60 * 1000, // 15 mins
   });
 };

@@ -710,7 +710,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             lastAssignedTime
           );
           setLoading(false);
-          nextStep("start");
+          goToStep("start");
           helloMenu(
             addChatMessages,
             "hi",
@@ -788,7 +788,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             lastAssignedTime
           );
           setLoading(false);
-          nextStep("start");
+          goToStep("start");
           helloMenu(
             addChatMessages,
             "hi",

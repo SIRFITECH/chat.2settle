@@ -5,6 +5,7 @@ import { greetings } from "../helpers/ChatbotConsts";
 import { geminiAi } from "@/services/ai/ai-services";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { StepId } from "@/core/transation_state_machine/steps";
+import useChatStore from "stores/chatStore";
 
 /**
  *
@@ -112,7 +113,8 @@ export const helloMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep?.();
+      // nextStep?.();
+      useChatStore.getState().next();
       // nextStep?.("chooseAction");
     } else {
       setSharedPaymentMode?.("");
@@ -138,7 +140,9 @@ export const helloMenu = (
       ]);
       console.log("Wallet not connected");
     }
-    nextStep?.();
+    // nextStep?.();
+    console.log(`${useChatStore.getState().next}`);
+    useChatStore.getState().next();
     // nextStep?.("chooseAction");
   } else {
     addChatMessages?.([

@@ -19,6 +19,13 @@ const useRate = () => {
 
           return profitRate;
         }),
+    retry: 3,
+    // retry with exponential backoff and jitter for randomeness
+    retryDelay: (attempt) => {
+      const base = Math.pow(2, attempt) * 3000;
+      const jitter = Math.random() * 3000;
+      return base + jitter;
+    },
     staleTime: 15 * 60 * 1000, // 15 mins
   });
 };
