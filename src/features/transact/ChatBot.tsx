@@ -186,11 +186,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // hook to collect user input from the chat input form
   const [chatInput, setChatInput] = useState("");
   const [loading, setLoading] = useState(false);
-  // const [rate, setRate] = useState("");
-  // const [formattedRate, setFormattedRate] = useState<string>("");
   const [chatId, setChatId] = useState("");
-  // const [merchantRate, setMerchantRate] = useState("");
-  // const [profitRate, setProfitRate] = useState("");
   const [reporterName, setReporterName] = useState("");
   const [reporterPhoneNumber, setReporterPhoneNumber] = useState("");
   const [reporterWalletAddress, setReporterWalletAddress] = useState("");

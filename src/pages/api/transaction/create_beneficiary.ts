@@ -41,7 +41,7 @@ export default async function handler(
     //   database: dbName,
     // });
 
-    const query = "INSERT INTO beneficiary SET ?";
+    const query = "INSERT INTO beneficiaries SET ?";
     const [result] = await connection.query(query, beneficiaryData);
 
     await connection.end();

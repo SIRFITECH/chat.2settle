@@ -45,7 +45,7 @@ export default async function handler(
       SELECT
         *
       FROM
-        gift
+        gifts
       WHERE
         gift_id = ?
       AND

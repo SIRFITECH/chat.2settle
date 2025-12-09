@@ -5,16 +5,23 @@ import {
 } from "@langchain/core/output_parsers";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { NextApiRequest, NextApiResponse } from "next";
-import { chatPrompt } from "../../services/ai/ai-endpoint-service";
+import { chatPrompt } from "../../../services/ai/ai-endpoint-service";
+// import {
+//   ChatPromptTemplate,
+//   MessagesPlaceholder,
+// } from "@langchain/core/prompts";
+import * as dotenv from "dotenv";
+// import {
+//   StructuredOutputParser,
+//   OutputFixingParser,
+// } from "langchain/output_parsers";
 import {
   ChatPromptTemplate,
-  MessagesPlaceholder,
 } from "@langchain/core/prompts";
-import * as dotenv from "dotenv";
 import {
   StructuredOutputParser,
-  OutputFixingParser,
-} from "langchain/output_parsers";
+} from "@langchain/core/output_parsers";
+import { OutputFixingParser } from "@langchain/classic/output_parsers/fix";
 import crypto from "crypto";
 import {
   createBeneficiary,
