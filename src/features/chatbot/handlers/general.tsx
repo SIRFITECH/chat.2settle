@@ -141,7 +141,6 @@ export const helloMenu = (
       console.log("Wallet not connected");
     }
     // nextStep?.();
-    console.log(`${useChatStore.getState().next}`);
     useChatStore.getState().next();
     // nextStep?.("chooseAction");
   } else {

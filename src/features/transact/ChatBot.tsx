@@ -38,7 +38,7 @@ import {
   isToday,
   isYesterday,
 } from "date-fns";
-import { useChatNavigation } from "../../hooks/chatbot/useChatNavigation";
+// import { useChatNavigation } from "../../hooks/useChatNavigation";
 import {
   displayEnterId,
   displayGiftFeedbackMessage,
@@ -57,7 +57,7 @@ import ChatInput from "../../components/chatbot/ChatInput";
 import ChatMessages from "../../components/chatbot/ChatMessages";
 import { withErrorHandling } from "../../components/withErrorHandling";
 
-import { helloMenu } from "@/features/chatbot/handlers/general";
+import { aiChat, helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import type { WalletAddress } from "@/lib/wallets/types";
 import { useBTCWallet } from "stores/btcWalletStore";
@@ -66,6 +66,8 @@ import useRate from "@/hooks/rates/useRate";
 import useMerchantRate from "@/hooks/rates/useMerchantRate";
 import useProfitRate from "@/hooks/rates/useProfitRate";
 import { calculateCharge } from "@/services/transactionService/transferService/transactCrypto";
+import { greetings } from "../chatbot/helpers/ChatbotConsts";
+import { useChatNavigation } from "@/hooks/chatbot/useChatNavigation";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
   // CONST VARIABLES
@@ -710,7 +712,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             lastAssignedTime
           );
           setLoading(false);
-          goToStep("start");
+          nextStep();
           helloMenu(
             addChatMessages,
             "hi",
@@ -788,7 +790,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {
             lastAssignedTime
           );
           setLoading(false);
-          goToStep("start");
+          nextStep();
           helloMenu(
             addChatMessages,
             "hi",

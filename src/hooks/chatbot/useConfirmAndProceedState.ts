@@ -9,9 +9,11 @@ import { parseUnits } from "ethers/utils";
 import { useEffect, useState } from "react";
 import { request, RpcErrorCode } from "sats-connect";
 import { TransactionReceipt } from "viem";
-import { useSpendEVMUSDT } from "../../services/transactionService/cryptoService/useSpendEVMUSDT";
+// import { useSpendEVMUSDT } from "../services/transactionService/cryptoService/useSpendEVMUSDT";
 import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
-import { useBTCWallet } from "../../../stores/btcWalletStore";
+import { useSpendEVMUSDT } from "@/services/transactionService/cryptoService/useSpendEVMUSDT";
+import { useBTCWallet } from "stores/btcWalletStore";
+// import { useBTCWallet } from "../../stores/btcWalletStore";
 
 const useConfirmAndProceedState = ({
   phoneNumber,

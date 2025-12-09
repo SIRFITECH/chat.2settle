@@ -1,8 +1,8 @@
-import useErrorHandler from "@/hooks/chatbot/useErrorHandler";
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "../../ui/alert";
 import { Button } from "../../ui/button";
 import { telegramUser } from "@/types/telegram_types";
+import useErrorHandler from "@/hooks/chatbot/useErrorHandler";
 
 export default function TelegramIntegration() {
   const { error, handleError, clearError } = useErrorHandler();
