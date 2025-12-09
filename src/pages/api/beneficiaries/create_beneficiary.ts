@@ -44,7 +44,7 @@ export default async function handler(
     const query = "INSERT INTO beneficiaries SET ?";
     const [result] = await connection.query(query, beneficiaryData);
 
-    await connection.end();
+    // await connection.end();
 
     res.status(200).json({ message: "User data stored successfully", result });
   } catch (err) {

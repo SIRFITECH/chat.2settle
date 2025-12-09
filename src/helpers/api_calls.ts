@@ -5,9 +5,8 @@ import {
   ServerData,
   userData,
   vendorData,
-  WalletInfo
+  WalletInfo,
 } from "../types/general_types";
-
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -25,12 +24,11 @@ export const checkReferralExists = async (
   }
 };
 
-
 export const checkTranscationExists = async (
   transac_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
-    const response = await axios.get("/api/check_transaction", {
+    const response = await axios.get("/api/transaction/check_transaction", {
       params: { transac_id: transac_id },
     });
     return response.data;
@@ -97,7 +95,7 @@ export const checkRequestExists = async (
   requestID: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
-    const response = await axios.get("/api/confirm_request", {
+    const response = await axios.get("/api/requests/confirm_request", {
       params: { request_id: requestID },
     });
     const { exists, transactions } = response.data;
@@ -142,14 +140,17 @@ export const checkRequestExists = async (
   }
 };
 
-// GET THE AVAILABLE WALLET FROM DB 
+// GET THE AVAILABLE WALLET FROM DB
 export const getAvaialableWallet = async (
   network: string
 ): Promise<WalletInfo> => {
   try {
-    const response = await axios.get(`${apiURL}/api/get_available_wallet`, {
-      params: { network: network },
-    });
+    const response = await axios.get(
+      `${apiURL}/api/transaction/get_available_wallet`,
+      {
+        params: { network: network },
+      }
+    );
 
     if (response.status === 200 && response.data.activeWallet) {
       console.log(
@@ -172,17 +173,16 @@ export const getAvaialableWallet = async (
         console.error(`No active wallet found for network ${network}`);
         throw new Error(`No active wallet available for network: ${network}`);
       } else if (error.response.status === 503) {
-       let waitTime = "a few";
-if (error.response?.data?.message) {
-  const match = error.response.data.message.match(/\d+/);
-  if (match && match[0] !== "0") {
-    waitTime = match[0];
-  }
-}
-throw new Error(
-  `Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`
-);
-
+        let waitTime = "a few";
+        if (error.response?.data?.message) {
+          const match = error.response.data.message.match(/\d+/);
+          if (match && match[0] !== "0") {
+            waitTime = match[0];
+          }
+        }
+        throw new Error(
+          `Ops!! you will have to wait a little longer. Please try again in ${waitTime} seconds.`
+        );
       } else {
         console.error(
           `API error for network ${network}:`,
@@ -201,9 +201,12 @@ export const getDirectDebitWallet = async (type: string): Promise<string> => {
   const serial_id = 14;
 
   try {
-    const response = await axios.get("/api/get_direct_debit_wallet", {
-      params: { type, id: serial_id },
-    });
+    const response = await axios.get(
+      "/api/transaction/get_direct_debit_wallet",
+      {
+        params: { type, id: serial_id },
+      }
+    );
 
     if (response.status === 200) {
       console.log("Wallet is:", response.data.wallet);
@@ -225,7 +228,7 @@ export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
-    const response = await axios.get("/api/confirm_gift", {
+    const response = await axios.get("/api/gifts/confirm_gift", {
       params: { gift_id },
     });
 
@@ -272,7 +275,7 @@ export const isGiftValid = async (
 // UPDATE THE TRANSACTION STATUS
 export const updateTransaction = async (transac_id: string, status: string) => {
   try {
-    const response = await axios.post("/api/update_transaction", {
+    const response = await axios.post("/api/transaction/update_transaction", {
       transac_id,
       status,
     });
@@ -293,7 +296,7 @@ export const updateGiftTransaction = async (
   updateData: Record<string, any>
 ) => {
   try {
-    const response = await axios.post("/api/update_gift", {
+    const response = await axios.post("/api/gifts/update_gift", {
       gift_chatID,
       ...updateData,
     });
@@ -317,7 +320,7 @@ export const updateRequest = async (
   updateData: Record<string, any>
 ) => {
   try {
-    const response = await axios.post("/api/update_request", {
+    const response = await axios.post("/api/requests/update_request", {
       request_id,
       ...updateData,
     });
@@ -335,13 +338,12 @@ export const updateRequest = async (
   }
 };
 
-
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
 
 export const createTransaction = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(
-      `${apiURL}/api/create_transaction`,
+      `${apiURL}/api/transaction/create_transaction`,
       user
     );
     console.log("Use transaction created successfully");
@@ -355,7 +357,7 @@ export const createTransaction = async (user: any): Promise<any> => {
 export const createBeneficiary = async (user: any): Promise<any> => {
   try {
     const response = await axios.post<any>(
-      `${apiURL}/api/create_beneficiary`,
+      `${apiURL}/api/beneficiaries/create_beneficiary`,
       user
     );
     console.log("Use transaction created successfully");
@@ -366,12 +368,11 @@ export const createBeneficiary = async (user: any): Promise<any> => {
   }
 };
 
-
 // CREATE TRANSACTION IN THE TRANSACTION TABLE
 export const createComplain = async (complainData: any): Promise<any> => {
   try {
     const response = await axios.post<any>(
-      `${apiURL}/api/create_complain`,
+      `${apiURL}/api/complains/create_complain`,
       complainData
     );
     console.log("Use complain created successfully");
@@ -448,27 +449,25 @@ export const resolveBankAccount = async (
 ): Promise<any | null> => {
   try {
     const bank = await fetchBankNames(bank_name);
-    
+
     const text = bank.message[0]; // "1. OPAY 100004"
 
-// Remove the "1." at the start
-const cleanText = text.replace(/^\d+\.\s*/, ""); // "OPAY 100004"
+    // Remove the "1." at the start
+    const cleanText = text.replace(/^\d+\.\s*/, ""); // "OPAY 100004"
 
-// Split by space
-const parts = cleanText.split(" ");
+    // Split by space
+    const parts = cleanText.split(" ");
 
-// Bank name is everything except the last part
-const bankName = parts.slice(0, -1).join(" "); 
-// "OPAY"
+    // Bank name is everything except the last part
+    const bankName = parts.slice(0, -1).join(" ");
+    // "OPAY"
 
-// Bank code is the last part
-const bankCode = parts[parts.length - 1]; 
+    // Bank code is the last part
+    const bankCode = parts[parts.length - 1];
 
     const bank_details = await fetchBankDetails(bankCode, acc_no);
 
     return bank_details[0].account_name;
-
-
   } catch (error) {
     console.error(
       `Error fetching bank details for bank code ${bank_name} and account number ${acc_no}:`,
@@ -477,8 +476,6 @@ const bankCode = parts[parts.length - 1];
     return null;
   }
 };
-
-
 
 // WRITE A USER TO THE WALLET TABLE
 // export const createUser = async (user: any): Promise<any> => {
@@ -491,8 +488,6 @@ const bankCode = parts[parts.length - 1];
 //     throw new Error("Failed to store user data");
 //   }
 // };
-
-
 
 // FETCH CURRENT EXCHANGE RATE FROM DB
 // export const fetchRate = async (): Promise<number> => {
