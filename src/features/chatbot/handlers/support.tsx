@@ -23,7 +23,7 @@ import {
 } from "@/menus/request_paycard";
 import { choiceMenu, helloMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 
 // CUSTOMER SUPPORT SEQUENCE FUNCTIONS
 

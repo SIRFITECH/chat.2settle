@@ -9,7 +9,7 @@ import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
 import ConnectBTCButton from "@/components/crypto/ConnectBTCButton";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 
 // WELCOME USER DEPENDING ON IF THEY CONNECT WALLET OR NOT
 export const welcomeMenu = (

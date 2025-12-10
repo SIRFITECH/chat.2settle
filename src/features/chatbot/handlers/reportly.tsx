@@ -21,7 +21,7 @@ import { reportData } from "../../../types/reportly_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu, welcomeMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 
 export type DisplayReportlyPhoneNumber = (
   addChatMessages: (messages: MessageType[]) => void,

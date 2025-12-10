@@ -50,7 +50,7 @@ import {
 import { SetStateAction } from "react";
 import { WalletAddress } from "@/lib/wallets/types";
 import { stepHandlers } from "./transactionHandlers";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 
 export const handleConversation = async (
   addChatMessages: (messages: MessageType[]) => void,
@@ -153,7 +153,7 @@ export const handleConversation = async (
       goToStep("start");
     }
 
-    console.log({currentStep})
+    console.log({ currentStep });
     await stepHandlers[currentStep as StepId]({
       addChatMessages,
       chatInput,

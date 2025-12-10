@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { StepId } from "@/core/transation_state_machine/steps";
-import { stepService } from "@/core/transation_state_machine/transaction_state_machine";
+import { StepId } from "@/core/machines/steps";
+import { stepService } from "@/core/machines/transaction_state_machine";
 import elementToJSXString from "react-element-to-jsx-string";
 import parse from "html-react-parser";
 export type MessageType = {

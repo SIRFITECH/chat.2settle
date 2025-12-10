@@ -16,7 +16,7 @@ import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { MessageType } from "@/types/general_types";
 import { WalletAddress } from "@/lib/wallets/types";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 
 // GET USER BANK DETAILS FROM NUBAN
 export const handleSearchBank = async (
@@ -403,9 +403,7 @@ export const handleSelectBank = async (
     setLoading(true);
 
     try {
-      const bankNames = await fetchBankNames(
-        chatInput.trim()
-      );
+      const bankNames = await fetchBankNames(chatInput.trim());
       bankList = bankNames["message"];
 
       if (Array.isArray(bankList)) {

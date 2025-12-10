@@ -4,7 +4,7 @@ import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { geminiAi } from "@/services/ai/ai-services";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 import useChatStore from "stores/chatStore";
 
 /**

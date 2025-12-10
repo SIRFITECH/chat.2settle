@@ -1,4 +1,4 @@
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 import { WalletAddress } from "@/lib/wallets/types";
 import { MessageType, UserBankData } from "@/types/general_types";
 import { SetStateAction } from "react";
@@ -45,7 +45,6 @@ import {
   handleReportlyNote,
   handleReportlyWelcome,
 } from "./reportly";
-
 
 type HandlerProps = {
   currentStep: StepId;

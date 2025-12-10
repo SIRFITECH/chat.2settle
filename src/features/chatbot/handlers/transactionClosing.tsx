@@ -15,7 +15,7 @@ import { phoneNumberPattern } from "@/utils/utilities";
 import { greetings } from "../helpers/ChatbotConsts";
 import { helloMenu } from "./general";
 import { WalletAddress } from "@/lib/wallets/types";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 import ConfirmAndProceedButton from "@/hooks/chatbot/confirmButtonHook";
 
 // VALIDATE USER ACCOUNT DETAILS USING PHONE NUMBER AND BANK NAME

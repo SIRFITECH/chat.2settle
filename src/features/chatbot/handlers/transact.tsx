@@ -20,7 +20,7 @@ import { SetStateAction } from "react";
 import { getWalletType } from "@/helpers/transaction/transact_crypto";
 import { WalletAddress } from "@/lib/wallets/types";
 import { add } from "lodash";
-import { StepId } from "@/core/transation_state_machine/steps";
+import { StepId } from "@/core/machines/steps";
 
 /**
  * handle crypto transaction, payment request and gifts
