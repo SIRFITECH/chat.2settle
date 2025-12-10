@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { StepId } from "@/core/machines/steps";
-import { stepService } from "@/core/machines/transaction_state_machine";
+import { getStepService } from "@/core/machines/transaction_state_machine";
 import elementToJSXString from "react-element-to-jsx-string";
 import parse from "html-react-parser";
+
+const stepService = getStepService();
 export type MessageType = {
   type: string;
   content: React.ReactNode;
@@ -145,15 +147,8 @@ const useChatStore = create<ChatStore>()(
   )
 );
 
-// sync xstate to zustand store on every transition
-// stepService.subscribe((snapshot) => {
-//   const step = snapshot.value as StepId;
-
-//   useChatStore.getState().recordStep(step);
-// });
-
 stepService.subscribe((snapshot) => {
-  console.log({ snapshot });
+  console.log("MACHINE STATE →", snapshot.value, "CTX →", snapshot.context);
   let step: StepId;
 
   if (typeof snapshot.value === "string") {
@@ -162,6 +157,7 @@ stepService.subscribe((snapshot) => {
     // grab the first key if using nested states
     step = Object.keys(snapshot.value)[0] as StepId;
   } else {
+    console.log({ snapshot });
     return; // invalid snapshot, ignore
   }
 

@@ -1,52 +1,10 @@
 import { MessageType, UserBankData } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
-import { aiChat, choiceMenu, helloMenu } from "./general";
-import { displayCustomerSupportWelcome } from "@/menus/customer_support";
 import {
   displayReportlyPhoneNumber,
   displayReportlyNote,
 } from "@/menus/reportly";
-import {
-  handleSearchBank,
-  handleSelectBank,
-  handleBankAccountNumber,
-} from "./banking";
-import {
-  handleCompleteTransactionId,
-  handleGiftRequestId,
-} from "./completeTransaction";
-import {
-  handleReportlyWelcome,
-  handleReporterName,
-  handleEnterReporterPhoneNumber,
-  handleEnterReporterWalletAddress,
-  handleEnterFraudsterWalletAddress,
-  handleReportlyNote,
-  handleReporterFarwell,
-} from "./reportly";
-import {
-  handleKYCInfo,
-  handleRegKYC,
-  handleThankForKYCReg,
-  handleCustomerSupportAssurance,
-  handleTransactionId,
-  handleMakeComplain,
-} from "./support";
-import {
-  handleMakeAChoice,
-  handleTransferMoney,
-  handleEstimateAsset,
-  handleNetwork,
-  handleCharge,
-  handlePayOptions,
-} from "./transact";
-import {
-  handleContinueToPay,
-  handlePhoneNumber,
-  handleCryptoPayment,
-  handleConfirmTransaction,
-  handleTransactionProcessing,
-} from "./transactionClosing";
+
 import { SetStateAction } from "react";
 import { WalletAddress } from "@/lib/wallets/types";
 import { stepHandlers } from "./transactionHandlers";
@@ -150,7 +108,11 @@ export const handleConversation = async (
 
     // channel user to the manual chatbot
     if (greetings.includes(chatInput.trim().toLowerCase())) {
-      goToStep("start");
+      // goToStep("start");
+      if (currentStep !== "start") {
+        goToStep("start");
+        return;
+      }
     }
 
     console.log({ currentStep });

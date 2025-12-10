@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useAccount } from "wagmi";
-import { useSharedState } from "../../context/SharedStateContext";
+import { useSharedState } from "../context/SharedStateContext";
 import {
   checkRequestExists,
   createTransaction,
@@ -16,10 +16,10 @@ import {
   isGiftValid,
   updateGiftTransaction,
   updateRequest,
-} from "../../helpers/api_calls";
-import { formatCurrency } from "../../helpers/format_currency";
-import { getFormattedDateTime } from "../../helpers/format_date";
-import type { MessageType } from "../../types/general_types";
+} from "../helpers/api_calls";
+import { formatCurrency } from "../helpers/format_currency";
+import { getFormattedDateTime } from "../helpers/format_date";
+import type { MessageType } from "../types/general_types";
 import {
   formatPhoneNumber,
   generateChatId,
@@ -27,7 +27,7 @@ import {
   generateTransactionId,
   getChatId,
   saveChatId,
-} from "../../utils/utilities";
+} from "../utils/utilities";
 
 import { displaySendPayment } from "@/menus/transact_crypto";
 import {
@@ -42,7 +42,7 @@ import {
 import {
   displayEnterId,
   displayGiftFeedbackMessage,
-} from "../../menus/transaction_id";
+} from "../menus/transaction_id";
 
 import {
   getLocalStorageData,
@@ -50,12 +50,12 @@ import {
 } from "@/features/chatbot/helpers/localStorageUtils";
 import type { ChatBotProps } from "@/types/chatbot_types";
 import type { telegramUser } from "@/types/telegram_types";
-import ErrorBoundary from "../../components/social/telegram/TelegramError";
-import TelegramIntegration from "../../components/social/telegram/TelegramIntegration";
-import ChatHeader from "../../components/chatbot/ChatHeader";
-import ChatInput from "../../components/chatbot/ChatInput";
-import ChatMessages from "../../components/chatbot/ChatMessages";
-import { withErrorHandling } from "../../components/withErrorHandling";
+import ErrorBoundary from "../components/social/telegram/TelegramError";
+import TelegramIntegration from "../components/social/telegram/TelegramIntegration";
+import ChatHeader from "../components/chatbot/ChatHeader";
+import ChatInput from "../components/chatbot/ChatInput";
+import ChatMessages from "../components/chatbot/ChatMessages";
+import { withErrorHandling } from "../components/withErrorHandling";
 
 import { aiChat, helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
@@ -66,7 +66,7 @@ import useRate from "@/hooks/rates/useRate";
 import useMerchantRate from "@/hooks/rates/useMerchantRate";
 import useProfitRate from "@/hooks/rates/useProfitRate";
 import { calculateCharge } from "@/services/transactionService/transferService/transactCrypto";
-import { greetings } from "../chatbot/helpers/ChatbotConsts";
+import { greetings } from "../features/chatbot/helpers/ChatbotConsts";
 import { useChatNavigation } from "@/hooks/chatbot/useChatNavigation";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {

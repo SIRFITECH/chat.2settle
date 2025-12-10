@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import ChatBot from "../../features/transact/ChatBot";
+import ChatBot from "../../core/ChatBot";
 import CloseIcon from "@mui/icons-material/Close";
 import ChatBubbleOutlineIcon from "@mui/icons-material/Chat";
 import SendMoney from "./SendMoney";
@@ -42,7 +42,7 @@ export default function Body() {
   const [imageError, setImageError] = useState<string | null>(null);
 
   const { data: rate, isLoading: rateLoading, error: rateError } = useRate();
-  const { 
+  const {
     data: tvt,
     isLoading: TvtLoading,
     error: tvtError,
