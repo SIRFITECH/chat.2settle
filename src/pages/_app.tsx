@@ -11,7 +11,7 @@ import { SessionProvider } from "next-auth/react";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";
 
-const client = new QueryClient();
+export const client = new QueryClient();
 //  session;
 
 function MyApp({ Component, pageProps }: AppProps) {

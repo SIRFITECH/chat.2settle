@@ -13,6 +13,8 @@ import useRate from "@/hooks/rates/useRate";
 import useTotalVolume from "@/hooks/dashboard/useTotalVolume";
 import Maintenance from "./Maintenance";
 import DisplayTransactions from "./DisplayTransactions";
+import { usePaymentStore } from "stores/paymentStore";
+import { client } from "@/pages/_app";
 
 export const useMediaQuery = (query: string) => {
   const [matches, setMatches] = useState(false);
@@ -48,6 +50,18 @@ export default function Body() {
     error: tvtError,
   } = useTotalVolume();
   const [showMaintenance, setShowMaintenance] = useState(false);
+  // const { setRate } = usePaymentStore.getState();
+
+  // set rate for global use
+  useEffect(() => {
+    const rate = client.getQueryData<number>(["rate"]);
+    if (!rateLoading && !rateError && rate) {
+      usePaymentStore
+        .getState()
+        .setRate(formatCurrency(rate.toString(), "NGN", "en-NG"));
+      return;
+    }
+  }, [rate, rateLoading, rateError]);
 
   // set maintaince by setting showMaintenance = false
   useEffect(() => {
