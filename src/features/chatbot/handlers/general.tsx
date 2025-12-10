@@ -114,10 +114,6 @@ export const helloMenu = (
         },
       ]);
       nextStep?.();
-
-      console.log("Wallet connected", nextStep?.());
-
-      // nextStep?.("chooseAction");
     } else {
       setSharedPaymentMode?.("");
       addChatMessages?.([
@@ -143,7 +139,7 @@ export const helloMenu = (
       console.log("Wallet not connected");
     }
     nextStep?.();
-    console.log("Wallet not connected", useChatStore.getState().next());
+    // console.log("Wallet not connected", useChatStore.getState().next());
     // nextStep?.("chooseAction");
   } else {
     addChatMessages?.([
