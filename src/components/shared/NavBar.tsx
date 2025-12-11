@@ -14,6 +14,7 @@ const navigation = [
   { name: "History", href: "/history" },
   { name: "Reportly", href: "/reportly" },
   { name: "Settings", href: "/setting" },
+  { name: "Virtual Card", href: "/virtual-card" },
 ] as const;
 
 export default function Navbar() {
