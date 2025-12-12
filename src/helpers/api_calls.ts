@@ -2,9 +2,7 @@ import axios from "axios";
 import {
   BankName,
   ReferralUser,
-  ServerData,
   userData,
-  vendorData,
   WalletInfo,
 } from "../types/general_types";
 
@@ -247,30 +245,6 @@ export const isGiftValid = async (
     throw error;
   }
 };
-
-// export const updateUser = async (
-//   updatedData: Partial<vendorData>
-// ): Promise<void> => {
-//   try {
-//     const response = await axios.post("/api/update_user", {
-//       ...updatedData,
-//     });
-
-//     if (response.status === 200) {
-//       console.log("User updated successfully:", response.data);
-//     } else {
-//       console.error("Unexpected status code:", response.status);
-//       console.error("Failed to update user:", response.data);
-//     }
-//   } catch (error) {
-//     if (axios.isAxiosError(error)) {
-//       console.error("Axios error:", error.response?.data || error.message);
-//     } else {
-//       console.error("Error updating user data:", error);
-//     }
-//     throw new Error("Failed to update user data");
-//   }
-// };
 
 // UPDATE THE TRANSACTION STATUS
 export const updateTransaction = async (transac_id: string, status: string) => {
@@ -577,5 +551,30 @@ export const resolveBankAccount = async (
 //   } catch (error) {
 //     console.error("Error checking user existence:", error);
 //     throw error;
+//   }
+// };
+
+
+// export const updateUser = async (
+//   updatedData: Partial<vendorData>
+// ): Promise<void> => {
+//   try {
+//     const response = await axios.post("/api/update_user", {
+//       ...updatedData,
+//     });
+
+//     if (response.status === 200) {
+//       console.log("User updated successfully:", response.data);
+//     } else {
+//       console.error("Unexpected status code:", response.status);
+//       console.error("Failed to update user:", response.data);
+//     }
+//   } catch (error) {
+//     if (axios.isAxiosError(error)) {
+//       console.error("Axios error:", error.response?.data || error.message);
+//     } else {
+//       console.error("Error updating user data:", error);
+//     }
+//     throw new Error("Failed to update user data");
 //   }
 // };

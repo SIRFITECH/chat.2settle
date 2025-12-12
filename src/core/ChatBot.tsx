@@ -57,7 +57,7 @@ import ChatInput from "../components/chatbot/ChatInput";
 import ChatMessages from "../components/chatbot/ChatMessages";
 import { withErrorHandling } from "../components/withErrorHandling";
 
-import { aiChat, helloMenu } from "@/features/chatbot/handlers/general";
+import { helloMenu } from "@/features/chatbot/handlers/general";
 import { handleConversation } from "@/features/chatbot/handlers/handleConversations";
 import type { WalletAddress } from "@/lib/wallets/types";
 import { useBTCWallet } from "stores/btcWalletStore";
@@ -66,7 +66,6 @@ import useRate from "@/hooks/rates/useRate";
 import useMerchantRate from "@/hooks/rates/useMerchantRate";
 import useProfitRate from "@/hooks/rates/useProfitRate";
 import { calculateCharge } from "@/services/transactionService/transferService/transactCrypto";
-import { greetings } from "../features/chatbot/helpers/ChatbotConsts";
 import { useChatNavigation } from "@/hooks/chatbot/useChatNavigation";
 
 const ChatBot: React.FC<ChatBotProps> = ({ isMobile, onClose, onError }) => {

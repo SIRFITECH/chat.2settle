@@ -1,19 +1,18 @@
-import { formatCurrency } from "@/helpers/format_currency";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
+import { telegramUser } from "@/types/telegram_types";
 import {
+  differenceInDays,
+  differenceInMonths,
   format,
   isToday,
   isYesterday,
-  differenceInDays,
-  differenceInMonths,
 } from "date-fns";
 import {
   generateChatId,
   getChatId,
   saveChatId,
 } from "../../../utils/utilities";
-import { telegramUser } from "@/types/telegram_types";
 
 export const renderDateSeparator = (date: Date) => {
   const now = new Date();

@@ -1,9 +1,7 @@
 import { apiURL } from "@/constants/constants";
-import { formatCurrency } from "@/helpers/format_currency";
 import { ServerData } from "@/types/general_types";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { usePaymentStore } from "stores/paymentStore";
 
 const useRate = () => {
   return useQuery<number, Error>({

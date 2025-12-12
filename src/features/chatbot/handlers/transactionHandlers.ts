@@ -2,11 +2,10 @@ import { StepId } from "@/core/machines/steps";
 import { WalletAddress } from "@/lib/wallets/types";
 import { MessageType, UserBankData } from "@/types/general_types";
 import { SetStateAction } from "react";
-import { choiceMenu, helloMenu } from "./general";
+import { helloMenu } from "./general";
 import {
   handleCharge,
   handleEstimateAsset,
-  handleMakeAChoice,
   handleNetwork,
   handlePayOptions,
   handleTransferMoney,
@@ -45,6 +44,8 @@ import {
   handleReportlyNote,
   handleReportlyWelcome,
 } from "./reportly";
+import { choiceMenu } from "@/menus/transaction/transfer/choose_action";
+import { handleMakeAChoice } from "@/menus/transaction/transfer/transact-crypto";
 
 type HandlerProps = {
   currentStep: StepId;
