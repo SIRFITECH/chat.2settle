@@ -33,7 +33,6 @@ const navigation: NavItem[] = [
 export default function Footer() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState({
     settings: false,
     logout: false,

@@ -14,7 +14,7 @@ export default function WaitlistForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
+    // setIsLoading(true);
 
     // Simple email validation
     if (!email || !email.includes("@")) {
@@ -23,19 +23,19 @@ export default function WaitlistForm() {
       return;
     }
 
-    try {
-      // Simulated API call - replace with your actual endpoint
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setSubmitted(true);
-      setEmail("");
-      setTimeout(() => {
-        setSubmitted(false);
-      }, 3000);
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    // try {
+    //   // Simulated API call - replace with your actual endpoint
+    //   await new Promise((resolve) => setTimeout(resolve, 500));
+    //   setSubmitted(true);
+    //   setEmail("");
+    //   setTimeout(() => {
+    //     setSubmitted(false);
+    //   }, 3000);
+    // } catch (err) {
+    //   setError("Something went wrong. Please try again.");
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   return (
