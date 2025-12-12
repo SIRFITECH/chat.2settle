@@ -20,6 +20,7 @@ const navigation: NavItem[] = [
   { name: "History", href: "/history" },
   { name: "Reportly", href: "/reportly" },
   { name: "Settings", href: "/setting" },
+  { name: "Virtual Card", href: "/virtual-card" },
   { name: "Privacy Policy", href: "/privacy" },
   { name: "Term of service", href: "/terms" },
   {
@@ -32,7 +33,6 @@ const navigation: NavItem[] = [
 export default function Footer() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState({
     settings: false,
     logout: false,

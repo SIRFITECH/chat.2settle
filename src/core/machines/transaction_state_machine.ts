@@ -51,7 +51,7 @@ export const stepMachine = machineSetup.createMachine({
   states: generateStates,
 });
 
-// export const stepService = createActor(stepMachine).start();
+
 // export a singleton instance that does not gets redeclared on every inport or reload
 let _actor: ReturnType<typeof createActor> | null = null;
 

@@ -6,7 +6,17 @@ import { geminiAi } from "@/services/ai/ai-services";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { StepId } from "@/core/machines/steps";
 import useChatStore from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
 
+const next = useChatStore.getState().next;
+
+let formatRate: string;
+setTimeout(() => {
+  formatRate = usePaymentStore.getState().rate;
+  console.log({ formatRate });
+}, 2500);
+
+// const { data: formatRate, isLoading, error } = useRate()
 /**
  *
  * @param addChatMessages
@@ -88,6 +98,7 @@ export const helloMenu = (
   telFirstName?: string,
   setSharedPaymentMode?: (mode: string) => void
 ) => {
+  console.log({ formatRate });
   console.log("we are at the start of the program");
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     window.localStorage.setItem("transactionID", "");
@@ -114,7 +125,8 @@ export const helloMenu = (
           timestamp: new Date(),
         },
       ]);
-      nextStep?.();
+      // TODO: change this to nextStep() for consistency
+      next();
     } else {
       setSharedPaymentMode?.("");
       addChatMessages?.([
@@ -139,9 +151,8 @@ export const helloMenu = (
       ]);
       console.log("Wallet not connected");
     }
-    nextStep?.();
-    // console.log("Wallet not connected", useChatStore.getState().next());
-    // nextStep?.("chooseAction");
+    // TODO: change this to nextStep() for consistency
+    next();
   } else {
     addChatMessages?.([
       {
@@ -188,7 +199,7 @@ export const welcomeMenu = (
             <br />
             <br />
             Your wallet is connected. The current rate is
-            <b> {formattedRate}/$1</b>
+            <b> {formatRate}/$1</b>
           </span>
         ),
         timestamp: new Date(),
@@ -220,7 +231,7 @@ export const welcomeMenu = (
               You continued <b>without connecting your wallet</b>
               <br />
               <br />
-              Today Rate: <b>{formattedRate}/$1</b> <br />
+              Today Rate: <b>{formatRate}/$1</b> <br />
               <br />
               Welcome to 2SettleHQ {telFirstName}, how can I help you today?
             </span>
@@ -290,7 +301,6 @@ export const choiceMenu = (
       telFirstName,
       setSharedPaymentMode
     );
-    // helloMenu("hi");
   } else if (choice.toLowerCase() === "1") {
     if (!walletIsConnected) {
       addChatMessages([
@@ -338,6 +348,7 @@ export const choiceMenu = (
       // nextStep("transactCrypto");
     }
   } else if (choice.toLowerCase() === "2") {
+    console.log("Rate is", formatRate);
     if (!walletIsConnected) {
       addChatMessages([
         {
@@ -347,7 +358,7 @@ export const choiceMenu = (
               You continued <b>without connecting your wallet</b>
               <br />
               <br />
-              Today Rate: <b>{formattedRate}/$1</b> <br />
+              Today Rate: <b>{formatRate}/$1</b> <br />
               <br />
               Welcome to 2SettleHQ, how can I help you today?
             </span>
@@ -388,7 +399,7 @@ export const choiceMenu = (
               </b>
               <br />
               <br />
-              Today Rate: <b>{formattedRate}/$1</b> <br />
+              Today Rate: <b>{formatRate}/$1</b> <br />
               <br />
               Welcome to 2SettleHQ, how can I help you today?
             </span>

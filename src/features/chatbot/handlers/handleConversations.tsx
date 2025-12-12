@@ -116,8 +116,6 @@ export const handleConversation = async (
         return;
       }
     }
-
-    console.log({ currentStep });
     await stepHandlers[currentStep as StepId]({
       addChatMessages,
       chatInput,
