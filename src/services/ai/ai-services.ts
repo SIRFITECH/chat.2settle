@@ -22,12 +22,13 @@ export const OpenAI = async (updatedMessages: any, sessionId: String): Promise<a
 };
 
 export const geminiAi = async (updatedMessages: string | undefined, sessionId: String): Promise<GemResponseType> => {
+  console.log('working',updatedMessages);
   try {
     const response = await axios.post<GemResponseType>(
-      `${apiURL}/api/geminiApi`,
+      `${apiURL}/api/ai/geminiApi`,
       { messageText: updatedMessages, chatId: sessionId }
     );
-    console.log("Use transaction created successfully working perfectly......");
+   
 
     return response.data;
   } catch (error) {

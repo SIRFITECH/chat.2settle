@@ -9,6 +9,7 @@ import { SetStateAction } from "react";
 import { WalletAddress } from "@/lib/wallets/types";
 import { stepHandlers } from "./transactionHandlers";
 import { StepId } from "@/core/machines/steps";
+import { aiChat } from "./general";
 
 export const handleConversation = async (
   addChatMessages: (messages: MessageType[]) => void,
@@ -87,7 +88,8 @@ export const handleConversation = async (
     lastAssignedTime?: Date
   ) => Promise<void>
 ) => {
-  const isAIChat = !greetings.includes(chatInput.trim());
+  const isAIChat = true
+    // !greetings.includes(chatInput.trim());
   setLoading(true);
   try {
     if (chatInput.trim()) {
@@ -101,10 +103,10 @@ export const handleConversation = async (
     }
 
     // // channel user to the ai chatbot
-    // if (isAIChat) {
-    //   await aiChat();
-    //   return;
-    // }
+    if (isAIChat) {
+      await aiChat(addChatMessages, chatInput, setSharedPaymentMode);
+      return;
+    }
 
     // channel user to the manual chatbot
     if (greetings.includes(chatInput.trim().toLowerCase())) {

@@ -47,7 +47,7 @@ export const aiChat = async (
     } else {
       console.log("Using existing sessionId:", sessionId);
     }
-
+       console.log("Generated new sessionId:", chatInput);
     // const reply = await OpenAI(updatedMessages, sessionId);
     const reply = await geminiAi(chatInput, sessionId);
     console.log("this is the response from backend", reply.reply);
@@ -61,7 +61,6 @@ export const aiChat = async (
     ]);
   } catch (err) {
     console.error("There was an error from backend", err);
-
     addChatMessages?.([
       {
         type: "incoming",
@@ -77,6 +76,8 @@ export const aiChat = async (
     ]);
   }
 };
+
+
 
 export const helloMenu = (
   addChatMessages?: (messages: MessageType[]) => void,

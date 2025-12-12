@@ -3,7 +3,7 @@ import { ServerData } from "@/types/general_types";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const useRate = () => {
+const useMerchantRate = () => {
   return useQuery<number, Error>({
     queryKey: ["merchant_rate"],
     queryFn: () =>
@@ -30,4 +30,4 @@ const useRate = () => {
   });
 };
 
-export default useRate;
+export default useMerchantRate;

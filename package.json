@@ -48,7 +48,7 @@
     "ethers": "^6.13.4",
     "googleapis": "^140.0.1",
     "html-react-parser": "^5.1.18",
-    "langchain": "^1.1.5",
+    "langchain": "^0.3.36",
     "lodash": "^4.17.21",
     "lucide-react": "^0.439.0",
     "mysql2": "^3.11.5",
