@@ -24,13 +24,15 @@ const machineSetup = setup({
 
 // dynamic states
 const generateStates = steps.reduce((acc, step, index) => {
+  console.log(`step: ${step}, index: ${index}`);
+
   acc[step] = {
     entry: assign({
       currentStepIndex: index,
     }),
     on: {
       NEXT: steps[index + 1] || steps[index],
-      PREV: steps[index - 1] || steps[index],
+      PREV: steps[index - 2] || steps[index],
       GOTO: {
         target: (_ctx: Ctx, event: Events) =>
           event.type === "GOTO" && steps.includes(event.step)
@@ -50,7 +52,6 @@ export const stepMachine = machineSetup.createMachine({
   },
   states: generateStates,
 });
-
 
 // export a singleton instance that does not gets redeclared on every inport or reload
 let _actor: ReturnType<typeof createActor> | null = null;

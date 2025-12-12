@@ -4,14 +4,8 @@ import {
   displayEnterPhone,
   displayHowToEstimation,
   displayPayIn,
-  displayRequestPaymentSummary,
-  displayTransactCrypto,
   displayTransferMoney,
 } from "@/menus/transact_crypto";
-import { displayKYCInfo } from "@/menus/request_paycard";
-import { displayCustomerSupportWelcome } from "@/menus/customer_support";
-import { displayReportlyWelcome } from "@/menus/reportly";
-import { displayTransactIDWelcome } from "@/menus/transaction_id";
 import { helloMenu } from "./general";
 import { greetings } from "../helpers/ChatbotConsts";
 import { welcomeMenu } from "./menus";
@@ -19,7 +13,6 @@ import { checkRequestExists } from "@/helpers/api_calls";
 import { SetStateAction } from "react";
 import { getWalletType } from "@/helpers/transaction/transact_crypto";
 import { WalletAddress } from "@/lib/wallets/types";
-import { add } from "lodash";
 import { StepId } from "@/core/machines/steps";
 
 /**

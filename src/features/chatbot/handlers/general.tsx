@@ -3,8 +3,6 @@ import { WalletAddress } from "@/lib/wallets/types";
 import { MessageType } from "@/types/general_types";
 import { greetings } from "../helpers/ChatbotConsts";
 import { geminiAi } from "@/services/ai/ai-services";
-import ConnectWallet from "@/components/crypto/ConnectWallet";
-import { StepId } from "@/core/machines/steps";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 
@@ -13,7 +11,6 @@ const next = useChatStore.getState().next;
 let formatRate: string;
 setTimeout(() => {
   formatRate = usePaymentStore.getState().rate;
-  console.log({ formatRate });
 }, 2500);
 
 // const { data: formatRate, isLoading, error } = useRate()
