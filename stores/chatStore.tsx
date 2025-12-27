@@ -130,7 +130,9 @@ const useChatStore = create<ChatStore>()(
           return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
-        goto: (step) => stepService.send({ type: "GOTO", step }),
+        goto: (step) => {
+          return stepService.send({ type: "GOTO", step });
+        },
         next: () => stepService.send({ type: "NEXT" }),
         prev: () => stepService.send({ type: "PREV" }),
 
@@ -160,8 +162,19 @@ stepService.subscribe((snapshot) => {
     console.log({ snapshot });
     return; // invalid snapshot, ignore
   }
+  const store = useChatStore.getState();
+  const lastStep = store.stepHistory[store.stepHistory.length - 1];
 
-  useChatStore.getState().recordStep(step);
+  // Only record if the step has **actually changed**
+  if (lastStep !== step && lastStep !== undefined) {
+    store.recordStep(step);
+  }
+
+  // useChatStore.getState().recordStep(step);
+  // const { stepHistory } = useChatStore.getState();
+  // if (stepHistory[stepHistory.length - 1] !== step) {
+  //   useChatStore.getState().recordStep(step);
+  // }
 });
 
 export default useChatStore;

@@ -107,7 +107,6 @@ export default function Body() {
         alt="Wale Image"
         width={200}
         height={500}
-        // className="w-full max-w-[500px] mx-0"
         priority
         onError={handleImageError}
       />
@@ -117,7 +116,6 @@ export default function Body() {
         alt="Wale Image"
         width={300}
         height={500}
-        // className="w-full max-w-[500px] mx-0"
         priority
         onError={handleImageError}
       />
@@ -127,7 +125,6 @@ export default function Body() {
         alt="Wale Image"
         width={500}
         height={500}
-        // className="w-full max-w-[500px] mx-0"
         priority
         onError={handleImageError}
       />

@@ -2,14 +2,8 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/router";
-import Head from "next/head";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -18,7 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { signIn } from "next-auth/react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
