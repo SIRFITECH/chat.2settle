@@ -60,8 +60,8 @@ export const helloMenu = async (chatInput?: string) => {
         },
       ]);
       console.log("Wallet not connected");
+      next();
     }
-    next();
   } else {
     addMessages?.([
       {

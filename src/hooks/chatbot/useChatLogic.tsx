@@ -1,10 +1,11 @@
-import { helloMenu } from "@/features/chatbot/handlers/chatbot.parent";
+import {
+  helloMenu,
+  welcomeMenu,
+} from "@/features/chatbot/handlers/chatbot.parent";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
-import { chat } from "googleapis/build/src/apis/chat";
 
-import { Dispatch, SetStateAction, use } from "react";
+import { Dispatch, SetStateAction } from "react";
 import useChatStore, { MessageType } from "stores/chatStore";
-import { aw } from "vitest/dist/chunks/reporters.D7Jzd9GS.js";
 
 export interface ChatLogicProps {
   addChatMessages: (messages: MessageType[]) => void;
@@ -17,11 +18,11 @@ export interface ChatLogicProps {
 export const useChatLogic = ({
   addChatMessages,
   setChatInput,
-  currentStep,
   setLoading,
   onError,
 }: ChatLogicProps) => {
-  const { next, prev, reset } = useChatStore();
+  const currentStep = useChatStore.getState().currentStep;
+  const { reset } = useChatStore();
   const handleConversation = async (chatInput: string) => {
     setLoading(true);
     try {
@@ -41,6 +42,7 @@ export const useChatLogic = ({
         reset();
       }
 
+      console.log("Current Step:", currentStep);
       await stepHandlers[currentStep as StepId](chatInput);
     } catch (error) {
       console.error(error);
@@ -102,9 +104,8 @@ const stepHandlers: Record<
   (chatInput: string) => Promise<void> | void
 > = {
   start: async (chatInput) => helloMenu(chatInput),
-  chooseAction: async () => console.log("chooseAction step"),
+  chooseAction: async (chatInput) => welcomeMenu(chatInput),
   transactCrypto: async () => console.log("transactCrypto step"),
 };
-
 
 //   transactCrypto: async () => console.log("transactCrypto step"),
