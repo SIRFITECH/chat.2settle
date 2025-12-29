@@ -21,7 +21,7 @@ const DashboardFilteredTransactions = ({ filteredTransactions }: Props) => {
     .map((transaction, index) => (
       <TableRow key={index} className="text-black">
         <TableCell>{getFormattedDateTime(transaction.date) || "N/A"}</TableCell>
-        <TableCell className="hidden md:table-cell">
+        <TableCell >
           {capitalize(transaction.transaction_type) || "N/A"}
         </TableCell>
         <TableCell className="hidden md:table-cell">

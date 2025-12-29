@@ -1,6 +1,5 @@
 import { ServerData } from "@/types/general_types";
-import api from "./../../api-client";
-
+import api from "../api-client";
 // FETCH CURRENT EXCHANGE RATE FROM DB
 export const fetchRate = async (): Promise<number> => {
   try {
@@ -22,7 +21,7 @@ export const fetchRate = async (): Promise<number> => {
 export const fetchTotalVolume = async (): Promise<number> => {
   try {
     const response = await api.get<{ ytdVolume: string; dbVolume: string }>(
-      `/api/fetchYTD`
+      `/api/dashboard/fetchYTD`
     );
     const rawVolume = response.data.ytdVolume.replace(/[,$]/g, ""); // Remove commas
     const ytdVolume = parseFloat(rawVolume);

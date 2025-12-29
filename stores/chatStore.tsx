@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { StepId } from "@/core/machines/steps";
-import { getStepService } from "@/core/machines/chat_machine";
+// import { getStepService } from "@/core/machines/chat_machine";
 import elementToJSXString from "react-element-to-jsx-string";
 import parse from "html-react-parser";
+import { getStepService } from "@/core/machines/parent.machine";
 
 const stepService = getStepService();
 export type MessageType = {
@@ -64,6 +65,7 @@ type ChatStore = {
   goto: (step: StepId) => void;
   next: () => void;
   prev: () => void;
+  reset: () => void;
   clear: () => void;
 };
 
@@ -133,6 +135,7 @@ const useChatStore = create<ChatStore>()(
         goto: (step) => {
           return stepService.send({ type: "GOTO", step });
         },
+        reset: () => stepService.send({ type: "RESET" }),
         next: () => stepService.send({ type: "NEXT" }),
         prev: () => stepService.send({ type: "PREV" }),
 

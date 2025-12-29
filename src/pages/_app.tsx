@@ -8,10 +8,13 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { SharedStateProvider } from "../context/SharedStateContext";
 import ErrorBoundary from "@/components/social/telegram/TelegramError";
 import { SessionProvider } from "next-auth/react";
+import { persistQueryClient } from "@tanstack/query-persist-client-core";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";
+import { RateBootstrapper } from "@/components/dashboard/RateBootstrapper";
 
 export const client = new QueryClient();
+
 //  session;
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -26,6 +29,9 @@ function MyApp({ Component, pageProps }: AppProps) {
             <RainbowKitProvider>
               <SharedStateProvider>
                 <ErrorBoundary>
+                  <RateBootstrapper />{" "}
+                  {/* usefull for fetching rates in
+                  intervals and saving to zustand */}
                   <Component {...pageProps} />
                   <ReactQueryDevtools />
                 </ErrorBoundary>

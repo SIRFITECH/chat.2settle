@@ -1,7 +1,10 @@
+import { helloMenu } from "@/features/chatbot/handlers/chatbot.parent";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { chat } from "googleapis/build/src/apis/chat";
 
-import { Dispatch, SetStateAction } from "react";
-import { MessageType } from "stores/chatStore";
+import { Dispatch, SetStateAction, use } from "react";
+import useChatStore, { MessageType } from "stores/chatStore";
+import { aw } from "vitest/dist/chunks/reporters.D7Jzd9GS.js";
 
 export interface ChatLogicProps {
   addChatMessages: (messages: MessageType[]) => void;
@@ -18,6 +21,7 @@ export const useChatLogic = ({
   setLoading,
   onError,
 }: ChatLogicProps) => {
+  const { next, prev, reset } = useChatStore();
   const handleConversation = async (chatInput: string) => {
     setLoading(true);
     try {
@@ -34,14 +38,10 @@ export const useChatLogic = ({
 
       // greetings logic
       if (greetings.includes(chatInput.trim().toLowerCase())) {
-        addChatMessages([
-          {
-            type: "incoming",
-            content: <span>Hello! How can I assist you?</span>,
-            timestamp: new Date(),
-          },
-        ]);
+        reset();
       }
+
+      await stepHandlers[currentStep as StepId](chatInput);
     } catch (error) {
       console.error(error);
       onError?.(error instanceof Error ? error : new Error("Unknown error"));
@@ -59,3 +59,52 @@ export const useChatLogic = ({
 
   return { handleConversation };
 };
+
+const steps = [
+  "start",
+  "chooseAction",
+  "transactCrypto",
+  // "transferMoney",
+  // "estimateAsset",
+  // "network",
+  // "payOptions",
+  // "charge",
+  // "enterBankSearchWord",
+  // "selectBank",
+  // "enterAccountNumber",
+  // "continueToPay",
+  // "enterPhone",
+  // "sendPayment",
+  // "confirmTransaction",
+  // "paymentProcessing",
+  // "kycInfo",
+  // "kycReg",
+  // "thankForKYCReg",
+  // "supportWelcome",
+  // "assurance",
+  // "entreTrxId",
+  // "makeComplain",
+  // "completeTransactionId",
+  // "giftFeedBack",
+  // "makeReport",
+  // "reporterName",
+  // "reporterPhoneNumber",
+  // "reporterWallet",
+  // "fraudsterWallet",
+  // "reportlyNote",
+  // "reporterFarwell",
+] as const;
+
+type StepId = (typeof steps)[number];
+
+const stepHandlers: Record<
+  StepId,
+  (chatInput: string) => Promise<void> | void
+> = {
+  start: async (chatInput) => helloMenu(chatInput),
+  chooseAction: async () => console.log("chooseAction step"),
+  transactCrypto: async () => console.log("transactCrypto step"),
+};
+
+
+//   transactCrypto: async () => console.log("transactCrypto step"),
