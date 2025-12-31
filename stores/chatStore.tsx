@@ -56,17 +56,20 @@ type ChatStore = {
   serialized: { type: string; content: string }[];
   currentStep: StepId;
   stepHistory: StepId[];
+  loading: boolean;
 
   addMessages: (msg: MessageType[]) => void;
   setSerialized: (msgs: any[]) => void;
   recordStep: (step: StepId) => void;
   getDeserializedMessages: () => MessageType[];
 
-  goto: (step: StepId) => void;
-  next: () => void;
-  prev: () => void;
-  reset: () => void;
-  clear: () => void;
+  setLoading: (loading: boolean) => void;
+  sendChatInput: (input: string) => void;
+  // goto: (step: StepId) => void;
+  // next: () => void;
+  // prev: () => void;
+  // reset: () => void;
+  // clear: () => void;
 };
 
 const useChatStore = create<ChatStore>()(
@@ -106,6 +109,9 @@ const useChatStore = create<ChatStore>()(
 
       return {
         ...initialState,
+        loading: false,
+
+        setLoading: (loading: boolean) => set({ loading: loading }),
 
         addMessages: (msgs) =>
           set((state) => {
@@ -132,20 +138,23 @@ const useChatStore = create<ChatStore>()(
           return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
-        goto: (step) => {
-          return stepService.send({ type: "GOTO", step });
-        },
-        reset: () => stepService.send({ type: "RESET" }),
-        next: () => stepService.send({ type: "NEXT" }),
-        prev: () => stepService.send({ type: "PREV" }),
+        sendChatInput: (input: string) =>
+          stepService.send({ type: "CHAT_INPUT", value: input }),
 
-        clear: () =>
-          set({
-            messages: initialMessages,
-            serialized: initialMessages.map(serializeMessage),
-            currentStep: "start",
-            stepHistory: ["start"],
-          }),
+        // goto: (step) => {
+        //   return stepService.send({ type: "GOTO", step });
+        // },
+        // reset: () => stepService.send({ type: "RESET" }),
+        // next: () => stepService.send({ type: "NEXT" }),
+        // prev: () => stepService.send({ type: "PREV" }),
+
+        // clear: () =>
+        //   set({
+        //     messages: initialMessages,
+        //     serialized: initialMessages.map(serializeMessage),
+        //     currentStep: "start",
+        //     stepHistory: ["start"],
+        //   }),
       };
     },
     { name: "chat-flow" }

@@ -8,6 +8,7 @@ import { transactCryptoMachine } from "./transactCrypto.machine";
 import { transactionMachine } from "./transaction.machine";
 import { assign, createActor } from "xstate";
 import { steps } from "./steps";
+import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 
 interface Ctx {
   currentStepIndex: number;
@@ -28,27 +29,79 @@ export const chatbotMachine = machineSetup.createMachine({
 
   states: {
     start: {
-      // entry: assign(({ context }) => {
-      //   console.log(context);
-      //   // if (context.currentStepIndex === 0) return {};
-      // }),
       on: {
-        NEXT: [
+        CHAT_INPUT: [
+          {
+            target: "connectWallet",
+            guard: ({ event }) => event.value === "1",
+          },
+          {
+            guard: ({ event }) => event.value === "2",
+            target: "chooseAction",
+          },
+          {
+            guard: ({ event }) => event.value === "0",
+            target: "start",
+          },
+          {
+            guard: ({ event }) => greetings.includes(event.value),
+            target: "start",
+          },
+        ],
+      },
+    },
+    connectWallet: {
+      on: {
+        CHAT_INPUT: [
           {
             target: "chooseAction",
-            // guard: { type: "connectWallet" },
+            guard: ({ event }) => event.value == "connected",
           },
-          // {
-          //   target: "chooseAction",
-          //   // guard: { type: "continue without wallet" },
-          // },
+          {
+            target: "start",
+            guard: ({ event }) => event.value == "0",
+          },
         ],
-        PREV: { target: "start" },
-        RESET: { target: "start" },
       },
     },
 
     chooseAction: {
+      on: {
+        CHAT_INPUT: [
+          {
+            target: "chooseAction",
+            guard: ({ event }) => event.value === "1",
+          },
+          {
+            target: "transactCrypto",
+            guard: ({ event }) => event.value === "2",
+          },
+          {
+            target: "start",
+            guard: ({ event }) => event.value === "0",
+          },
+          {
+            guard: ({ event }) => greetings.includes(event.value),
+            target: "start",
+          },
+        ],
+      },
+    },
+    
+    transferMoney: {
+      on: {
+        CHAT_INPUT: [
+          {
+            guard: ({ event }) => greetings.includes(event.value),
+            target: "start",
+          },
+          {
+            guard: ({ event }) => greetings.includes(event.value),
+            target: "start",
+          },
+        ],
+      },
+
       // on: {
       //   NEXT: [
       //     {
@@ -78,7 +131,21 @@ export const chatbotMachine = machineSetup.createMachine({
     },
 
     // onboarding: onboardingMachine,
-    // transactCrypto: transactCryptoMachine,
+    transactCrypto: {
+      on: {
+        CHAT_INPUT: [
+          {
+            guard: ({ event }) => greetings.includes(event.value),
+            target: "start",
+          },
+          {
+            guard: ({ event }) => greetings.includes(event.value),
+            target: "start",
+          },
+        ],
+      },
+    },
+    // transactCryptoMachine,
     // payment: paymentMachine,
     // banking: bankingMachine,
     // support: supportMachine,

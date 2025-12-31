@@ -3,7 +3,8 @@ import { setup } from "xstate";
 export const machineSetup = setup({
   types: {
     context: {} as {},
-    events: {} as { type: "NEXT" } | { type: "PREV" } | { type: "RESET" },
+    events: {} as { type: "CHAT_INPUT"; value: string },
+    // | { type: "PREV" } | { type: "RESET" },
   },
   actions: {
     "just continue": function ({ context, event }, params) {

@@ -5,6 +5,9 @@ import useChatStore, { MessageType } from "stores/chatStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../helpers/ChatbotConsts";
 import { formatCurrency } from "@/helpers/format_currency";
+import ConnectWallet from "@/components/crypto/ConnectWallet";
+import { useAccount } from "wagmi";
+import { useEffect } from "react";
 
 export const helloMenu = async (chatInput?: string) => {
   console.log("we are at the start of the program");
@@ -15,7 +18,7 @@ export const helloMenu = async (chatInput?: string) => {
 
   const telFirstName = "Mosnyik";
 
-  const { next, addMessages } = useChatStore.getState();
+  const { sendChatInput, addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     if (walletIsConnected) {
       addMessages?.([
@@ -36,7 +39,7 @@ export const helloMenu = async (chatInput?: string) => {
           timestamp: new Date(),
         },
       ]);
-      next();
+      sendChatInput(chatInput!);
     } else {
       //   setSharedPaymentMode?.("");
       addMessages?.([
@@ -60,27 +63,54 @@ export const helloMenu = async (chatInput?: string) => {
         },
       ]);
       console.log("Wallet not connected");
-      next();
+      sendChatInput(chatInput!);
     }
   } else {
-    addMessages?.([
-      {
-        type: "incoming",
-        content: (
-          <span>
-            👋 How far {telFirstName}!
-            <br />
-            <br />I didn't catch that. To start a conversation with me, kindly
-            say something like <b>"hi"</b>, <b>"hello"</b>,<b> "howdy"</b>, or{" "}
-            <b>"hey"</b>
-            <br />
-            <br />
-            I'm ready when you are 😄
-          </span>
-        ),
-        timestamp: new Date(),
-      },
-    ]);
+      if (walletIsConnected) {
+        addMessages?.([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                How far {telFirstName} 👋
+                <br />
+                <br />
+                You are connected as <b>{shortWallet(wallet)}</b>
+                <br />
+                <br />
+                1. To disconnect wallet <br />
+                2. Continue to transact
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        sendChatInput(chatInput!);
+      } else {
+        //   setSharedPaymentMode?.("");
+        addMessages?.([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                How far {telFirstName}👋
+                <br />
+                <br />
+                Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
+                assistance, <br />
+                <b>Your wallet is not connected,</b> reply with:
+                <br />
+                <br />
+                1. To connect wallet <br />
+                2. To just continue
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        console.log("Wallet not connected", chatInput);
+        sendChatInput(chatInput!);
+      }
   }
 };
 
@@ -175,4 +205,48 @@ export const welcomeMenu = async (chatInput?: string) => {
       ]);
     }
   }
+};
+
+
+export function ConnectWalletWithChat() {
+  const { isConnected } = useAccount();
+  const { sendChatInput } = useChatStore();
+
+  useEffect(() => {
+    if (isConnected) {
+      sendChatInput("connected");
+    }
+  }, [isConnected, sendChatInput]);
+
+  return <ConnectWallet />;
+}
+export const connectWallet = async () => {
+  const { sendChatInput, addMessages } = useChatStore.getState();
+
+  addMessages([
+    {
+      type: "incoming",
+      content: (
+        <span>
+          {" "}
+          <ConnectWalletWithChat />
+        </span>
+      ),
+      timestamp: new Date(),
+    },
+    {
+      type: "incoming",
+      content: (
+        <span>
+          To go back type 0:
+          <br />
+          <br />
+          0. Go back
+        </span>
+      ),
+      timestamp: new Date(),
+    },
+  ]);
+
+  sendChatInput("connected");
 };

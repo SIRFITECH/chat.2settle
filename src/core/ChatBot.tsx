@@ -105,13 +105,14 @@
 
 import ErrorBoundary from "@/components/social/telegram/TelegramError";
 import { withErrorHandling } from "@/components/withErrorHandling";
-import ChatLayout from "@/hooks/chatbot/chatLayOut";
+import ChatLayout from "@/hooks/chatbot/chatLayout";
 import { useChatLogic } from "@/hooks/chatbot/useChatLogic";
 import { useChatState } from "@/hooks/chatbot/useChatState";
 import { useChatUI } from "@/hooks/useChatUI";
 import { useGroupedMessages } from "@/hooks/useGroupedMessages";
 import { ChatBotProps } from "@/types/chatbot_types";
 import { useEffect } from "react";
+import useChatStore from "stores/chatStore";
 
 const ChatBot = ({ isMobile, onClose }: ChatBotProps) => {
   const {
@@ -119,26 +120,23 @@ const ChatBot = ({ isMobile, onClose }: ChatBotProps) => {
     setChatInput,
     chatMessages,
     addChatMessages,
-    loading,
-    setLoading,
     currentDate,
   } = useChatState();
+  const { loading } = useChatStore.getState();
 
   const { chatboxRef, messagesEndRef, textareaRef, scrollToBottom } =
     useChatUI();
-    
+
   const groupedMessages = useGroupedMessages(chatMessages);
 
   const { handleConversation } = useChatLogic({
     addChatMessages,
     setChatInput,
     currentStep: "start",
-    setLoading,
     onError: (err: Error) => console.log(err),
   });
 
   useEffect(scrollToBottom, [chatMessages, scrollToBottom]);
-
 
   const layout = (
     <ChatLayout

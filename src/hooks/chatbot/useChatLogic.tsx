@@ -1,4 +1,5 @@
 import {
+  connectWallet,
   helloMenu,
   welcomeMenu,
 } from "@/features/chatbot/handlers/chatbot.parent";
@@ -11,18 +12,19 @@ export interface ChatLogicProps {
   addChatMessages: (messages: MessageType[]) => void;
   setChatInput: Dispatch<SetStateAction<string>>;
   currentStep: string;
-  setLoading: Dispatch<SetStateAction<boolean>>;
+  // setLoading: Dispatch<SetStateAction<boolean>>;
   onError?: (error: Error) => void;
 }
 
 export const useChatLogic = ({
   addChatMessages,
   setChatInput,
-  setLoading,
+  // setLoading,
   onError,
 }: ChatLogicProps) => {
   const currentStep = useChatStore.getState().currentStep;
-  const { reset } = useChatStore();
+  const { sendChatInput } = useChatStore();
+  const { setLoading } = useChatStore.getState();
   const handleConversation = async (chatInput: string) => {
     setLoading(true);
     try {
@@ -39,7 +41,8 @@ export const useChatLogic = ({
 
       // greetings logic
       if (greetings.includes(chatInput.trim().toLowerCase())) {
-        reset();
+        sendChatInput(chatInput);
+        // reset();
       }
 
       console.log("Current Step:", currentStep);
@@ -64,9 +67,10 @@ export const useChatLogic = ({
 
 const steps = [
   "start",
+  "connectWallet",
   "chooseAction",
   "transactCrypto",
-  // "transferMoney",
+  "transferMoney",
   // "estimateAsset",
   // "network",
   // "payOptions",
@@ -104,8 +108,10 @@ const stepHandlers: Record<
   (chatInput: string) => Promise<void> | void
 > = {
   start: async (chatInput) => helloMenu(chatInput),
+  connectWallet: async () => connectWallet(),
   chooseAction: async (chatInput) => welcomeMenu(chatInput),
   transactCrypto: async () => console.log("transactCrypto step"),
+  transferMoney: async () => console.log("ttransferMoney step"),
 };
 
 //   transactCrypto: async () => console.log("transactCrypto step"),
