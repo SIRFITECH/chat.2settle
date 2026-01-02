@@ -1,5 +1,6 @@
 export const steps = [
   "start",
+  "connectWallet",
   "chooseAction",
   "transactCrypto",
   "transferMoney",

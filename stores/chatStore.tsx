@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { StepId } from "@/core/machines/steps";
-// import { getStepService } from "@/core/machines/chat_machine";
 import elementToJSXString from "react-element-to-jsx-string";
 import parse from "html-react-parser";
 import { getStepService } from "@/core/machines/parent.machine";
+import { StateFrom } from "xstate";
+import { stepMachine } from "@/core/machines/chat_machine";
+type StepSnapshot = StateFrom<typeof stepMachine>;
 
 const stepService = getStepService();
 export type MessageType = {
@@ -54,9 +56,12 @@ const initialMessages = [
 type ChatStore = {
   messages: MessageType[];
   serialized: { type: string; content: string }[];
-  currentStep: StepId;
   stepHistory: StepId[];
   loading: boolean;
+
+  snapshot: StepSnapshot | null;
+  currentStep: StepId;
+  context: StepSnapshot["context"] | null;
 
   addMessages: (msg: MessageType[]) => void;
   setSerialized: (msgs: any[]) => void;
@@ -110,6 +115,9 @@ const useChatStore = create<ChatStore>()(
       return {
         ...initialState,
         loading: false,
+        snapshot: null,
+        currentStep: "start",
+        context: null,
 
         setLoading: (loading: boolean) => set({ loading: loading }),
 
@@ -138,8 +146,10 @@ const useChatStore = create<ChatStore>()(
           return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
-        sendChatInput: (input: string) =>
-          stepService.send({ type: "CHAT_INPUT", value: input }),
+        sendChatInput: (input: string) => {
+          console.log("ACTOR STATUS:", stepService.getSnapshot()?.status);
+          return stepService.send({ type: "CHAT_INPUT", value: input });
+        },
 
         // goto: (step) => {
         //   return stepService.send({ type: "GOTO", step });
@@ -161,32 +171,27 @@ const useChatStore = create<ChatStore>()(
   )
 );
 
-stepService.subscribe((snapshot) => {
-  console.log("MACHINE STATE →", snapshot.value, "CTX →", snapshot.context);
-  let step: StepId;
+// stepService.subscribe((snapshot) => {
+//   console.log("MACHINE STATE →", snapshot.value, "CTX →", snapshot.context);
+//   let step: StepId;
 
-  if (typeof snapshot.value === "string") {
-    step = snapshot.value as StepId;
-  } else if (typeof snapshot.value === "object") {
-    // grab the first key if using nested states
-    step = Object.keys(snapshot.value)[0] as StepId;
-  } else {
-    console.log({ snapshot });
-    return; // invalid snapshot, ignore
-  }
-  const store = useChatStore.getState();
-  const lastStep = store.stepHistory[store.stepHistory.length - 1];
+//   if (typeof snapshot.value === "string") {
+//     step = snapshot.value as StepId;
+//   } else if (typeof snapshot.value === "object") {
+//     // grab the first key if using nested states
+//     step = Object.keys(snapshot.value)[0] as StepId;
+//   } else {
+//     console.log({ snapshot });
+//     return; // invalid snapshot, ignore
+//   }
+//   const store = useChatStore.getState();
+//   const lastStep = store.stepHistory[store.stepHistory.length - 1];
 
-  // Only record if the step has **actually changed**
-  if (lastStep !== step && lastStep !== undefined) {
-    store.recordStep(step);
-  }
-
-  // useChatStore.getState().recordStep(step);
-  // const { stepHistory } = useChatStore.getState();
-  // if (stepHistory[stepHistory.length - 1] !== step) {
-  //   useChatStore.getState().recordStep(step);
-  // }
-});
+//   // Only record if the step has **actually changed**
+//   if (lastStep !== step && lastStep !== undefined) {
+//     store.recordStep(step);
+//     console.log("ZUSTAND IMMEDIATE →", store.currentStep);
+//   }
+// });
 
 export default useChatStore;

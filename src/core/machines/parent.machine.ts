@@ -33,19 +33,35 @@ export const chatbotMachine = machineSetup.createMachine({
         CHAT_INPUT: [
           {
             target: "connectWallet",
-            guard: ({ event }) => event.value === "1",
+            guard: ({ event }) => {
+              if (event.value === "1") {
+                console.log(
+                  "event: we are going to connectWallet",
+                  event.value
+                );
+              }
+              return event.value === "1";
+            },
           },
           {
-            guard: ({ event }) => event.value === "2",
+            guard: ({ event }) => {
+              if (event.value === "2") {
+                console.log("event: start", event.value);
+              }
+              return event.value === "2";
+            },
             target: "chooseAction",
           },
+
           {
-            guard: ({ event }) => event.value === "0",
+            guard: ({ event }) => {
+              if (greetings.includes(event.value)) {
+                console.log("event: start wants to reenter", event.value);
+              }
+              return greetings.includes(event.value);
+            },
             target: "start",
-          },
-          {
-            guard: ({ event }) => greetings.includes(event.value),
-            target: "start",
+            reenter: true,
           },
         ],
       },
@@ -54,12 +70,30 @@ export const chatbotMachine = machineSetup.createMachine({
       on: {
         CHAT_INPUT: [
           {
-            target: "chooseAction",
-            guard: ({ event }) => event.value == "connected",
+            target: "connectWallet",
+            guard: ({ event }) => {
+              console.log("event rendering connectWallet: ", event.value);
+              return event.value == "connected";
+            },
           },
           {
             target: "start",
-            guard: ({ event }) => event.value == "0",
+            guard: ({ event }) => {
+              console.log("event going back from connectWallet: ", event.value);
+              return event.value == "0";
+            },
+          },
+          {
+            guard: ({ event }) => {
+              if (greetings.includes(event.value)) {
+                console.log(
+                  "event: connectWallet wants to return to start",
+                  event.value
+                );
+              }
+              return greetings.includes(event.value);
+            },
+            target: "start",
           },
         ],
       },
@@ -69,13 +103,25 @@ export const chatbotMachine = machineSetup.createMachine({
       on: {
         CHAT_INPUT: [
           {
-            target: "chooseAction",
+            target: "transactCrypto",
             guard: ({ event }) => event.value === "1",
           },
-          {
-            target: "transactCrypto",
-            guard: ({ event }) => event.value === "2",
-          },
+          // {
+          //   target: "requestPayCard",
+          //   guard: ({ event }) => event.value === "2",
+          // },
+          // {
+          //   target: "support",
+          //   guard: ({ event }) => event.value === "3",
+          // },
+          // {
+          //   target: "transactionId",
+          //   guard: ({ event }) => event.value === "4",
+          // },
+          // {
+          //   target: "reportly",
+          //   guard: ({ event }) => event.value === "5",
+          // },
           {
             target: "start",
             guard: ({ event }) => event.value === "0",
@@ -87,7 +133,7 @@ export const chatbotMachine = machineSetup.createMachine({
         ],
       },
     },
-    
+
     transferMoney: {
       on: {
         CHAT_INPUT: [
