@@ -5,17 +5,13 @@ export const requestPayCard = async (chatInput?: string) => {
 
   const telFirstName = "Mosnyik";
 
-  const { sendChatInput, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
   addMessages?.([
     {
       type: "incoming",
-      content: (
-        <span>
-         You want a payCard right?
-        </span>
-      ),
+      content: <span>You want a payCard right?</span>,
       timestamp: new Date(),
     },
   ]);
-  sendChatInput(chatInput!);
+  // sendChatInput(chatInput!);
 };

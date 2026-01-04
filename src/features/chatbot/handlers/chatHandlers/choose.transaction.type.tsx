@@ -1,17 +1,16 @@
 import { config } from "@/wagmi";
+import useChatStore from "stores/chatStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
-import useChatStore from "stores/chatStore";
-import { shortWallet } from "@/helpers/ShortenAddress";
 import { helloMenu } from "./hello.menu";
-import { displayKYCInfo } from "./menus/kyc.info";
 import { displayCustomerSupportWelcome } from "./menus/customer.support";
-import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
+import { displayKYCInfo } from "./menus/kyc.info";
 import { displayReportlyWelcome } from "./menus/reportly.welcome";
-import { displayTransactCrypto } from "./menus/transact.crypto";
+import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
+import { displayTransferMoney } from "./menus/transfer.money";
 
-// choose the what activity you want to perform
-export const handleMakeAChoice = (chatInput: string) => {
+// select how you want to transactCrypto (transferMoney, sendGift, requestpyment)
+export const handleChooseTransactionType = (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
 
   const account = getAccount(config);
@@ -28,27 +27,25 @@ export const handleMakeAChoice = (chatInput: string) => {
   } else if (chatInput === "0") {
     helloMenu("hi");
   } else if (chatInput === "1") {
-    // console.log("The choice is ONE, TRANSACT CRYPTO");
-    displayTransactCrypto();
+    console.log("The choice is ONE, handleChooseTransactionType");
+    displayTransferMoney();
     next({
-      stepId: "chooseTransactionType",
+      stepId: "transactCrypto",
+      transactionType: "transfer",
     });
   } else if (chatInput === "2") {
     console.log("The choice is TWO, REQUEST PAY CARD");
-    displayKYCInfo();
-    next({ stepId: "kycReg" });
+    displayTransferMoney();
+    next({
+      stepId: "transactCrypto",
+      transactionType: "gift",
+    });
   } else if (chatInput === "3") {
-    displayCustomerSupportWelcome();
-    next({ stepId: "assurance" });
-  } else if (chatInput === "4") {
-    // console.log("The choice is FOUR, TRANSACTION ID");
-    displayTransactIDWelcome();
-    next({ stepId: "completeTransactionId" });
-  } else if (chatInput === "5") {
-    // console.log("The choice is FIVE, REPORTLY");
-    displayReportlyWelcome();
-    // nextStep("transferMoney");
-    next({ stepId: "makeReport" });
+    displayTransferMoney();
+    next({
+      stepId: "transactCrypto",
+      transactionType: "request",
+    });
   } else {
     addMessages([
       {

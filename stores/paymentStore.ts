@@ -38,31 +38,6 @@ export type PaymentStoreType = {
   setPaymentNairaEstimate: (val: string) => void;
 };
 
-// export const usePaymentStore = create<PaymentStoreType>((set) => ({
-//   rate: "",
-//   paymentMode: "",
-//   crypto: "",
-//   ticker: "",
-//   network: "",
-//   wallet: "",
-//   assetPrice: "",
-//   estimateAsset: "",
-//   paymentAssetEstimate: "",
-//   paymentNairaEstimate: "",
-//   lastRateFetchedAt: 0,
-
-//   setPaymentMode: (val) => set({ paymentMode: val }),
-//   setCrypto: (val) => set({ crypto: val }),
-//   setTicker: (val) => set({ ticker: val }),
-//   setNetwork: (val) => set({ network: val }),
-//   setWallet: (val) => set({ wallet: val }),
-//   setAssetPrice: (val) => set({ assetPrice: val }),
-//   setEstimateAsset: (val) => set({ estimateAsset: val }),
-//   setPaymentAssetEstimate: (val) => set({ paymentAssetEstimate: val }),
-//   setPaymentNairaEstimate: (val) => set({ paymentNairaEstimate: val }),
-//   setRate: (rate) => set({ rate, lastRateFetchedAt: Date.now() }),
-// }));
-
 export const usePaymentStore = create<PaymentStoreType>()(
   persist(
     (set) => ({
