@@ -1,10 +1,8 @@
 import useChatStore, { MessageType } from "stores/chatStore";
 
-export const displayReportlyWelcome = async (
- 
-) => {
-        const { addMessages } = useChatStore.getState();
-    
+export const displayReportlyWelcome = async () => {
+  const { addMessages } = useChatStore.getState();
+
   const newMessages: MessageType[] = [
     {
       type: "incoming",

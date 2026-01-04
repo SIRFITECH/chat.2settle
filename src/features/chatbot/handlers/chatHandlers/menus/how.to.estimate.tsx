@@ -1,11 +1,20 @@
-import { MessageType } from "stores/chatStore";
+import useChatStore, { MessageType } from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
 
-export const displayHowToEstimation = async (
-  addChatMessages: (messages: MessageType[]) => void,
-  input: string,
-  sharedPaymentMode: string
-) => {
-  const parsedInput = input.trim();
+// choose the asset you want to use in the transaction
+
+interface estimateType {
+  crypto: string;
+  ticker: string;
+}
+export const displayHowToEstimation = async ({
+  crypto,
+  ticker,
+}: estimateType) => {
+  const { addMessages } = useChatStore.getState();
+  // const crypto = usePaymentStore.getState().crypto;
+  // const ticker = usePaymentStore.getState().ticker;
+
   const ethChainId = 1;
   const bnbChainId = 56;
   const bnbTestChainId = 97;
@@ -14,7 +23,7 @@ export const displayHowToEstimation = async (
   const newMessages: MessageType[] = [
     {
       type: "incoming",
-      content: `How would you like to estimate your ${parsedInput}?`,
+      content: `How would you like to estimate your ${crypto} (${ticker.toUpperCase()})?`,
       timestamp: new Date(),
     },
     {
@@ -38,5 +47,5 @@ export const displayHowToEstimation = async (
   ];
 
   console.log("Next is estimationAmount");
-  addChatMessages(newMessages);
+  addMessages(newMessages);
 };
