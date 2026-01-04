@@ -1,8 +1,10 @@
-export const steps = [
+export const steps = [ 
   "start",
   "connectWallet",
   "chooseAction",
+  "makeAChoice",
   "transactCrypto",
+  "requestPayCard",
   "transferMoney",
   "estimateAsset",
   "network",

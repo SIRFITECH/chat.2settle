@@ -1,0 +1,88 @@
+import { config } from "@/wagmi";
+import useChatStore from "stores/chatStore";
+import { getAccount } from "wagmi/actions";
+import { greetings } from "../../helpers/ChatbotConsts";
+import { shortWallet } from "@/helpers/ShortenAddress";
+
+export const helloMenu = async (chatInput?: string) => {
+  console.log("we are at the start of the program");
+  const account = getAccount(config);
+
+  const walletIsConnected = account.isConnected;
+  const wallet = account.address;
+
+  const telFirstName = "Mosnyik";
+
+  console.log("User chatinput", chatInput);
+
+  const { next, addMessages } = useChatStore.getState();
+  if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
+    if (walletIsConnected) {
+      addMessages?.([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              How far {telFirstName} 👋
+              <br />
+              <br />
+              You are connected as <b>{shortWallet(wallet)}</b>
+              <br />
+              <br />
+              1. To disconnect wallet <br />
+              2. Continue to transact
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      // sendChatInput(chatInput!);
+      next({
+        stepId: "chooseAction",
+      });
+    } else {
+      //   setSharedPaymentMode?.("");
+      addMessages?.([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              How far {telFirstName}👋
+              <br />
+              <br />
+              Welcome to 2SettleHQ!, my name is Wálé, I am 2settle virtual
+              assistance, <br />
+              <b>Your wallet is not connected,</b> reply with:
+              <br />
+              <br />
+              1. To connect wallet <br />
+              2. To just continue
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      console.log("Wallet not connected");
+      // sendChatInput(chatInput!);
+      next({
+        stepId: "chooseAction",
+      });
+    }
+  } else {
+    addMessages?.([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            How far {telFirstName}👋
+            <br />
+            <br />
+            It seems you entered the wrong respose, try <b>hi,</b> <b>hey,</b>{" "}
+            <b>hello</b> or <b>howdy</b>
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
+  }
+};

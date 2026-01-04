@@ -1,10 +1,9 @@
-import {
-  connectWallet,
-  helloMenu,
-  choiceMenu,
-} from "@/features/chatbot/handlers/chatHandlers/chatbot.parent";
+import { connectWallet } from "@/features/chatbot/handlers/chatHandlers/chatbot.parent";
+import { choiceMenu } from "@/features/chatbot/handlers/chatHandlers/choice.menu";
+import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
+import { handleMakeAChoice } from "@/features/chatbot/handlers/chatHandlers/make.choice";
 import { requestPayCard } from "@/features/chatbot/handlers/chatHandlers/request.pay.card";
-import { handleMakeAChoice } from "@/features/chatbot/handlers/chatHandlers/transact.crypto";
+import { transactCrypto } from "@/features/chatbot/handlers/chatHandlers/transact.crypto";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 
 import { Dispatch, SetStateAction } from "react";
@@ -23,7 +22,7 @@ export const useChatLogic = ({
   onError,
 }: ChatLogicProps) => {
   const currentStep = useChatStore((s) => s.currentStep);
-  const { sendChatInput } = useChatStore();
+  // const { sendChatInput } = useChatStore();
   const { setLoading } = useChatStore.getState();
 
   const handleConversation = async (chatInput: string) => {
@@ -45,10 +44,9 @@ export const useChatLogic = ({
         console.log("We are resetting to handle greeting...");
         console.log("Current Step:", currentStep);
         await stepHandlers["start"](chatInput);
-        // sendChatInput(chatInput);
       } else {
         console.log("Current Step:", currentStep);
-        await stepHandlers[currentStep as StepId](chatInput);
+        await stepHandlers[currentStep.stepId as StepId](chatInput);
       }
     } catch (error) {
       console.error(error);
@@ -72,6 +70,7 @@ const steps = [
   "start",
   "connectWallet",
   "chooseAction",
+  "makeAChoice",
   "transactCrypto",
   "requestPayCard",
   "transferMoney",
@@ -91,10 +90,11 @@ const steps = [
   // "kycReg",
   // "thankForKYCReg",
   // "supportWelcome",
-  // "assurance",
+  "assurance",
   // "entreTrxId",
   // "makeComplain",
-  // "completeTransactionId",
+  "completeTransactionId",
+
   // "giftFeedBack",
   // "makeReport",
   // "reporterName",
@@ -114,9 +114,12 @@ const stepHandlers: Record<
   start: async (chatInput) => helloMenu(chatInput),
   connectWallet: async () => connectWallet(),
   chooseAction: async (chatInput) => choiceMenu(chatInput),
-  transactCrypto: async (chatInput) => handleMakeAChoice(chatInput),
-  transferMoney: async () => console.log("ttransferMoney step"),
+  makeAChoice: async (chatInput) => handleMakeAChoice(chatInput),
+  transactCrypto: async (chatInput) => transactCrypto(chatInput),
+  transferMoney: async () => console.log("transferMoney step"),
   requestPayCard: async () => requestPayCard(),
+  assurance: async () => console.log("assurance step"),
+  completeTransactionId: async () => console.log("assurance step"),
 };
 
 //   transactCrypto: async () => console.log("transactCrypto step"),
