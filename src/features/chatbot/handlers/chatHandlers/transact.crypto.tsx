@@ -6,10 +6,13 @@ import { helloMenu } from "./hello.menu";
 import { displayTransferMoney } from "./menus/transfer.money";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { usePaymentStore } from "stores/paymentStore";
+import { getBaseSymbol } from "@/utils/utilities";
+import { fetchCoinPrice } from "@/helpers/api_calls";
 
-export const handleTransactCrypto = (chatInput: string) => {
-  const { addMessages } = useChatStore.getState();
-  const { setCrypto, setTicker } = usePaymentStore.getState();
+export const handleTransactCrypto = async (chatInput: string) => {
+  const { next, addMessages } = useChatStore.getState();
+  const { assetPrice, setAssetPrice, setCrypto, setTicker, setNetwork } =
+    usePaymentStore.getState();
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
@@ -19,34 +22,55 @@ export const handleTransactCrypto = (chatInput: string) => {
     helloMenu("hi");
   } else if (chatInput === "1") {
     setCrypto("Bitcoin");
-    setTicker("BTC");
+    setTicker("BTCUSDT");
+    setNetwork("BTC");
+    const crypto = usePaymentStore.getState().crypto;
+    const ticker = usePaymentStore.getState().ticker;
+    const asset = await fetchCoinPrice(ticker);
+    setAssetPrice(asset.toString());
+
+    console.log({ assetPrice });
+    displayHowToEstimation({ crypto, ticker });
+  } else if (chatInput === "2") {
+    setCrypto("Ethereum");
+    setTicker("ETHUSDT");
+    setNetwork("ERC20");
+    const crypto = usePaymentStore.getState().crypto;
+    const ticker = usePaymentStore.getState().ticker;
+    const asset = await fetchCoinPrice(ticker);
+    setAssetPrice(asset.toString());
+
+    console.log({ assetPrice });
+    displayHowToEstimation({ crypto, ticker });
+  } else if (chatInput === "3") {
+    setCrypto("Binance");
+    setTicker("BNBUSDT");
+    setNetwork("BEP20");
+    const crypto = usePaymentStore.getState().crypto;
+    const ticker = usePaymentStore.getState().ticker;
+    const asset = await fetchCoinPrice(ticker);
+    setAssetPrice(asset.toString());
+
+    console.log({ assetPrice });
+    displayHowToEstimation({ crypto, ticker });
+  } else if (chatInput === "4") {
+    setCrypto("Tron");
+    setTicker("TRXUSDT");
+    setNetwork("TRC20");
+    const crypto = getBaseSymbol(usePaymentStore.getState().crypto);
+    const ticker = getBaseSymbol(usePaymentStore.getState().ticker);
+    const asset = await fetchCoinPrice(ticker);
+    setAssetPrice(asset.toString());
+
+    console.log({ assetPrice });
+    displayHowToEstimation({ crypto, ticker });
+  } else if (chatInput === "5") {
+    setCrypto("USDT");
+    setTicker("USDT");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
     displayHowToEstimation({ crypto, ticker });
-  } else if (chatInput === "2") {
-      setCrypto("Ethereum");
-      setTicker("ETH");
-      const crypto = usePaymentStore.getState().crypto;
-      const ticker = usePaymentStore.getState().ticker;
-      displayHowToEstimation({ crypto, ticker });
-  } else if (chatInput === "3") {
-      setCrypto("Binance");
-      setTicker("BNB");
-      const crypto = usePaymentStore.getState().crypto;
-      const ticker = usePaymentStore.getState().ticker;
-      displayHowToEstimation({ crypto, ticker });
-  } else if (chatInput === "3") {
-      setCrypto("Tron");
-      setTicker("TRX");
-      const crypto = usePaymentStore.getState().crypto;
-      const ticker = usePaymentStore.getState().ticker;
-      displayHowToEstimation({ crypto, ticker });
-  } else if (chatInput === "3") {
-      setCrypto("USDT");
-      setTicker("USDT");
-      const crypto = usePaymentStore.getState().crypto;
-      const ticker = usePaymentStore.getState().ticker;
-      displayHowToEstimation({ crypto, ticker });
+    next({ stepId: "network" });
   } else {
     addMessages([
       {

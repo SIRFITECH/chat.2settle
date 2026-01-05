@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
+import { getBaseSymbol } from "@/utils/utilities";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,7 +11,8 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const { ticker } = req.body;
+  let { ticker } = req.body;
+  ticker = getBaseSymbol(ticker);
   console.log("Received request with symbol:", ticker);
 
   if (!ticker || typeof ticker !== "string") {
@@ -30,8 +32,6 @@ export default async function handler(
         },
       }
     );
-
-
 
     // console.log("Data fetched successfully:", response.data);
     const { price } = response.data.data[ticker].quote.USD;

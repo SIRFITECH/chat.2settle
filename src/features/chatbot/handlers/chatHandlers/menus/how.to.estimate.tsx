@@ -12,8 +12,6 @@ export const displayHowToEstimation = async ({
   ticker,
 }: estimateType) => {
   const { addMessages } = useChatStore.getState();
-  // const crypto = usePaymentStore.getState().crypto;
-  // const ticker = usePaymentStore.getState().ticker;
 
   const ethChainId = 1;
   const bnbChainId = 56;

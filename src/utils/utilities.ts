@@ -33,6 +33,10 @@ export const generateGiftId = () => {
   return Math.floor(100000 + Math.random() * 900000);
 };
 
+export function getBaseSymbol(pair: string): string {
+  return pair.replace("USDT", "");
+}
+
 export const formatPhoneNumber = (phoneNumber: string): string => {
   if (phoneNumber.startsWith("0")) {
     return "+234" + phoneNumber.slice(1);

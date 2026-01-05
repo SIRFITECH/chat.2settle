@@ -129,7 +129,9 @@ const stepHandlers: Record<
   // choose how you want to estimate the payment
   chooseTransactionType: async (chatInput) =>
     handleChooseTransactionType(chatInput),
+  // choose what currency you want to use (naira, dollar, crypto)
   transactCrypto: async (chatInput) => handleTransactCrypto(chatInput),
+  
   howToEstimate: async () => console.log("transferMoney step"),
   transferMoney: async (chatInput) => handleTransferMoney(chatInput),
   requestPayCard: async () => requestPayCard(),
