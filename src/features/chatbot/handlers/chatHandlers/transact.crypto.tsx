@@ -1,13 +1,11 @@
-import { config } from "@/wagmi";
-import { getAccount } from "wagmi/actions";
-import { greetings } from "../../helpers/ChatbotConsts";
-import useChatStore, { MessageType } from "stores/chatStore";
-import { helloMenu } from "./hello.menu";
-import { displayTransferMoney } from "./menus/transfer.money";
-import { displayHowToEstimation } from "./menus/how.to.estimate";
-import { usePaymentStore } from "stores/paymentStore";
-import { getBaseSymbol } from "@/utils/utilities";
 import { fetchCoinPrice } from "@/helpers/api_calls";
+import { getBaseSymbol } from "@/utils/utilities";
+import useChatStore from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
+import { greetings } from "../../helpers/ChatbotConsts";
+import { helloMenu } from "./hello.menu";
+import { displayHowToEstimation } from "./menus/how.to.estimate";
+import { displayNetwork } from "./menus/display.network";
 
 export const handleTransactCrypto = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
@@ -65,11 +63,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
     console.log({ assetPrice });
     displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "5") {
-    setCrypto("USDT");
-    setTicker("USDT");
-    const crypto = usePaymentStore.getState().crypto;
-    const ticker = usePaymentStore.getState().ticker;
-    displayHowToEstimation({ crypto, ticker });
+    displayNetwork();
     next({ stepId: "network" });
   } else {
     addMessages([

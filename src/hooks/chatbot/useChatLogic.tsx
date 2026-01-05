@@ -4,6 +4,7 @@ import { handleChooseTransactionType } from "@/features/chatbot/handlers/chatHan
 import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { handleMakeAChoice } from "@/features/chatbot/handlers/chatHandlers/make.choice";
 import { displayWelcomeMenu } from "@/features/chatbot/handlers/chatHandlers/menus/welcome";
+import { handleNetwork } from "@/features/chatbot/handlers/chatHandlers/network";
 import { requestPayCard } from "@/features/chatbot/handlers/chatHandlers/request.pay.card";
 import { handleTransactCrypto } from "@/features/chatbot/handlers/chatHandlers/transact.crypto";
 import { handleTransferMoney } from "@/features/chatbot/handlers/chatHandlers/transfer.money";
@@ -80,7 +81,7 @@ const steps = [
   "transferMoney",
   "howToEstimate",
   // "estimateAsset",
-  // "network",
+  "network",
   // "payOptions",
   // "charge",
   // "enterBankSearchWord",
@@ -131,7 +132,8 @@ const stepHandlers: Record<
     handleChooseTransactionType(chatInput),
   // choose what currency you want to use (naira, dollar, crypto)
   transactCrypto: async (chatInput) => handleTransactCrypto(chatInput),
-  
+  // this handles the network
+  network: async (chatInput) => handleNetwork(chatInput),
   howToEstimate: async () => console.log("transferMoney step"),
   transferMoney: async (chatInput) => handleTransferMoney(chatInput),
   requestPayCard: async () => requestPayCard(),
