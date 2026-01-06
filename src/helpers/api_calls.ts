@@ -359,7 +359,6 @@ export const createComplain = async (complainData: any): Promise<any> => {
 
 // FETCH COIN CURRENT PRICE (FROM BINACE TICKER)
 export async function fetchCoinPrice(ticker: string): Promise<number> {
-  
   try {
     const response = await fetch(`${apiURL}/api/crypto/get_coin_price`, {
       method: "POST",
