@@ -7,12 +7,7 @@ export const displayPayIn = async () => {
   const currentStep = useChatStore.getState().currentStep;
   const { next, addMessages } = useChatStore.getState();
 
-  const {
-    // call useRate
-    // rate: usdtRate,
-    assetPrice: assetP,
-    ticker,
-  } = usePaymentStore.getState();
+  const { assetPrice: assetP, ticker } = usePaymentStore.getState();
   let usdtRate;
   try {
     usdtRate = await fetchRate();
