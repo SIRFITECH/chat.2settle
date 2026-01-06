@@ -21,10 +21,11 @@ export const displayPayIn = async () => {
     throw new Error("Error refetching rate");
   }
   const estimateAsset = usePaymentStore.getState().estimateAsset;
+  const assetSymbol = getBaseSymbol(ticker);
 
   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
   const dollar = ["usdt"];
-  const isCrypto = cryptocurrencies.includes(estimateAsset.toLowerCase());
+  const isCrypto = cryptocurrencies.includes(assetSymbol.toLowerCase());
   const isDollar = dollar.includes(estimateAsset.toLowerCase());
   // clean the rate into a float string before parsing it
   const rate = parseFloat(cleanCurrencyToFloatString(usdtRate.toString()));
@@ -57,9 +58,9 @@ export const displayPayIn = async () => {
         </>
       ) : isCrypto ? (
         <>
-          Min. = {min.toFixed(5)} {getBaseSymbol(ticker)}
+          Min. = {min.toFixed(5)} {assetSymbol}
           <br />
-          Max. = {max.toFixed(5)} {getBaseSymbol(ticker)}
+          Max. = {max.toFixed(5)} {assetSymbol}
         </>
       ) : (
         ""
@@ -81,7 +82,8 @@ export const displayPayIn = async () => {
       type: "incoming",
       content: (
         <span>
-          Enter the amount you want to {paymentMode} in {estimateAsset} value
+          Enter the amount you want to {paymentMode} in {estimateAsset}(
+          {assetSymbol}) value
           <br />
           <br />
           NOTE:
