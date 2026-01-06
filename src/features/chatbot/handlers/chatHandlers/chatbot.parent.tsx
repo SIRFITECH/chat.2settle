@@ -7,7 +7,6 @@ import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { useAccount } from "wagmi";
 import { useEffect } from "react";
 
-
 export function ConnectWalletWithChat() {
   const { isConnected } = useAccount();
   // const { sendChatInput } = useChatStore();
@@ -53,6 +52,3 @@ export const connectWallet = async () => {
     stepId: "chooseAction",
   });
 };
-
-
-

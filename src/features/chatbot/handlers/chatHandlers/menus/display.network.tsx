@@ -23,7 +23,9 @@ export const displayNetwork = () => {
 
   console.log("Next is payOptions");
   //   sharedPaymentMode !== "request"
-  //     ? nextStep("payOptions")
-  //     : nextStep("continueToPay");
+  //     ?
+  next({ stepId: "payOptions" });
+  //     :
+  //   next({stepId: "continueToPay"});
   addMessages(newMessages);
 };

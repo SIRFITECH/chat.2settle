@@ -29,6 +29,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
 
     console.log({ assetPrice });
     displayHowToEstimation({ crypto, ticker });
+    next({ stepId: "payOptions" });
   } else if (chatInput === "2") {
     setCrypto("Ethereum");
     setTicker("ETHUSDT");
@@ -39,6 +40,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setAssetPrice(asset.toString());
 
     console.log({ assetPrice });
+    next({ stepId: "payOptions" });
     displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "3") {
     setCrypto("Binance");
@@ -51,6 +53,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
 
     console.log({ assetPrice });
     displayHowToEstimation({ crypto, ticker });
+    next({ stepId: "payOptions" });
   } else if (chatInput === "4") {
     setCrypto("Tron");
     setTicker("TRXUSDT");
@@ -62,6 +65,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
 
     console.log({ assetPrice });
     displayHowToEstimation({ crypto, ticker });
+    next({ stepId: "payOptions" });
   } else if (chatInput === "5") {
     displayNetwork();
     next({ stepId: "network" });

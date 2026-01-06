@@ -56,7 +56,7 @@ export const handleNetwork = async (chatInput: string) => {
     //   } else {
 
     // nextStep();
-    // nextStep("payOptions");
+    next({ stepId: "payOptions" });
     //   }
     // }
   } else if (chatInput === "2") {
@@ -80,7 +80,7 @@ export const handleNetwork = async (chatInput: string) => {
     displayHowToEstimation({ crypto, ticker });
 
     // nextStep();
-    // nextStep("payOptions");
+    next({ stepId: "payOptions" });
     //   }
     // }
   } else if (chatInput === "3") {
@@ -104,7 +104,7 @@ export const handleNetwork = async (chatInput: string) => {
     const ticker = usePaymentStore.getState().ticker;
     displayHowToEstimation({ crypto, ticker });
     // nextStep();
-    // nextStep("payOptions");
+    next({ stepId: "payOptions" });
     //   }
     // }
   } else {

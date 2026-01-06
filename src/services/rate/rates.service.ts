@@ -17,6 +17,8 @@ export const fetchRate = async (): Promise<number> => {
     throw error;
   }
 };
+
+
 // FETCH CURRENT EXCHANGE RATE FROM DB
 export const fetchTotalVolume = async (): Promise<number> => {
   try {
@@ -73,3 +75,4 @@ export const fetchProfitRate = async (): Promise<number> => {
     throw error;
   }
 };
+

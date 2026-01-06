@@ -14,6 +14,8 @@ interface StepContext {
   stepId: StepId;
   transactionType?: "transfer" | "gift" | "request";
 }
+
+type StepContextPatch = Partial<StepContext>;
 // utils
 const sanitizeSerializedContent = (content: string) => {
   return content
@@ -55,25 +57,21 @@ const initialMessages = [
 type ChatStore = {
   messages: MessageType[];
   serialized: { type: string; content: string }[];
-  // stepHistory: StepId[];
-  stepHistory: StepContext[];
+  stepHistory: StepContextPatch[];
   loading: boolean;
 
-  currentStep: StepContext;
+  currentStep: StepContextPatch;
 
   addMessages: (msg: MessageType[]) => void;
   setSerialized: (msgs: any[]) => void;
-  // recordStep: (step: StepId) => void;
-  recordStep: (step: StepContext) => void;
+
+  recordStep: (step: StepContextPatch) => void;
   getDeserializedMessages: () => MessageType[];
 
   setLoading: (loading: boolean) => void;
-  // sendChatInput: (input: string) => void;
-  next: (step: StepContext) => void;
+
+  next: (step: StepContextPatch) => void;
   prev: () => void;
-  // goto: (step: StepId) => void;
-  // reset: () => void;
-  // clear: () => void;
 };
 
 const useChatStore = create<ChatStore>()(
@@ -159,29 +157,33 @@ const useChatStore = create<ChatStore>()(
 
         setSerialized: (msgs) => set({ serialized: msgs }),
 
-        recordStep: (step: StepContext) =>
+        recordStep: (step: StepContextPatch) =>
           set((state) => {
             if (state.stepHistory[state.stepHistory.length - 1] === step) {
-              return { currentStep: step };
+              return { currentStep: { ...state.currentStep, ...step } };
             }
             return {
               currentStep: step,
-              stepHistory: [...state.stepHistory, step],
+              stepHistory: [
+                ...state.stepHistory,
+                { ...state.currentStep, ...step },
+              ],
             };
           }),
         getDeserializedMessages: () => {
           return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
-        // sendChatInput: (input: string) => {
-        //   console.log("ACTOR STATUS:", stepService.getSnapshot()?.status);
-        //   return stepService.send({ type: "CHAT_INPUT", value: input });
-        // },
-
-        next: (step: StepContext) =>
+        next: (step: StepContextPatch) =>
           set((state) => ({
-            stepHistory: [...state.stepHistory, step],
-            currentStep: step,
+            stepHistory: [
+              ...state.stepHistory,
+              { ...state.currentStep, ...step },
+            ],
+            currentStep: {
+              ...state.currentStep,
+              ...step,
+            },
           })),
         prev: () =>
           set((state) => {
