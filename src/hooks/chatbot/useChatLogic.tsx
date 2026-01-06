@@ -2,7 +2,12 @@ import { handleCharge } from "@/features/chatbot/handlers/chatHandlers/charge";
 import { connectWallet } from "@/features/chatbot/handlers/chatHandlers/chatbot.parent";
 import { choiceMenu } from "@/features/chatbot/handlers/chatHandlers/choice.menu";
 import { handleChooseTransactionType } from "@/features/chatbot/handlers/chatHandlers/choose.transaction.type";
-import { handleBankAccountNumber, handleSearchBank, handleSelectBank } from "@/features/chatbot/handlers/chatHandlers/handle.bank.steps";
+import { handleContinueToPay } from "@/features/chatbot/handlers/chatHandlers/complete.payement";
+import {
+  handleBankAccountNumber,
+  handleSearchBank,
+  handleSelectBank,
+} from "@/features/chatbot/handlers/chatHandlers/handle.bank.steps";
 import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { handleMakeAChoice } from "@/features/chatbot/handlers/chatHandlers/make.choice";
 import { displayWelcomeMenu } from "@/features/chatbot/handlers/chatHandlers/menus/welcome";
@@ -89,7 +94,7 @@ const steps = [
   "enterBankSearchWord",
   "selectBank",
   "enterAccountNumber",
-  // "continueToPay",
+  "continueToPay",
   // "enterPhone",
   // "sendPayment",
   // "confirmTransaction",
@@ -144,6 +149,8 @@ const stepHandlers: Record<
   selectBank: async (chatInput) => handleSelectBank(chatInput),
   // allow user enter account number
   enterAccountNumber: async (chatInput) => handleBankAccountNumber(chatInput),
+  // continue to pay
+  continueToPay: async (chatInput) => handleContinueToPay(chatInput),
   howToEstimate: async () => console.log("transferMoney step"),
   transferMoney: async (chatInput) => handleTransferMoney(chatInput),
   payOptions: async (chatInput) => handlePayOptions(chatInput),

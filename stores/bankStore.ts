@@ -20,7 +20,6 @@ type BankStoreType = {
 export const useBankStore = create<BankStoreType>((set) => ({
   bankCodes: [],
   bankNames: [], // list of bank names eg ["Opay", "Palmpay"]
-  // I may not need the variables above afterall
   bankList: [], // list of banks and their codes eg ["1. Opay 1234", "2. Palmpay 456"]
   selectedBankCode: "",
   selectedBankName: "",
