@@ -5,6 +5,7 @@ import { getBaseSymbol, phoneNumberPattern } from "@/utils/utilities";
 import { usePaymentStore } from "stores/paymentStore";
 import ConfirmAndProceedButton from "@/hooks/chatbot/confirmButtonHook";
 import { useTransactionStore } from "stores/transactionStore";
+import { useUserStore } from "stores/userStore";
 
 export const handleCryptoPayment = async (
   //   addMessages: (messages: MessageType[]) => void,
@@ -34,7 +35,7 @@ export const handleCryptoPayment = async (
   const { setLoading, addMessages } = useChatStore.getState();
   const currentStep = useChatStore.getState().currentStep;
   const { paymentAssetEstimate, ticker, network } = usePaymentStore.getState();
-  const { updateTransaction } = useTransactionStore.getState();
+  const { updateUser } = useUserStore.getState();
 
   const crypto = getBaseSymbol(ticker);
 
@@ -70,7 +71,7 @@ export const handleCryptoPayment = async (
       return;
     }
 
-    // updateTransaction(phoneNumber);
+    updateUser({ phone: phoneNumber });
 
     const isGift = currentStep.transactionType?.toLowerCase() === "claim gift";
     const isGiftTrx = currentStep.transactionType?.toLowerCase() === "gift";

@@ -3,19 +3,22 @@ import useChatStore from "stores/chatStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { shortWallet } from "@/helpers/ShortenAddress";
+import { useUserStore } from "stores/userStore";
 
 export const helloMenu = async (chatInput?: string) => {
-  console.log("we are at the start of the program");
+  const { next, addMessages } = useChatStore.getState();
+  const { user } = useUserStore.getState();
+  console.log("we are at the start of the program", user);
+
   const account = getAccount(config);
 
   const walletIsConnected = account.isConnected;
   const wallet = account.address;
 
-  const telFirstName = "Mosnyik";
+  const telFirstName = user?.telegram?.username;
 
   console.log("User chatinput", chatInput);
 
-  const { next, addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     if (walletIsConnected) {
       addMessages?.([

@@ -12,6 +12,7 @@ import { persistQueryClient } from "@tanstack/query-persist-client-core";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";
 import { RateBootstrapper } from "@/components/dashboard/RateBootstrapper";
+import UserBootstrap from "@/components/dashboard/checkTelUser";
 // import { bindXStateToZustand } from "@/components/dashboard/xstateToZustand";
 
 export const client = new QueryClient();
@@ -33,7 +34,8 @@ function MyApp({ Component, pageProps }: AppProps) {
                 <ErrorBoundary>
                   {/* usefull for fetching rates in
                   intervals and saving to zustand */}
-                  <RateBootstrapper />{" "}
+                  <RateBootstrapper />
+                  <UserBootstrap />
                   <Component {...pageProps} />
                   <ReactQueryDevtools />
                 </ErrorBoundary>
