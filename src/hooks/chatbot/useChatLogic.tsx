@@ -15,6 +15,7 @@ import { displayWelcomeMenu } from "@/features/chatbot/handlers/chatHandlers/men
 import { handleNetwork } from "@/features/chatbot/handlers/chatHandlers/network";
 import { handlePayOptions } from "@/features/chatbot/handlers/chatHandlers/payment.options";
 import { requestPayCard } from "@/features/chatbot/handlers/chatHandlers/request.pay.card";
+import { handleCryptoPayment } from "@/features/chatbot/handlers/chatHandlers/send.payment";
 import { handleTransactCrypto } from "@/features/chatbot/handlers/chatHandlers/transact.crypto";
 import { handleTransferMoney } from "@/features/chatbot/handlers/chatHandlers/transfer.money";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
@@ -97,7 +98,7 @@ const steps = [
   "enterAccountNumber",
   "continueToPay",
   "enterPhone",
-  // "sendPayment",
+  "sendPayment",
   // "confirmTransaction",
   // "paymentProcessing",
   // "kycInfo",
@@ -154,6 +155,8 @@ const stepHandlers: Record<
   continueToPay: async (chatInput) => handleContinueToPay(chatInput),
   // use give there phone
   enterPhone: async (chatInput) => handlePhoneNumber(chatInput),
+  // allow user send their crypto payment
+  sendPayment: async (chatInput) => handleCryptoPayment(chatInput),
   howToEstimate: async () => console.log("transferMoney step"),
   transferMoney: async (chatInput) => handleTransferMoney(chatInput),
   payOptions: async (chatInput) => handlePayOptions(chatInput),
