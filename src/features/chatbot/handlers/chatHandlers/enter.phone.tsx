@@ -1,26 +1,25 @@
-import useChatStore, { MessageType } from "stores/chatStore";
+import useChatStore from "stores/chatStore";
+import { greetings } from "../../helpers/ChatbotConsts";
+import { helloMenu } from "./hello.menu";
+import { displaySearchBank } from "./menus/display.bank.search";
+import { displayEnterPhone } from "./menus/display.phone";
 
-export const displayEnterPhone = (): void => {
-  const { next, addMessages } = useChatStore.getState();
-
-  const newMessages: MessageType[] = [
-    {
-      type: "incoming",
-      content: (
-        <span>
-          Please enter Phone Number.
-          <br />
-          <br />
-          0. Go back
-          <br />
-          00. Exit
-        </span>
-      ),
-      timestamp: new Date(),
-    },
-  ];
-
-  console.log("Next is sendPayment");
-  //   nextStep("sendPayment");
-  addMessages(newMessages);
+export const handlePhoneNumber = async (chatInput: string) => {
+  const { prev, next } = useChatStore.getState();
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    helloMenu(chatInput);
+  } else if (chatInput === "00") {
+    (() => {
+      helloMenu("hi");
+    })();
+  } else if (chatInput === "0") {
+    (() => {
+      // console.log("THIS IS WHERE WE ARE");
+      prev();
+      displaySearchBank();
+    })();
+  } else if (chatInput !== "0") {
+    displayEnterPhone();
+    next({ stepId: "sendPayment" });
+  }
 };

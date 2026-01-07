@@ -154,7 +154,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-        next({ stepId: "enterBankSearchWord" });
+         currentStep.transactionType?.toLowerCase() === "gift"
+           ? next({ stepId: "enterPhone" })
+           : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -246,7 +248,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-        next({ stepId: "enterBankSearchWord" });
+         currentStep.transactionType?.toLowerCase() === "gift"
+           ? next({ stepId: "enterPhone" })
+           : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -341,7 +345,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-        next({ stepId: "enterBankSearchWord" });
+         currentStep.transactionType?.toLowerCase() === "gift"
+           ? next({ stepId: "enterPhone" })
+           : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -435,7 +441,7 @@ export const displayCharge = async (input: string) => {
           },
         ];
 
-        console.log("Next is enterBankSearchWord");
+        console.log("Next is enterBankSearchWord", currentStep.transactionType);
         currentStep.transactionType?.toLowerCase() === "gift"
           ? next({ stepId: "enterPhone" })
           : next({ stepId: "enterBankSearchWord" });
@@ -534,7 +540,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-        next({ stepId: "enterBankSearchWord" });
+        currentStep.transactionType?.toLowerCase() === "gift"
+          ? next({ stepId: "enterPhone" })
+          : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -578,7 +586,7 @@ export const displayCharge = async (input: string) => {
         const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
         const nairaPaymentEstimate =
           parseFloat(parsedInput) * rate * assetPrice; // this is the asset the user is paying, without charge
-        //    
+        //
 
         setPaymentAssetEstimate(cryptoPaymentEstimate.toString());
         setPaymentNairaEstimate(nairaPaymentEstimate.toString());
@@ -615,7 +623,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-        next({ stepId: "enterBankSearchWord" });
+         currentStep.transactionType?.toLowerCase() === "gift"
+           ? next({ stepId: "enterPhone" })
+           : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
