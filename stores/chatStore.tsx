@@ -6,7 +6,7 @@ import parse from "html-react-parser";
 
 export type MessageType = {
   type: string;
-  content: React.ReactNode;
+  content: string | React.ReactNode;
   timestamp: Date;
 };
 

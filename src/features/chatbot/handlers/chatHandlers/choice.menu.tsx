@@ -27,6 +27,8 @@ export const choiceMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
+  } else if (chatInput === "0") {
+    helloMenu("hi");
   } else if (chatInput === "1") {
     addMessages?.([
       {

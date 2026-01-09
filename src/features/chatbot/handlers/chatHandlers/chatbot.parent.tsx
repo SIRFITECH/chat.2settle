@@ -20,7 +20,7 @@ export function ConnectWalletWithChat() {
   return <ConnectWallet />;
 }
 export const connectWallet = async () => {
-  const { next, prev, addMessages } = useChatStore.getState();
+  const { next, addMessages } = useChatStore.getState();
 
   addMessages([
     {

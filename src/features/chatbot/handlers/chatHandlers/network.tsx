@@ -4,7 +4,6 @@ import { helloMenu } from "./hello.menu";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
-import { displayEnterPhone } from "./enter.phone";
 import { getAccount } from "wagmi/actions";
 import { config } from "@/wagmi";
 
@@ -22,8 +21,6 @@ export const handleNetwork = async (chatInput: string) => {
   const { rate } = usePaymentStore.getState();
   setAssetPrice(rate);
 
-  setAssetPrice(assetPrice.toString());
-
   const walletType = getWalletType(wallet);
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
@@ -38,6 +35,7 @@ export const handleNetwork = async (chatInput: string) => {
   } else if (chatInput === "1") {
     setCrypto("USDT");
     setTicker("USDT");
+    setNetwork("ERC20");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
     displayHowToEstimation({ crypto, ticker });
@@ -75,6 +73,7 @@ export const handleNetwork = async (chatInput: string) => {
     //   } else {
     setCrypto("USDT");
     setTicker("USDT");
+    setNetwork("TRC20");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
     displayHowToEstimation({ crypto, ticker });
@@ -100,6 +99,7 @@ export const handleNetwork = async (chatInput: string) => {
     //   } else {
     setCrypto("USDT");
     setTicker("USDT");
+    setNetwork("BEP20");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
     displayHowToEstimation({ crypto, ticker });

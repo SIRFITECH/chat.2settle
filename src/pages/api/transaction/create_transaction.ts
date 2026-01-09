@@ -1,6 +1,6 @@
 // TODO: We have to split this into the individual transaction types
 
-import mysql from "mysql2/promise";
+import connection from "@/lib/mysql";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -12,20 +12,20 @@ export default async function handler(
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const dbHost = process.env.DB_HOST!;
-  const dbUser = process.env.DB_USER!;
-  const dbPassword = process.env.DB_PASSWORD!;
-  const dbName = process.env.DB_DATABASE!;
+  // const dbHost = process.env.DB_HOST!;
+  // const dbUser = process.env.DB_USER!;
+  // const dbPassword = process.env.DB_PASSWORD!;
+  // const dbName = process.env.DB_DATABASE!;
 
   const userData = req.body;
 
   try {
-    const connection = await mysql.createConnection({
-      host: dbHost,
-      user: dbUser,
-      password: dbPassword,
-      database: dbName,
-    });
+    // const connection = await mysql.createConnection({
+    //   host: dbHost,
+    //   user: dbUser,
+    //   password: dbPassword,
+    //   database: dbName,
+    // });
 
     // ✅ Get or Create PAYER
     async function getOrCreatePayer(row: any): Promise<number> {
@@ -169,7 +169,7 @@ export default async function handler(
       await processTransactions(userData);
      }
 
-    await connection.end();
+    // await connection.end();
 
     res.status(200).json({
       message: "User data stored successfully"
