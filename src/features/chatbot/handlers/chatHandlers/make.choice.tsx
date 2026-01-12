@@ -29,6 +29,7 @@ export const handleMakeAChoice = (chatInput: string) => {
     helloMenu("hi");
   } else if (chatInput === "1") {
     // console.log("The choice is ONE, TRANSACT CRYPTO");
+    
     displayTransactCrypto();
     next({
       stepId: "chooseTransactionType",

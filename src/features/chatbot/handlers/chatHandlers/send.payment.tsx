@@ -88,6 +88,7 @@ export const handleCryptoPayment = async (chatInput: string) => {
                   </p>
 
                   <ConfirmButton />
+                  <Button className="bg-blue-500 rounded-md p-4" onClick={()=> console.log("Hafa, we are good")}>Confirm</Button>
                 </div>
               ),
               timestamp: new Date(),

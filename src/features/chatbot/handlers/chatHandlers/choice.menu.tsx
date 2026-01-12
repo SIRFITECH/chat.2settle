@@ -7,6 +7,7 @@ import { greetings } from "../../helpers/ChatbotConsts";
 import { shortWallet } from "@/helpers/ShortenAddress";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { helloMenu } from "./hello.menu";
+import { useUserStore } from "stores/userStore";
 
 export const choiceMenu = async (chatInput?: string) => {
   let rate: number | null = null;
@@ -17,13 +18,14 @@ export const choiceMenu = async (chatInput?: string) => {
     console.error("Failed to fetch rate", err);
   }
   const account = getAccount(config);
+  const { user } = useUserStore.getState();
 
   const walletIsConnected = account.isConnected;
   const wallet = account.address;
 
   const formatRate = formatCurrency(rate?.toString() ?? "0", "NGN", "en-NG");
 
-  const telFirstName = "Mosnyik";
+  const telFirstName = user?.telegram?.username;
   const { next, addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
@@ -35,10 +37,12 @@ export const choiceMenu = async (chatInput?: string) => {
         type: "incoming",
         content: (
           <span>
-            Connect your wallet
+            Close the chat <br />
+            Go to the <b>navbar</b> <br />
+            Connect your wallet <br />
+            Then return here to continue.
             <br />
             <br />
-            <ConnectWallet />
           </span>
         ),
         timestamp: new Date(),
@@ -47,7 +51,10 @@ export const choiceMenu = async (chatInput?: string) => {
         type: "incoming",
         content: (
           <span>
-            <ConnectWallet />
+            1. I have connected wallet
+            <br />
+            0. Go back
+            <br />
           </span>
         ),
         timestamp: new Date(),

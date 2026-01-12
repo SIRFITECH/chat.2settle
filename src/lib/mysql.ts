@@ -6,10 +6,11 @@ const config = {
   password: process.env.password,
   database: process.env.database,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 2,
   queueLimit: 0,
-  maxIdle: 10,
-  enableKeepAlive: true,
+  maxIdle: 2,
+  idleTimeout: 60000,
+  enableKeepAlive: false,
   keepAliveInitialDelay: 0,
 };
 
