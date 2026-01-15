@@ -6,11 +6,12 @@ export const useChatState = () => {
   const [chatInput, setChatInput] = useState("");
   const [currentDate, setCurrentDate] = useState<string | null>(null);
 
-  const { chatMessages, addChatMessages } = useChatNavigation();
+  const { messages, chatMessages, addChatMessages } = useChatNavigation();
 
   return {
     chatInput,
     setChatInput,
+    messages, 
     chatMessages,
     addChatMessages,
     currentDate,

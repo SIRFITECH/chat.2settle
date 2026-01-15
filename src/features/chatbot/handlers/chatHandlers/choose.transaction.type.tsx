@@ -1,23 +1,14 @@
-import { config } from "@/wagmi";
 import useChatStore from "stores/chatStore";
-import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
-import { displayCustomerSupportWelcome } from "./menus/customer.support";
-import { displayKYCInfo } from "./menus/kyc.info";
-import { displayReportlyWelcome } from "./menus/reportly.welcome";
-import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
+import { displayPayIn } from "./menus/display.payment.options";
 import { displayTransferMoney } from "./menus/transfer.money";
+import { usePaymentStore } from "stores/paymentStore";
 
 // select how you want to transactCrypto (transferMoney, sendGift, requestpyment)
 export const handleChooseTransactionType = (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
-
-  const account = getAccount(config);
-
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
-  const telFirstName = "Mosnyik";
+  const { setEstimateAsset } = usePaymentStore.getState();
 
   console.log("Chatinput from make choice", chatInput);
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -41,9 +32,10 @@ export const handleChooseTransactionType = (chatInput: string) => {
       transactionType: "gift",
     });
   } else if (chatInput === "3") {
-    displayTransferMoney();
+    displayPayIn();
+    setEstimateAsset("Naira");
     next({
-      stepId: "transactCrypto",
+      stepId: "enterBankSearchWord",
       transactionType: "request",
     });
   } else {

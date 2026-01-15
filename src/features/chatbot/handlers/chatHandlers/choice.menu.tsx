@@ -8,6 +8,7 @@ import { shortWallet } from "@/helpers/ShortenAddress";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { helloMenu } from "./hello.menu";
 import { useUserStore } from "stores/userStore";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export const choiceMenu = async (chatInput?: string) => {
   let rate: number | null = null;
@@ -35,23 +36,34 @@ export const choiceMenu = async (chatInput?: string) => {
     addMessages?.([
       {
         type: "incoming",
-        content: (
-          <span>
-            Close the chat <br />
-            Go to the <b>navbar</b> <br />
-            Connect your wallet <br />
-            Then return here to continue.
-            <br />
-            <br />
-          </span>
-        ),
+        intent: {
+          kind: "component",
+          name: "ConnectButton",
+          persist: false,
+        },
         timestamp: new Date(),
       },
       {
         type: "incoming",
         content: (
           <span>
-            1. I have connected wallet
+            {/* Close the chat <br />
+            Go to the <b>navbar</b> <br />
+            Connect your wallet <br />
+            Then return here to continue. */}
+            <ConnectButton />
+            <br />
+            <br />
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+      
+      {
+        type: "incoming",
+        content: (
+          <span>
+            1. Wallet have been Connected
             <br />
             0. Go back
             <br />

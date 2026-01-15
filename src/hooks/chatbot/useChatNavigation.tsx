@@ -9,7 +9,6 @@ export function useChatNavigation() {
     stepHistory,
     getDeserializedMessages,
     addMessages,
-    goto,
     next,
     prev,
   } = useChatStore();
@@ -21,12 +20,12 @@ export function useChatNavigation() {
     }));
 
   return {
+    messages,
     chatMessages,
     serializedMessages: serialized,
     currentStep,
     stepHistory,
     addChatMessages: addMessages,
-    goToStep: goto,
     nextStep: next,
     prevStep: prev,
   };

@@ -4,11 +4,34 @@ import { StepId } from "@/core/machines/steps";
 import elementToJSXString from "react-element-to-jsx-string";
 import parse from "html-react-parser";
 
+type MessageIntent =
+  | { kind: "text"; value: string }
+  | { kind: "component"; name: string; props?: any; persist?: boolean };
+
+type SerializedMessage =
+  | {
+      type: string;
+      intent: MessageIntent;
+      timestamp: string;
+    }
+  | {
+      type: string;
+      content: string;
+      timestamp: string;
+    };
+
 export type MessageType = {
   type: string;
-  content: string | React.ReactNode;
+  content?: string | React.ReactNode;
+  intent?: MessageIntent;
   timestamp: Date;
 };
+
+// export type MessageType = {
+//   type: string;
+//   content: string | React.ReactNode;
+//   timestamp: Date;
+// };
 
 interface StepContext {
   stepId: StepId;
@@ -16,7 +39,6 @@ interface StepContext {
 }
 
 type StepContextPatch = Partial<StepContext>;
-// utils
 const sanitizeSerializedContent = (content: string) => {
   return content
     .replace(/\{['"]\s*['"]\}/g, "")
@@ -29,11 +51,28 @@ const serializeMessage = (msg: MessageType) => ({
   timestamp: msg.timestamp || new Date(),
 });
 
-const deserializeMessage = (msg: { type: string; content: string }) => ({
-  type: msg.type,
-  content: parse(msg.content),
-  timestamp: new Date(),
-});
+// const deserializeMessage = (msg: SerializedMessage) => ({
+//   type: msg.type,
+//   content: parse(msg.content),
+//   timestamp:  new Date(msg.timestamp),
+//   // timestamp: new Date(),
+// });
+
+const deserializeMessage = (msg: SerializedMessage): MessageType => {
+  if ("intent" in msg) {
+    return {
+      type: msg.type,
+      intent: msg.intent,
+      timestamp: new Date(msg.timestamp),
+    };
+  }
+
+  return {
+    type: msg.type,
+    content: parse(msg.content),
+    timestamp: new Date(msg.timestamp),
+  };
+};
 
 const initialMessages = [
   {
@@ -56,7 +95,7 @@ const initialMessages = [
 
 type ChatStore = {
   messages: MessageType[];
-  serialized: { type: string; content: string }[];
+  serialized: MessageType[];
   stepHistory: StepContextPatch[];
   loading: boolean;
 
@@ -79,7 +118,7 @@ const useChatStore = create<ChatStore>()(
     (set, get) => {
       // --- Custom INITIALIZATION LOGIC ---
       let initialState;
-      const MAX_MESSAGES = 1000;
+      const MAX_MESSAGES = 100;
 
       if (typeof window !== "undefined") {
         const stored = window.localStorage.getItem("chat-flow");
@@ -133,9 +172,54 @@ const useChatStore = create<ChatStore>()(
 
         setLoading: (loading: boolean) => set({ loading: loading }),
 
+        // addMessages: (msgs) =>
+        //   set((state) => {
+        //     const serialized = msgs.map(serializeMessage);
+
+        //     const nextMessages = [...state.messages, ...msgs];
+        //     const nextSerializedMessages = [...state.serialized, ...serialized];
+
+        //     const overflow = nextMessages.length - MAX_MESSAGES;
+
+        //     if (overflow > 0) {
+        //       return {
+        //         messages: nextMessages.slice(overflow),
+        //         serialized: nextSerializedMessages.slice(overflow),
+        //       };
+        //     }
+
+        //     return {
+        //       messages: [...state.messages, ...msgs],
+        //       serialized: [...state.serialized, ...serialized],
+        //     };
+        //   }),
+
         addMessages: (msgs) =>
           set((state) => {
-            const serialized = msgs.map(serializeMessage);
+            const serialized = msgs
+              .filter((msg) => {
+                if (!msg.intent) return true; // legacy behavior
+
+                if (msg.intent.kind === "text") return true;
+
+                if (msg.intent.kind === "component") {
+                  return msg.intent.persist === true;
+                }
+
+                return false;
+              })
+              .map((msg) => {
+                if (msg.intent) {
+                  return {
+                    type: msg.type,
+                    intent: msg.intent,
+                    timestamp: msg.timestamp,
+                  };
+                }
+
+                // fallback: legacy JSX serialization
+                return serializeMessage(msg);
+              });
 
             const nextMessages = [...state.messages, ...msgs];
             const nextSerializedMessages = [...state.serialized, ...serialized];
@@ -153,6 +237,11 @@ const useChatStore = create<ChatStore>()(
               messages: [...state.messages, ...msgs],
               serialized: [...state.serialized, ...serialized],
             };
+
+            // return {
+            //   messages: [...state.messages, ...msgs],
+            //   serialized: [...state.serialized, ...serialized],
+            // };
           }),
 
         setSerialized: (msgs) => set({ serialized: msgs }),
@@ -171,7 +260,8 @@ const useChatStore = create<ChatStore>()(
             };
           }),
         getDeserializedMessages: () => {
-          return get().serialized.map((msg) => deserializeMessage(msg));
+          return get().serialized.map(deserializeMessage);
+          // return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
         next: (step: StepContextPatch) =>
@@ -199,46 +289,10 @@ const useChatStore = create<ChatStore>()(
               currentStep: previousStep,
             };
           }),
-
-        // goto: (step) => {
-        //   return stepService.send({ type: "GOTO", step });
-        // },
-        // reset: () => stepService.send({ type: "RESET" }),
-
-        // clear: () =>
-        //   set({
-        //     messages: initialMessages,
-        //     serialized: initialMessages.map(serializeMessage),
-        //     currentStep: "start",
-        //     stepHistory: ["start"],
-        //   }),
       };
     },
     { name: "chat-flow" }
   )
 );
-
-// stepService.subscribe((snapshot) => {
-//   console.log("MACHINE STATE →", snapshot.value, "CTX →", snapshot.context);
-//   let step: StepId;
-
-//   if (typeof snapshot.value === "string") {
-//     step = snapshot.value as StepId;
-//   } else if (typeof snapshot.value === "object") {
-//     // grab the first key if using nested states
-//     step = Object.keys(snapshot.value)[0] as StepId;
-//   } else {
-//     console.log({ snapshot });
-//     return; // invalid snapshot, ignore
-//   }
-//   const store = useChatStore.getState();
-//   const lastStep = store.stepHistory[store.stepHistory.length - 1];
-
-//   // Only record if the step has **actually changed**
-//   if (lastStep !== step && lastStep !== undefined) {
-//     store.recordStep(step);
-//     console.log("ZUSTAND IMMEDIATE →", store.currentStep);
-//   }
-// });
 
 export default useChatStore;

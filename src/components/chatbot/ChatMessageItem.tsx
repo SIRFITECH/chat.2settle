@@ -3,6 +3,7 @@ import Image from "next/image";
 // import { MessageType } from "@/types/general_types";
 import { format } from "date-fns";
 import { MessageType } from "stores/chatStore";
+import { renderMessageContent } from "@/utils/renderMessageContent";
 interface Props {
   msg: MessageType;
   dateString: string;
@@ -78,12 +79,12 @@ const ChatMessageItem = ({ msg, dateString, index }: Props) => {
               : "bg-blue-500 text-white rounded-br-none"
           }`}
         >
-          {/* 🔥 KEY CHANGE */}
-          {typeof msg.content === "string" ? (
+          {/* {typeof msg.content === "string" ? (
             <p className="text-xs md:text-sm">{msg.content}</p>
           ) : (
             msg.content
-          )}
+          )} */}
+          {renderMessageContent(msg)}
         </div>
 
         <span
