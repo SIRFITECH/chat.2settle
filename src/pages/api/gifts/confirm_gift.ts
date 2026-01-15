@@ -1,7 +1,8 @@
 import connection from "@/lib/mysql";
-import  { RowDataPacket } from "mysql2/promise";
+import { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 
+//TODO: I dont think we need this anymore
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -16,6 +17,10 @@ export default async function handler(
   if (!gift_id) {
     return res.status(400).json({ message: "gift_id is required" });
   }
+
+  // if (gift_id.length > 6 || gift_id.length < 6) {
+  //   return res.status(400).json({ message: "gift_id is required" });
+  // }
 
   try {
     const query = `
@@ -33,7 +38,6 @@ export default async function handler(
 
     const [rows] = await connection.query<RowDataPacket[]>(query, [gift_id]);
 
-
     if (rows.length > 0) {
       // If there are rows, return them along with their statuses
       const result = rows.map((row) => ({
@@ -42,6 +46,7 @@ export default async function handler(
         transaction: row,
       }));
 
+      console.log({ result });
       res.status(200).json({ exists: true, transactions: result });
     } else {
       res.status(200).json({ exists: false });

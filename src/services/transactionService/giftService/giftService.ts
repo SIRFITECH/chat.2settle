@@ -1,19 +1,22 @@
 import { userData } from "@/types/general_types";
-import api from "../../api-client"
+import api from "../../api-client";
 import axios from "axios";
 
 export const isGiftValid = async (
   gift_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
-    const response = await api.get("/api/gifts/confirm_gift", {
+    const response = await api.get("/api/gifts/check_gift", {
       params: { gift_id },
     });
 
-    if (response.data.exists && response.data.transactions.length > 0) {
+    console.log({ response })
+
+    if (response.data.exists && response.data.user) {
       // Extract the first transaction as the userData object
       const firstTransaction: userData =
-        response.data.transactions[0].transaction;
+        response.data.user;
+
 
       // Return the exists flag and the user object
       return { exists: true, user: firstTransaction };

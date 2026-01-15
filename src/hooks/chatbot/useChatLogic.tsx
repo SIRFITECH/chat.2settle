@@ -9,6 +9,9 @@ import {
   handleSearchBank,
   handleSelectBank,
 } from "@/features/chatbot/handlers/chatHandlers/handle.bank.steps";
+import { handleClaimGift } from "@/features/chatbot/handlers/chatHandlers/handle.claim.gift";
+import { handlePayRequest } from "@/features/chatbot/handlers/chatHandlers/handle.pay.request";
+import { handleCompleteTransactionId } from "@/features/chatbot/handlers/chatHandlers/handle.transaction.id";
 import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { handleMakeAChoice } from "@/features/chatbot/handlers/chatHandlers/make.choice";
 import { displayWelcomeMenu } from "@/features/chatbot/handlers/chatHandlers/menus/welcome";
@@ -99,6 +102,8 @@ const steps = [
   "continueToPay",
   "enterPhone",
   "sendPayment",
+  "claimGift",
+  "payRequest",
   // "confirmTransaction",
   // "paymentProcessing",
   // "kycInfo",
@@ -160,9 +165,12 @@ const stepHandlers: Record<
   howToEstimate: async () => console.log("transferMoney step"),
   transferMoney: async (chatInput) => handleTransferMoney(chatInput),
   payOptions: async (chatInput) => handlePayOptions(chatInput),
+  completeTransactionId: async (chatInput) =>
+    handleCompleteTransactionId(chatInput),
+  claimGift: async (chatInput) => handleClaimGift(chatInput),
+  payRequest: async (chatInput) => handlePayRequest(chatInput),
   requestPayCard: async () => requestPayCard(),
   assurance: async () => console.log("assurance step"),
-  completeTransactionId: async () => console.log("assurance step"),
 };
 
 //   transactCrypto: async () => console.log("transactCrypto step"),

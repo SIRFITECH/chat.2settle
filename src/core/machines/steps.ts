@@ -6,6 +6,8 @@ export const steps = [
   "chooseTransactionType",
   "transactCrypto",
   "requestPayCard",
+  "claimGift",
+  "payRequest",
   "transferMoney",
   "howToEstimate",
   "estimateAsset",

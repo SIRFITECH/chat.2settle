@@ -24,6 +24,6 @@ export const renderMessageContent = (msg: MessageType) => {
   return typeof msg.content === "string" ? (
     <p className="text-xs md:text-sm">{msg.content}</p>
   ) : (
-    msg.content
+    <span className="text-xs md:text-sm">{msg.content}</span>
   );
 };
