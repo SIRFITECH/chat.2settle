@@ -22,13 +22,8 @@ export const choiceMenu = async (chatInput?: string) => {
   const account = getAccount(config);
   const { user } = useUserStore.getState();
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
-
-  const formatRate = formatCurrency(rate?.toString() ?? "0", "NGN", "en-NG");
-
   const telFirstName = user?.telegram?.username;
-  const { next, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "0") {
@@ -40,26 +35,10 @@ export const choiceMenu = async (chatInput?: string) => {
         intent: {
           kind: "component",
           name: "ConnectButton",
-          persist: false,
+          persist: true,
         },
         timestamp: new Date(),
       },
-      {
-        type: "incoming",
-        content: (
-          <span>
-            {/* Close the chat <br />
-            Go to the <b>navbar</b> <br />
-            Connect your wallet <br />
-            Then return here to continue. */}
-            <ConnectButton />
-            <br />
-            <br />
-          </span>
-        ),
-        timestamp: new Date(),
-      },
-      
       {
         type: "incoming",
         content: (

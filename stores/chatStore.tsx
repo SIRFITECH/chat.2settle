@@ -198,7 +198,7 @@ const useChatStore = create<ChatStore>()(
           set((state) => {
             const serialized = msgs
               .filter((msg) => {
-                if (!msg.intent) return true; // legacy behavior
+                if (!msg.intent) return true;
 
                 if (msg.intent.kind === "text") return true;
 
@@ -209,6 +209,7 @@ const useChatStore = create<ChatStore>()(
                 return false;
               })
               .map((msg) => {
+                console.log("We have to map the msg now", msg)
                 if (msg.intent) {
                   return {
                     type: msg.type,
@@ -216,6 +217,10 @@ const useChatStore = create<ChatStore>()(
                     timestamp: msg.timestamp,
                   };
                 }
+                console.log(
+                  "Msg has intent and we have transformed the intent",
+                  msg.intent
+                );
 
                 // fallback: legacy JSX serialization
                 return serializeMessage(msg);

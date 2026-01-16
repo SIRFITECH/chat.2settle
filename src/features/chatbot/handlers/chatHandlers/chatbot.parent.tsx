@@ -22,15 +22,17 @@ export function ConnectWalletWithChat() {
 export const connectWallet = async () => {
   const { next, addMessages } = useChatStore.getState();
 
+  console.log("We are connecting wallet")
+
   addMessages([
     {
       type: "incoming",
-      content: (
-        <span>
-          {" "}
-          <ConnectWalletWithChat />
-        </span>
-      ),
+      intent: { kind: "component", name: "ConnectWallet", persist: false },
+      //   (
+      //   <span>
+      //     <ConnectWallet />
+      //   </span>
+      // ),
       timestamp: new Date(),
     },
     {
