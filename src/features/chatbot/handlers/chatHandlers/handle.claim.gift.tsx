@@ -2,33 +2,9 @@ import { isGiftValid } from "@/services/transactionService/giftService/giftServi
 import useChatStore from "stores/chatStore";
 import { displaySearchBank } from "./menus/display.bank.search";
 
-// export const handleClaimGift = (chatInput: string) => {
-//   const { next, addMessages } = useChatStore.getState();
-//   const giftId = chatInput.trim();
-//   // check if gift is valid
-//   // check if gift is not claimed yet
-//   // move control to the enter search word
-//   addMessages([
-//     {
-//       type: "incoming",
-//       content: `You want to claim gift with GiftID ${giftId}`,
-//       timestamp: new Date(),
-//     },
-//   ]);
-//   return;
-// };
-
 export const handleClaimGift = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
   const giftId = chatInput.trim();
-
-  //   addMessages([
-  //     {
-  //       type: "incoming",
-  //       content: `You want to claim gift with GiftID ${giftId}`,
-  //       timestamp: new Date(),
-  //     },
-  //   ]);
 
   const result = await isGiftValid(giftId);
 
@@ -53,7 +29,6 @@ export const handleClaimGift = async (chatInput: string) => {
 
   const { status, gift_status } = result.user;
 
-  console.log(status, gift_status);
 
   if (
     status?.toLowerCase() === "successful" &&

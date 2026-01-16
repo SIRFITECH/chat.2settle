@@ -6,7 +6,7 @@ export const isRequestValid = async (
   request_id: string
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
-    const response = await api.get("/api/gifts/check_request", {
+    const response = await api.get("/api/requests/check_request", {
       params: { request_id },
     });
 

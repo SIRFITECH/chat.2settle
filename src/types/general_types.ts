@@ -68,6 +68,7 @@ export interface userData {
   profit_rate?: string | null;
   name?: string | null;
   gift_status?: string | null;
+  request_status?: string | null;
   gift_chatID?: string | null;
   asset_price?: string | null;
   ref_code?: string | null;
