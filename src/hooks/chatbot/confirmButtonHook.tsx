@@ -6,6 +6,7 @@ import { CountdownTimer } from "@/helpers/format_date";
 import { CheckCircle } from "lucide-react";
 import React, { useCallback } from "react";
 import useConfirmAndProceedState from "./useConfirmAndProceedState";
+import useChatStore from "stores/chatStore";
 
 export interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
@@ -26,13 +27,14 @@ export interface ConfirmAndProceedButtonProps {
 
 const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
   phoneNumber,
-  setLoading,
+  // setLoading,
   sharedPaymentMode,
   processTransaction,
   network,
   connectedWallet,
   amount,
 }) => {
+  const { setLoading } = useChatStore.getState();
   const {
     state,
     setState,
@@ -48,25 +50,6 @@ const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = ({
     connectedWallet,
     amount,
   });
-
-
-  // const handleConfirmCallback = useCallback(() => {
-  //   handleConfirm({
-  //     setState,
-  //     phoneNumber,
-  //     setLoading,
-  //     sharedPaymentMode,
-  //     processTransaction,
-  //     network,
-  //   });
-  // }, [
-  //   setState,
-  //   phoneNumber,
-  //   setLoading,
-  //   sharedPaymentMode,
-  //   processTransaction,
-  //   network,
-  // ]);
 
   const handleConfirmCallback = useCallback(() => {
     handleConfirm({

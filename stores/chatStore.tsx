@@ -27,12 +27,6 @@ export type MessageType = {
   timestamp: Date;
 };
 
-// export type MessageType = {
-//   type: string;
-//   content: string | React.ReactNode;
-//   timestamp: Date;
-// };
-
 interface StepContext {
   stepId: StepId;
   transactionType?: "transfer" | "gift" | "request";
@@ -51,12 +45,6 @@ const serializeMessage = (msg: MessageType) => ({
   timestamp: msg.timestamp || new Date(),
 });
 
-// const deserializeMessage = (msg: SerializedMessage) => ({
-//   type: msg.type,
-//   content: parse(msg.content),
-//   timestamp:  new Date(msg.timestamp),
-//   // timestamp: new Date(),
-// });
 
 const deserializeMessage = (msg: SerializedMessage): MessageType => {
   if ("intent" in msg) {
@@ -209,7 +197,6 @@ const useChatStore = create<ChatStore>()(
                 return false;
               })
               .map((msg) => {
-                console.log("We have to map the msg now", msg)
                 if (msg.intent) {
                   return {
                     type: msg.type,
@@ -217,10 +204,6 @@ const useChatStore = create<ChatStore>()(
                     timestamp: msg.timestamp,
                   };
                 }
-                console.log(
-                  "Msg has intent and we have transformed the intent",
-                  msg.intent
-                );
 
                 // fallback: legacy JSX serialization
                 return serializeMessage(msg);

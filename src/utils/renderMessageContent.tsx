@@ -3,7 +3,7 @@ import { MessageType } from "stores/chatStore";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const componentMap: Record<string, React.ComponentType<any>> = {
-  ConnectButton: ConnectButton,
+  ConnectButton,
 };
 
 export const renderMessageContent = (msg: MessageType) => {

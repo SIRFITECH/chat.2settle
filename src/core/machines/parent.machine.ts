@@ -1,14 +1,14 @@
-import { bankingMachine } from "./banking.machine";
-import { onboardingMachine } from "./onboarding.machine";
-import { machineSetup } from "./setup";
-import { paymentMachine } from "./payment.machine";
-import { reportingMachine } from "./reporting_machine";
-import { supportMachine } from "./support.machine";
-import { transactCryptoMachine } from "./transactCrypto.machine";
-import { transactionMachine } from "./transaction.machine";
-import { assign, createActor } from "xstate";
-import { steps } from "./steps";
-import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+// import { bankingMachine } from "./banking.machine";
+// import { onboardingMachine } from "./onboarding.machine";
+// import { machineSetup } from "./setup";
+// import { paymentMachine } from "./payment.machine";
+// import { reportingMachine } from "./reporting_machine";
+// import { supportMachine } from "./support.machine";
+// import { transactCryptoMachine } from "./transactCrypto.machine";
+// import { transactionMachine } from "./transaction.machine";
+// import { assign, createActor } from "xstate";
+// import { steps } from "./steps";
+// import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 
 // interface Ctx {
 //   currentStepIndex: number;

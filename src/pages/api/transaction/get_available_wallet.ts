@@ -81,6 +81,7 @@ export default async function handler(
     }
 
     const wallet = rows[0];
+
     const activeWallet = getWalletForNetwork(wallet, network);
     const flagToUpdate = getFlagColumn(network);
     const lastAssignedColumn = getLastAssignedColumn(network);
@@ -89,10 +90,10 @@ export default async function handler(
       const lastAssignedTime = new Date();
 
       await connection.query(
-        `UPDATE wallets SET ${flagToUpdate} = 'false', ${lastAssignedColumn} = ? WHERE ${getWalletColumn(
+        `UPDATE wallets SET ${flagToUpdate} = ?, ${lastAssignedColumn} = ? WHERE ${getWalletColumn(
           network
         )} = ?`,
-        [lastAssignedTime, activeWallet]
+        [0, lastAssignedTime, activeWallet]
       );
 
       await connection.commit();
@@ -144,15 +145,15 @@ function getFlagColumn(network: Network): string {
 function getWalletColumn(network: Network): string {
   switch (network) {
     case "btc":
-      return "bitcoin_wallet";
+      return "bitcoin";
     case "eth":
     case "bnb":
     case "erc20":
     case "bep20":
-      return "eth_bnb_wallet";
+      return "evm";
     case "trx":
     case "trc20":
-      return "tron_wallet";
+      return "tron";
   }
 }
 
@@ -181,15 +182,15 @@ function getWalletForNetwork(
 ): string | null {
   switch (network) {
     case "btc":
-      return wallet.bitcoin_wallet;
+      return wallet.bitcoin;
     case "eth":
     case "bnb":
     case "erc20":
     case "bep20":
-      return wallet.eth_bnb_wallet;
+      return wallet.evm;
     case "trx":
     case "trc20":
-      return wallet.tron_wallet;
+      return wallet.tron;
     default:
       return null;
   }
