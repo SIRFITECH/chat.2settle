@@ -1,9 +1,7 @@
 import useChatStore, { MessageType } from "stores/chatStore";
 
-export const displayTransactIDWelcome = (
-
-) => {
-    const { addMessages } = useChatStore.getState();
+export const displayTransactIDWelcome = () => {
+  const { addMessages } = useChatStore.getState();
   const newMessages: MessageType[] = [
     {
       type: "incoming",
@@ -11,11 +9,11 @@ export const displayTransactIDWelcome = (
         <span>
           Here is your menu:
           <br />
-          1. Complete your transaction
+          1. Claim Gift
           <br />
-          2. Claim Gift
+          2. Fulfill Request
           <br />
-          3. Complete payment
+          3. Complete your transaction
           <br />
           0. Go back
         </span>
@@ -24,6 +22,6 @@ export const displayTransactIDWelcome = (
     },
   ];
   console.log("Next is thankForKYCReg");
- 
+
   addMessages(newMessages);
 };
