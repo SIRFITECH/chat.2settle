@@ -151,7 +151,7 @@ import { displaySendPayment } from "./menus/display.send.payment";
 // };
 
 export const handleCryptoPayment = async (chatInput: string) => {
-  const { setLoading, addMessages, setAwaitingConfirmation } =
+  const { setLoading, addMessages } =
     useChatStore.getState();
 
   const { paymentAssetEstimate, ticker, network } = usePaymentStore.getState();
@@ -184,7 +184,6 @@ export const handleCryptoPayment = async (chatInput: string) => {
   // 2. Ask for confirmation
   const asset = `${Number(paymentAssetEstimate).toFixed(8)} ${crypto}`;
 
-  setAwaitingConfirmation(true, "CRYPTO_PAYMENT");
 
   addMessages([
     {
@@ -202,7 +201,7 @@ type PaymentConfirmProps = {
 };
 
 export function PaymentConfirm({ asset, network }: PaymentConfirmProps) {
-  const { setAwaitingConfirmation } = useChatStore.getState();
+  // const { setAwaitingConfirmation } = useChatStore.getState();
   // const { proceedCryptoPayment } = usePaymentActions();
 
   return (
@@ -218,7 +217,7 @@ export function PaymentConfirm({ asset, network }: PaymentConfirmProps) {
       <Button
         className="bg-blue-500 text-white"
         onClick={() => {
-          setAwaitingConfirmation(false);
+          // setAwaitingConfirmation(false);
           displaySendPayment()
           // proceedCryptoPayment();
         }}

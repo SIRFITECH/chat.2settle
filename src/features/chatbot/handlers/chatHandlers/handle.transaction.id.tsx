@@ -1,9 +1,8 @@
+import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
 import { displayEnterId } from "./menus/display.enterid";
-import useChatStore from "stores/chatStore";
-import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
 import { displayMakeChoice } from "./menus/display.make.choice";
 
 export const handleCompleteTransactionId = async (chatInput: string) => {
