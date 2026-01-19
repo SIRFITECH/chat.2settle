@@ -1,13 +1,9 @@
+import { getBaseSymbol, phoneNumberPattern } from "@/utils/utilities";
 import useChatStore, { MessageType } from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
+import { useUserStore } from "stores/userStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
-import { getBaseSymbol, phoneNumberPattern } from "@/utils/utilities";
-import { usePaymentStore } from "stores/paymentStore";
-import ConfirmAndProceedButton from "@/hooks/chatbot/confirmButtonHook";
-import { useTransactionStore } from "stores/transactionStore";
-import { useUserStore } from "stores/userStore";
-import { Button } from "@/components/ui/button";
-import { displaySendPayment } from "./menus/display.send.payment";
 
 export const handleCryptoPayment = async (chatInput: string) => {
   const { currentStep, setLoading, addMessages } = useChatStore.getState();
@@ -81,6 +77,11 @@ export const handleCryptoPayment = async (chatInput: string) => {
                   /> */}
                 </div>
               ),
+              intent: {
+                kind: "component",
+                name: "ConfirmAndProceedButton",
+                persist: true,
+              },
               timestamp: new Date(),
             },
           ]
@@ -142,6 +143,11 @@ export const handleCryptoPayment = async (chatInput: string) => {
                   /> */}
                 </div>
               ),
+              intent: {
+                kind: "component",
+                name: "ConfirmAndProceedButton",
+                persist: true,
+              },
               timestamp: new Date(),
             },
           ]
@@ -166,6 +172,11 @@ export const handleCryptoPayment = async (chatInput: string) => {
                   /> */}
                 </div>
               ),
+              intent: {
+                kind: "component",
+                name: "ConfirmAndProceedButton",
+                persist: true,
+              },
               timestamp: new Date(),
             },
           ];

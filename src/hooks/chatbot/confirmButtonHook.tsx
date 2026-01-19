@@ -167,8 +167,12 @@ const ConfirmAndProceedButton = () => {
   const openConfirmDialog = useConfirmDialogStore((s) => s.open);
   const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
   const hasOpenedRef = useRef(false);
-  const account = useAccount()
+  const account = useAccount();
   const connectedWallet = account.isConnected;
+
+  const handleConfirm = () => {
+    console.log("Just confirmed");
+  };
 
   useEffect(() => {
     // make sure the dialog open only once
@@ -182,8 +186,7 @@ const ConfirmAndProceedButton = () => {
         </span>
       ),
       onConfirm: async () => {
-        console.log("User confirmed");
-        // continue flow
+        handleConfirm();
       },
     });
   }, [openConfirmDialog, closeConfirmDialog]);
@@ -192,14 +195,14 @@ const ConfirmAndProceedButton = () => {
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
       <Button
-        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700"
+        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
         variant="outline"
         onClick={() =>
           openConfirmDialog({
             title: "Please Note",
             description: "Please confirm to proceed.",
             onConfirm: async () => {
-              console.log("Just confirmed");
+              handleConfirm();
               // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
             },
           })
@@ -209,11 +212,11 @@ const ConfirmAndProceedButton = () => {
           //   state.isProcessing ? (
           //   "Generating wallet for you..."
           // ) : state.isButtonClicked ?
-          <span>
-            Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
-          </span>
+          // <span>
+          //   Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
+          // </span>
           // : (
-          //   "Confirm & Proceed"
+          "Confirm & Proceed"
           // )
         }
         {/* {"Confirm & Proceed"} */}

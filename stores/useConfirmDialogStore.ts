@@ -9,9 +9,9 @@ interface ConfirmDialogState {
   onConfirm?: () => Promise<void> | void;
 
   open: (config: {
-    title: string;
-    description: React.ReactNode;
-    onConfirm: () => Promise<void> | void;
+    title?: string;
+    description?: React.ReactNode;
+    onConfirm?: () => Promise<void> | void;
   }) => void;
 
   close: () => void;
