@@ -2,18 +2,20 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type PaymentStoreType = {
-  rate: string;
   paymentMode: string;
   crypto: string;
   ticker: string;
   network: string;
-  wallet: string;
+  activeWallet: string;
   assetPrice: string;
   estimateAsset: string;
   nairaCharge: string;
   dollarCharge: string;
   paymentAssetEstimate: string;
   paymentNairaEstimate: string;
+  walletLastAssignedTime: string;
+
+  rate: string;
   lastRateFetchedAt: number;
 
   profitRate: string;
@@ -26,6 +28,7 @@ export type PaymentStoreType = {
   lastTotalVolumeFetchedAt: number;
 
   setRate: (val: string) => void;
+  setWalletLastAssignedTime: (val: string) => void;
   setProfitRate: (val: string) => void;
   setMerchantRate: (val: string) => void;
   setTotalVolume: (val: string) => void;
@@ -33,7 +36,7 @@ export type PaymentStoreType = {
   setCrypto: (val: string) => void;
   setTicker: (val: string) => void;
   setNetwork: (val: string) => void;
-  setWallet: (val: string) => void;
+  setActiveWallet: (val: string) => void;
   setAssetPrice: (val: string) => void;
   setEstimateAsset: (val: string) => void;
   setNairaCharge: (val: string) => void;
@@ -50,13 +53,15 @@ export const usePaymentStore = create<PaymentStoreType>()(
       crypto: "",
       ticker: "",
       network: "",
-      wallet: "",
+      activeWallet: "",
       assetPrice: "",
       nairaCharge: "",
       dollarCharge: "",
       estimateAsset: "",
       paymentAssetEstimate: "",
       paymentNairaEstimate: "",
+      walletLastAssignedTime: "",
+
       lastRateFetchedAt: 0,
       profitRate: "",
       lastProfitRateFetchedAt: 0,
@@ -66,10 +71,11 @@ export const usePaymentStore = create<PaymentStoreType>()(
       lastTotalVolumeFetchedAt: 0,
 
       setPaymentMode: (val) => set({ paymentMode: val }),
+      setWalletLastAssignedTime: (val) => set({ walletLastAssignedTime: val }),
       setCrypto: (val) => set({ crypto: val }),
       setTicker: (val) => set({ ticker: val }),
       setNetwork: (val) => set({ network: val }),
-      setWallet: (val) => set({ wallet: val }),
+      setActiveWallet: (val) => set({ activeWallet: val }),
       setAssetPrice: (val) => set({ assetPrice: val }),
       setEstimateAsset: (val) => set({ estimateAsset: val }),
       setNairaCharge: (val) => set({ nairaCharge: val }),
@@ -96,6 +102,6 @@ export const usePaymentStore = create<PaymentStoreType>()(
         totalVolume: state.totalVolume,
         lastTotalVolumeFetchedAt: state.lastTotalVolumeFetchedAt,
       }),
-    }
-  )
+    },
+  ),
 );

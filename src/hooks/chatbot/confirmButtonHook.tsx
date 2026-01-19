@@ -9,6 +9,10 @@ import useConfirmAndProceedState from "./useConfirmAndProceedState";
 import useChatStore from "stores/chatStore";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 import { useAccount } from "wagmi";
+import { usePaymentStore } from "stores/paymentStore";
+import TruncatedText from "@/helpers/TruncatedText";
+import { getAvaialableWallet } from "@/services/crypto/wallet";
+import { getBaseSymbol } from "@/utils/utilities";
 
 export interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
@@ -26,6 +30,150 @@ export interface ConfirmAndProceedButtonProps {
   connectedWallet: boolean;
   amount: string;
 }
+
+const ConfirmAndProceedButton = () => {
+  const loading = useChatStore((s) => s.loading);
+  const setLoading = useChatStore((s) => s.setLoading);
+  const { network, ticker } = usePaymentStore();
+
+  const activeWallet = usePaymentStore((s) => s.activeWallet);
+  const walletLastAssignedTime = usePaymentStore(
+    (s) => s.walletLastAssignedTime,
+  );
+  // const { hasCopyButtonBeenClicked } = useConfirmDialogStore.getState();
+  const hasCopyButtonBeenClicked = true;
+
+  const openConfirmDialog = useConfirmDialogStore((s) => s.open);
+  const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
+  const hasOpenedRef = useRef(false);
+  const account = useAccount();
+  const connectedWallet = account.isConnected;
+
+  const handleConfirm = async () => {
+    console.log("Just confirmed");
+    try {
+      setLoading(true);
+      const network = "eth";
+      // getBaseSymbol(ticker);
+      await getAvaialableWallet(network);
+    } catch (err) {
+      console.log("Ther is an erro", err);
+    } finally {
+      setLoading(false);
+    }
+    // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
+  };
+  const isExpired = false;
+
+  const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
+
+  useEffect(() => {
+    // make sure the dialog open only once
+    if (hasOpenedRef.current) return;
+    hasOpenedRef.current = true;
+    openConfirmDialog({
+      title: "Please Note",
+      description: (
+        <span>
+          Make sure you complete the transfer within <b>5 mins</b>
+        </span>
+      ),
+      onConfirm: async () => {
+        handleConfirm();
+      },
+    });
+  }, [openConfirmDialog, closeConfirmDialog]);
+
+  const handleCopyWallet = (wallet: string) => {
+    // navigator.clipboard.writeText(wallet).then(() => {
+    //   setState((prev) => ({
+    //     ...prev,
+    //     isCopied: true,
+    //     hasCopyButtonBeenClicked: true,
+    //   }));
+    //   setTimeout(
+    //     () =>
+    //       setState((prev) => {
+    //         if (prev.isCopied === false) return prev;
+    //         return { ...prev, isCopied: false };
+    //       }),
+    //     3000, // 3 sec
+    //   );
+    // });
+    console.log("Copy pressed");
+  };
+
+  const truncateWallet = (wallet: string) => {
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+  };
+
+  return (
+    <div className="flex flex-col items-center space-y-4">
+      <ConfirmDialog />
+      <Button
+        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
+        variant="outline"
+        onClick={() =>
+          openConfirmDialog({
+            title: "Please Note",
+            description: "Please confirm to proceed.",
+            onConfirm: async () => {
+              handleConfirm();
+            },
+          })
+        }
+      >
+        {loading ? (
+          "Generating wallet for you..."
+        )
+          // : state.isButtonClicked ? (
+          // <span>
+          //   Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
+          // </span>
+          // )
+            : (
+          "Confirm & Proceed"
+        )}
+        {/* {"Confirm & Proceed"} */}
+      </Button>
+
+      {/* error state */}
+      {/* {state.error && <p className="text-red-500">{state.error}</p>} */}
+      {/* copiable wallet */}
+      {activeWallet && (
+        <WalletInfo
+          wallet={activeWallet}
+          network={network}
+          isCopyDisabled={isCopyButtonDisabled}
+          onCopy={() => handleCopyWallet(activeWallet ?? "")}
+          truncateWallet={truncateWallet}
+        />
+      )}
+      {/* count down */}
+      <p role="status" className="text-sm text-muted-foreground">
+        {/* {isButtonClicked &&
+          lastAssignedTime &&
+          !isExpired && ( */}
+        {hasCopyButtonBeenClicked && walletLastAssignedTime && !isExpired && (
+          <>
+            This wallet Expires in
+            <CountdownTimer
+              expiryTime={
+                new Date(
+                  new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
+                )
+              }
+              // expiryTime={new Date(lastAssignedTime).getTime() + 5 * 60 * 1000}
+            />
+          </>
+        )}
+        {isExpired && "This wallet has expired"}
+      </p>
+    </div>
+  );
+};
+
+export default ConfirmAndProceedButton;
 
 // const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = (
 //   {
@@ -162,70 +310,3 @@ export interface ConfirmAndProceedButtonProps {
 // };
 
 // export default ConfirmAndProceedButton;
-
-const ConfirmAndProceedButton = () => {
-  const openConfirmDialog = useConfirmDialogStore((s) => s.open);
-  const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
-  const hasOpenedRef = useRef(false);
-  const account = useAccount();
-  const connectedWallet = account.isConnected;
-
-  const handleConfirm = () => {
-    console.log("Just confirmed");
-  };
-
-  useEffect(() => {
-    // make sure the dialog open only once
-    if (hasOpenedRef.current) return;
-    hasOpenedRef.current = true;
-    openConfirmDialog({
-      title: "Please Note",
-      description: (
-        <span>
-          Make sure you complete the transfer within <b>5 mins</b>
-        </span>
-      ),
-      onConfirm: async () => {
-        handleConfirm();
-      },
-    });
-  }, [openConfirmDialog, closeConfirmDialog]);
-
-  return (
-    <div className="flex flex-col items-center space-y-4">
-      <ConfirmDialog />
-      <Button
-        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
-        variant="outline"
-        onClick={() =>
-          openConfirmDialog({
-            title: "Please Note",
-            description: "Please confirm to proceed.",
-            onConfirm: async () => {
-              handleConfirm();
-              // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
-            },
-          })
-        }
-      >
-        {
-          //   state.isProcessing ? (
-          //   "Generating wallet for you..."
-          // ) : state.isButtonClicked ?
-          // <span>
-          //   Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
-          // </span>
-          // : (
-          "Confirm & Proceed"
-          // )
-        }
-        {/* {"Confirm & Proceed"} */}
-      </Button>
-      {/* <Button className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700">
-        {"Confirm & Proceed"}
-      </Button> */}
-    </div>
-  );
-};
-
-export default ConfirmAndProceedButton;

@@ -6,6 +6,8 @@ interface ConfirmDialogState {
   description: React.ReactNode | null;
   isConfirming: boolean;
   hasConfirmed: boolean;
+  hasCopyButtonBeenClicked: boolean;
+  setHasCopyButtonBeenClicked: () => void;
   onConfirm?: () => Promise<void> | void;
 
   open: (config: {
@@ -24,6 +26,7 @@ export const useConfirmDialogStore = create<ConfirmDialogState>((set, get) => ({
   description: null,
   isConfirming: false,
   hasConfirmed: false,
+  hasCopyButtonBeenClicked: false,
 
   open: ({ title, description, onConfirm }) =>
     set({
@@ -42,6 +45,8 @@ export const useConfirmDialogStore = create<ConfirmDialogState>((set, get) => ({
       hasConfirmed: false,
       onConfirm: undefined,
     }),
+
+  setHasCopyButtonBeenClicked: () => set({ hasCopyButtonBeenClicked: true }),
 
   confirm: async () => {
     const { onConfirm, hasConfirmed, isConfirming, close } = get();
