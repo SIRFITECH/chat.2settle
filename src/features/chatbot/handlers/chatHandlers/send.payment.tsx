@@ -105,8 +105,14 @@ export const handleCryptoPayment = async (chatInput: string) => {
                   /> */}
                 </div>
               ),
+              intent: {
+                kind: "component",
+                name: "ConnectButton",
+                persist: true,
+              },
               timestamp: new Date(),
             },
+           
           ];
 
       setLoading(false);
