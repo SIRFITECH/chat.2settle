@@ -29,7 +29,7 @@ export const geminiAi = async (updatedMessages: string | undefined, sessionId: S
       { messageText: updatedMessages, chatId: sessionId }
     );
    
-
+   console.log("Use transaction created successfully");
     return response.data;
   } catch (error) {
     console.error("Error storing user data:", error);

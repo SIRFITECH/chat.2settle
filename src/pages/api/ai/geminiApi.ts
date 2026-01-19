@@ -1,9 +1,12 @@
+
+
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import {
   JsonOutputParser,
   StringOutputParser,
 } from "@langchain/core/output_parsers";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 import { NextApiRequest, NextApiResponse } from "next";
 import { chatPrompt } from "../../../services/ai/ai-endpoint-service";
 
@@ -18,7 +21,7 @@ import {
 import {
   StructuredOutputParser,
 } from "@langchain/core/output_parsers";
-import { OutputFixingParser } from "langchain/output_parsers";
+// import { OutputFixingParser } from "@langchain/core/output_parsers";
 // import { OutputFixingParser } from "@langchain/classic/output_parsers/fix";
 import crypto from "crypto";
 import {
@@ -63,48 +66,110 @@ const userHistories =
 
 dotenv.config();
 
-const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.0-flash",
-  temperature: 0,
+// const model = new ChatGoogleGenerativeAI({
+//   model: "gemini-2.0-flash",
+//   temperature: 0,
+// });
+
+const model = new ChatOpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  model: "meta-llama/llama-3.3-70b-instruct:free",
+  configuration: {
+    baseURL: "https://openrouter.ai/api/v1",
+  },
 });
+
+// const model = new ChatGoogleGenerativeAI({
+//   model: "gpt-4o-mini",
+//   temperature: 0,
+// });
 
 async function extractIntentEntity(phrase: string) {
 
+//   const prompt = ChatPromptTemplate.fromTemplate(`
+//     Extract information from the following phrase.
+// If the user message does NOT input other format then respond with all values as undefined
+// Formatting Instructions: {format_instructions}
+//   Phrase: {phrase}
+  // `);
+  
   const prompt = ChatPromptTemplate.fromTemplate(`
-    Extract information from the following phrase.
-If the user message does NOT input other format then respond with all values as undefined
-Formatting Instructions: {format_instructions} 
-  Phrase: {phrase}
+You are a data extraction engine.
+
+RULES (VERY IMPORTANT):
+- Output MUST be valid JSON
+- Output MUST match the schema EXACTLY
+- Do NOT wrap the output in markdown
+- Do NOT add explanations
+- Do NOT omit any fields
+- If a value is missing, use an empty string "" instead of null
+- Use strings only 
+
+Schema:
+{format_instructions}
+
+User input:
+"{phrase}"
 `);
-    
-  const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
-    bank_name:
-      "the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name",
-    crypto:
-      "the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER  ",
-    network:
-      "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto",
-    estimation:
-      "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt ",
-    Amount: "the Amount the user to send just the numeric",
-    acct_number:
-      "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.",
-    receiver_phoneNumber:
-      "the phone number is nigeria phone number 11 digit number",
-    name: "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user",
-    gift_id:
-      "the gift id is a 6 digit number that a user will use to claim gift",
-  });
+
+
+  // const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
+  //   bank_name:
+  //     "the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name",
+  //   crypto:
+  //     "the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER  ",
+  //   network:
+  //     "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto",
+  //   estimation:
+  //     "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt ",
+  //   Amount: "the Amount the user to send just the numeric",
+  //   acct_number:
+  //     "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.",
+  //   receiver_phoneNumber:
+  //     "the phone number is nigeria phone number 11 digit number",
+  //   name: "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user",
+  //   gift_id:
+  //     "the gift id is a 6 digit number that a user will use to claim gift",
+  // });
 
   // 🧠 Automatically corrects ```json wrapping or malformed output
-  const parser = OutputFixingParser.fromLLM(model, outputParser);
+  // const parser = OutputFixingParser.fromLLM(model, outputParser);
 
-  const chain = prompt.pipe(model).pipe(parser);
-
-  return await chain.invoke({
-    phrase: phrase,
-    format_instructions: outputParser.getFormatInstructions(),
+  const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
+    bank_name: "Full Nigerian bank name or empty string ''",
+    crypto: "Crypto asset in CAPITAL LETTERS or empty string ''",
+    network: "BTC | ETH | TRC20 | ERC20 | BEP20 or empty string ''",
+    estimation: "naira | dollar | crypto or empty string ''",
+    Amount: "numeric string only or empty string ''",
+    acct_number: "10-digit Nigerian account number or empty string ''",
+    receiver_phoneNumber: "11-digit Nigerian phone number or empty string ''",
+    name: "person name or empty string ''",
+    gift_id: "6-digit gift id or empty string ''",
   });
+
+  const chain = prompt.pipe(model).pipe(outputParser);
+
+ try {
+   return await chain.invoke({
+     phrase,
+     format_instructions: outputParser.getFormatInstructions(),
+   });
+ } catch (error) {
+   console.error("Extraction failed:", error);
+
+   // Fallback: return empty structured object
+   return {
+     bank_name: null,
+     crypto: null,
+     network: null,
+     estimation: null,
+     Amount: null,
+     acct_number: null,
+     receiver_phoneNumber: null,
+     name: null,
+     gift_id: null,
+   };
+ }
 }
 
 export default async function handler(
@@ -133,7 +198,7 @@ export default async function handler(
     userAcctDetail[chatId] = {};
   }
   try {
-   
+
     console.log("chatId", chatId);
     // Ensure user history exists
     if (!userHistories.has(chatId)) {
@@ -168,20 +233,20 @@ export default async function handler(
       // updatedSession.network;
       updatedSession.assetPrice = await fetchCoinPrice(updatedSession.network);
     }
-    
-    if (!updatedSession.rate) {
-     // RATE HOOKS
-     const { data: rate } = useRate();
-     const { data: merchantRate } = useMerchantRate();
-     const { data: profitRate } = useProfitRate();
 
-        
-      // updatedSession.merchantRate = await fetchMerchantRate();
-      // updatedSession.profitRate = await fetchProfitRate();
-      updatedSession["current_rate"] = rate;
-      updatedSession["merchant_rate"] = merchantRate;
-      updatedSession["profit_rate"] = profitRate;
-    }
+    // if (!updatedSession.rate) {
+    //  // RATE HOOKS
+    //  const { data: rate } = useRate();
+    //  const { data: merchantRate } = useMerchantRate();
+    //  const { data: profitRate } = useProfitRate();
+
+    //   // updatedSession.merchantRate = await fetchMerchantRate();
+    //   // updatedSession.profitRate = await fetchProfitRate();
+    //   updatedSession["current_rate"] = rate;
+    //   updatedSession["merchant_rate"] = merchantRate;
+    //   updatedSession["profit_rate"] = profitRate;
+    // } 
+    
     if (updatedSession.name) {
       const beneficiaryDate = {
         beneficiary_nickname: updatedSession.name,
@@ -286,16 +351,17 @@ export default async function handler(
         updatedSession["effort"] = updatedSession["nairaAmount"] * 0.01;
       }
     }
-
+   
     const prompt = await chatPrompt(updatedSession);
     // Get AI response
     const parser = new StringOutputParser();
     const chain = prompt.pipe(model).pipe(parser);
-
+ 
     const response = await chain.invoke({
       word: messageText,
       chat_history: history,
     });
+   
     if (updatedSession.wallet_address) {
       const currentDate = new Date();
       const day = currentDate.getDate();

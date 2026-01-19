@@ -35,13 +35,12 @@ setTimeout(() => {
 export const aiChat = async (
   addChatMessages?: (messages: MessageType[]) => void,
   chatInput?: string,
-  setSharedPaymentMode?: (mode: string) => void
 ) => {
   try {
     console.log("we are at the start");
 
     // window.localStorage.setItem("transactionID", "");
-    setSharedPaymentMode?.("");
+
     const messages: any = [];
     const updatedMessages = [...messages, { role: "user", content: chatInput }];
     let sessionId = window.localStorage.getItem("transactionID");

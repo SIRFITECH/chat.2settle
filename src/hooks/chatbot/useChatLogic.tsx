@@ -19,8 +19,9 @@ import { handleCryptoPayment } from "@/features/chatbot/handlers/chatHandlers/se
 import { handleTransactCrypto } from "@/features/chatbot/handlers/chatHandlers/transact.crypto";
 import { handleTransferMoney } from "@/features/chatbot/handlers/chatHandlers/transfer.money";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { geminiAi } from "@/services/ai/ai-services";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, JSX, SetStateAction } from "react";
 import useChatStore, { MessageType } from "stores/chatStore";
 
 export interface ChatLogicProps {
@@ -59,7 +60,8 @@ export const useChatLogic = ({
         await stepHandlers["start"](chatInput);
       } else {
         console.log("Current Step:", currentStep);
-        await stepHandlers[currentStep.stepId as StepId](chatInput);
+        await handleAiChat(chatInput)
+        // await stepHandlers[currentStep.stepId as StepId](chatInput);
       }
     } catch (error) {
       console.error(error);
@@ -126,6 +128,58 @@ type StepId = (typeof steps)[number];
 estimateAmount(20000) --> charge(2) -->  bankSearchTerm --> selectBank(1) --> bankAccountNo --> 
 confirmBank() --> proceedToPay() --> completePayement()
 */
+
+export const handleAiChat = async (
+  chatInput?: string
+) => {
+  const { addMessages } = useChatStore.getState();
+  try {
+    console.log("we are at the start");
+
+    // window.localStorage.setItem("transactionID", "");
+
+    const messages: any = [];
+    const updatedMessages = [...messages, { role: "user", content: chatInput }];
+    let sessionId = window.localStorage.getItem("transactionID");
+
+    // ✅ If it doesn't exist, create and store it
+    if (!sessionId) {
+      sessionId = Math.floor(100000 + Math.random() * 900000).toString();
+      window.localStorage.setItem("transactionID", sessionId);
+      console.log("Generated new sessionId:", sessionId);
+    } else {
+      console.log("Using existing sessionId:", sessionId);
+    }
+    console.log("Generated new sessionId:", chatInput);
+    // const reply = await OpenAI(updatedMessages, sessionId);
+    const reply = await geminiAi(chatInput, sessionId);
+    console.log("this is the response from backend", reply.reply);
+
+    addMessages?.([
+      {
+        type: "incoming",
+        content: <span>{reply.reply}</span>, // simplified: just the assistant's latest reply
+        timestamp: new Date(),
+      },
+    ]);
+  } catch (err) {
+    console.error("There was an error from backend", err);
+    addMessages?.([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            😓 Sorry, something went wrong while processing your request.
+            <br />
+            Please try again in a moment.
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
+  }
+};
+
 const stepHandlers: Record<
   StepId,
   (chatInput: string) => Promise<void> | void
@@ -165,4 +219,11 @@ const stepHandlers: Record<
   completeTransactionId: async () => console.log("assurance step"),
 };
 
+
+// function addChatMessages(arg0: {
+//   type: string; content: JSX.Element; // simplified: just the assistant's latest reply
+//   timestamp: Date;
+// }[]) {
+//   throw new Error("Function not implemented.");
+// }
 //   transactCrypto: async () => console.log("transactCrypto step"),
