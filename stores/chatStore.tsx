@@ -209,7 +209,6 @@ const useChatStore = create<ChatStore>()(
           }),
         getDeserializedMessages: () => {
           return get().serialized.map(deserializeMessage);
-          // return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
         next: (step: StepContextPatch) =>

@@ -1,9 +1,11 @@
 import React from "react";
 import { MessageType } from "stores/chatStore";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import ConfirmAndProceedButton from "@/hooks/chatbot/confirmButtonHook";
 
 const componentMap: Record<string, React.ComponentType<any>> = {
   ConnectButton,
+  ConfirmAndProceedButton,
 };
 
 export const renderMessageContent = (msg: MessageType) => {
@@ -16,9 +18,7 @@ export const renderMessageContent = (msg: MessageType) => {
         (typeof msg.content === "string" ? (
           <p className="text-xs md:text-sm">{msg.content}</p>
         ) : (
-          <span>
-            {msg.content}
-          </span>
+          <span>{msg.content}</span>
         ))}
 
       {/* Intent rendering */}
@@ -40,24 +40,3 @@ export const renderMessageContent = (msg: MessageType) => {
     </div>
   );
 };
-// export const renderMessageContent = (msg: MessageType) => {
-//   if (msg.intent) {
-//     switch (msg.intent.kind) {
-//       case "text":
-//         return <p className="text-xs md:text-sm">{msg.intent.value}</p>;
-
-//       case "component": {
-//         const Comp = componentMap[msg.intent.name];
-//         if (!Comp) return null;
-//         return <Comp {...msg.intent.props} />;
-//       }
-//     }
-//   }
-
-//   // fallback (your current behavior)
-//   return typeof msg.content === "string" ? (
-//     <p className="text-xs md:text-sm">{msg.content}</p>
-//   ) : (
-//     <span className="text-xs md:text-sm">{msg.content}</span>
-//   );
-// };
