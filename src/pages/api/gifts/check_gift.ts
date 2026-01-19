@@ -1,5 +1,5 @@
 import connection from "@/lib/mysql";
-import mysql, { RowDataPacket } from "mysql2/promise";
+import { RowDataPacket } from "mysql2/promise";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -17,12 +17,16 @@ export default async function handler(
     return res.status(400).json({ message: "gift_id is required" });
   }
 
+  if (gift_id.length > 6 || gift_id.length < 6) {
+    return res.status(400).json({ message: "gift_id is required" });
+  }
+
   try {
     const [rows] = await connection.query<RowDataPacket[]>(
-      // "SELECT * FROM `settle_database`.`2settle_transaction_table` WHERE `gift_chatID` = ?",
       "SELECT * FROM gifts WHERE `gift_id` = ?",
       [gift_id]
     );
+
 
     if (rows.length > 0) {
       res.status(200).json({ exists: true, user: rows[0] });

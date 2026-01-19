@@ -1,24 +1,15 @@
-import { config } from "@/wagmi";
-import { getAccount } from "wagmi/actions";
-import { greetings } from "../../helpers/ChatbotConsts";
 import useChatStore from "stores/chatStore";
-import { shortWallet } from "@/helpers/ShortenAddress";
+import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
-import { displayKYCInfo } from "./menus/kyc.info";
 import { displayCustomerSupportWelcome } from "./menus/customer.support";
-import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
+import { displayKYCInfo } from "./menus/kyc.info";
 import { displayReportlyWelcome } from "./menus/reportly.welcome";
 import { displayTransactCrypto } from "./menus/transact.crypto";
+import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
 
 // choose the what activity you want to perform
 export const handleMakeAChoice = (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
-
-  const account = getAccount(config);
-
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
-  const telFirstName = "Mosnyik";
 
   console.log("Chatinput from make choice", chatInput);
   if (greetings.includes(chatInput.trim().toLowerCase())) {

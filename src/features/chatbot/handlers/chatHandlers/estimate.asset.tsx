@@ -7,8 +7,8 @@ import { getAccount } from "wagmi/actions";
 import { shortWallet } from "@/helpers/ShortenAddress";
 import { getWalletType } from "@/helpers/transaction/transact_crypto";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
-import { displayEnterPhone } from "./enter.phone";
 import { usePaymentStore } from "stores/paymentStore";
+import { displayEnterPhone } from "./menus/display.phone";
 
 
 export const handleEstimateAsset = async (chatInput: string) => {
@@ -17,9 +17,7 @@ export const handleEstimateAsset = async (chatInput: string) => {
   
     const walletIsConnected = account.isConnected;
     const wallet = account.address;
-  
-    const telFirstName = "Mosnyik";
-  
+    
     console.log("User chatinput", chatInput);
   
     const { next, addMessages } = useChatStore.getState();

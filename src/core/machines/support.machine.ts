@@ -1,22 +1,22 @@
-export const supportMachine = {
-  type: "parallel",
-  states: {
-    makeEnquiry: {
-      on: {
-        NEXT: {
-          target: "#chatbotSteps.textSupport",
-          guard: { type: "makeEnquiry" },
-        },
-      },
-    },
+// export const supportMachine = {
+//   type: "parallel",
+//   states: {
+//     makeEnquiry: {
+//       on: {
+//         NEXT: {
+//           target: "#chatbotSteps.textSupport",
+//           guard: { type: "makeEnquiry" },
+//         },
+//       },
+//     },
 
-    makeComplain: {
-      on: {
-        NEXT: {
-          target: "#chatbotSteps.enterTrxId",
-          guard: { type: "makeComplain" },
-        },
-      },
-    },
-  },
-};
+//     makeComplain: {
+//       on: {
+//         NEXT: {
+//           target: "#chatbotSteps.enterTrxId",
+//           guard: { type: "makeComplain" },
+//         },
+//       },
+//     },
+//   },
+// };

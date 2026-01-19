@@ -4,9 +4,22 @@ import { StepId } from "@/core/machines/steps";
 import elementToJSXString from "react-element-to-jsx-string";
 import parse from "html-react-parser";
 
+type MessageIntent =
+  | { kind: "text"; value: string }
+  | { kind: "component"; name: string; props?: any; persist?: boolean };
+
+// serialized message can have content and/or intent
+type SerializedMessage = {
+  type: string;
+  content?: string; // serialized JSX or text
+  intent?: MessageIntent; // pure data
+  timestamp: string;
+};
+
 export type MessageType = {
   type: string;
-  content: string | React.ReactNode;
+  content?: string | React.ReactNode;
+  intent?: MessageIntent;
   timestamp: Date;
 };
 
@@ -16,7 +29,6 @@ interface StepContext {
 }
 
 type StepContextPatch = Partial<StepContext>;
-// utils
 const sanitizeSerializedContent = (content: string) => {
   return content
     .replace(/\{['"]\s*['"]\}/g, "")
@@ -29,11 +41,15 @@ const serializeMessage = (msg: MessageType) => ({
   timestamp: msg.timestamp || new Date(),
 });
 
-const deserializeMessage = (msg: { type: string; content: string }) => ({
-  type: msg.type,
-  content: parse(msg.content),
-  timestamp: new Date(),
-});
+// when desireialing the message, we can have content, intent or both in a message
+const deserializeMessage = (msg: SerializedMessage): MessageType => {
+  return {
+    type: msg.type,
+    content: msg.content ? parse(msg.content) : undefined,
+    intent: msg.intent,
+    timestamp: new Date(msg.timestamp),
+  };
+};
 
 const initialMessages = [
   {
@@ -56,7 +72,7 @@ const initialMessages = [
 
 type ChatStore = {
   messages: MessageType[];
-  serialized: { type: string; content: string }[];
+  serialized: MessageType[];
   stepHistory: StepContextPatch[];
   loading: boolean;
 
@@ -79,7 +95,7 @@ const useChatStore = create<ChatStore>()(
     (set, get) => {
       // --- Custom INITIALIZATION LOGIC ---
       let initialState;
-      const MAX_MESSAGES = 1000;
+      const MAX_MESSAGES = 100;
 
       if (typeof window !== "undefined") {
         const stored = window.localStorage.getItem("chat-flow");
@@ -133,9 +149,30 @@ const useChatStore = create<ChatStore>()(
 
         setLoading: (loading: boolean) => set({ loading: loading }),
 
+        // when adding a message to the history, we serialize the JSX/text and save intent for components
         addMessages: (msgs) =>
           set((state) => {
-            const serialized = msgs.map(serializeMessage);
+            const serialized = msgs.map((msg) => {
+              const base = {
+                type: msg.type,
+                timestamp: msg.timestamp,
+              };
+
+              return {
+                ...base,
+                ...(msg.content
+                  ? {
+                      content: sanitizeSerializedContent(
+                        elementToJSXString(msg.content),
+                      ),
+                    }
+                  : {}),
+                ...(msg.intent &&
+                  (msg.intent.kind !== "component" || msg.intent.persist
+                    ? { intent: msg.intent }
+                    : {})),
+              };
+            });
 
             const nextMessages = [...state.messages, ...msgs];
             const nextSerializedMessages = [...state.serialized, ...serialized];
@@ -150,8 +187,8 @@ const useChatStore = create<ChatStore>()(
             }
 
             return {
-              messages: [...state.messages, ...msgs],
-              serialized: [...state.serialized, ...serialized],
+              messages: nextMessages,
+              serialized: nextSerializedMessages,
             };
           }),
 
@@ -171,7 +208,8 @@ const useChatStore = create<ChatStore>()(
             };
           }),
         getDeserializedMessages: () => {
-          return get().serialized.map((msg) => deserializeMessage(msg));
+          return get().serialized.map(deserializeMessage);
+          // return get().serialized.map((msg) => deserializeMessage(msg));
         },
 
         next: (step: StepContextPatch) =>
@@ -199,46 +237,10 @@ const useChatStore = create<ChatStore>()(
               currentStep: previousStep,
             };
           }),
-
-        // goto: (step) => {
-        //   return stepService.send({ type: "GOTO", step });
-        // },
-        // reset: () => stepService.send({ type: "RESET" }),
-
-        // clear: () =>
-        //   set({
-        //     messages: initialMessages,
-        //     serialized: initialMessages.map(serializeMessage),
-        //     currentStep: "start",
-        //     stepHistory: ["start"],
-        //   }),
       };
     },
-    { name: "chat-flow" }
-  )
+    { name: "chat-flow" },
+  ),
 );
-
-// stepService.subscribe((snapshot) => {
-//   console.log("MACHINE STATE →", snapshot.value, "CTX →", snapshot.context);
-//   let step: StepId;
-
-//   if (typeof snapshot.value === "string") {
-//     step = snapshot.value as StepId;
-//   } else if (typeof snapshot.value === "object") {
-//     // grab the first key if using nested states
-//     step = Object.keys(snapshot.value)[0] as StepId;
-//   } else {
-//     console.log({ snapshot });
-//     return; // invalid snapshot, ignore
-//   }
-//   const store = useChatStore.getState();
-//   const lastStep = store.stepHistory[store.stepHistory.length - 1];
-
-//   // Only record if the step has **actually changed**
-//   if (lastStep !== step && lastStep !== undefined) {
-//     store.recordStep(step);
-//     console.log("ZUSTAND IMMEDIATE →", store.currentStep);
-//   }
-// });
 
 export default useChatStore;

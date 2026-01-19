@@ -118,6 +118,7 @@ const ChatBot = ({ isMobile, onClose }: ChatBotProps) => {
   const {
     chatInput,
     setChatInput,
+    messages,
     chatMessages,
     addChatMessages,
     currentDate,

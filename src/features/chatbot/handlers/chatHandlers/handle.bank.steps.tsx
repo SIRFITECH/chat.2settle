@@ -144,9 +144,10 @@ export const handleSearchBank = async (chatInput: string) => {
       // chatInput.trim()
       // CLEAN THE STRING HERE
       chatInput = chatInput.replace(/[^0-9.]/g, "");
-      if (Number(chatInput) > 20000 && Number(chatInput) < 2000000) {
+      if (Number(chatInput) >= 20000 && Number(chatInput) < 2000000) {
         // setSharedPaymentNairaEstimate(chatInput);
         displaySearchBank();
+        next({ stepId: "selectBank" });
       } else {
         addMessages([
           {
@@ -193,7 +194,7 @@ export const handleSearchBank = async (chatInput: string) => {
       // setSharedChargeForDB(
       //   `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
       // ),
-        displaySearchBank();
+      displaySearchBank();
       next({ stepId: "selectBank" });
     } else if (chatInput === "2") {
       const finalAssetPayment =

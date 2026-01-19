@@ -8,6 +8,8 @@ import { shortWallet } from "@/helpers/ShortenAddress";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { helloMenu } from "./hello.menu";
 import { useUserStore } from "stores/userStore";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { displayMakeChoice } from "./menus/display.make.choice";
 
 export const choiceMenu = async (chatInput?: string) => {
   let rate: number | null = null;
@@ -20,13 +22,8 @@ export const choiceMenu = async (chatInput?: string) => {
   const account = getAccount(config);
   const { user } = useUserStore.getState();
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
-
-  const formatRate = formatCurrency(rate?.toString() ?? "0", "NGN", "en-NG");
-
   const telFirstName = user?.telegram?.username;
-  const { next, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "0") {
@@ -35,23 +32,18 @@ export const choiceMenu = async (chatInput?: string) => {
     addMessages?.([
       {
         type: "incoming",
-        content: (
-          <span>
-            Close the chat <br />
-            Go to the <b>navbar</b> <br />
-            Connect your wallet <br />
-            Then return here to continue.
-            <br />
-            <br />
-          </span>
-        ),
+        intent: {
+          kind: "component",
+          name: "ConnectButton",
+          persist: true,
+        },
         timestamp: new Date(),
       },
       {
         type: "incoming",
         content: (
           <span>
-            1. I have connected wallet
+            1. Wallet have been Connected
             <br />
             0. Go back
             <br />
@@ -61,86 +53,87 @@ export const choiceMenu = async (chatInput?: string) => {
       },
     ]);
   } else if (chatInput === "2") {
-    if (walletIsConnected) {
-      addMessages([
-        {
-          type: "incoming",
-          content: (
-            <span>
-              How far {telFirstName} 👋
-              <br />
-              <br />
-              You are connected as <b>{shortWallet(wallet)}</b>
-              <br />
-              <br />
-              Your wallet is connected. The current rate is
-              <b> {formatRate}/$1</b>
-            </span>
-          ),
-          timestamp: new Date(),
-        },
-        {
-          type: "incoming",
-          content: (
-            <span>
-              1. Transact Crypto
-              <br />
-              2. Request for paycard
-              <br />
-              3. Customer support
-              <br />
-              4. Transaction ID
-              <br />
-              5. Reportly,
-            </span>
-          ),
-        },
-      ] as unknown as MessageType[]);
-      next({
-        stepId: "transactCrypto",
-      });
-    } else {
-      {
-        addMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You continued <b>without connecting your wallet</b>
-                <br />
-                <br />
-                Today Rate: <b>{formatRate}/$1</b> <br />
-                <br />
-                Welcome to 2SettleHQ {telFirstName}, how can I help you today?
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-          {
-            type: "incoming",
-            content: (
-              <span>
-                1. Transact Crypto
-                <br />
-                2. Request for paycard
-                <br />
-                3. Customer support
-                <br />
-                4. Transaction ID
-                <br />
-                5. Reportly
-                <br />
-                0. Back
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-      }
-      next({
-        stepId: "makeAChoice",
-      });
-    }
+    // if (walletIsConnected) {
+    //   addMessages([
+    //     {
+    //       type: "incoming",
+    //       content: (
+    //         <span>
+    //           How far {telFirstName} 👋
+    //           <br />
+    //           <br />
+    //           You are connected as <b>{shortWallet(wallet)}</b>
+    //           <br />
+    //           <br />
+    //           Your wallet is connected. The current rate is
+    //           <b> {formatRate}/$1</b>
+    //         </span>
+    //       ),
+    //       timestamp: new Date(),
+    //     },
+    //     {
+    //       type: "incoming",
+    //       content: (
+    //         <span>
+    //           1. Transact Crypto
+    //           <br />
+    //           2. Request for paycard
+    //           <br />
+    //           3. Customer support
+    //           <br />
+    //           4. Transaction ID
+    //           <br />
+    //           5. Reportly,
+    //         </span>
+    //       ),
+    //     },
+    //   ] as unknown as MessageType[]);
+    //   next({
+    //     stepId: "transactCrypto",
+    //   });
+    // } else {
+    //   {
+    //     addMessages([
+    //       {
+    //         type: "incoming",
+    //         content: (
+    //           <span>
+    //             You continued <b>without connecting your wallet</b>
+    //             <br />
+    //             <br />
+    //             Today Rate: <b>{formatRate}/$1</b> <br />
+    //             <br />
+    //             Welcome to 2SettleHQ {telFirstName}, how can I help you today?
+    //           </span>
+    //         ),
+    //         timestamp: new Date(),
+    //       },
+    //       {
+    //         type: "incoming",
+    //         content: (
+    //           <span>
+    //             1. Transact Crypto
+    //             <br />
+    //             2. Request for paycard
+    //             <br />
+    //             3. Customer support
+    //             <br />
+    //             4. Transaction ID
+    //             <br />
+    //             5. Reportly
+    //             <br />
+    //             0. Back
+    //           </span>
+    //         ),
+    //         timestamp: new Date(),
+    //       },
+    //     ]);
+    //   }
+    //   next({
+    //     stepId: "makeAChoice",
+    //   });
+    // }
+    displayMakeChoice();
   } else {
     addMessages?.([
       {

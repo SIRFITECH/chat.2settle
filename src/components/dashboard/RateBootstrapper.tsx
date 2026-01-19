@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { usePaymentStore } from "stores/paymentStore";
 import {
   fetchMerchantRate,
   fetchProfitRate,
   fetchRate,
   fetchTotalVolume,
 } from "@/services/rate/rates.service";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { usePaymentStore } from "stores/paymentStore";
 
 // this is an invisible component that fetches and sets the rate in the payment store
 export function RateBootstrapper() {

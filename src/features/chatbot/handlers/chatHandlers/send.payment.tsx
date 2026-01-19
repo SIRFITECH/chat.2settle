@@ -10,17 +10,15 @@ import { Button } from "@/components/ui/button";
 import { displaySendPayment } from "./menus/display.send.payment";
 
 export const handleCryptoPayment = async (chatInput: string) => {
-  const { setLoading, addMessages } = useChatStore.getState();
-  const currentStep = useChatStore.getState().currentStep;
-  const { paymentAssetEstimate, ticker, network } = usePaymentStore.getState();
-  const { updateUser } = useUserStore.getState();
+  const { currentStep, setLoading, addMessages } = useChatStore.getState();
+  const { paymentMode, ticker, network, paymentAssetEstimate } =
+    usePaymentStore.getState();
 
-  const crypto = getBaseSymbol(ticker);
-
-  // TODO: change this to read wallet connection
-  const ethConnect = false;
-
+  const { updateUser, user } = useUserStore.getState();
   const phoneNumber = chatInput.trim();
+
+  const ethConnect = false;
+  const cryptoTicker = getBaseSymbol(ticker);
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
@@ -51,16 +49,15 @@ export const handleCryptoPayment = async (chatInput: string) => {
 
     updateUser({ phone: phoneNumber });
 
-    const isGift = currentStep.transactionType?.toLowerCase() === "claim gift";
+    const isGift = paymentMode.toLowerCase() === "claim gift";
     const isGiftTrx = currentStep.transactionType?.toLowerCase() === "gift";
     const requestPayment =
       currentStep.transactionType?.toLowerCase() === "request";
-    const payPayment =
-      currentStep.transactionType?.toLowerCase() === "payrequest";
+    const payPayment = paymentMode.toLowerCase() === "payrequest";
 
     if (!isGift && !requestPayment && !payPayment) {
       const assetPayment = parseFloat(paymentAssetEstimate);
-      const paymentAsset = `${assetPayment.toFixed(8)} ${crypto}`;
+      const paymentAsset = `${assetPayment.toFixed(8)} ${cryptoTicker}`;
 
       const newMessages: MessageType[] = ethConnect
         ? [
@@ -70,8 +67,18 @@ export const handleCryptoPayment = async (chatInput: string) => {
                 <div className="flex flex-col items-center">
                   <p className="mb-4">
                     You are going to be charged <b>{paymentAsset}</b> directly
-                    from your {crypto} ({network}) wallet.
+                    from your {network} ({cryptoTicker}) wallet.
                   </p>
+
+                  {/* <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  /> */}
                 </div>
               ),
               timestamp: new Date(),
@@ -87,19 +94,41 @@ export const handleCryptoPayment = async (chatInput: string) => {
                     within <b>5 minutes</b>, otherwise you may lose your money.
                   </p>
 
-                  <ConfirmButton />
-                  <Button className="bg-blue-500 rounded-md p-4" onClick={()=> console.log("Hafa, we are good")}>Confirm</Button>
+                  {/* <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  /> */}
                 </div>
               ),
+              intent: {
+                kind: "component",
+                name: "ConnectButton",
+                persist: true,
+              },
+
               timestamp: new Date(),
             },
+            // {
+            //   type: "incoming",
+            //   intent: {
+            //     kind: "component",
+            //     name: "ConnectButton",
+            //     persist: true,
+            //   },
+            //   timestamp: new Date(),
+            // },
           ];
 
       setLoading(false);
       addMessages(newMessages);
     } else if (payPayment) {
       const assetPayment = parseFloat(paymentAssetEstimate);
-      const paymentAsset = `${assetPayment.toFixed(8)} ${crypto}`;
+      const paymentAsset = `${assetPayment.toFixed(8)} ${cryptoTicker}`;
 
       const newMessages: MessageType[] = ethConnect
         ? [
@@ -109,8 +138,17 @@ export const handleCryptoPayment = async (chatInput: string) => {
                 <div className="flex flex-col items-center">
                   <p className="mb-4">
                     You are going to be charged <b>{paymentAsset}</b> directly
-                    from your {crypto} ({network}) wallet.
+                    from your {cryptoTicker} ({network}) wallet.
                   </p>
+                  {/* <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  /> */}
                 </div>
               ),
               timestamp: new Date(),
@@ -125,6 +163,16 @@ export const handleCryptoPayment = async (chatInput: string) => {
                     Do you understand that you need to complete your payment
                     within <b>5 minutes</b>, otherwise you may lose your money.
                   </p>
+
+                  {/* <ConfirmAndProceedButton
+                    phoneNumber={phoneNumber}
+                    setLoading={setLoading}
+                    sharedPaymentMode={sharedPaymentMode}
+                    processTransaction={processTransaction}
+                    network={network}
+                    connectedWallet={ethConnect}
+                    amount={sharedPaymentAssetEstimate}
+                  /> */}
                 </div>
               ),
               timestamp: new Date(),
@@ -139,99 +187,13 @@ export const handleCryptoPayment = async (chatInput: string) => {
         phoneNumber,
         isGift,
         isGiftTrx,
-        requestPayment
+        requestPayment,
       );
 
-      //   await processTransaction(phoneNumber, isGift, isGiftTrx, requestPayment);
+      // await processTransaction(phoneNumber, isGift, isGiftTrx, requestPayment);
     }
   } else {
     setLoading(false);
     console.log("User input not recognized");
   }
 };
-
-import React from "react";
-
-const ConfirmButton = () => {
-  const handleButtonClick = () => {
-    displaySendPayment();
-  };
-  return (
-    <div>
-      <Button onClick={handleButtonClick}>Confirm</Button>
-    </div>
-  );
-};
-
-export default ConfirmButton;
-
-//   addMessages: (messages: MessageType[]) => void,
-//   sharedCrypto: string,
-//   sharedNetwork: string,
-//   sharedPaymentMode: string,
-//   ethConnect: boolean,
-//   sharedPaymentAssetEstimate: string,
-//   walletIsConnected: boolean,
-//   wallet: WalletAddress,
-//   telFirstName: string,
-//   setSharedPhone: (phoneNumber: string) => void,
-//   processTransaction: (
-//     phoneNumber: string,
-//     isGift: boolean,
-//     isGiftTrx: boolean,
-//     requestPayment: boolean,
-//     activeWallet?: string,
-//     lastAssignedTime?: Date
-//   ) => Promise<void>,
-//   nextStep: () => void,
-//   goToStep: (step: StepId) => void,
-//   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-//   setSharedPaymentMode: (mode: string) => void
-
-{
-  /* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */
-}
-
-{
-  /* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */
-}
-
-{
-  /* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */
-}
-
-{
-  /* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */
-}
