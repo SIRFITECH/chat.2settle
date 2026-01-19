@@ -110,9 +110,18 @@ export const handleCryptoPayment = async (chatInput: string) => {
                 name: "ConnectButton",
                 persist: true,
               },
+
               timestamp: new Date(),
             },
-           
+            // {
+            //   type: "incoming",
+            //   intent: {
+            //     kind: "component",
+            //     name: "ConnectButton",
+            //     persist: true,
+            //   },
+            //   timestamp: new Date(),
+            // },
           ];
 
       setLoading(false);
@@ -178,7 +187,7 @@ export const handleCryptoPayment = async (chatInput: string) => {
         phoneNumber,
         isGift,
         isGiftTrx,
-        requestPayment
+        requestPayment,
       );
 
       // await processTransaction(phoneNumber, isGift, isGiftTrx, requestPayment);

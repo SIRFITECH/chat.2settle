@@ -8,17 +8,13 @@ type MessageIntent =
   | { kind: "text"; value: string }
   | { kind: "component"; name: string; props?: any; persist?: boolean };
 
-type SerializedMessage =
-  | {
-      type: string;
-      intent: MessageIntent;
-      timestamp: string;
-    }
-  | {
-      type: string;
-      content: string;
-      timestamp: string;
-    };
+// serialized message can have content and/or intent
+type SerializedMessage = {
+  type: string;
+  content?: string; // serialized JSX or text
+  intent?: MessageIntent; // pure data
+  timestamp: string;
+};
 
 export type MessageType = {
   type: string;
@@ -45,19 +41,12 @@ const serializeMessage = (msg: MessageType) => ({
   timestamp: msg.timestamp || new Date(),
 });
 
-
+// when desireialing the message, we can have content, intent or both in a message
 const deserializeMessage = (msg: SerializedMessage): MessageType => {
-  if ("intent" in msg) {
-    return {
-      type: msg.type,
-      intent: msg.intent,
-      timestamp: new Date(msg.timestamp),
-    };
-  }
-
   return {
     type: msg.type,
-    content: parse(msg.content),
+    content: msg.content ? parse(msg.content) : undefined,
+    intent: msg.intent,
     timestamp: new Date(msg.timestamp),
   };
 };
@@ -160,54 +149,30 @@ const useChatStore = create<ChatStore>()(
 
         setLoading: (loading: boolean) => set({ loading: loading }),
 
-        // addMessages: (msgs) =>
-        //   set((state) => {
-        //     const serialized = msgs.map(serializeMessage);
-
-        //     const nextMessages = [...state.messages, ...msgs];
-        //     const nextSerializedMessages = [...state.serialized, ...serialized];
-
-        //     const overflow = nextMessages.length - MAX_MESSAGES;
-
-        //     if (overflow > 0) {
-        //       return {
-        //         messages: nextMessages.slice(overflow),
-        //         serialized: nextSerializedMessages.slice(overflow),
-        //       };
-        //     }
-
-        //     return {
-        //       messages: [...state.messages, ...msgs],
-        //       serialized: [...state.serialized, ...serialized],
-        //     };
-        //   }),
-
+        // when adding a message to the history, we serialize the JSX/text and save intent for components
         addMessages: (msgs) =>
           set((state) => {
-            const serialized = msgs
-              .filter((msg) => {
-                if (!msg.intent) return true;
+            const serialized = msgs.map((msg) => {
+              const base = {
+                type: msg.type,
+                timestamp: msg.timestamp,
+              };
 
-                if (msg.intent.kind === "text") return true;
-
-                if (msg.intent.kind === "component") {
-                  return msg.intent.persist === true;
-                }
-
-                return false;
-              })
-              .map((msg) => {
-                if (msg.intent) {
-                  return {
-                    type: msg.type,
-                    intent: msg.intent,
-                    timestamp: msg.timestamp,
-                  };
-                }
-
-                // fallback: legacy JSX serialization
-                return serializeMessage(msg);
-              });
+              return {
+                ...base,
+                ...(msg.content
+                  ? {
+                      content: sanitizeSerializedContent(
+                        elementToJSXString(msg.content),
+                      ),
+                    }
+                  : {}),
+                ...(msg.intent &&
+                  (msg.intent.kind !== "component" || msg.intent.persist
+                    ? { intent: msg.intent }
+                    : {})),
+              };
+            });
 
             const nextMessages = [...state.messages, ...msgs];
             const nextSerializedMessages = [...state.serialized, ...serialized];
@@ -222,14 +187,9 @@ const useChatStore = create<ChatStore>()(
             }
 
             return {
-              messages: [...state.messages, ...msgs],
-              serialized: [...state.serialized, ...serialized],
+              messages: nextMessages,
+              serialized: nextSerializedMessages,
             };
-
-            // return {
-            //   messages: [...state.messages, ...msgs],
-            //   serialized: [...state.serialized, ...serialized],
-            // };
           }),
 
         setSerialized: (msgs) => set({ serialized: msgs }),
@@ -279,8 +239,8 @@ const useChatStore = create<ChatStore>()(
           }),
       };
     },
-    { name: "chat-flow" }
-  )
+    { name: "chat-flow" },
+  ),
 );
 
 export default useChatStore;
