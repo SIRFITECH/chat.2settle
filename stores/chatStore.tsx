@@ -11,9 +11,9 @@ type MessageIntent =
 // serialized message can have content and/or intent
 type SerializedMessage = {
   type: string;
-  content?: string; // serialized JSX or text
-  intent?: MessageIntent; // pure data
-  timestamp: string;
+  content?: string; 
+  intent?: MessageIntent; 
+  timestamp: string | Date;
 };
 
 export type MessageType = {
@@ -72,7 +72,7 @@ const initialMessages = [
 
 type ChatStore = {
   messages: MessageType[];
-  serialized: MessageType[];
+  serialized: SerializedMessage[];
   stepHistory: StepContextPatch[];
   loading: boolean;
 
