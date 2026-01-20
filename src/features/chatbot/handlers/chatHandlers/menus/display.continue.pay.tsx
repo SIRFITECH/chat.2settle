@@ -3,9 +3,15 @@ import useChatStore, { MessageType } from "stores/chatStore";
 
 export const displayContinueToPay = () => {
   const currentStep = useChatStore.getState().currentStep;
-  const { next, addMessages } = useChatStore.getState();
-  const { selectedBankName, bankData } = useBankStore.getState();
-  console.log({ bankData });
+  const { addMessages } = useChatStore.getState();
+  const bankData = useBankStore.getState().bankData;
+ 
+  console.log("Bank details", bankData);
+  const { acct_number, bank_name, receiver_name } = bankData;
+  
+  const name = receiver_name;
+  const bankName = bank_name;
+  const accountNumber = acct_number;
 
   //   bank.8063862295
 
@@ -18,14 +24,11 @@ export const displayContinueToPay = () => {
       type: "incoming",
       content: (
         <span>
-          Name:
-          {/* {name} */}
+          Name: {name}
           <br />
-          Bank name:
-          {/* {selectedBankName} */}
+          Bank name: {bankName}
           <br />
-          Account number:
-          {/* {account_number} */}
+          Account number: {accountNumber}
         </span>
       ),
       timestamp: new Date(),

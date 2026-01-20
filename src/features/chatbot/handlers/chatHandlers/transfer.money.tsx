@@ -10,12 +10,6 @@ import { usePaymentStore } from "stores/paymentStore";
 export const handleTransferMoney = async (chatInput: string) => {
   const { addMessages } = useChatStore.getState();
 
-  const account = getAccount(config);
-
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
-  const telFirstName = "Mosnyik";
-
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "00") {

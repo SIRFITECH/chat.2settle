@@ -7,7 +7,7 @@ type BankStoreType = {
   bankList: string[];
   selectedBankCode: string;
   selectedBankName: string;
-  bankData: UserBankData[];
+  bankData: UserBankData;
 
   setBankCodes: (codes: string[]) => void;
   setBankNames: (names: string[]) => void;

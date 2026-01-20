@@ -24,3 +24,4 @@ export const displayEnterPhone = (): void => {
  
   addMessages(newMessages);
 };
+
