@@ -34,14 +34,17 @@ export interface ConfirmAndProceedButtonProps {
 const ConfirmAndProceedButton = () => {
   const loading = useChatStore((s) => s.loading);
   const setLoading = useChatStore((s) => s.setLoading);
-  const { network, ticker } = usePaymentStore();
+  const { network } = usePaymentStore();
 
   const activeWallet = usePaymentStore((s) => s.activeWallet);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
   );
-  // const { hasCopyButtonBeenClicked } = useConfirmDialogStore.getState();
-  const hasCopyButtonBeenClicked = true;
+  const hasCopyButtonBeenClicked =
+    useConfirmDialogStore.getState().hasCopyButtonBeenClicked;
+  const setHasCopyButtonBeenClicked =
+    useConfirmDialogStore.getState().setHasCopyButtonBeenClicked;
+  // const hasCopyButtonBeenClicked = true;
 
   const openConfirmDialog = useConfirmDialogStore((s) => s.open);
   const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
@@ -53,9 +56,8 @@ const ConfirmAndProceedButton = () => {
     console.log("Just confirmed");
     try {
       setLoading(true);
-      const network = "eth";
-      // getBaseSymbol(ticker);
-      await getAvaialableWallet(network);
+
+      await getAvaialableWallet(network.toLowerCase());
     } catch (err) {
       console.log("Ther is an erro", err);
     } finally {
@@ -101,6 +103,7 @@ const ConfirmAndProceedButton = () => {
     //   );
     // });
     console.log("Copy pressed");
+    setHasCopyButtonBeenClicked();
   };
 
   const truncateWallet = (wallet: string) => {
@@ -123,17 +126,14 @@ const ConfirmAndProceedButton = () => {
           })
         }
       >
-        {loading ? (
-          "Generating wallet for you..."
-        )
-          // : state.isButtonClicked ? (
-          // <span>
-          //   Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
-          // </span>
-          // )
-            : (
-          "Confirm & Proceed"
-        )}
+        {loading
+          ? "Generating wallet for you..."
+          : // : state.isButtonClicked ? (
+            // <span>
+            //   Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
+            // </span>
+            // )
+            "Confirm & Proceed"}
         {/* {"Confirm & Proceed"} */}
       </Button>
 

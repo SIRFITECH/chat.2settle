@@ -9,6 +9,7 @@ import { usePaymentStore } from "stores/paymentStore";
 export const handleChooseTransactionType = (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { setEstimateAsset } = usePaymentStore.getState();
+  const setPaymentMode = usePaymentStore.getState().setPaymentMode;
 
   console.log("Chatinput from make choice", chatInput);
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -20,6 +21,7 @@ export const handleChooseTransactionType = (chatInput: string) => {
   } else if (chatInput === "1") {
     console.log("The choice is ONE, handleChooseTransactionType");
     displayTransferMoney();
+    setPaymentMode("");
     next({
       stepId: "transactCrypto",
       transactionType: "transfer",
@@ -27,6 +29,7 @@ export const handleChooseTransactionType = (chatInput: string) => {
   } else if (chatInput === "2") {
     console.log("The choice is TWO, REQUEST PAY CARD");
     displayTransferMoney();
+    setPaymentMode("");
     next({
       stepId: "transactCrypto",
       transactionType: "gift",
@@ -34,6 +37,7 @@ export const handleChooseTransactionType = (chatInput: string) => {
   } else if (chatInput === "3") {
     displayPayIn();
     setEstimateAsset("Naira");
+    setPaymentMode("");
     next({
       stepId: "enterBankSearchWord",
       transactionType: "request",

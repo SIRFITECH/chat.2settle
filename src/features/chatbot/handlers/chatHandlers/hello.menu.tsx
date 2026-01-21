@@ -4,10 +4,13 @@ import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { shortWallet } from "@/helpers/ShortenAddress";
 import { useUserStore } from "stores/userStore";
+import { usePaymentStore } from "stores/paymentStore";
 
 export const helloMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { user } = useUserStore.getState();
+  const setPaymentMode = usePaymentStore.getState().setPaymentMode;
+
   console.log("we are at the start of the program", user);
 
   const account = getAccount(config);
@@ -39,9 +42,10 @@ export const helloMenu = async (chatInput?: string) => {
           timestamp: new Date(),
         },
       ]);
-      // sendChatInput(chatInput!);
+      setPaymentMode("");
       next({
         stepId: "chooseAction",
+        transactionType: undefined,
       });
     } else {
       //   setSharedPaymentMode?.("");
@@ -66,9 +70,10 @@ export const helloMenu = async (chatInput?: string) => {
         },
       ]);
       console.log("Wallet not connected");
-      // sendChatInput(chatInput!);
+      setPaymentMode("");
       next({
         stepId: "chooseAction",
+        transactionType: undefined,
       });
     }
   } else {
