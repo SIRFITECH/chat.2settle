@@ -115,10 +115,15 @@ const ConfirmAndProceedButton = () => {
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
   };
 
-  console.log({ hasCopyButtonBeenClicked, walletLastAssignedTime, isExpired });
-  if (walletLastAssignedTime && hasCopyButtonBeenClicked) {
-    console.log(`walletLastAssignedTime: ${walletLastAssignedTime}`);
-  }
+  // console.log({ hasCopyButtonBeenClicked, walletLastAssignedTime, isExpired });
+  // if (walletLastAssignedTime && hasCopyButtonBeenClicked) {
+  //   console.log(`walletLastAssignedTime: ${walletLastAssignedTime}`);
+  // }
+
+  const showStatus = hasCopyButtonBeenClicked;
+  const showCountdown = walletLastAssignedTime && !isExpired;
+  const showExpired = isExpired;
+
     return (
       <div className="flex flex-col items-center space-y-4">
         <ConfirmDialog />
@@ -161,8 +166,19 @@ const ConfirmAndProceedButton = () => {
           />
         )}
         {/* count down */}
+        {showStatus && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {showCountdown && (
+              <>
+                This wallet expires in{" "}
+                <CountdownTimer expiryTime={expiryTime} />
+              </>
+            )}
+            {showExpired && "This wallet has expired"}
+          </p>
+        )}
 
-        <p role="status" className="text-sm text-muted-foreground">
+        {/* <p role="status" className="text-sm text-muted-foreground">
           {hasCopyButtonBeenClicked && walletLastAssignedTime && !isExpired && (
             <>
               This wallet Expires in
@@ -177,7 +193,7 @@ const ConfirmAndProceedButton = () => {
           )}
 
           {isExpired && "This wallet has expired"}
-        </p>
+        </p> */}
       </div>
     );
 };
