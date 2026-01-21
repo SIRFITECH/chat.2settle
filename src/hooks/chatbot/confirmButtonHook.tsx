@@ -34,22 +34,26 @@ export interface ConfirmAndProceedButtonProps {
 const ConfirmAndProceedButton = () => {
   const loading = useChatStore((s) => s.loading);
   const setLoading = useChatStore((s) => s.setLoading);
-  const { network } = usePaymentStore();
 
+  const { network } = usePaymentStore();
   const activeWallet = usePaymentStore((s) => s.activeWallet);
+  const currentStep = useChatStore((s) => s.currentStep);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
   );
+
   const hasCopyButtonBeenClicked =
     useConfirmDialogStore.getState().hasCopyButtonBeenClicked;
   const setHasCopyButtonBeenClicked =
     useConfirmDialogStore.getState().setHasCopyButtonBeenClicked;
-  // const hasCopyButtonBeenClicked = true;
-
   const openConfirmDialog = useConfirmDialogStore((s) => s.open);
   const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
+
+  // const hasCopyButtonBeenClicked = true;
+
   const hasOpenedRef = useRef(false);
   const account = useAccount();
+  const SHOULD_OPEN_STEP = "sendPayment";
   const connectedWallet = account.isConnected;
 
   const handleConfirm = async () => {
@@ -70,6 +74,7 @@ const ConfirmAndProceedButton = () => {
   const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
 
   useEffect(() => {
+    if (currentStep.stepId !== SHOULD_OPEN_STEP) return;
     // make sure the dialog open only once
     if (hasOpenedRef.current) return;
     hasOpenedRef.current = true;
