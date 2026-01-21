@@ -7,7 +7,12 @@ interface ConfirmDialogState {
   isConfirming: boolean;
   hasConfirmed: boolean;
   hasCopyButtonBeenClicked: boolean;
+  walletIsExpired: boolean;
+  walletFetchError: string;
+
+  setWalletFetchError: (error: string) => void;
   setHasCopyButtonBeenClicked: () => void;
+  setWalletIsExpired: () => void;
   onConfirm?: () => Promise<void> | void;
 
   open: (config: {
@@ -27,7 +32,11 @@ export const useConfirmDialogStore = create<ConfirmDialogState>((set, get) => ({
   isConfirming: false,
   hasConfirmed: false,
   hasCopyButtonBeenClicked: false,
+  walletIsExpired: false,
+  walletFetchError: "",
 
+  setWalletFetchError: (error) => set({ walletFetchError: error }),
+  setWalletIsExpired: () => set({ walletIsExpired: true }),
   open: ({ title, description, onConfirm }) =>
     set({
       isOpen: true,

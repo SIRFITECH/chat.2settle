@@ -23,6 +23,8 @@ export function getFormattedDateTime(date?: Date | string): string {
 }
 
 import React, { useState, useEffect } from "react";
+import { usePaymentStore } from "stores/paymentStore";
+import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 
 interface CountdownTimerProps {
   expiryTime: Date;
@@ -32,6 +34,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   expiryTime,
 }) => {
   const [timeLeft, setTimeLeft] = useState(0);
+  const setWalletIsExpired = useConfirmDialogStore((s) => s.setWalletIsExpired);
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -55,6 +58,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
+
+  if (timeLeft <= 0) {
+    setWalletIsExpired();
+  }
 
   return (
     <span

@@ -1,18 +1,14 @@
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/features/transact/confirmButton/ConfirmDialog";
-import { handleConfirm } from "@/features/transact/confirmButton/handleConfirm";
 import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
 import { CountdownTimer } from "@/helpers/format_date";
+import { getAvaialableWallet } from "@/services/crypto/wallet";
 import { CheckCircle } from "lucide-react";
-import React, { useCallback, useEffect, useRef } from "react";
-import useConfirmAndProceedState from "./useConfirmAndProceedState";
+import React, { useEffect, useRef } from "react";
 import useChatStore from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 import { useAccount } from "wagmi";
-import { usePaymentStore } from "stores/paymentStore";
-import TruncatedText from "@/helpers/TruncatedText";
-import { getAvaialableWallet } from "@/services/crypto/wallet";
-import { getBaseSymbol } from "@/utils/utilities";
 
 export interface ConfirmAndProceedButtonProps {
   phoneNumber: string;
@@ -42,12 +38,16 @@ const ConfirmAndProceedButton = () => {
     (s) => s.walletLastAssignedTime,
   );
 
-  const hasCopyButtonBeenClicked =
-    useConfirmDialogStore.getState().hasCopyButtonBeenClicked;
-  const setHasCopyButtonBeenClicked =
-    useConfirmDialogStore.getState().setHasCopyButtonBeenClicked;
+  const hasCopyButtonBeenClicked = useConfirmDialogStore(
+    (s) => s.hasCopyButtonBeenClicked,
+  );
+  const setHasCopyButtonBeenClicked = useConfirmDialogStore(
+    (s) => s.setHasCopyButtonBeenClicked,
+  );
   const openConfirmDialog = useConfirmDialogStore((s) => s.open);
   const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
+  const walletIsExpired = useConfirmDialogStore((s) => s.walletIsExpired);
+  const walletFetchError = useConfirmDialogStore((s) => s.walletFetchError);
 
   // const hasCopyButtonBeenClicked = true;
 
@@ -69,12 +69,12 @@ const ConfirmAndProceedButton = () => {
     }
     // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
   };
-  const isExpired = false;
+  const isExpired = walletIsExpired;
 
   const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
 
   useEffect(() => {
-    if (currentStep.stepId !== SHOULD_OPEN_STEP) return;
+    if (currentStep.stepId !== SHOULD_OPEN_STEP) return; // make sure we pop up only when we have not send payment
     // make sure the dialog open only once
     if (hasOpenedRef.current) return;
     hasOpenedRef.current = true;
@@ -115,67 +115,71 @@ const ConfirmAndProceedButton = () => {
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
   };
 
-  return (
-    <div className="flex flex-col items-center space-y-4">
-      <ConfirmDialog />
-      <Button
-        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
-        variant="outline"
-        onClick={() =>
-          openConfirmDialog({
-            title: "Please Note",
-            description: "Please confirm to proceed.",
-            onConfirm: async () => {
-              handleConfirm();
-            },
-          })
-        }
-      >
-        {loading
-          ? "Generating wallet for you..."
-          : // : state.isButtonClicked ? (
-            // <span>
-            //   Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
-            // </span>
-            // )
-            "Confirm & Proceed"}
-        {/* {"Confirm & Proceed"} */}
-      </Button>
+  console.log({ hasCopyButtonBeenClicked, walletLastAssignedTime, isExpired });
+  if (walletLastAssignedTime && hasCopyButtonBeenClicked) {
+    console.log(`walletLastAssignedTime: ${walletLastAssignedTime}`);
+  }
+    return (
+      <div className="flex flex-col items-center space-y-4">
+        <ConfirmDialog />
+        <Button
+          disabled={hasCopyButtonBeenClicked}
+          className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
+          variant="outline"
+          onClick={() =>
+            openConfirmDialog({
+              title: "Please Note",
+              description: "Please confirm to proceed.",
+              onConfirm: async () => {
+                handleConfirm();
+              },
+            })
+          }
+        >
+          {loading ? (
+            "Generating wallet for you..."
+          ) : hasCopyButtonBeenClicked ? (
+            <span>
+              Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
+            </span>
+          ) : (
+            "Confirm & Proceed"
+          )}
+        </Button>
 
-      {/* error state */}
-      {/* {state.error && <p className="text-red-500">{state.error}</p>} */}
-      {/* copiable wallet */}
-      {activeWallet && (
-        <WalletInfo
-          wallet={activeWallet}
-          network={network}
-          isCopyDisabled={isCopyButtonDisabled}
-          onCopy={() => handleCopyWallet(activeWallet ?? "")}
-          truncateWallet={truncateWallet}
-        />
-      )}
-      {/* count down */}
-      <p role="status" className="text-sm text-muted-foreground">
-        {/* {isButtonClicked &&
-          lastAssignedTime &&
-          !isExpired && ( */}
-        {hasCopyButtonBeenClicked && walletLastAssignedTime && !isExpired && (
-          <>
-            This wallet Expires in
-            <CountdownTimer
-              expiryTime={
-                new Date(
-                  new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
-                )
-              }
-              // expiryTime={new Date(lastAssignedTime).getTime() + 5 * 60 * 1000}
-            />
-          </>
+        {/* error state */}
+        {walletFetchError && <p className="text-red-500">{walletFetchError}</p>}
+
+        {/* copiable wallet */}
+        {activeWallet && (
+          <WalletInfo
+            wallet={activeWallet}
+            network={network}
+            isCopyDisabled={isCopyButtonDisabled}
+            onCopy={() => handleCopyWallet(activeWallet ?? "")}
+            truncateWallet={truncateWallet}
+          />
         )}
-        {isExpired && "This wallet has expired"}
-      </p>
-    </div>
-  );
+        {/* count down */}
+
+        <p role="status" className="text-sm text-muted-foreground">
+          {hasCopyButtonBeenClicked && walletLastAssignedTime && !isExpired && (
+            <>
+              This wallet Expires in
+              <CountdownTimer
+                expiryTime={
+                  new Date(
+                    new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
+                  )
+                }
+              />
+            </>
+          )}
+
+          {isExpired && "This wallet has expired"}
+        </p>
+      </div>
+    );
 };
 
 export default ConfirmAndProceedButton;
