@@ -1,3 +1,8 @@
+export async function processTransaction() {
+    
+  console.log("We are processing the transaction");
+}
+
 // import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 // import { displaySendPayment } from "@/features/chatbot/handlers/chatHandlers/menus/display.send.payment";
 // import { formatCurrency } from "@/helpers/format_currency";

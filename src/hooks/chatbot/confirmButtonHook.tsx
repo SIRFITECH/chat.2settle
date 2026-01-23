@@ -1,31 +1,16 @@
 import { Button } from "@/components/ui/button";
+import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
 import ConfirmDialog from "@/features/transact/confirmButton/ConfirmDialog";
 import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
 import { CountdownTimer } from "@/helpers/format_date";
 import { getAvaialableWallet } from "@/services/crypto/wallet";
 import { CheckCircle } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef} from "react";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 import { useAccount } from "wagmi";
 
-export interface ConfirmAndProceedButtonProps {
-  phoneNumber: string;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  sharedPaymentMode: string;
-  processTransaction: (
-    phoneNumber: string,
-    isRetry: boolean,
-    isGiftTrx: boolean,
-    requestPayment: boolean,
-    activeWallet: string,
-    assignedTime?: Date,
-  ) => Promise<void>;
-  network: string;
-  connectedWallet: boolean;
-  amount: string;
-}
 
 const ConfirmAndProceedButton = () => {
   const loading = useChatStore((s) => s.loading);
@@ -60,6 +45,7 @@ const ConfirmAndProceedButton = () => {
       setLoading(true);
 
       await getAvaialableWallet(network.toLowerCase());
+      await processTransaction();
     } catch (err) {
       console.log("Ther is an erro", err);
     } finally {
@@ -115,7 +101,6 @@ const ConfirmAndProceedButton = () => {
     new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
   );
 
-  console.log({ hasCopyButtonBeenClicked, activeWallet });
   return (
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
@@ -173,6 +158,24 @@ const ConfirmAndProceedButton = () => {
 };
 
 export default ConfirmAndProceedButton;
+
+
+// export interface ConfirmAndProceedButtonProps {
+//   phoneNumber: string;
+//   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+//   sharedPaymentMode: string;
+//   processTransaction: (
+//     phoneNumber: string,
+//     isRetry: boolean,
+//     isGiftTrx: boolean,
+//     requestPayment: boolean,
+//     activeWallet: string,
+//     assignedTime?: Date,
+//   ) => Promise<void>;
+//   network: string;
+//   connectedWallet: boolean;
+//   amount: string;
+// }
 
 // const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = (
 //   {
