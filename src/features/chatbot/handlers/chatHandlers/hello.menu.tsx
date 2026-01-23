@@ -5,13 +5,23 @@ import { greetings } from "../../helpers/ChatbotConsts";
 import { shortWallet } from "@/helpers/ShortenAddress";
 import { useUserStore } from "stores/userStore";
 import { usePaymentStore } from "stores/paymentStore";
+import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 
 export const helloMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { user } = useUserStore.getState();
+
   const setPaymentMode = usePaymentStore.getState().setPaymentMode;
 
   console.log("we are at the start of the program", user);
+
+  const setHasCopyButtonBeenClicked = useConfirmDialogStore(
+    (s) => s.setHasCopyButtonBeenClicked,
+  );
+  const setActiveWallet = usePaymentStore((s) => s.setActiveWallet);
+
+  setHasCopyButtonBeenClicked(false);
+  setActiveWallet("");
 
   const account = getAccount(config);
 
@@ -23,6 +33,8 @@ export const helloMenu = async (chatInput?: string) => {
   console.log("User chatinput", chatInput);
 
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
+    // setHasCopyButtonBeenClicked(false);
+    // setActiveWallet("");
     if (walletIsConnected) {
       addMessages?.([
         {
