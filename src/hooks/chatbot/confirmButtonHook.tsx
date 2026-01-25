@@ -5,13 +5,28 @@ import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
 import { CountdownTimer } from "@/helpers/format_date";
 import { getAvaialableWallet } from "@/services/crypto/wallet";
 import { CheckCircle } from "lucide-react";
-import React, { useEffect, useRef} from "react";
+import React, { useEffect, useRef } from "react";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 import { useAccount } from "wagmi";
 
-
+export interface ConfirmAndProceedButtonProps {
+  phoneNumber: string;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  sharedPaymentMode: string;
+  processTransaction: (
+    phoneNumber: string,
+    isRetry: boolean,
+    isGiftTrx: boolean,
+    requestPayment: boolean,
+    activeWallet: string,
+    assignedTime?: Date,
+  ) => Promise<void>;
+  network: string;
+  connectedWallet: boolean;
+  amount: string;
+}
 const ConfirmAndProceedButton = () => {
   const loading = useChatStore((s) => s.loading);
   const setLoading = useChatStore((s) => s.setLoading);
@@ -45,6 +60,7 @@ const ConfirmAndProceedButton = () => {
       setLoading(true);
 
       await getAvaialableWallet(network.toLowerCase());
+      setHasCopyButtonBeenClicked(false);
       await processTransaction();
     } catch (err) {
       console.log("Ther is an erro", err);
@@ -96,6 +112,8 @@ const ConfirmAndProceedButton = () => {
 
   // const showStatus = hasCopyButtonBeenClicked;
   const showCountdown = walletLastAssignedTime && !isExpired;
+  console.log({ walletLastAssignedTime, isExpired });
+  console.log({ hasCopyButtonBeenClicked });
   const showExpired = isExpired;
   const expiryTime = new Date(
     new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
@@ -158,7 +176,6 @@ const ConfirmAndProceedButton = () => {
 };
 
 export default ConfirmAndProceedButton;
-
 
 // export interface ConfirmAndProceedButtonProps {
 //   phoneNumber: string;

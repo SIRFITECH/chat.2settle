@@ -1,25 +1,97 @@
-// import { MessageType, UserBankData } from "../general_types";
+//PAYER
 
-// export interface TransactionParams {
-//   phoneNumber: string;
-//   isGift: boolean;
-//   isGiftTrx: boolean;
-//   requestPayment: boolean;
-//   sharedPaymentMode: string;
-//   sharedGiftId: string;
-//   activeWallet?: string;
-//   lastAssignedTime?: Date;
-//   bankData: UserBankData;
-//   addChatMessages: (messages: MessageType[]) => void;
-//   setLoading: (loading: boolean) => void;
-//   goToStep: (step: string) => void;
-//   nextStep: (step: string) => void;
-// }
+/**
+ * chat_id
+ * phone
+ * wallet
+ */
 
-// export interface BaseTransactionParams {
-//   phoneNumber: string;
-//   activeWallet?: string;
-// }
+//RECEIVER
+
+/**
+ * bank_name
+ * bank_account
+ * account_name
+ * phone
+ * is_vendor
+ *
+ */
+
+//GIFT
+
+/**
+ * gift_id
+ * status
+ * crypto
+ * network
+ * estimate_asset
+ * estimate_amount
+ * amount_payable
+ * charges
+ * crypto_amount
+ * date
+ * reciever_id
+ * gift_status
+ * payer_id
+ * current_rate
+ * merchant_rate
+ * profit_rate
+ * wallet_address
+ */
+
+//SUMMARY
+
+/**
+ * transaction_type
+ * total_dollar
+ * settle_date
+ * transaction_id
+ * total_naira
+ * effort
+ * merchant_id
+ * status
+ * ref_code
+ * asset_price
+ */
+
+// TRANSFER
+/**
+ * crypto
+ * network
+ * estimate_asset
+ * amount_payable
+ * crypto_amount
+ * charges
+ * date
+ * transfer_id
+ * reciever_id
+ * payer_id
+ * current_rate
+ * profit_rate
+ * estimate_amount
+ * wallet_address
+ */
+
+// REQUEST
+
+/**
+ * request_id
+ * request_status
+ * crypto
+ * network
+ * estimate_asset
+ * estimate_amount
+ * amount_payable
+ * charges
+ * crypto_amount
+ * date
+ * receiver_id
+ * payer_id
+ * current_rate
+ * merchant_rate
+ * profite_rate
+ * wallet_address
+ */
 
 export interface TransactionType {
   /** Identity */
@@ -60,3 +132,25 @@ export interface TransactionType {
 }
 
 
+// import { MessageType, UserBankData } from "../general_types";
+
+// export interface TransactionParams {
+//   phoneNumber: string;
+//   isGift: boolean;
+//   isGiftTrx: boolean;
+//   requestPayment: boolean;
+//   sharedPaymentMode: string;
+//   sharedGiftId: string;
+//   activeWallet?: string;
+//   lastAssignedTime?: Date;
+//   bankData: UserBankData;
+//   addChatMessages: (messages: MessageType[]) => void;
+//   setLoading: (loading: boolean) => void;
+//   goToStep: (step: string) => void;
+//   nextStep: (step: string) => void;
+// }
+
+// export interface BaseTransactionParams {
+//   phoneNumber: string;
+//   activeWallet?: string;
+// }
