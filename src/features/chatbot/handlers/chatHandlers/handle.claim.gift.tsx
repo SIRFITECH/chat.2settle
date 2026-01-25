@@ -29,17 +29,14 @@ export const handleClaimGift = async (chatInput: string) => {
 
   const { status, gift_status } = result.user;
 
-
   if (
     status?.toLowerCase() === "successful" &&
     gift_status?.toLowerCase() === "not claimed"
   ) {
     displaySearchBank();
-      next({ stepId: "enterBankSearchWord" });
-      return;
-  }
-
-  if (gift_status?.toLowerCase() === "claimed") {
+    next({ stepId: "selectBank" });
+    // next({ stepId: "enterBankSearchWord" });
+  } else if (gift_status?.toLowerCase() === "claimed") {
     addMessages([
       {
         type: "incoming",
@@ -48,9 +45,7 @@ export const handleClaimGift = async (chatInput: string) => {
       },
     ]);
     return;
-  }
-
-  if (status?.toLowerCase() === "processing") {
+  } else if (status?.toLowerCase() === "processing") {
     addMessages([
       {
         type: "incoming",
@@ -60,14 +55,14 @@ export const handleClaimGift = async (chatInput: string) => {
       },
     ]);
     return;
+  } else {
+    addMessages([
+      {
+        type: "incoming",
+        content:
+          "This gift cannot be claimed because the payment was not completed.",
+        timestamp: new Date(),
+      },
+    ]);
   }
-
-  addMessages([
-    {
-      type: "incoming",
-      content:
-        "This gift cannot be claimed because the payment was not completed.",
-      timestamp: new Date(),
-    },
-  ]);
 };

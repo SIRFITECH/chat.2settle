@@ -32,7 +32,7 @@ const ConfirmAndProceedButton = () => {
   const setLoading = useChatStore((s) => s.setLoading);
   const currentStep = useChatStore((s) => s.currentStep);
 
-  const { network } = usePaymentStore();
+  const { network, paymentMode } = usePaymentStore();
   const activeWallet = usePaymentStore((s) => s.activeWallet);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
@@ -112,8 +112,8 @@ const ConfirmAndProceedButton = () => {
 
   // const showStatus = hasCopyButtonBeenClicked;
   const showCountdown = walletLastAssignedTime && !isExpired;
-  console.log({ walletLastAssignedTime, isExpired });
-  console.log({ hasCopyButtonBeenClicked });
+  // console.log({ walletLastAssignedTime, isExpired });
+  // console.log({ hasCopyButtonBeenClicked });
   const showExpired = isExpired;
   const expiryTime = new Date(
     new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,

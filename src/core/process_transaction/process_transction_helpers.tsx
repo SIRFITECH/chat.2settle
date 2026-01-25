@@ -1,8 +1,11 @@
 import { useBankStore } from "stores/bankStore";
 import { usePaymentStore } from "stores/paymentStore";
+import { useTransactionStore } from "stores/transactionStore";
 import { useUserStore } from "stores/userStore";
 
 export async function processTransaction() {
+  const { paymentMode } = usePaymentStore.getState();
+  const isGift = paymentMode.toLowerCase() === "claim gift";
   // const {
   //   activeWallet,
   //   assetPrice,
@@ -21,10 +24,12 @@ export async function processTransaction() {
   const paymentStore = usePaymentStore.getState();
   const user = useUserStore.getState();
   const bank = useBankStore.getState();
+  const transaction = useTransactionStore.getState();
 
   console.log("We are processing the user", user.user);
   console.log("We are processing the reciever", bank);
-  console.log("We are processing the transaction", paymentStore);
+  console.log("We are processing the payment", paymentStore);
+  console.log("We are processing the transaction", transaction);
 
   // save payer, get the payer_id
   // save reciever, get reciever_id
