@@ -31,3 +31,37 @@ export const fetchBankDetails = async (
     return null;
   }
 };
+
+export const resolveBankAccount = async (
+  bank_name: string,
+  acc_no: string
+): Promise<any | null> => {
+  try {
+    const bank = await fetchBankNames(bank_name);
+
+    const text = bank.message[0]; // "1. OPAY 100004"
+
+    // Remove the "1." at the start
+    const cleanText = text.replace(/^\d+\.\s*/, ""); // "OPAY 100004"
+
+    // Split by space
+    const parts = cleanText.split(" ");
+
+    // Bank name is everything except the last part
+    const bankName = parts.slice(0, -1).join(" ");
+    // "OPAY"
+
+    // Bank code is the last part
+    const bankCode = parts[parts.length - 1];
+
+    const bank_details = await fetchBankDetails(bankCode, acc_no);
+
+    return bank_details[0].account_name;
+  } catch (error) {
+    console.error(
+      `Error fetching bank details for bank code ${bank_name} and account number ${acc_no}:`,
+      error
+    );
+    return null;
+  }
+};

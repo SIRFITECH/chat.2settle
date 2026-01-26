@@ -9,6 +9,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
 import { NextApiRequest, NextApiResponse } from "next";
 import { chatPrompt } from "../../../services/ai/ai-endpoint-service";
+import { getAvaialableWallet } from "@/services/crypto/wallet";
 
 // import {
 //   ChatPromptTemplate,
@@ -28,9 +29,8 @@ import {
   createBeneficiary,
   createTransaction,
   fetchCoinPrice,
-  getAvaialableWallet,
-  resolveBankAccount,
 } from "@/helpers/api_calls";
+import { resolveBankAccount } from "@/services/bank/bank.service";
 import useRate from "@/hooks/rates/useRate";
 import useMerchantRate from "@/hooks/rates/useMerchantRate";
 import useProfitRate from "@/hooks/rates/useProfitRate";
@@ -86,12 +86,6 @@ const model = new ChatOpenAI({
 
 async function extractIntentEntity(phrase: string) {
 
-//   const prompt = ChatPromptTemplate.fromTemplate(`
-//     Extract information from the following phrase.
-// If the user message does NOT input other format then respond with all values as undefined
-// Formatting Instructions: {format_instructions}
-//   Phrase: {phrase}
-  // `);
   
   const prompt = ChatPromptTemplate.fromTemplate(`
 You are a data extraction engine.
@@ -113,38 +107,26 @@ User input:
 `);
 
 
-  // const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
-  //   bank_name:
-  //     "the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name",
-  //   crypto:
-  //     "the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER  ",
-  //   network:
-  //     "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto",
-  //   estimation:
-  //     "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt ",
-  //   Amount: "the Amount the user to send just the numeric",
-  //   acct_number:
-  //     "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443.",
-  //   receiver_phoneNumber:
-  //     "the phone number is nigeria phone number 11 digit number",
-  //   name: "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user",
-  //   gift_id:
-  //     "the gift id is a 6 digit number that a user will use to claim gift",
-  // });
-
-  // 🧠 Automatically corrects ```json wrapping or malformed output
-  // const parser = OutputFixingParser.fromLLM(model, outputParser);
+ 
 
   const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
-    bank_name: "Full Nigerian bank name or empty string ''",
-    crypto: "Crypto asset in CAPITAL LETTERS or empty string ''",
-    network: "BTC | ETH | TRC20 | ERC20 | BEP20 or empty string ''",
-    estimation: "naira | dollar | crypto or empty string ''",
-    Amount: "numeric string only or empty string ''",
-    acct_number: "10-digit Nigerian account number or empty string ''",
-    receiver_phoneNumber: "11-digit Nigerian phone number or empty string ''",
-    name: "person name or empty string ''",
-    gift_id: "6-digit gift id or empty string ''",
+    bank_name:
+      "the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name or empty string ''",
+    crypto:
+      "the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER or empty string ''",
+    network:
+      "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto or empty string ''",
+    estimation:
+      "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt or empty string ''",
+    Amount:
+      "the Amount the user to send just the numeric e.g $100 or empty string ''",
+    acct_number:
+      "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443. or empty string ''",
+    receiver_phoneNumber:
+      "the phone number is nigeria phone number 11 digit number e.g 07035194443 or empty string ''",
+    name: "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user or empty string ''",
+    gift_id:
+      "the gift id is a 6 digit number that a user will use to claim gift or empty string ''",
   });
 
   const chain = prompt.pipe(model).pipe(outputParser);
@@ -214,7 +196,7 @@ export default async function handler(
     // ✅ Remove keys that are null or empty
     const filtered = Object.fromEntries(
       Object.entries(intentData).filter(
-        ([_, value]) => value !== "undefined" && value !== "UNDEFINED"
+        ([_, value]) => value !== "" && value !== "null"
       )
     );
 
