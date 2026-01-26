@@ -18,11 +18,9 @@ export default async function handler(
     return res.status(400).json({ message: "gift_id is required" });
   }
 
-  // if (gift_id.length > 6 || gift_id.length < 6) {
-  //   return res.status(400).json({ message: "gift_id is required" });
-  // }
 
   try {
+
     const query = `
       SELECT
         *
@@ -31,7 +29,7 @@ export default async function handler(
       WHERE
         gift_id = ?
       AND
-        status IN ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
+        status = ('Successful', 'Processing', 'UnSuccessful', 'Uncompleted', 'cancel')
       AND
         gift_status IN ('pending', 'Not claimed', 'Claimed')
     `;

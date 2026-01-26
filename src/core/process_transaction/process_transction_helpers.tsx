@@ -1,11 +1,60 @@
+import { updateGiftTransaction } from "@/services/transactionService/giftService/giftService";
+import { getOrCreateReceiver } from "@/services/transactionService/transactionService";
 import { useBankStore } from "stores/bankStore";
+import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
 import { useUserStore } from "stores/userStore";
 
 export async function processTransaction() {
+  const currentStep = useChatStore.getState().currentStep;
   const { paymentMode } = usePaymentStore.getState();
-  const isGift = paymentMode.toLowerCase() === "claim gift";
+
+  const paymentStore = usePaymentStore.getState();
+  const { user } = useUserStore.getState();
+  const { bankData } = useBankStore.getState();
+  const { giftId } = useTransactionStore.getState();
+
+  console.log("We are processing the user", user);
+  console.log("We are processing the reciever", bankData);
+  console.log("We are processing the payment", paymentStore);
+  // console.log("We are processing the transaction", transaction);
+
+  const isTransfer = currentStep.transactionType?.toLowerCase() === "transfer";
+  const isRequest = currentStep.transactionType?.toLowerCase() === "request";
+  const isGift = currentStep.transactionType?.toLowerCase() === "gift";
+  const isClaimGift = paymentMode.toLowerCase() === "claim gift";
+  const isFulfillRequest = paymentMode.toLowerCase() === "payRequest";
+
+  if (isTransfer) {
+    // call the endpoint that saves transfer transaction
+    console.log("Processing transfer transaction...");
+  } else if (isGift) {
+    // call the endpoint that saves gift transaction
+    console.log("Processing gift transaction...");
+  } else if (isRequest) {
+    // call the endpoint that saves request transaction
+    console.log("Processing request transaction...");
+  } else if (isClaimGift) {
+    // call the endpoint that saves gift transaction
+    console.log("Processing claim gift transaction...");
+    // const receiverId = await getOrCreateReceiver({
+    //   acct_number: bankData.acct_number!,
+    //   bank_name: bankData.bank_name!,
+    //   receiver_name: bankData.receiver_name!,
+    //   receiver_phoneNumber: user?.phone!,
+    // });
+
+    await updateGiftTransaction(giftId,
+      receiver: bankData
+    );
+
+    // addMessages([ ])
+  } else {
+    // call the endpoint that saves request transaction
+    console.log("Paying request transaction...");
+  }
+
   // const {
   //   activeWallet,
   //   assetPrice,
@@ -21,15 +70,6 @@ export async function processTransaction() {
   //   paymentAssetEstimate,
   //   paymentNairaEstimate,
   // } = usePaymentStore.getState();
-  const paymentStore = usePaymentStore.getState();
-  const user = useUserStore.getState();
-  const bank = useBankStore.getState();
-  const transaction = useTransactionStore.getState();
-
-  console.log("We are processing the user", user.user);
-  console.log("We are processing the reciever", bank);
-  console.log("We are processing the payment", paymentStore);
-  console.log("We are processing the transaction", transaction);
 
   // save payer, get the payer_id
   // save reciever, get reciever_id

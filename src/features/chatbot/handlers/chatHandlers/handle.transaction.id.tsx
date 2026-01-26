@@ -22,13 +22,13 @@ export const handleCompleteTransactionId = async (chatInput: string) => {
     const paymentMode = usePaymentStore.getState().paymentMode;
 
     displayEnterId(paymentMode);
-    next({ stepId: "claimGift" });
+    next({ stepId: "claimGift", transactionType: undefined });
   } else if (chatInput === "2") {
     setPaymentMode("payRequest");
     const paymentMode = usePaymentStore.getState().paymentMode;
 
     displayEnterId(paymentMode);
-    next({ stepId: "payRequest" });
+    next({ stepId: "payRequest", transactionType: undefined });
   } else if (chatInput === "3") {
     // displayEnterCompleteTransactionId(addChatMessages, nextStep);
   }

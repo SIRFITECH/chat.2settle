@@ -4,6 +4,7 @@ import useChatStore, { MessageType } from "stores/chatStore";
 
 export const displaySearchBank = async () => {
   const { addMessages } = useChatStore.getState();
+
   const newMessages: MessageType[] = [
     {
       type: "incoming",
@@ -20,8 +21,8 @@ export const displaySearchBank = async () => {
       timestamp: new Date(),
     },
   ];
-  console.log("Next is selectBank");
 
+  console.log("Next is selectBank");
   addMessages(newMessages);
 };
 
