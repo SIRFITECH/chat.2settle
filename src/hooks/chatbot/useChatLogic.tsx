@@ -64,8 +64,8 @@ export const useChatLogic = ({
         await stepHandlers["start"](chatInput);
       } else {
         console.log("Current Step:", currentStep);
-        await handleAiChat(chatInput)
-      //  await stepHandlers[currentStep.stepId as StepId](chatInput);
+        // await handleAiChat(chatInput)
+        await stepHandlers[currentStep.stepId as StepId](chatInput);
       }
     } catch (error) {
       console.error(error);
@@ -129,14 +129,6 @@ const steps = [
 
 type StepId = (typeof steps)[number];
 
-// create btc payment
-/* Start --> handleWelcome(2) --> chooseAction(1) --> paymentOption(1) --> estimateAsset(1) --> 
-estimateAmount(20000) --> charge(2) -->  bankSearchTerm --> selectBank(1) --> bankAccountNo --> 
-confirmBank() --> proceedToPay() --> completePayement()
-*/
-
-
-
 const stepHandlers: Record<
   StepId,
   (chatInput: string) => Promise<void> | void
@@ -178,5 +170,3 @@ const stepHandlers: Record<
   requestPayCard: async () => requestPayCard(),
   assurance: async () => console.log("assurance step"),
 };
-
-
