@@ -38,7 +38,7 @@ export const updateGiftTransaction = async (
 
       receiver: receiver,
       giftUpdates: {
-        status: "Claimed",
+        gift_status: "Claimed",
       },
     });
     console.log(response.data); // Handle the response

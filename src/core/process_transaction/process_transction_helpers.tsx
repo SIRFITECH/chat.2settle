@@ -15,6 +15,9 @@ export async function processTransaction() {
   const { bankData } = useBankStore.getState();
   const { giftId } = useTransactionStore.getState();
 
+  const { acct_number, bank_name, receiver_name } = bankData;
+  const receiver_phoneNumber = user?.phone || "";
+
   console.log("We are processing the user", user);
   console.log("We are processing the reciever", bankData);
   console.log("We are processing the payment", paymentStore);
@@ -45,9 +48,12 @@ export async function processTransaction() {
     //   receiver_phoneNumber: user?.phone!,
     // });
 
-    await updateGiftTransaction(giftId,
-      receiver: bankData
-    );
+    await updateGiftTransaction(giftId, {
+      acct_number,
+      bank_name,
+      receiver_name,
+      receiver_phoneNumber,
+    });
 
     // addMessages([ ])
   } else {
