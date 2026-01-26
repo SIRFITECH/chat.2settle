@@ -13,6 +13,7 @@ import { displayCharge } from "./menus/display.charge";
 import { formatCurrency } from "@/helpers/format_currency";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
+import { isGiftValid } from "@/services/transactionService/giftService/giftService";
 
 // GET USER BANK DETAILS FROM NUBAN
 export const handleSearchBank = async (chatInput: string) => {
@@ -27,11 +28,11 @@ export const handleSearchBank = async (chatInput: string) => {
 
   const { setGiftId } = useTransactionStore.getState();
   const currentStep = useChatStore.getState().currentStep;
+  const { paymentMode } = usePaymentStore.getState();
   // IS USER TRYING TO CLAIM GIFT?
   let wantsToSendGift =
     currentStep.transactionType?.toLowerCase().trim() === "gift";
-  let wantsToClaimGift =
-    currentStep.transactionType?.toLowerCase().trim() === "claim gift";
+  let wantsToClaimGift = paymentMode?.toLowerCase().trim() === "claim gift";
   let wantsToRequestPayment =
     currentStep.transactionType?.toLowerCase().trim() === "request";
 
@@ -53,8 +54,7 @@ export const handleSearchBank = async (chatInput: string) => {
       const gift_id = chatInput.trim();
       setGiftId(gift_id);
       try {
-        giftExists = true;
-        // (await checkGiftExists(gift_id)).exists;
+        giftExists = (await isGiftValid(gift_id)).exists;
       } catch (e) {
         console.log("Error getting gift", e);
       }
@@ -62,6 +62,7 @@ export const handleSearchBank = async (chatInput: string) => {
       // IF GIFT_ID EXIST IN DB,
       if (giftExists) {
         displaySearchBank();
+        next({ stepId: "enterBankSearchWord" });
       } else {
         addMessages([
           {
@@ -186,7 +187,7 @@ export const handleSearchBank = async (chatInput: string) => {
       console.log("Naira charger is :", nairaCharge);
       console.log(
         "We are setting setSharedPaymentNairaEstimate to:",
-        finalNairaPayment.toString()
+        finalNairaPayment.toString(),
       );
 
       setPaymentAssetEstimate(finalAssetPayment.toString());
@@ -204,7 +205,7 @@ export const handleSearchBank = async (chatInput: string) => {
 
       console.log(
         "We are setting setSharedPaymentNairaEstimate to:",
-        paymentNairaEstimate
+        paymentNairaEstimate,
       );
 
       setPaymentAssetEstimate(finalAssetPayment.toString());
@@ -263,7 +264,7 @@ export const handleSelectBank = async (chatInput: string) => {
 
       if (Array.isArray(bankList)) {
         const bankNameList = bankList.map((bank: string) =>
-          bank.replace(/^\d+\.\s*/, "").replace(/\s\d+$/, "")
+          bank.replace(/^\d+\.\s*/, "").replace(/\s\d+$/, ""),
         );
 
         console.log("BankNames 1", bankNameList);

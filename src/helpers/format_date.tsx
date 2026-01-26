@@ -49,8 +49,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       setTimeLeft(newTimeLeft);
 
       if (newTimeLeft <= 0) {
+         setWalletIsExpired();
         clearInterval(timer);
       }
+      
     }, 1000);
 
     return () => clearInterval(timer);
@@ -59,9 +61,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
-  // if (timeLeft <= 0) {
-  //   setWalletIsExpired();
-  // }
+
 
   return (
     <span

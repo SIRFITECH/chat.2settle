@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
 import ConfirmDialog from "@/features/transact/confirmButton/ConfirmDialog";
 import WalletInfo from "@/features/transact/confirmButton/WalletInfo";
 import { CountdownTimer } from "@/helpers/format_date";
@@ -26,14 +27,13 @@ export interface ConfirmAndProceedButtonProps {
   connectedWallet: boolean;
   amount: string;
 }
-
 const ConfirmAndProceedButton = () => {
   const loading = useChatStore((s) => s.loading);
   const setLoading = useChatStore((s) => s.setLoading);
-
-  const { network } = usePaymentStore();
-  const activeWallet = usePaymentStore((s) => s.activeWallet);
   const currentStep = useChatStore((s) => s.currentStep);
+
+  const { network, paymentMode } = usePaymentStore();
+  const activeWallet = usePaymentStore((s) => s.activeWallet);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
   );
@@ -49,8 +49,6 @@ const ConfirmAndProceedButton = () => {
   const walletIsExpired = useConfirmDialogStore((s) => s.walletIsExpired);
   const walletFetchError = useConfirmDialogStore((s) => s.walletFetchError);
 
-  // const hasCopyButtonBeenClicked = true;
-
   const hasOpenedRef = useRef(false);
   const account = useAccount();
   const SHOULD_OPEN_STEP = "sendPayment";
@@ -62,6 +60,8 @@ const ConfirmAndProceedButton = () => {
       setLoading(true);
 
       await getAvaialableWallet(network.toLowerCase());
+      setHasCopyButtonBeenClicked(false);
+      await processTransaction();
     } catch (err) {
       console.log("Ther is an erro", err);
     } finally {
@@ -74,8 +74,12 @@ const ConfirmAndProceedButton = () => {
   const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
 
   useEffect(() => {
+    // do not run if the user is not have already copied wallet
+    if (hasCopyButtonBeenClicked) return;
+    console.log({ hasCopyButtonBeenClicked });
+    // dont run if the user is not going to make payment in the next step
     if (currentStep.stepId !== SHOULD_OPEN_STEP) return; // make sure we pop up only when we have not send payment
-    // make sure the dialog open only once
+    // do not open the dialog if the dialog is already opened
     if (hasOpenedRef.current) return;
     hasOpenedRef.current = true;
     openConfirmDialog({
@@ -91,114 +95,104 @@ const ConfirmAndProceedButton = () => {
     });
   }, [openConfirmDialog, closeConfirmDialog]);
 
-  const handleCopyWallet = (wallet: string) => {
-    // navigator.clipboard.writeText(wallet).then(() => {
-    //   setState((prev) => ({
-    //     ...prev,
-    //     isCopied: true,
-    //     hasCopyButtonBeenClicked: true,
-    //   }));
-    //   setTimeout(
-    //     () =>
-    //       setState((prev) => {
-    //         if (prev.isCopied === false) return prev;
-    //         return { ...prev, isCopied: false };
-    //       }),
-    //     3000, // 3 sec
-    //   );
-    // });
-    console.log("Copy pressed");
-    setHasCopyButtonBeenClicked();
+  const handleCopyWallet = async (wallet: string) => {
+    try {
+      await navigator.clipboard.writeText(wallet);
+
+      // global state (business logic)
+      setHasCopyButtonBeenClicked(true);
+    } catch (err) {
+      console.error("Failed to copy wallet:", err);
+    }
   };
 
   const truncateWallet = (wallet: string) => {
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
   };
 
-  // console.log({ hasCopyButtonBeenClicked, walletLastAssignedTime, isExpired });
-  // if (walletLastAssignedTime && hasCopyButtonBeenClicked) {
-  //   console.log(`walletLastAssignedTime: ${walletLastAssignedTime}`);
-  // }
-
-  const showStatus = hasCopyButtonBeenClicked;
+  // const showStatus = hasCopyButtonBeenClicked;
   const showCountdown = walletLastAssignedTime && !isExpired;
+  // console.log({ walletLastAssignedTime, isExpired });
+  // console.log({ hasCopyButtonBeenClicked });
   const showExpired = isExpired;
+  const expiryTime = new Date(
+    new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
+  );
 
-    return (
-      <div className="flex flex-col items-center space-y-4">
-        <ConfirmDialog />
-        <Button
-          disabled={hasCopyButtonBeenClicked}
-          className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
-          variant="outline"
-          onClick={() =>
-            openConfirmDialog({
-              title: "Please Note",
-              description: "Please confirm to proceed.",
-              onConfirm: async () => {
-                handleConfirm();
-              },
-            })
-          }
-        >
-          {loading ? (
-            "Generating wallet for you..."
-          ) : hasCopyButtonBeenClicked ? (
-            <span>
-              Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
-            </span>
-          ) : (
-            "Confirm & Proceed"
-          )}
-        </Button>
-
-        {/* error state */}
-        {walletFetchError && <p className="text-red-500">{walletFetchError}</p>}
-
-        {/* copiable wallet */}
-        {activeWallet && (
-          <WalletInfo
-            wallet={activeWallet}
-            network={network}
-            isCopyDisabled={isCopyButtonDisabled}
-            onCopy={() => handleCopyWallet(activeWallet ?? "")}
-            truncateWallet={truncateWallet}
-          />
+  return (
+    <div className="flex flex-col items-center space-y-4">
+      <ConfirmDialog />
+      <Button
+        disabled={hasCopyButtonBeenClicked}
+        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
+        variant="outline"
+        onClick={() =>
+          openConfirmDialog({
+            title: "Please Note",
+            description: "Please confirm to proceed.",
+            onConfirm: async () => {
+              handleConfirm();
+            },
+          })
+        }
+      >
+        {loading ? (
+          "Generating wallet for you..."
+        ) : hasCopyButtonBeenClicked ? (
+          <span>
+            Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
+          </span>
+        ) : (
+          "Confirm & Proceed"
         )}
-        {/* count down */}
-        {showStatus && (
-          <p role="status" className="text-sm text-muted-foreground">
-            {showCountdown && (
-              <>
-                This wallet expires in{" "}
-                <CountdownTimer expiryTime={expiryTime} />
-              </>
-            )}
-            {showExpired && "This wallet has expired"}
-          </p>
-        )}
+      </Button>
 
-        {/* <p role="status" className="text-sm text-muted-foreground">
-          {hasCopyButtonBeenClicked && walletLastAssignedTime && !isExpired && (
+      {/* error state */}
+      {walletFetchError && <p className="text-red-500">{walletFetchError}</p>}
+
+      {/* copiable wallet */}
+      {activeWallet && (
+        <WalletInfo
+          wallet={activeWallet}
+          network={network}
+          isCopyDisabled={isCopyButtonDisabled}
+          onCopy={() => handleCopyWallet(activeWallet ?? "")}
+          truncateWallet={truncateWallet}
+        />
+      )}
+      {/* count down */}
+      {hasCopyButtonBeenClicked && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {showCountdown && (
             <>
-              This wallet Expires in
-              <CountdownTimer
-                expiryTime={
-                  new Date(
-                    new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
-                  )
-                }
-              />
+              This wallet expires in <CountdownTimer expiryTime={expiryTime} />
             </>
           )}
-
-          {isExpired && "This wallet has expired"}
-        </p> */}
-      </div>
-    );
+          {showExpired && "This wallet has expired"}
+        </p>
+      )}
+    </div>
+  );
 };
 
 export default ConfirmAndProceedButton;
+
+// export interface ConfirmAndProceedButtonProps {
+//   phoneNumber: string;
+//   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+//   sharedPaymentMode: string;
+//   processTransaction: (
+//     phoneNumber: string,
+//     isRetry: boolean,
+//     isGiftTrx: boolean,
+//     requestPayment: boolean,
+//     activeWallet: string,
+//     assignedTime?: Date,
+//   ) => Promise<void>;
+//   network: string;
+//   connectedWallet: boolean;
+//   amount: string;
+// }
 
 // const ConfirmAndProceedButton: React.FC<ConfirmAndProceedButtonProps> = (
 //   {

@@ -19,7 +19,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
   } else if (chatInput === "0") {
     helloMenu("hi");
   } else if (chatInput === "1") {
-    setCrypto("Bitcoin");
+    setCrypto("BTC");
     setTicker("BTCUSDT");
     setNetwork("BTC");
     const crypto = usePaymentStore.getState().crypto;
@@ -31,7 +31,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
     displayHowToEstimation({ crypto, ticker });
     next({ stepId: "payOptions" });
   } else if (chatInput === "2") {
-    setCrypto("Ethereum");
+    setCrypto("ETH");
     setTicker("ETHUSDT");
     setNetwork("ERC20");
     const crypto = usePaymentStore.getState().crypto;
@@ -43,7 +43,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
     next({ stepId: "payOptions" });
     displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "3") {
-    setCrypto("Binance");
+    setCrypto("BNB");
     setTicker("BNBUSDT");
     setNetwork("BEP20");
     const crypto = usePaymentStore.getState().crypto;
@@ -55,7 +55,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
     displayHowToEstimation({ crypto, ticker });
     next({ stepId: "payOptions" });
   } else if (chatInput === "4") {
-    setCrypto("Tron");
+    setCrypto("TRX");
     setTicker("TRXUSDT");
     setNetwork("TRC20");
     const crypto = getBaseSymbol(usePaymentStore.getState().crypto);

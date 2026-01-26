@@ -8,19 +8,15 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { SharedStateProvider } from "../context/SharedStateContext";
 import ErrorBoundary from "@/components/social/telegram/TelegramError";
 import { SessionProvider } from "next-auth/react";
-import { persistQueryClient } from "@tanstack/query-persist-client-core";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";
 import { RateBootstrapper } from "@/components/dashboard/RateBootstrapper";
 import UserBootstrap from "@/components/dashboard/checkTelUser";
-// import { bindXStateToZustand } from "@/components/dashboard/xstateToZustand";
 
 export const client = new QueryClient();
 
-//  session;
 
 function MyApp({ Component, pageProps }: AppProps) {
-  // bindXStateToZustand();
   return (
     <>
       <Head>

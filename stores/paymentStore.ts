@@ -43,6 +43,8 @@ export type PaymentStoreType = {
   setDollarCharge: (val: string) => void;
   setPaymentAssetEstimate: (val: string) => void;
   setPaymentNairaEstimate: (val: string) => void;
+
+  reset: () => void;
 };
 
 export const usePaymentStore = create<PaymentStoreType>()(
@@ -89,10 +91,20 @@ export const usePaymentStore = create<PaymentStoreType>()(
         set({ merchantRate: val, lastMerchantRateFetchedAt: Date.now() }),
       setTotalVolume: (val: string) =>
         set({ totalVolume: val, lastTotalVolumeFetchedAt: Date.now() }),
+
+      reset: () =>
+        set({
+          activeWallet: "",
+          walletLastAssignedTime: "",
+          paymentMode: "",
+        }),
     }),
     {
       name: "payment-store",
       partialize: (state) => ({
+        walletLastAssignedTime: state.walletLastAssignedTime,
+        activeWallet: state.activeWallet,
+        network: state.network,
         rate: state.rate,
         lastRateFetchedAt: state.lastRateFetchedAt,
         profitRate: state.profitRate,

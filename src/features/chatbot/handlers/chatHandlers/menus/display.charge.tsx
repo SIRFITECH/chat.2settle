@@ -12,6 +12,8 @@ export const displayCharge = async (input: string) => {
   const {
     assetPrice: assetP,
     ticker,
+    estimateAsset,
+    crypto,
     setPaymentAssetEstimate,
     setPaymentNairaEstimate,
     setNairaCharge,
@@ -25,8 +27,9 @@ export const displayCharge = async (input: string) => {
     console.log("There was an error fetching rate");
     throw new Error("Error refetching rate");
   }
-  const estimateAsset = usePaymentStore.getState().estimateAsset;
-  const assetSymbol = getBaseSymbol(ticker);
+  // const estimateAsset = usePaymentStore.getState().estimateAsset;
+  const assetSymbol = crypto;
+  // getBaseSymbol(ticker);
 
   const cryptocurrencies = ["btc", "eth", "trx", "bnb"];
   const dollar = ["usdt"];
@@ -92,24 +95,24 @@ export const displayCharge = async (input: string) => {
           nairaValue <= 100_000
             ? 500
             : nairaValue > 100_000 && nairaValue <= 1_000_000
-            ? 1_000
-            : 1_500;
+              ? 1_000
+              : 1_500;
 
         const cryptoCharge =
           charge === 500
             ? basic
             : charge === 1_000
-            ? median
-            : charge === 1_500
-            ? premium
-            : 0;
+              ? median
+              : charge === 1_500
+                ? premium
+                : 0;
         const cryptoPaymentEstimate = parseFloat(parsedInput) / rate; // this is the asset the user is paying, without charge
 
         setPaymentAssetEstimate(cryptoPaymentEstimate.toString());
         setPaymentNairaEstimate(parsedInput);
         setNairaCharge(formatCurrency(charge.toString(), "NGN", "en-NG"));
         setDollarCharge(
-          formatCurrency(cryptoPaymentEstimate.toString(), "USD", "en-NG")
+          formatCurrency(cryptoPaymentEstimate.toString(), "USD", "en-NG"),
         );
         updateTransaction({ charges: cryptoCharge.toString() });
 
@@ -154,9 +157,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-         currentStep.transactionType?.toLowerCase() === "gift"
-           ? next({ stepId: "enterPhone" })
-           : next({ stepId: "enterBankSearchWord" });
+        currentStep.transactionType?.toLowerCase() === "gift"
+          ? next({ stepId: "enterPhone" })
+          : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -182,8 +185,8 @@ export const displayCharge = async (input: string) => {
           dollarValue <= 100_000
             ? 500
             : dollarValue > 100_000 && dollarValue <= 1_000_000
-            ? 1_000
-            : 1_500;
+              ? 1_000
+              : 1_500;
 
         var basic = 500 / rate;
         var median = 1_000 / rate;
@@ -192,10 +195,10 @@ export const displayCharge = async (input: string) => {
           charge === 500
             ? basic
             : charge === 1_000
-            ? median
-            : charge === 1_500
-            ? premium
-            : 0;
+              ? median
+              : charge === 1_500
+                ? premium
+                : 0;
         const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
         const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
 
@@ -213,10 +216,10 @@ export const displayCharge = async (input: string) => {
         // });
 
         setPaymentAssetEstimate(cryptoPaymentEstimate.toString());
-        setPaymentNairaEstimate(parsedInput);
+        setPaymentNairaEstimate(nairaPaymentEstimate.toString());
         setNairaCharge(formatCurrency(charge.toString(), "NGN", "en-NG"));
         setDollarCharge(
-          formatCurrency(cryptoPaymentEstimate.toString(), "USD", "en-NG")
+          formatCurrency(cryptoPaymentEstimate.toString(), "USD", "en-NG"),
         );
         updateTransaction({ charges: cryptoCharge.toString() });
 
@@ -248,9 +251,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-         currentStep.transactionType?.toLowerCase() === "gift"
-           ? next({ stepId: "enterPhone" })
-           : next({ stepId: "enterBankSearchWord" });
+        currentStep.transactionType?.toLowerCase() === "gift"
+          ? next({ stepId: "enterPhone" })
+          : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -276,8 +279,8 @@ export const displayCharge = async (input: string) => {
           cryptoValue <= 100000
             ? 500
             : cryptoValue > 100000 && cryptoValue <= 1000000
-            ? 1000
-            : 1500;
+              ? 1000
+              : 1500;
 
         var basic = 500 / rate;
         var median = 1000 / rate;
@@ -286,10 +289,10 @@ export const displayCharge = async (input: string) => {
           charge === 500
             ? basic
             : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
+              ? median
+              : charge === 1500
+                ? premium
+                : 0;
 
         const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
         const nairaPaymentEstimate =
@@ -313,7 +316,7 @@ export const displayCharge = async (input: string) => {
         setPaymentNairaEstimate(nairaPaymentEstimate.toString());
         setNairaCharge(formatCurrency(charge.toString(), "NGN", "en-NG"));
         setDollarCharge(
-          formatCurrency(cryptoPaymentEstimate.toString(), "USD", "en-NG")
+          formatCurrency(cryptoPaymentEstimate.toString(), "USD", "en-NG"),
         );
         updateTransaction({ charges: cryptoCharge.toString() });
 
@@ -345,9 +348,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-         currentStep.transactionType?.toLowerCase() === "gift"
-           ? next({ stepId: "enterPhone" })
-           : next({ stepId: "enterBankSearchWord" });
+        currentStep.transactionType?.toLowerCase() === "gift"
+          ? next({ stepId: "enterPhone" })
+          : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [
@@ -380,17 +383,17 @@ export const displayCharge = async (input: string) => {
           nairaValue <= 100000
             ? 500
             : nairaValue > 100000 && nairaValue <= 1000000
-            ? 1000
-            : 1500;
+              ? 1000
+              : 1500;
 
         const cryptoCharge =
           charge === 500
             ? basic
             : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
+              ? median
+              : charge === 1500
+                ? premium
+                : 0;
         const cryptoPaymentEstimate =
           parseFloat(parsedInput) / rate / assetPrice; // this is the asset the user is paying, without charge
 
@@ -470,8 +473,8 @@ export const displayCharge = async (input: string) => {
           dollarValue <= 100000
             ? 500
             : dollarValue > 100000 && dollarValue <= 1000000
-            ? 1000
-            : 1500;
+              ? 1000
+              : 1500;
 
         var basic = 500 / rate / assetPrice;
         var median = 1000 / rate / assetPrice;
@@ -481,10 +484,10 @@ export const displayCharge = async (input: string) => {
           charge === 500
             ? basic
             : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
+              ? median
+              : charge === 1500
+                ? premium
+                : 0;
 
         const cryptoPaymentEstimate = parseFloat(parsedInput) / assetPrice; // this is the asset the user is paying, without charge
         const nairaPaymentEstimate = parseFloat(parsedInput) * rate; // this is the asset the user is paying, without charge
@@ -568,8 +571,8 @@ export const displayCharge = async (input: string) => {
           cryptoValue <= 100000
             ? 500
             : cryptoValue > 100000 && cryptoValue <= 1000000
-            ? 1000
-            : 1500;
+              ? 1000
+              : 1500;
 
         var basic = 500 / rate / assetPrice;
         var median = 1000 / rate / assetPrice;
@@ -578,10 +581,10 @@ export const displayCharge = async (input: string) => {
           charge === 500
             ? basic
             : charge === 1000
-            ? median
-            : charge === 1500
-            ? premium
-            : 0;
+              ? median
+              : charge === 1500
+                ? premium
+                : 0;
 
         const cryptoPaymentEstimate = parseFloat(parsedInput); // this is the asset the user is paying, without charge
         const nairaPaymentEstimate =
@@ -623,9 +626,9 @@ export const displayCharge = async (input: string) => {
         ];
 
         console.log("Next is enterBankSearchWord");
-         currentStep.transactionType?.toLowerCase() === "gift"
-           ? next({ stepId: "enterPhone" })
-           : next({ stepId: "enterBankSearchWord" });
+        currentStep.transactionType?.toLowerCase() === "gift"
+          ? next({ stepId: "enterPhone" })
+          : next({ stepId: "enterBankSearchWord" });
         addMessages(newMessages);
       } else {
         const newMessages: MessageType[] = [

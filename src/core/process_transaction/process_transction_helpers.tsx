@@ -1,3 +1,79 @@
+import { useBankStore } from "stores/bankStore";
+import { usePaymentStore } from "stores/paymentStore";
+import { useTransactionStore } from "stores/transactionStore";
+import { useUserStore } from "stores/userStore";
+
+export async function processTransaction() {
+  const { paymentMode } = usePaymentStore.getState();
+  const isGift = paymentMode.toLowerCase() === "claim gift";
+  // const {
+  //   activeWallet,
+  //   assetPrice,
+  //   crypto,
+  //   dollarCharge,
+  //   estimateAsset,
+  //   merchantRate,
+  //   rate,
+  //   profitRate,
+  //   network,
+  //   nairaCharge,
+  //   paymentMode,
+  //   paymentAssetEstimate,
+  //   paymentNairaEstimate,
+  // } = usePaymentStore.getState();
+  const paymentStore = usePaymentStore.getState();
+  const user = useUserStore.getState();
+  const bank = useBankStore.getState();
+  const transaction = useTransactionStore.getState();
+
+  console.log("We are processing the user", user.user);
+  console.log("We are processing the reciever", bank);
+  console.log("We are processing the payment", paymentStore);
+  console.log("We are processing the transaction", transaction);
+
+  // save payer, get the payer_id
+  // save reciever, get reciever_id
+  // generate gift_id
+  // then save gift.
+
+  //GIFT
+
+  /**
+   * gift_id
+   * status
+   * crypto # ETH, BTC
+   * network # ERC20
+   * estimate_asset # Naira, Dollar, BTC
+   * estimate_amount # amount estimated in estimate asset
+   * amount_payable # amount we pay the user in naira
+   * charges #
+   * crypto_amount # estimate_amount in crypto
+   * date
+   * reciever_id
+   * gift_status
+   * payer_id
+   * current_rate
+   * merchant_rate
+   * profit_rate
+   * wallet_address # recieving wallet address
+   */
+
+  //SUMMARY
+
+  /**
+   * transaction_type
+   * total_dollar
+   * settle_date
+   * transaction_id
+   * total_naira
+   * effort
+   * merchant_id
+   * status
+   * ref_code
+   * asset_price
+   * */
+}
+
 // import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 // import { displaySendPayment } from "@/features/chatbot/handlers/chatHandlers/menus/display.send.payment";
 // import { formatCurrency } from "@/helpers/format_currency";

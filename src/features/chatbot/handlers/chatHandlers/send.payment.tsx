@@ -4,6 +4,7 @@ import { usePaymentStore } from "stores/paymentStore";
 import { useUserStore } from "stores/userStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
+import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
 
 export const handleCryptoPayment = async (chatInput: string) => {
   const { currentStep, setLoading, addMessages } = useChatStore.getState();
@@ -192,7 +193,7 @@ export const handleCryptoPayment = async (chatInput: string) => {
         requestPayment,
       );
 
-      // await processTransaction(phoneNumber, isGift, isGiftTrx, requestPayment);
+      await processTransaction();
     }
   } else {
     setLoading(false);

@@ -180,10 +180,3 @@ const stepHandlers: Record<
 };
 
 
-// function addChatMessages(arg0: {
-//   type: string; content: JSX.Element; // simplified: just the assistant's latest reply
-//   timestamp: Date;
-// }[]) {
-//   throw new Error("Function not implemented.");
-// }
-//   transactCrypto: async () => console.log("transactCrypto step"),
