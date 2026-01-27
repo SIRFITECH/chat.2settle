@@ -14,10 +14,17 @@ export const fetchBankNames = async (extracted: string): Promise<BankName> => {
   }
 };
 
+interface FetchBankDetailsResponse {
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  bank_code: string;
+}
+
 export const fetchBankDetails = async (
   bank_code: string,
   acc_no: string,
-): Promise<any | null> => {
+): Promise<FetchBankDetailsResponse[] | null> => {
   try {
     const response = await api.get(
       `https://app.nuban.com.ng/api/${nubanApi}?bank_code=${bank_code}&acc_no=${acc_no}`,
@@ -56,7 +63,7 @@ export const resolveBankAccount = async (
 
     const bank_details = await fetchBankDetails(bankCode, acc_no);
 
-    return bank_details[0].account_name;
+    return bank_details ? bank_details[0].account_name : null;
   } catch (error) {
     console.error(
       `Error fetching bank details for bank code ${bank_name} and account number ${acc_no}:`,

@@ -39,8 +39,24 @@ export const handleContinueToPay = async (chatInput: string) => {
       try {
         const bankData = await fetchBankDetails(
           selectedBankCode,
-          chatInput.trim()
+          chatInput.trim(),
         );
+
+        if (!bankData || bankData.length === 0) {
+          const newMessages: MessageType[] = [
+            {
+              type: "incoming",
+              content: (
+                <span>
+                  There was an issue getting your bank details, please try again
+                </span>
+              ),
+              timestamp: new Date(),
+            },
+          ];
+          addMessages(newMessages);
+          return;
+        }
 
         bank_name = bankData[0].bank_name;
         account_name = bankData[0].account_name;
@@ -64,7 +80,7 @@ export const handleContinueToPay = async (chatInput: string) => {
           receiver_name: account_name,
         });
         displayContinueToPay();
-       
+
         next({ stepId: "enterPhone" });
       } catch (error) {
         console.error("Failed to fetch bank data:", error);
