@@ -11,6 +11,7 @@ export type PaymentStoreType = {
   estimateAsset: string;
   nairaCharge: string;
   dollarCharge: string;
+  amountPayable: string;
   paymentAssetEstimate: string;
   paymentNairaEstimate: string;
   walletLastAssignedTime: string;
@@ -41,6 +42,7 @@ export type PaymentStoreType = {
   setEstimateAsset: (val: string) => void;
   setNairaCharge: (val: string) => void;
   setDollarCharge: (val: string) => void;
+  setAmountPayable: (val: string) => void;
   setPaymentAssetEstimate: (val: string) => void;
   setPaymentNairaEstimate: (val: string) => void;
 
@@ -59,6 +61,7 @@ export const usePaymentStore = create<PaymentStoreType>()(
       assetPrice: "",
       nairaCharge: "",
       dollarCharge: "",
+      amountPayable: "",
       estimateAsset: "",
       paymentAssetEstimate: "",
       paymentNairaEstimate: "",
@@ -81,7 +84,10 @@ export const usePaymentStore = create<PaymentStoreType>()(
       setAssetPrice: (val) => set({ assetPrice: val }),
       setEstimateAsset: (val) => set({ estimateAsset: val }),
       setNairaCharge: (val) => set({ nairaCharge: val }),
-      setDollarCharge: (val) => set({ nairaCharge: val }),
+      setDollarCharge: (val) => set({ dollarCharge: val }),
+      setAmountPayable(val) {
+        set({ amountPayable: val });
+      },
       setPaymentAssetEstimate: (val) => set({ paymentAssetEstimate: val }),
       setPaymentNairaEstimate: (val) => set({ paymentNairaEstimate: val }),
       setRate: (rate) => set({ rate, lastRateFetchedAt: Date.now() }),
