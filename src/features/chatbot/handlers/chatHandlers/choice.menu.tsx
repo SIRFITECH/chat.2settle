@@ -19,7 +19,6 @@ export const choiceMenu = async (chatInput?: string) => {
   } catch (err) {
     console.error("Failed to fetch rate", err);
   }
-  const account = getAccount(config);
   const { user } = useUserStore.getState();
 
   const telFirstName = user?.telegram?.username;

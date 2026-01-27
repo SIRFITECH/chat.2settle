@@ -1,3 +1,5 @@
+import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
+import { displayGiftFeedbackMessage } from "@/features/chatbot/handlers/chatHandlers/menus/display.gift.transaction.confirmation";
 import { updateGiftTransaction } from "@/services/transactionService/giftService/giftService";
 import { getOrCreateReceiver } from "@/services/transactionService/transactionService";
 import { useBankStore } from "stores/bankStore";
@@ -8,6 +10,7 @@ import { useUserStore } from "stores/userStore";
 
 export async function processTransaction() {
   const currentStep = useChatStore.getState().currentStep;
+  const { next } = useChatStore.getState();
   const { paymentMode } = usePaymentStore.getState();
 
   const paymentStore = usePaymentStore.getState();
@@ -41,12 +44,6 @@ export async function processTransaction() {
   } else if (isClaimGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing claim gift transaction...");
-    // const receiverId = await getOrCreateReceiver({
-    //   acct_number: bankData.acct_number!,
-    //   bank_name: bankData.bank_name!,
-    //   receiver_name: bankData.receiver_name!,
-    //   receiver_phoneNumber: user?.phone!,
-    // });
 
     await updateGiftTransaction(giftId, {
       acct_number,
@@ -55,7 +52,9 @@ export async function processTransaction() {
       receiver_phoneNumber,
     });
 
-    // addMessages([ ])
+    displayGiftFeedbackMessage();
+    helloMenu("hi");
+    next({ stepId: "chooseAction" });
   } else {
     // call the endpoint that saves request transaction
     console.log("Paying request transaction...");

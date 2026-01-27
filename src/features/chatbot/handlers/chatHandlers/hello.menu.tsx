@@ -15,10 +15,9 @@ export const helloMenu = async (chatInput?: string) => {
 
   console.log("we are at the start of the program", user);
 
-  const setHasCopyButtonBeenClicked = useConfirmDialogStore(
-    (s) => s.setHasCopyButtonBeenClicked,
-  );
-  const setActiveWallet = usePaymentStore((s) => s.setActiveWallet);
+  const setHasCopyButtonBeenClicked =
+    useConfirmDialogStore.getState().setHasCopyButtonBeenClicked;
+  const setActiveWallet = usePaymentStore.getState().setActiveWallet;
 
   setHasCopyButtonBeenClicked(false);
   setActiveWallet("");
