@@ -1,14 +1,12 @@
 import { formatCurrency } from "@/helpers/format_currency";
+import { shortWallet } from "@/helpers/ShortenAddress";
 import { fetchRate } from "@/services/rate/rates.service";
 import { config } from "@/wagmi";
 import useChatStore, { MessageType } from "stores/chatStore";
+import { useUserStore } from "stores/userStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
-import { shortWallet } from "@/helpers/ShortenAddress";
-import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { helloMenu } from "./hello.menu";
-import { useUserStore } from "stores/userStore";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { displayMakeChoice } from "./menus/display.make.choice";
 
 export const choiceMenu = async (chatInput?: string) => {

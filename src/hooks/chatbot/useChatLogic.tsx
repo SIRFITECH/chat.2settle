@@ -27,6 +27,8 @@ import { geminiAi } from "@/services/ai/ai-services";
 
 import { Dispatch, JSX, SetStateAction } from "react";
 import useChatStore, { MessageType } from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
+import { useTransactionStore } from "stores/transactionStore";
 
 export interface ChatLogicProps {
   addChatMessages: (messages: MessageType[]) => void;
@@ -63,7 +65,13 @@ export const useChatLogic = ({
         console.log("Current Step:", currentStep);
         await stepHandlers["start"](chatInput);
       } else {
+        const paymentStore = usePaymentStore.getState();
+        const transaction = useTransactionStore.getState();
+
+        console.log("We are processing the payment", paymentStore);
+        console.log("We are processing the transaction", transaction);
         console.log("Current Step:", currentStep);
+
         // await handleAiChat(chatInput)
         await stepHandlers[currentStep.stepId as StepId](chatInput);
       }

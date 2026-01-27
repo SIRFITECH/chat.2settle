@@ -37,7 +37,7 @@ export function RateBootstrapper() {
 
   // --- PROFIT RATE ---
   const shouldFetchProfitRate =
-    !rate || Date.now() - lastRateFetchedAt > 15 * 60 * 1000;
+    !profitRate || Date.now() - lastProfitRateFetchedAt > 15 * 60 * 1000;
 
   const { data: profitData } = useQuery({
     queryKey: ["profit_rate"],
@@ -47,7 +47,7 @@ export function RateBootstrapper() {
 
   useEffect(() => {
     if (profitData) {
-      setRate(profitData.toString());
+      setProfitRate(profitData.toString());
     }
   }, [profitData, setProfitRate]);
 
