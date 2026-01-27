@@ -74,7 +74,6 @@ export function calculateChargeFromTier(
   };
 }
 
-
 export function buildChargeMenuMessage({
   assetCharge,
   nairaCharge,
@@ -86,11 +85,7 @@ export function buildChargeMenuMessage({
     ? formatCurrency(assetCharge.toFixed(9), "USD")
     : `${assetCharge.toFixed(9)} ${context.assetSymbol}`;
 
-  const nairaDisplay = formatCurrency(
-    nairaCharge.toString(),
-    "NGN",
-    "en-NG"
-  );
+  const nairaDisplay = formatCurrency(nairaCharge.toString(), "NGN", "en-NG");
 
   return {
     type: "incoming",
@@ -116,7 +111,6 @@ export function buildChargeMenuMessage({
     ),
   };
 }
-
 
 export function commitChargeToStores(
   amount: number,
@@ -156,14 +150,14 @@ export function commitChargeToStores(
   setNairaCharge(formatCurrency(charge.nairaCharge.toString(), "NGN", "en-NG"));
 
   setDollarCharge(
-    context.isUSDT
-      ? formatCurrency(paymentAssetEstimate.toString(), "USD", "en-NG")
-      : `${paymentAssetEstimate.toString()}`,
+    charge.assetCharge.toFixed(9).toString(),
+    // context.isUSDT
+    //   ? formatCurrency(paymentAssetEstimate.toString(), "USD", "en-NG")
+    //   : `${paymentAssetEstimate.toString()}`,
   );
 
   updateTransaction({ charges: charge.assetCharge.toString() });
 }
-
 
 export function navigateAfterCharge() {
   const { currentStep, next } = useChatStore.getState();
@@ -174,4 +168,3 @@ export function navigateAfterCharge() {
     next({ stepId: "enterBankSearchWord" });
   }
 }
-

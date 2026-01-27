@@ -16,17 +16,17 @@ export const fetchBankNames = async (extracted: string): Promise<BankName> => {
 
 export const fetchBankDetails = async (
   bank_code: string,
-  acc_no: string
+  acc_no: string,
 ): Promise<any | null> => {
   try {
     const response = await api.get(
-      `https://app.nuban.com.ng/api/${nubanApi}?bank_code=${bank_code}&acc_no=${acc_no}`
+      `https://app.nuban.com.ng/api/${nubanApi}?bank_code=${bank_code}&acc_no=${acc_no}`,
     );
     return response.data;
   } catch (error) {
+    // log error
     console.error(
       `Error fetching bank details for bank code ${bank_code} and account number ${acc_no}:`,
-      error
     );
     return null;
   }
@@ -34,7 +34,7 @@ export const fetchBankDetails = async (
 
 export const resolveBankAccount = async (
   bank_name: string,
-  acc_no: string
+  acc_no: string,
 ): Promise<any | null> => {
   try {
     const bank = await fetchBankNames(bank_name);
@@ -60,7 +60,7 @@ export const resolveBankAccount = async (
   } catch (error) {
     console.error(
       `Error fetching bank details for bank code ${bank_name} and account number ${acc_no}:`,
-      error
+      error,
     );
     return null;
   }
