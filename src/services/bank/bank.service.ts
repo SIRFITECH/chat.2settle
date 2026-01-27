@@ -1,5 +1,6 @@
 import { BankName } from "@/types/general_types";
 import api from "../api-client";
+import axios from "axios";
 
 const nubanApi = process.env.NEXT_PUBLIC_NUBAN_API;
 export const fetchBankNames = async (extracted: string): Promise<BankName> => {
@@ -26,15 +27,23 @@ export const fetchBankDetails = async (
   acc_no: string,
 ): Promise<FetchBankDetailsResponse[] | null> => {
   try {
-    const response = await api.get(
+    const response = await axios.get(
       `https://app.nuban.com.ng/api/${nubanApi}?bank_code=${bank_code}&acc_no=${acc_no}`,
     );
     return response.data;
   } catch (error) {
     // log error
-    console.error(
-      `Error fetching bank details for bank code ${bank_code} and account number ${acc_no}:`,
-    );
+    if (error instanceof axios.AxiosError) {
+      console.error("NUBAN API ERROR:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+    } else {
+      console.error(
+        `Error fetching bank details for bank code ${bank_code} and account number ${acc_no}:`,
+      );
+    }
     return null;
   }
 };

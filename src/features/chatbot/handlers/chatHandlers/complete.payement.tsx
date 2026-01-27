@@ -3,7 +3,6 @@ import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { displaySearchBank } from "./menus/display.bank.search";
-// import { displayEnterPhone } from "./enter.phone";
 import { fetchBankDetails } from "@/services/bank/bank.service";
 import { useBankStore } from "stores/bankStore";
 import { displayContinueToPay } from "./menus/display.continue.pay";

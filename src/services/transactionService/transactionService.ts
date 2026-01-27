@@ -12,55 +12,112 @@ export type ReceiverRow = {
   is_vendor?: boolean;
 };
 
-type TransferRow = {
-  crypto: string;
-  network: string;
-  estimation: string;
+// TRANSFER
+// crypto
+// network
+// estimate_asset
+// amount_payable
+// crypto_amount
+// charges
+// date
+// transfer_id
+// receiver_id
+// payer_id
+// current_rate
+// merchant_rate
+// profit_rate
+// estimate_amount
+// wallet_address// status
+export type TransferRow = {
+  crypto?: string;
+  network?: string;
+  estimate_asset?: string;
 
-  Amount: string;
-  receiver_amount: string;
-  crypto_sent: string;
+  amount_payable?: string;
+  crypto_amount?: string;
+  estimate_amount?: string;
 
   charges?: string;
 
-  Date: string;
-  transac_id: string;
+  date?: string;
+  transfer_id?: string;
+  receiver_id?: string;
+  payer_id?: string;
 
-  current_rate: string;
-  merchant_rate: string;
-  profit_rate: string;
+  current_rate?: string;
+  merchant_rate?: string;
+  profit_rate?: string;
+  wallet_address?: string;
+  status?: string;
 };
 
-type SummaryRow = {
-  status: string;
-  receiver_amount: string;
-  current_rate: string;
+export type GiftRow = {
+  gift_id?: string;
+  crypto?: string;
+  network?: string;
+  estimate_asset?: string;
+  estimate_amount?: string;
+  amount_payable?: string;
+  charges?: string;
+  crypto_amount?: string;
+  date?: string;
+  receiver_id?: number;
+  payer_id?: number;
+  current_rate?: string;
+  merchant_rate?: string;
+  profit_rate?: string;
+  wallet_address?: string;
+  status?: string;
 };
 
-// export async function getOrCreatePayer(
-//   paymentDetails: PayerRow,
-// ): Promise<number> {
-//   const [results]: any = await connection.query(
-//     "SELECT id FROM payers WHERE chat_id = ? OR phone = ? LIMIT 1",
-//     [paymentDetails.chat_id, paymentDetails.customer_phoneNumber],
-//   );
+export type RequestRow = {
+  request_id?: string;
+  request_status?: string;
+  crypto?: string;
+  network?: string;
+  estimate_asset?: string;
+  estimate_amount?: string;
+  amount_payable?: string;
+  charges?: string;
+  crypto_amount?: string;
+  date?: string;
+  receiver_id?: number;
+  payer_id?: number;
+  current_rate?: string;
+  merchant_rate?: string;
+  profit_rate?: string;
+  wallet_address?: string;
+  status?: string;
+};
 
-//   if (results.length > 0) {
-//     return results[0].id;
-//   }
+// type SummaryRow = {
+//   status: string;
+//   receiver_amount: string;
+//   current_rate: string;
+// };
 
-//   const user = {
-//     chat_id: paymentDetails.chat_id,
-//     phone: paymentDetails.customer_phoneNumber,
-//   };
+export type SummaryRow = {
+  total_dollar?: string;
+  total_naira?: string;
 
-//   const [insertResult]: any = await connection.query(
-//     "INSERT INTO payers SET ?",
-//     user,
-//   );
+  effort?: string;
+  merchant_id?: number;
+  ref_code?: string;
+  asset_price?: string;
+  status?: string;
+};
 
-//   return insertResult.insertId;
-// }
+// SUMMARY
+// transaction_type
+// total_dollar
+// transaction_id
+//total_naira
+// effort
+// merchant_id
+// ref_code
+// asset_price
+// status
+
 export async function getOrCreatePayer(
   conn: mysql.Connection,
   payerRow: PayerRow,
@@ -86,37 +143,6 @@ export async function getOrCreatePayer(
 
   return insertResult.insertId;
 }
-
-// ✅ Get or Create RECEIVER
-// export async function getOrCreateReceiver(
-//   receiverRow: ReceiverRow,
-// ): Promise<number | null> {
-//   const [results]: any = await connection.query(
-//     "SELECT id FROM receivers WHERE bank_account = ? AND bank_name = ? LIMIT 1",
-//     [receiverRow.acct_number, receiverRow.bank_name],
-//   );
-
-//   if (results.length > 0) {
-//     return results[0].id;
-//   }
-
-//   if (!receiverRow.acct_number || !receiverRow.bank_name) return null;
-
-//   const user = {
-//     bank_name: receiverRow.bank_name,
-//     bank_account: receiverRow.acct_number,
-//     account_name: receiverRow.receiver_name,
-//     phone: receiverRow.receiver_phoneNumber,
-//     is_vendor: receiverRow.is_vendor || false,
-//   };
-
-//   const [insertResult]: any = await connection.query(
-//     "INSERT INTO receivers SET ?",
-//     user,
-//   );
-
-//   return insertResult.insertId;
-// }
 
 export async function getOrCreateReceiver(
   conn: mysql.Connection,
@@ -148,6 +174,155 @@ export async function getOrCreateReceiver(
 
   return insertResult.insertId;
 }
+
+export async function insertTransfer(
+  conn: mysql.Connection,
+  transferDetails: TransferRow,
+  receiverId: number,
+  payerId: number,
+): Promise<number> {
+  const clean = (val: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
+
+  const date = new Date(transferDetails.date!);
+
+  const amountMatch = transferDetails.charges?.match(/\d+(\.\d+)?/);
+  const chargeAmount = amountMatch ? Number(amountMatch[0]) : 0;
+
+  const transfer = {
+    crypto: transferDetails.crypto,
+    network: transferDetails.network,
+    estimate_asset: transferDetails.estimate_asset!,
+    estimate_amount: clean(transferDetails.estimate_amount!),
+    amount_payable: clean(transferDetails.amount_payable!),
+    charges: chargeAmount,
+    crypto_amount: clean(transferDetails.crypto_amount!),
+    date,
+    receiver_id: receiverId,
+    transfer_id: transferDetails.transfer_id!,
+    payer_id: payerId,
+    current_rate: clean(transferDetails.current_rate!),
+    merchant_rate: clean(transferDetails.merchant_rate!),
+    profit_rate: clean(transferDetails.profit_rate!),
+  };
+
+  const [insertResult]: any = await conn.query(
+    "INSERT INTO transfers SET ?",
+    transfer,
+  );
+
+  return insertResult.insertId;
+}
+
+export async function insertSummary(
+  conn: mysql.Connection,
+  row: SummaryRow,
+  transactionId: number,
+  transaction_type: string,
+): Promise<void> {
+  const clean = (val: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
+
+  const naira = clean(row.total_naira!);
+  // const rate = clean(row.);
+  const dollarAmount = clean(row.total_dollar!);
+
+  const summary = {
+    status: row.status,
+    transaction_type,
+    total_dollar: dollarAmount,
+    total_naira: naira,
+    transaction_id: transactionId,
+  };
+
+  await conn.query("INSERT INTO summaries SET ?", summary);
+}
+
+export async function insertGift(
+  conn: mysql.Connection,
+  giftDetails: GiftRow,
+  receiverId: number | null,
+  payerId: number,
+): Promise<number> {
+  const clean = (val?: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
+
+  const gift = {
+    gift_id: giftDetails.gift_id,
+    crypto: giftDetails.crypto,
+    network: giftDetails.network,
+    estimate_asset: giftDetails.estimate_asset,
+    estimate_amount: clean(giftDetails.estimate_amount),
+    amount_payable: clean(giftDetails.amount_payable),
+    charges: clean(giftDetails.charges),
+    crypto_amount: clean(giftDetails.crypto_amount),
+    date: giftDetails.date ? new Date(giftDetails.date) : null,
+    receiver_id: receiverId,
+    payer_id: payerId,
+    current_rate: clean(giftDetails.current_rate),
+    merchant_rate: clean(giftDetails.merchant_rate),
+    profit_rate: clean(giftDetails.profit_rate),
+    wallet_address: giftDetails.wallet_address,
+    status: giftDetails.status,
+  };
+
+  const [result]: any = await conn.query("INSERT INTO gifts SET ?", gift);
+
+  return result.insertId;
+}
+
+export async function insertRequest(
+  conn: mysql.Connection,
+  requestDetails: RequestRow,
+  receiverId: number | null,
+  payerId: number,
+): Promise<number> {
+  const clean = (val?: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
+
+  const request = {
+    request_id: requestDetails.request_id,
+    request_status: requestDetails.request_status,
+    crypto: requestDetails.crypto,
+    network: requestDetails.network,
+    estimate_asset: requestDetails.estimate_asset,
+    estimate_amount: clean(requestDetails.estimate_amount),
+    amount_payable: clean(requestDetails.amount_payable),
+    charges: clean(requestDetails.charges),
+    crypto_amount: clean(requestDetails.crypto_amount),
+    date: requestDetails.date ? new Date(requestDetails.date) : null,
+    receiver_id: receiverId,
+    payer_id: payerId,
+    current_rate: clean(requestDetails.current_rate),
+    merchant_rate: clean(requestDetails.merchant_rate),
+    profit_rate: clean(requestDetails.profit_rate),
+    wallet_address: requestDetails.wallet_address,
+    status: requestDetails.status,
+  };
+
+  const [result]: any = await conn.query("INSERT INTO requests SET ?", request);
+
+  return result.insertId;
+}
+
+// ✅ Insert SUMMARY
+// export async function insertSummary(
+//   row: SummaryRow,
+//   transactionId: number,
+//   transaction_type: string,
+// ) {
+//   const clean = (val: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
+
+//   const naira = clean(row.receiver_amount);
+//   const rate = clean(row.current_rate);
+//   const dollarAmount = rate ? naira / rate : 0;
+
+//   const summary = {
+//     status: row.status,
+//     transaction_type,
+//     total_dollar: dollarAmount,
+//     total_naira: naira,
+//     transaction_id: transactionId,
+//   };
+
+//   await connection.query("INSERT INTO summaries SET ?", summary);
+// }
 
 // ✅ Insert TRANSFER
 // export async function insertTransfer(
@@ -186,85 +361,59 @@ export async function getOrCreateReceiver(
 
 //   return insertResult.insertId;
 // }
-export async function insertTransfer(
-  conn: mysql.Connection,
-  transferDetails: TransferRow,
-  receiverId: number,
-  payerId: number,
-): Promise<number> {
-  const clean = (val: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
 
-  const date = new Date(transferDetails.Date);
+// ✅ Get or Create RECEIVER
+// export async function getOrCreateReceiver(
+//   receiverRow: ReceiverRow,
+// ): Promise<number | null> {
+//   const [results]: any = await connection.query(
+//     "SELECT id FROM receivers WHERE bank_account = ? AND bank_name = ? LIMIT 1",
+//     [receiverRow.acct_number, receiverRow.bank_name],
+//   );
 
-  const amountMatch = transferDetails.charges?.match(/\d+(\.\d+)?/);
-  const chargeAmount = amountMatch ? Number(amountMatch[0]) : 0;
+//   if (results.length > 0) {
+//     return results[0].id;
+//   }
 
-  const transfer = {
-    crypto: transferDetails.crypto,
-    network: transferDetails.network,
-    estimate_asset: transferDetails.estimation,
-    estimate_amount: clean(transferDetails.Amount),
-    amount_payable: clean(transferDetails.receiver_amount),
-    charges: chargeAmount,
-    crypto_amount: clean(transferDetails.crypto_sent),
-    date,
-    receiver_id: receiverId,
-    transfer_id: transferDetails.transac_id,
-    payer_id: payerId,
-    current_rate: clean(transferDetails.current_rate),
-    merchant_rate: clean(transferDetails.merchant_rate),
-    profit_rate: clean(transferDetails.profit_rate),
-  };
+//   if (!receiverRow.acct_number || !receiverRow.bank_name) return null;
 
-  const [insertResult]: any = await conn.query(
-    "INSERT INTO transfers SET ?",
-    transfer,
-  );
-
-  return insertResult.insertId;
-}
-
-// ✅ Insert SUMMARY
-// export async function insertSummary(
-//   row: SummaryRow,
-//   transactionId: number,
-//   transaction_type: string,
-// ) {
-//   const clean = (val: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
-
-//   const naira = clean(row.receiver_amount);
-//   const rate = clean(row.current_rate);
-//   const dollarAmount = rate ? naira / rate : 0;
-
-//   const summary = {
-//     status: row.status,
-//     transaction_type,
-//     total_dollar: dollarAmount,
-//     total_naira: naira,
-//     transaction_id: transactionId,
+//   const user = {
+//     bank_name: receiverRow.bank_name,
+//     bank_account: receiverRow.acct_number,
+//     account_name: receiverRow.receiver_name,
+//     phone: receiverRow.receiver_phoneNumber,
+//     is_vendor: receiverRow.is_vendor || false,
 //   };
 
-//   await connection.query("INSERT INTO summaries SET ?", summary);
+//   const [insertResult]: any = await connection.query(
+//     "INSERT INTO receivers SET ?",
+//     user,
+//   );
+
+//   return insertResult.insertId;
 // }
-export async function insertSummary(
-  conn: mysql.Connection,
-  row: SummaryRow,
-  transactionId: number,
-  transaction_type: string,
-): Promise<void> {
-  const clean = (val: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
 
-  const naira = clean(row.receiver_amount);
-  const rate = clean(row.current_rate);
-  const dollarAmount = rate ? naira / rate : 0;
+// export async function getOrCreatePayer(
+//   paymentDetails: PayerRow,
+// ): Promise<number> {
+//   const [results]: any = await connection.query(
+//     "SELECT id FROM payers WHERE chat_id = ? OR phone = ? LIMIT 1",
+//     [paymentDetails.chat_id, paymentDetails.customer_phoneNumber],
+//   );
 
-  const summary = {
-    status: row.status,
-    transaction_type,
-    total_dollar: dollarAmount,
-    total_naira: naira,
-    transaction_id: transactionId,
-  };
+//   if (results.length > 0) {
+//     return results[0].id;
+//   }
 
-  await conn.query("INSERT INTO summaries SET ?", summary);
-}
+//   const user = {
+//     chat_id: paymentDetails.chat_id,
+//     phone: paymentDetails.customer_phoneNumber,
+//   };
+
+//   const [insertResult]: any = await connection.query(
+//     "INSERT INTO payers SET ?",
+//     user,
+//   );
+
+//   return insertResult.insertId;
+// }

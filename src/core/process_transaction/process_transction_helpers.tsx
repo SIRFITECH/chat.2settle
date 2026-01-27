@@ -1,7 +1,8 @@
 import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { displayGiftFeedbackMessage } from "@/features/chatbot/handlers/chatHandlers/menus/display.gift.transaction.confirmation";
 import { updateGiftTransaction } from "@/services/transactionService/giftService/giftService";
-import { getOrCreateReceiver } from "@/services/transactionService/transactionService";
+import { saveTransferTransaction } from "@/services/transactionService/transferService/helpers/saveTransaction";
+import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
@@ -35,6 +36,8 @@ export async function processTransaction() {
   if (isTransfer) {
     // call the endpoint that saves transfer transaction
     console.log("Processing transfer transaction...");
+    await createTransfer({});
+    ;
   } else if (isGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing gift transaction...");
