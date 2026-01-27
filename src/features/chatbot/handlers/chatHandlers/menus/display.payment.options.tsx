@@ -5,7 +5,7 @@ import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 export const displayPayIn = async () => {
   const currentStep = useChatStore.getState().currentStep;
-  const { next, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
 
   const { assetPrice: assetP, ticker } = usePaymentStore.getState();
   let usdtRate;
@@ -38,25 +38,25 @@ export const displayPayIn = async () => {
   }
 
   const rangeMessage = (
-    <span style={{ margin: 0, padding: 0 }}>
+    <span >
       {estimateAsset.toLowerCase() === "naira" ? (
-        <>
+        <span>
           Min. = {formatCurrency("20000", "NGN", "en-NG")}
           <br />
           Max. = {formatCurrency("2000000", "NGN", "en-NG")}
-        </>
+        </span>
       ) : estimateAsset.toLowerCase() === "dollar" || isDollar ? (
-        <>
+        <span>
           Min. = {formatCurrency(min.toFixed(2).toString(), "USD", "en-NG")}
           <br />
           Max. = {formatCurrency(max.toFixed(2).toString(), "USD")}
-        </>
+        </span>
       ) : isCrypto ? (
-        <>
+        <span>
           Min. = {min.toFixed(5)} {assetSymbol}
           <br />
           Max. = {max.toFixed(5)} {assetSymbol}
-        </>
+        </span>
       ) : (
         ""
       )}
