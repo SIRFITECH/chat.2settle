@@ -8,7 +8,6 @@ import {
   createRequest,
   updateRequest,
 } from "@/services/transactionService/requestService/requestService";
-import { saveTransferTransaction } from "@/services/transactionService/transferService/helpers/saveTransfer";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
