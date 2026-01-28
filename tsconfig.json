@@ -27,6 +27,6 @@
     "global.d.ts",
     "src/components/manualTransactionForm/ManualTransactionForm.tsx",
     "stores"
-  ],
+, "src/validation/helpers.ts"  ],
   "exclude": ["node_modules"]
 }

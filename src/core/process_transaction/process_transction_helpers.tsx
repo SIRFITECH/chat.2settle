@@ -9,11 +9,14 @@ import {
   updateRequest,
 } from "@/services/transactionService/requestService/requestService";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
+import { generateChatId } from "@/utils/utilities";
+import { request } from "node_modules/axios/index.cjs";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
 import { useUserStore } from "stores/userStore";
+import { net } from "web3";
 
 export async function processTransaction() {
   const currentStep = useChatStore.getState().currentStep;
@@ -31,44 +34,145 @@ export async function processTransaction() {
   console.log("We are processing the user", user);
   console.log("We are processing the reciever", bankData);
   console.log("We are processing the payment", paymentStore);
-  // console.log("We are processing the transaction", transaction);
 
   const isTransfer = currentStep.transactionType?.toLowerCase() === "transfer";
   const isRequest = currentStep.transactionType?.toLowerCase() === "request";
   const isGift = currentStep.transactionType?.toLowerCase() === "gift";
   const isClaimGift = paymentMode.toLowerCase() === "claim gift";
-  const isFulfillRequest = paymentMode.toLowerCase() === "payRequest";
+
+  const transferData = {
+    // TRANSFER
+    // crypto
+    // network
+    // estimate_asset
+    // amount_payable
+    // crypto_amount
+    // charges
+    // date
+    // transfer_id
+    // receiver_id
+    // payer_id
+    // current_rate
+    // merchant_rate
+    // profit_rate
+    // estimate_amount
+    // wallet_address
+    // status
+
+    crypto: paymentStore.crypto,
+    network: paymentStore.network,
+    estimate_asset: paymentStore.estimateAsset,
+    amount_payable: paymentStore.paymentNairaEstimate,
+    crypto_amount: paymentStore.paymentAssetEstimate,
+    charges: paymentStore.nairaCharge,
+    date: new Date(),
+    current_rate: paymentStore.rate,
+    merchant_rate: paymentStore.merchantRate,
+    profit_rate: paymentStore.profitRate,
+    wallet_address: paymentStore.activeWallet,
+    status: "Processing",
+  };
+  const giftData = {
+    // GIFT
+    // gift_id
+    // crypto
+    // network
+    // estimate_asset
+    // estimate_amount
+    // amount_payable
+    // charges
+    // crypto_amount
+    // date
+    // receiver_id
+    // gift_status
+    // payer_id
+    // current_rate
+    // merchant_rate
+    // profit_rate
+    // wallet_address
+    // status
+    gift_id: generateChatId().toString(),
+    crypto: paymentStore.crypto,
+    network: paymentStore.network,
+    estimate_asset: paymentStore.estimateAsset,
+    estimate_amount: paymentStore.paymentNairaEstimate,
+    amount_payable: paymentStore.paymentNairaEstimate,
+    charges: paymentStore.nairaCharge,
+    crypto_amount: paymentStore.paymentAssetEstimate,
+    date: new Date(),
+    gift_status: "Not claimed",
+    current_rate: paymentStore.rate,
+    merchant_rate: paymentStore.merchantRate,
+    profit_rate: paymentStore.profitRate,
+    wallet_address: paymentStore.activeWallet,
+    status: "Processing",
+  };
+  const requestData = {
+    // REQUEST
+    // request_id
+    // request_status
+    // crypto
+    // network
+    // estimate_asset
+    // estimate_amount
+    // amount_payable
+    // charges
+    // crypto_amount
+    // date
+    // receiver_id
+    // payer_id
+    // current_rate
+    // merchant_rate
+    // profit_rate
+    // wallet_address
+    // status
+
+    request_id: generateChatId().toString(),
+    request_status: "Not paid",
+    crypto: paymentStore.crypto,
+    network: paymentStore.network,
+    estimate_asset: paymentStore.estimateAsset,
+    estimate_amount: paymentStore.paymentNairaEstimate,
+    amount_payable: paymentStore.paymentNairaEstimate,
+    charges: paymentStore.nairaCharge,
+    crypto_amount: paymentStore.paymentAssetEstimate,
+    date: new Date(),
+    current_rate: paymentStore.rate,
+    merchant_rate: paymentStore.merchantRate,
+    profit_rate: paymentStore.profitRate,
+    wallet_address: paymentStore.activeWallet,
+    status: "Processing",
+  };
+  const updateRequestData = {};
 
   if (isTransfer) {
     // call the endpoint that saves transfer transaction
     console.log("Processing transfer transaction...");
-    await createTransfer({});
+    await createTransfer(transferData);
   } else if (isGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing gift transaction...");
-    await createGift({});
+    await createGift(giftData);
   } else if (isRequest) {
     // call the endpoint that saves request transaction
     console.log("Processing request transaction...");
-    await createRequest({});
+    await createRequest(requestData);
   } else if (isClaimGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing claim gift transaction...");
-
     await updateGiftTransaction(giftId, {
       acct_number,
       bank_name,
       receiver_name,
       receiver_phoneNumber,
     });
-
     displayGiftFeedbackMessage();
     helloMenu("hi");
     next({ stepId: "chooseAction" });
   } else {
     // call the endpoint that saves request transaction
     console.log("Paying request transaction...");
-    await updateRequest({});
+    await updateRequest(updateRequestData);
   }
 
   // const {

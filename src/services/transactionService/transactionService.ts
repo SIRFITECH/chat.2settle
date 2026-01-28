@@ -39,7 +39,7 @@ export type TransferRow = {
 
   charges?: string;
 
-  date?: string;
+  date?: string | Date;
   transfer_id?: string;
   receiver_id?: string;
   payer_id?: string;
@@ -60,7 +60,7 @@ export type GiftRow = {
   amount_payable?: string;
   charges?: string;
   crypto_amount?: string;
-  date?: string;
+  date?: string | Date;
   receiver_id?: number;
   payer_id?: number;
   current_rate?: string;
@@ -80,7 +80,7 @@ export type RequestRow = {
   amount_payable?: string;
   charges?: string;
   crypto_amount?: string;
-  date?: string;
+  date?: string | Date;
   receiver_id?: number;
   payer_id?: number;
   current_rate?: string;
@@ -90,11 +90,6 @@ export type RequestRow = {
   status?: string;
 };
 
-// type SummaryRow = {
-//   status: string;
-//   receiver_amount: string;
-//   current_rate: string;
-// };
 
 export type SummaryRow = {
   total_dollar?: string;
@@ -106,6 +101,7 @@ export type SummaryRow = {
   asset_price?: string;
   status?: string;
 };
+
 
 // SUMMARY
 // transaction_type
@@ -413,3 +409,10 @@ export async function insertRequest(
 
 //   return insertResult.insertId;
 // }
+
+
+// type SummaryRow = {
+//   status: string;
+//   receiver_amount: string;
+//   current_rate: string;
+// };
