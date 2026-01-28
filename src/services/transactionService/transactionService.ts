@@ -53,6 +53,39 @@ export type TransferRow = {
   status?: string;
 };
 
+
+// export type TransferData = {
+//   crypto?: string;
+//   network?: string;
+//   estimate_asset?: string;
+
+//   amount_payable?: string;
+//   crypto_amount?: string;
+//   estimate_amount?: string;
+
+//   charges?: string;
+
+//   date?: string | Date;
+//   transfer_id?: string;
+//   receiver_id?: number;
+//   payer_id?: number;
+
+//   current_rate?: string;
+//   merchant_rate?: string;
+//   profit_rate?: string;
+//   wallet_address?: string;
+//   status?: string;
+
+//  acct_number?: string;
+//   bank_name?: string;
+//   receiver_name?: string;
+//   receiver_phoneNumber?: string;
+//   is_vendor?: boolean;
+
+//   chat_id: string;
+//   customer_phoneNumber: string;
+// };
+
 export type GiftRow = {
   gift_id?: string;
   crypto?: string;

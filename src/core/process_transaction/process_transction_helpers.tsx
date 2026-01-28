@@ -28,6 +28,8 @@ export async function processTransaction() {
   const { acct_number, bank_name, receiver_name } = bankData;
   const receiver_phoneNumber = user?.phone || "";
 
+  const isVendor = false;
+
   // console.log("We are processing the user", user);
   // console.log("We are processing the reciever", bankData);
   // console.log("We are processing the payment", paymentStore);
@@ -38,10 +40,66 @@ export async function processTransaction() {
   const isClaimGift = paymentMode.toLowerCase() === "claim gift";
   const isFulfillRequest = paymentMode.toLowerCase() === "payRequest";
 
+  // TRANSFER
+  const transferData = {
+    crypto: paymentStore.crypto,
+    network: paymentStore.network,
+    estimate_asset: paymentStore.estimateAsset,
+    amount_payable: paymentStore.amountPayable,
+    crypto_amount: paymentStore.paymentAssetEstimate,
+    charges: paymentStore.dollarCharge,
+    date: new Date(),
+    current_rate: paymentStore.rate,
+    merchant_rate: paymentStore.merchantRate,
+    profit_rate: paymentStore.profitRate,
+    estimate_amount: paymentStore.paymentAssetEstimate,
+    wallet_address: paymentStore.activeWallet,
+    status: "Processing",
+
+    acct_number: bankData.acct_number,
+    bank_nam: bankData.bank_name,
+    receiver_nam: bankData.receiver_name,
+    receiver_phoneNumber: user?.phone,
+    is_vendo: isVendor,
+
+    chat_id: user?.chatId!,
+    customer_phoneNumber: user?.phone!,
+  };
+  // {
+  //    "crypto": "USDT",
+  //         "network": "BEP20",
+  //         "estimate_asset": "Dollar",
+  //         "amount_payable": "3.61",
+  //         "charges": "0.34732",
+  //         "receiver_amount": "5200",
+  //         "crypto_amount": "3.61",
+  //         "wallet_address": "0xb710EF636DB0F94159C0C376256d31E12469F42d",
+  //         "status": "Successful",
+  //         "current_rate": "1439.59",
+  //         "merchant_rate": "1471.20",
+  //         "profit_rate": "20.00"}
+
+  // crypto
+  // network
+  // estimate_asset
+  // amount_payable
+  // crypto_amount
+  // charges
+  // date
+  // transfer_id
+  // receiver_id
+  // payer_id
+  // current_rate
+  // merchant_rate
+  // profit_rate
+  // estimate_amount
+  // wallet_address
+  // status
+
   if (isTransfer) {
     // call the endpoint that saves transfer transaction
     console.log("Processing transfer transaction...");
-    await createTransfer({});
+    await createTransfer(transferData);
   } else if (isGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing gift transaction...");
