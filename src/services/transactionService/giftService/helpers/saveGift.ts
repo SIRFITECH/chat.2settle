@@ -1,0 +1,53 @@
+import pool from "@/lib/mysql";
+import { useUserStore } from "stores/userStore";
+import {
+  getOrCreatePayer,
+  GiftRow,
+  insertGift,
+  insertSummary
+} from "../../transactionService";
+
+
+export const saveGiftTransaction = async (giftObj: GiftRow) => {
+  // GIFT
+  // gift_id
+  // crypto
+  // network
+  // estimate_asset
+  // estimate_amount
+  // amount_payable
+  // charges
+  // crypto_amount
+  // date
+  // receiver_id
+  // gift_status
+  // payer_id
+  // current_rate
+  // merchant_rate
+  // profit_rate
+  // wallet_address
+  // status
+  const { user } = useUserStore.getState();
+
+  const connection = await pool.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    const payerId = await getOrCreatePayer(connection!, {
+      customer_phoneNumber: user?.phone || "",
+      chat_id: user?.chatId || "",
+    });
+    // const payerId = await getOrCreatePayer(connection, payerRow);
+
+    const giftId = await insertGift(connection, giftObj, payerId);
+    const transactionId = 1;
+
+    await insertSummary(connection, giftObj, transactionId, "gift");
+
+    await connection.commit();
+    return giftId;
+  } catch (err) {
+    await connection.rollback();
+    throw err;
+  }
+};

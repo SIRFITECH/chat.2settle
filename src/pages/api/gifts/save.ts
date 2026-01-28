@@ -1,4 +1,4 @@
-import { saveTransferTransaction } from "@/services/transactionService/transferService/helpers/saveTransfer";
+import { saveGiftTransaction } from "@/services/transactionService/giftService/helpers/saveGift";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -10,8 +10,8 @@ export default async function handler(
   }
 
   try {
-    const transferId = await saveTransferTransaction(req.body);
-    return res.status(200).json({ transferId });
+    const giftId = await saveGiftTransaction(req.body);
+    return res.status(200).json({ giftId });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }

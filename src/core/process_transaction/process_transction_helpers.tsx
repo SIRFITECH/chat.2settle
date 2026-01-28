@@ -1,7 +1,14 @@
 import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { displayGiftFeedbackMessage } from "@/features/chatbot/handlers/chatHandlers/menus/display.gift.transaction.confirmation";
-import { updateGiftTransaction } from "@/services/transactionService/giftService/giftService";
-import { saveTransferTransaction } from "@/services/transactionService/transferService/helpers/saveTransaction";
+import {
+  createGift,
+  updateGiftTransaction,
+} from "@/services/transactionService/giftService/giftService";
+import {
+  createRequest,
+  updateRequest,
+} from "@/services/transactionService/requestService/requestService";
+import { saveTransferTransaction } from "@/services/transactionService/transferService/helpers/saveTransfer";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
@@ -37,13 +44,14 @@ export async function processTransaction() {
     // call the endpoint that saves transfer transaction
     console.log("Processing transfer transaction...");
     await createTransfer({});
-    ;
   } else if (isGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing gift transaction...");
+    await createGift({});
   } else if (isRequest) {
     // call the endpoint that saves request transaction
     console.log("Processing request transaction...");
+    await createRequest({});
   } else if (isClaimGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing claim gift transaction...");
@@ -61,6 +69,7 @@ export async function processTransaction() {
   } else {
     // call the endpoint that saves request transaction
     console.log("Paying request transaction...");
+    await updateRequest({});
   }
 
   // const {

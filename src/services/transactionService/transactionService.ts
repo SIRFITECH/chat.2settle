@@ -239,7 +239,6 @@ export async function insertSummary(
 export async function insertGift(
   conn: mysql.Connection,
   giftDetails: GiftRow,
-  receiverId: number | null,
   payerId: number,
 ): Promise<number> {
   const clean = (val?: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
@@ -254,7 +253,6 @@ export async function insertGift(
     charges: clean(giftDetails.charges),
     crypto_amount: clean(giftDetails.crypto_amount),
     date: giftDetails.date ? new Date(giftDetails.date) : null,
-    receiver_id: receiverId,
     payer_id: payerId,
     current_rate: clean(giftDetails.current_rate),
     merchant_rate: clean(giftDetails.merchant_rate),
@@ -272,7 +270,6 @@ export async function insertRequest(
   conn: mysql.Connection,
   requestDetails: RequestRow,
   receiverId: number | null,
-  payerId: number,
 ): Promise<number> {
   const clean = (val?: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
 
@@ -288,7 +285,6 @@ export async function insertRequest(
     crypto_amount: clean(requestDetails.crypto_amount),
     date: requestDetails.date ? new Date(requestDetails.date) : null,
     receiver_id: receiverId,
-    payer_id: payerId,
     current_rate: clean(requestDetails.current_rate),
     merchant_rate: clean(requestDetails.merchant_rate),
     profit_rate: clean(requestDetails.profit_rate),

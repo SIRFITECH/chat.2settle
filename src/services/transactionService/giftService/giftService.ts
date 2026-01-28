@@ -1,7 +1,7 @@
 import { userData } from "@/types/general_types";
 import api from "../../api-client";
 import axios from "axios";
-import { ReceiverRow } from "../transactionService";
+import { GiftRow, ReceiverRow } from "../transactionService";
 
 export const isGiftValid = async (
   gift_id: string,
@@ -55,3 +55,15 @@ export const updateGiftTransaction = async (
     }
   }
 };
+
+export const createGift = async (giftData: GiftRow): Promise<any> => {
+  try {
+    const response = await api.post<any>(`/api/gifts/save`, giftData);
+    console.log("Use transfer created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing transferData data:", error);
+    throw new Error("Failed to store transferData data");
+  }
+};
+
