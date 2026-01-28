@@ -27,7 +27,9 @@ export type ReceiverRow = {
 // merchant_rate
 // profit_rate
 // estimate_amount
-// wallet_address// status
+// wallet_address
+// status
+
 export type TransferRow = {
   crypto?: string;
   network?: string;
@@ -39,10 +41,10 @@ export type TransferRow = {
 
   charges?: string;
 
-  date?: string;
+  date?: string | Date;
   transfer_id?: string;
-  receiver_id?: string;
-  payer_id?: string;
+  receiver_id?: number;
+  payer_id?: number;
 
   current_rate?: string;
   merchant_rate?: string;
@@ -60,7 +62,7 @@ export type GiftRow = {
   amount_payable?: string;
   charges?: string;
   crypto_amount?: string;
-  date?: string;
+  date?: string | Date;
   receiver_id?: number;
   payer_id?: number;
   current_rate?: string;
@@ -80,7 +82,7 @@ export type RequestRow = {
   amount_payable?: string;
   charges?: string;
   crypto_amount?: string;
-  date?: string;
+  date?: string | Date;
   receiver_id?: number;
   payer_id?: number;
   current_rate?: string;

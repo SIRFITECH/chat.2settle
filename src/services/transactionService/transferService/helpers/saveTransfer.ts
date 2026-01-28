@@ -24,6 +24,7 @@ export const saveTransferTransaction = async (transferObj: TransferRow) => {
   // chat_id
   try {
     await connection.beginTransaction();
+
     const payerId = await getOrCreatePayer(connection!, {
       customer_phoneNumber: user?.phone || "",
       chat_id: user?.chatId || "",

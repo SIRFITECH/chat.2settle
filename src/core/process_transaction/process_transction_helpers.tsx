@@ -28,10 +28,9 @@ export async function processTransaction() {
   const { acct_number, bank_name, receiver_name } = bankData;
   const receiver_phoneNumber = user?.phone || "";
 
-  console.log("We are processing the user", user);
-  console.log("We are processing the reciever", bankData);
-  console.log("We are processing the payment", paymentStore);
-  // console.log("We are processing the transaction", transaction);
+  // console.log("We are processing the user", user);
+  // console.log("We are processing the reciever", bankData);
+  // console.log("We are processing the payment", paymentStore);
 
   const isTransfer = currentStep.transactionType?.toLowerCase() === "transfer";
   const isRequest = currentStep.transactionType?.toLowerCase() === "request";

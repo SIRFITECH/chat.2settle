@@ -1,0 +1,11 @@
+import { z } from "zod";
+
+export const shortStr = (max = 50) => z.string().trim().min(1).max(max);
+
+export const longStr = (max = 255) => z.string().trim().max(max);
+export const number = (min = 0, max = 999999) => z.number().min(min).max(max);
+
+export const amountStr = () =>
+  z.string().regex(/^\d+(\.\d+)?$/, "Invalid amount");
+
+export const dateField = z.union([z.string(), z.date()]).optional();
