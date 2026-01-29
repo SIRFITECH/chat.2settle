@@ -170,16 +170,16 @@ export const giftSchema = z
     summary: summarySchema,
   })
   .superRefine((val, ctx) => {
-    const { payer, summary, ...transfer } = val;
+    const { payer, summary, ...gift } = val;
 
-    const hasTransferField = Object.values(transfer).some(
+    const hasgiftField = Object.values(gift).some(
       (v) => v !== undefined && v !== null && v !== "",
     );
 
-    if (!hasTransferField) {
+    if (!hasgiftField) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "At least one transfer field must be provided",
+        message: "At least one gift field must be provided",
       });
     }
   });
@@ -200,8 +200,8 @@ export const requestSchema = z
 
     date: dateField,
 
-    receiver_id: z.number().optional(),
-    payer_id: z.number().optional(),
+    // receiver_id: z.number().optional(),
+    // payer_id: z.number().optional(),
 
     current_rate: amountStr().optional(),
     merchant_rate: amountStr().optional(),
@@ -214,16 +214,16 @@ export const requestSchema = z
     summary: summarySchema,
   })
   .superRefine((val, ctx) => {
-    const { receiver, summary, ...transfer } = val;
+    const { receiver, summary, ...request } = val;
 
-    const hasTransferField = Object.values(transfer).some(
+    const hasRequestField = Object.values(request).some(
       (v) => v !== undefined && v !== null && v !== "",
     );
 
-    if (!hasTransferField) {
+    if (!hasRequestField) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "At least one transfer field must be provided",
+        message: "At least one request field must be provided",
       });
     }
   });
@@ -264,3 +264,5 @@ export const requestUpdateSchema = requestSchema
       path: ["request_id"],
     },
   );
+
+

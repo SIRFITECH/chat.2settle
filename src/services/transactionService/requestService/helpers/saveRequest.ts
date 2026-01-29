@@ -4,9 +4,10 @@ import { useUserStore } from "stores/userStore";
 import {
   getOrCreateReceiver,
   insertRequest,
-  RequestRow
+  insertSummary,
+  RequestRow,
 } from "../../transactionService";
-
+import { generateTransactionId } from "@/utils/utilities";
 
 export const saveRequestTransaction = async (requestObj: RequestRow) => {
   // REQUEST
@@ -34,23 +35,23 @@ export const saveRequestTransaction = async (requestObj: RequestRow) => {
   // account name
   // phone number
 
+  const { receiver, summary } = requestObj;
+
+  if (!receiver) {
+    throw new Error("Receiver is required");
+  }
+
   const connection = await pool.getConnection();
 
-  const { user } = useUserStore.getState();
-  const { bankData } = useBankStore.getState();
   try {
     await connection.beginTransaction();
 
-    const receiverId = await getOrCreateReceiver(connection!, {
-      bank_name: bankData.bank_name,
-      acct_number: bankData.acct_number,
-      receiver_name: bankData.receiver_name,
-      receiver_phoneNumber: user?.phone || "",
-    });
+    const receiverId = await getOrCreateReceiver(connection!, receiver);
 
     const requestId = await insertRequest(connection!, requestObj, receiverId!);
+    const transactionId = generateTransactionId();
 
-    // const receiverId = await getOrCreateReceiver(connection, receiverRow);
+    await insertSummary(connection, summary!, transactionId, "request");
 
     await connection.commit();
     return requestId;

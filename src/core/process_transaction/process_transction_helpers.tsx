@@ -29,16 +29,12 @@ export async function processTransaction() {
   const { acct_number, bank_name, receiver_name } = bankData;
   const receiver_phoneNumber = user?.phone!;
   const status = "Processing";
-  const effort = parseFloat(paymentStore.paymentNairaEstimate) * 0.1;
+  const effort = paymentStore.paymentNairaEstimate ? parseFloat(paymentStore.paymentNairaEstimate) * 0.1: null;
   const transferId = generateTransactionId().toString();
 
   function cleanCurrency(currencyStr: string): string {
     return currencyStr.replace(/[^0-9.]/g, "");
   }
-
-  console.log("We are processing the user", user);
-  console.log("We are processing the reciever", bankData);
-  console.log("We are processing the payment", paymentStore);
 
   const payer = {
     customer_phoneNumber: receiver_phoneNumber,
@@ -56,7 +52,7 @@ export async function processTransaction() {
     transaction_type: currentStep.transactionType?.toLowerCase(),
     total_dollar: paymentStore.paymentAssetEstimate,
     total_naira: paymentStore.paymentNairaEstimate,
-    effort: effort.toString(),
+    effort: effort?.toString() ,
     asset_price: cleanCurrency(paymentStore.assetPrice),
     status,
   };

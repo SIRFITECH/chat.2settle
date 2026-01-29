@@ -18,6 +18,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 //   }
 // }
 
+const normalize = (obj: any) =>
+  JSON.parse(JSON.stringify(obj, (_, v) => (v === "" ? undefined : v)));
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -26,7 +29,8 @@ export default async function handler(
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const parsed = requestSchema.safeParse(req.body);
+
+  const parsed = requestSchema.safeParse(normalize(req.body));
 
   if (!parsed.success) {
     return res.status(400).json({

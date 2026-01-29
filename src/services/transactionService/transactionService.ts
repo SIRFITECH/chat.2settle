@@ -126,8 +126,8 @@ export type RequestRow = {
   charges?: string;
   crypto_amount?: string;
   date?: string | Date;
-  receiver_id?: number;
-  payer_id?: number;
+  // receiver_id?: number;
+  // payer_id?: number;
   current_rate?: string;
   merchant_rate?: string;
   profit_rate?: string;

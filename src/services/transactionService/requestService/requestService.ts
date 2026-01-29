@@ -1,6 +1,5 @@
 import { userData } from "@/types/general_types";
 import api from "../../api-client";
-import axios from "axios";
 import { RequestRow } from "../transactionService";
 
 export const isRequestValid = async (
@@ -29,16 +28,19 @@ export const isRequestValid = async (
 export const createRequest = async (requestData: RequestRow): Promise<any> => {
   try {
     const response = await api.post<any>(`/api/requests/save`, requestData);
-    console.log("Use transfer created successfully");
+    console.log("Use request created successfully");
     return response.data;
   } catch (error) {
-    console.error("Error storing transferData data:", error);
-    throw new Error("Failed to store transferData data");
+    console.error("Error storing requestData data:", error);
+    throw new Error("Failed to store requestData data");
   }
 };
 export const updateRequest = async (requestData: RequestRow): Promise<any> => {
   try {
-    const response = await api.post<any>(`/api/requests/update_request`, requestData);
+    const response = await api.post<any>(
+      `/api/requests/update_request`,
+      requestData,
+    );
     console.log("Use transfer created successfully");
     return response.data;
   } catch (error) {
