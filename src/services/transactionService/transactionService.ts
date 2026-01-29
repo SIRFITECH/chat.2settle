@@ -79,6 +79,7 @@ export type TransferRow = {
 
 export type GiftRow = {
   gift_id?: string;
+  gift_status?: string;
   crypto?: string;
   network?: string;
   estimate_asset?: string;
@@ -317,6 +318,7 @@ export async function insertGift(
 
   const gift = {
     gift_id: giftDetails.gift_id,
+    gift_status: giftDetails.gift_status,
     crypto: giftDetails.crypto,
     network: giftDetails.network,
     estimate_asset: giftDetails.estimate_asset,

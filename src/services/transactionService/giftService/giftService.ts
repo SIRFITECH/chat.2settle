@@ -35,7 +35,6 @@ export const updateGiftTransaction = async (
   try {
     const response = await api.post("/api/gifts/update_gift", {
       gift_id,
-
       receiver: receiver,
       giftUpdates: {
         gift_status: "Claimed",
