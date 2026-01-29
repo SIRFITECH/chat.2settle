@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise";
 type PayerRow = {
-  chat_id: string;
-  customer_phoneNumber: string;
+  chat_id?: string;
+  customer_phoneNumber?: string;
 };
 
 export type ReceiverRow = {
@@ -49,6 +49,32 @@ export type TransferRow = {
   profit_rate?: string;
   wallet_address?: string;
   status?: string;
+
+  payer?: {
+    chat_id?: string;
+    customer_phoneNumber?: string;
+  };
+
+  receiver?: {
+    acct_number?: string;
+    bank_name?: string;
+    receiver_name?: string;
+    receiver_phoneNumber?: string;
+    is_vendor?: boolean;
+  };
+
+  summary?: {
+    transaction_type?: string;
+
+    total_dollar?: string;
+    total_naira?: string;
+
+    effort?: string;
+    merchant_id?: string;
+    ref_code?: string;
+    asset_price?: string;
+    status?: string;
+  };
 };
 
 export type GiftRow = {
@@ -90,18 +116,16 @@ export type RequestRow = {
   status?: string;
 };
 
-
 export type SummaryRow = {
   total_dollar?: string;
   total_naira?: string;
 
   effort?: string;
-  merchant_id?: number;
+  merchant_id?: string;
   ref_code?: string;
   asset_price?: string;
   status?: string;
 };
-
 
 // SUMMARY
 // transaction_type
@@ -144,6 +168,7 @@ export async function getOrCreateReceiver(
   conn: mysql.Connection,
   receiverRow: ReceiverRow,
 ): Promise<number | null> {
+  console.log("Receiver Row:", receiverRow);
   if (!receiverRow.acct_number || !receiverRow.bank_name) return null;
 
   const [results]: any = await conn.query(
@@ -184,6 +209,10 @@ export async function insertTransfer(
   const amountMatch = transferDetails.charges?.match(/\d+(\.\d+)?/);
   const chargeAmount = amountMatch ? Number(amountMatch[0]) : 0;
 
+  if (!receiverId || !payerId) {
+    throw new Error("Receiver/payer details missing or invalid");
+  }
+
   const transfer = {
     crypto: transferDetails.crypto,
     network: transferDetails.network,
@@ -199,6 +228,8 @@ export async function insertTransfer(
     current_rate: clean(transferDetails.current_rate!),
     merchant_rate: clean(transferDetails.merchant_rate!),
     profit_rate: clean(transferDetails.profit_rate!),
+    wallet_address: transferDetails.wallet_address!,
+    status: transferDetails.status,
   };
 
   const [insertResult]: any = await conn.query(
@@ -409,7 +440,6 @@ export async function insertRequest(
 
 //   return insertResult.insertId;
 // }
-
 
 // type SummaryRow = {
 //   status: string;

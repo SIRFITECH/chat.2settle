@@ -10,13 +10,11 @@ import {
 } from "@/services/transactionService/requestService/requestService";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
 import { generateChatId } from "@/utils/utilities";
-import { request } from "node_modules/axios/index.cjs";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
 import { useUserStore } from "stores/userStore";
-import { net } from "web3";
 
 export async function processTransaction() {
   const currentStep = useChatStore.getState().currentStep;
@@ -38,6 +36,26 @@ export async function processTransaction() {
   console.log("We are processing the user", user);
   console.log("We are processing the reciever", bankData);
   console.log("We are processing the payment", paymentStore);
+
+  const payer = {
+    customer_phoneNumber: user?.phone!,
+    chat_id: user?.chatId!.toString(),
+  };
+
+  const receiver = {
+    acct_number: acct_number,
+    bank_name: bank_name,
+    receiver_name: receiver_name,
+    receiver_phoneNumber: receiver_phoneNumber,
+  };
+
+  const summary = {
+    transaction_type: currentStep.transactionType?.toLowerCase(),
+    total_dollar: paymentStore.paymentAssetEstimate,
+    total_naira: paymentStore.paymentNairaEstimate,
+    // effort: "Processing",
+    asset_price: cleanCurrency(paymentStore.assetPrice),
+  };
 
   const isTransfer = currentStep.transactionType?.toLowerCase() === "transfer";
   const isRequest = currentStep.transactionType?.toLowerCase() === "request";
@@ -75,6 +93,10 @@ export async function processTransaction() {
     profit_rate: paymentStore.profitRate,
     wallet_address: paymentStore.activeWallet,
     status: "Processing",
+
+    payer,
+    receiver,
+    summary,
   };
   const giftData = {
     // GIFT

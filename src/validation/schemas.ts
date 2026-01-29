@@ -1,42 +1,146 @@
 import { z } from "zod";
 import { amountStr, dateField, longStr, shortStr } from "./helpers";
 
-export const payerSchema = z.object({
-  chat_id: shortStr(50),
-  customer_phoneNumber: shortStr(20),
-});
+export const payerSchema = z
+  .object({
+    chat_id: shortStr(50).optional(),
+    customer_phoneNumber: shortStr(20).optional(),
+  })
+  .superRefine((val, ctx) => {
+    const hasValue = Object.values(val).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
 
-export const receiverSchema = z.object({
-  acct_number: shortStr(20).optional(),
-  bank_name: shortStr(50).optional(),
-  receiver_name: shortStr(100).optional(),
-  receiver_phoneNumber: shortStr(20).optional(),
-  is_vendor: z.boolean().optional(),
-});
+    if (!hasValue) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Payer must have at least one identifier",
+      });
+    }
+  });
 
-export const transferSchema = z.object({
-  crypto: shortStr(20).optional(),
-  network: shortStr(20).optional(),
-  estimate_asset: shortStr(20).optional(),
+// const payerSchema = z.object({
+//   chat_id: shortStr(50),
+//   customer_phoneNumber: shortStr(20),
+// });
 
-  amount_payable: amountStr().optional(),
-  crypto_amount: amountStr().optional(),
-  estimate_amount: amountStr().optional(),
-  charges: amountStr().optional(),
+export const receiverSchema = z
+  .object({
+    acct_number: shortStr(20).optional(),
+    bank_name: shortStr(50).optional(),
+    receiver_name: shortStr(80).optional(),
+    receiver_phoneNumber: shortStr(20).optional(),
+    is_vendor: z.boolean().optional(),
+  })
+  .superRefine((val, ctx) => {
+    const hasValue = Object.values(val).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
 
-  date: dateField,
-  transfer_id: shortStr(50).optional(),
+    if (!hasValue) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Receiver must have at least one field",
+      });
+    }
+  });
 
-  receiver_id: shortStr(50).optional(),
-  payer_id: shortStr(50).optional(),
+export const summarySchema = z
+  .object({
+    transaction_type: shortStr(30).optional(),
+    total_dollar: amountStr().optional(),
+    total_naira: amountStr().optional(),
+    effort: shortStr(50).optional(),
+    merchant_id: shortStr(50).optional(),
+    ref_code: shortStr(50).optional(),
+    asset_price: amountStr().optional(),
+    status: shortStr(20).optional(),
+  })
+  .superRefine((val, ctx) => {
+    const hasValue = Object.values(val).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
 
-  current_rate: amountStr().optional(),
-  merchant_rate: amountStr().optional(),
-  profit_rate: amountStr().optional(),
+    if (!hasValue) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Summary must have at least one field",
+      });
+    }
+  });
 
-  wallet_address: longStr(120).optional(),
-  status: shortStr(20).optional(),
-});
+//   const receiverSchema = z.object({
+//   acct_number: shortStr(20).optional(),
+//   bank_name: shortStr(50).optional(),
+//   receiver_name: shortStr(100).optional(),
+//   receiver_phoneNumber: shortStr(20).optional(),
+//   is_vendor: z.boolean().optional(),
+// });
+
+export const transferSchema = z
+  .object({
+    crypto: shortStr(20).optional(),
+    network: shortStr(20).optional(),
+    estimate_asset: shortStr(20).optional(),
+
+    amount_payable: amountStr().optional(),
+    crypto_amount: amountStr().optional(),
+    estimate_amount: amountStr().optional(),
+    charges: amountStr().optional(),
+
+    date: dateField.optional(),
+    transfer_id: shortStr(50).optional(),
+
+    current_rate: amountStr().optional(),
+    merchant_rate: amountStr().optional(),
+    profit_rate: amountStr().optional(),
+
+    wallet_address: longStr(120).optional(),
+    status: shortStr(20).optional(),
+
+    payer: payerSchema,
+
+    receiver: receiverSchema,
+    summary: summarySchema,
+  })
+  .superRefine((val, ctx) => {
+    const { payer, receiver, summary, ...transfer } = val;
+
+    const hasTransferField = Object.values(transfer).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
+
+    if (!hasTransferField) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one transfer field must be provided",
+      });
+    }
+  });
+
+//   const transferSchema = z.object({
+//   crypto: shortStr(20).optional(),
+//   network: shortStr(20).optional(),
+//   estimate_asset: shortStr(20).optional(),
+
+//   amount_payable: amountStr().optional(),
+//   crypto_amount: amountStr().optional(),
+//   estimate_amount: amountStr().optional(),
+//   charges: amountStr().optional(),
+
+//   date: dateField,
+//   transfer_id: shortStr(50).optional(),
+
+//   receiver_id: shortStr(50).optional(),
+//   payer_id: shortStr(50).optional(),
+
+//   current_rate: amountStr().optional(),
+//   merchant_rate: amountStr().optional(),
+//   profit_rate: amountStr().optional(),
+
+//   wallet_address: longStr(120).optional(),
+//   status: shortStr(20).optional(),
+// });
 
 export const giftSchema = z.object({
   gift_id: shortStr(50).optional(),
@@ -86,15 +190,15 @@ export const requestSchema = z.object({
   status: shortStr(20).optional(),
 });
 
-export const summarySchema = z.object({
-  total_dollar: amountStr().optional(),
-  total_naira: amountStr().optional(),
-  effort: shortStr(50).optional(),
-  merchant_id: z.number().optional(),
-  ref_code: shortStr(50).optional(),
-  asset_price: amountStr().optional(),
-  status: shortStr(20).optional(),
-});
+// export const summarySchema = z.object({
+//   total_dollar: amountStr().optional(),
+//   total_naira: amountStr().optional(),
+//   effort: shortStr(50).optional(),
+//   merchant_id: z.number().optional(),
+//   ref_code: shortStr(50).optional(),
+//   asset_price: amountStr().optional(),
+//   status: shortStr(20).optional(),
+// });
 
 export const giftUpdateSchema = z
   .object({
