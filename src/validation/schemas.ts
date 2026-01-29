@@ -142,53 +142,91 @@ export const transferSchema = z
 //   status: shortStr(20).optional(),
 // });
 
-export const giftSchema = z.object({
-  gift_id: shortStr(50).optional(),
-  crypto: shortStr(20).optional(),
-  network: shortStr(20).optional(),
-  estimate_asset: shortStr(20).optional(),
-  estimate_amount: amountStr().optional(),
-  amount_payable: amountStr().optional(),
-  charges: amountStr().optional(),
-  crypto_amount: amountStr().optional(),
-  date: dateField,
+export const giftSchema = z
+  .object({
+    gift_id: shortStr(50).optional(),
+    gift_status: shortStr(20).optional(),
+    crypto: shortStr(20).optional(),
+    network: shortStr(20).optional(),
+    estimate_asset: shortStr(20).optional(),
+    estimate_amount: amountStr().optional(),
+    amount_payable: amountStr().optional(),
+    charges: amountStr().optional(),
+    crypto_amount: amountStr().optional(),
+    date: dateField,
 
-  receiver_id: z.number().optional(),
-  payer_id: z.number().optional(),
+    receiver_id: z.number().optional(),
+    payer_id: z.number().optional(),
 
-  current_rate: amountStr().optional(),
-  merchant_rate: amountStr().optional(),
-  profit_rate: amountStr().optional(),
+    current_rate: amountStr().optional(),
+    merchant_rate: amountStr().optional(),
+    profit_rate: amountStr().optional(),
 
-  wallet_address: longStr(120).optional(),
-  status: shortStr(20).optional(),
-});
+    wallet_address: longStr(120).optional(),
+    status: shortStr(20).optional(),
 
-export const requestSchema = z.object({
-  request_id: shortStr(50).optional(),
-  request_status: shortStr(20).optional(),
+    payer: payerSchema,
 
-  crypto: shortStr(20).optional(),
-  network: shortStr(20).optional(),
-  estimate_asset: shortStr(20).optional(),
+    summary: summarySchema,
+  })
+  .superRefine((val, ctx) => {
+    const { payer, summary, ...transfer } = val;
 
-  estimate_amount: amountStr().optional(),
-  amount_payable: amountStr().optional(),
-  charges: amountStr().optional(),
-  crypto_amount: amountStr().optional(),
+    const hasTransferField = Object.values(transfer).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
 
-  date: dateField,
+    if (!hasTransferField) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one transfer field must be provided",
+      });
+    }
+  });
 
-  receiver_id: z.number().optional(),
-  payer_id: z.number().optional(),
+export const requestSchema = z
+  .object({
+    request_id: shortStr(50).optional(),
+    request_status: shortStr(20).optional(),
 
-  current_rate: amountStr().optional(),
-  merchant_rate: amountStr().optional(),
-  profit_rate: amountStr().optional(),
+    crypto: shortStr(20).optional(),
+    network: shortStr(20).optional(),
+    estimate_asset: shortStr(20).optional(),
 
-  wallet_address: longStr(120).optional(),
-  status: shortStr(20).optional(),
-});
+    estimate_amount: amountStr().optional(),
+    amount_payable: amountStr().optional(),
+    charges: amountStr().optional(),
+    crypto_amount: amountStr().optional(),
+
+    date: dateField,
+
+    receiver_id: z.number().optional(),
+    payer_id: z.number().optional(),
+
+    current_rate: amountStr().optional(),
+    merchant_rate: amountStr().optional(),
+    profit_rate: amountStr().optional(),
+
+    wallet_address: longStr(120).optional(),
+    status: shortStr(20).optional(),
+
+    receiver: receiverSchema,
+    summary: summarySchema,
+  })
+  .superRefine((val, ctx) => {
+    const { receiver, summary, ...transfer } = val;
+
+    const hasTransferField = Object.values(transfer).some(
+      (v) => v !== undefined && v !== null && v !== "",
+    );
+
+    if (!hasTransferField) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "At least one transfer field must be provided",
+      });
+    }
+  });
 
 // export const summarySchema = z.object({
 //   total_dollar: amountStr().optional(),

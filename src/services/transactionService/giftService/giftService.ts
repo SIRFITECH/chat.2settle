@@ -59,11 +59,11 @@ export const updateGiftTransaction = async (
 export const createGift = async (giftData: GiftRow): Promise<any> => {
   try {
     const response = await api.post<any>(`/api/gifts/save`, giftData);
-    console.log("Use transfer created successfully");
+    console.log("Use gift created successfully");
     return response.data;
   } catch (error) {
-    console.error("Error storing transferData data:", error);
-    throw new Error("Failed to store transferData data");
+    console.error("Error storing gift data:", error);
+    throw new Error("Failed to store gift data");
   }
 };
 

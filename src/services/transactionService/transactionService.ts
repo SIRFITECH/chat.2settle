@@ -94,6 +94,24 @@ export type GiftRow = {
   profit_rate?: string;
   wallet_address?: string;
   status?: string;
+
+  payer?: {
+    chat_id?: string;
+    customer_phoneNumber?: string;
+  };
+
+  summary?: {
+    transaction_type?: string;
+
+    total_dollar?: string;
+    total_naira?: string;
+
+    effort?: string;
+    merchant_id?: string;
+    ref_code?: string;
+    asset_price?: string;
+    status?: string;
+  };
 };
 
 export type RequestRow = {
@@ -114,6 +132,27 @@ export type RequestRow = {
   profit_rate?: string;
   wallet_address?: string;
   status?: string;
+
+  receiver?: {
+    acct_number?: string;
+    bank_name?: string;
+    receiver_name?: string;
+    receiver_phoneNumber?: string;
+    is_vendor?: boolean;
+  };
+
+  summary?: {
+    transaction_type?: string;
+
+    total_dollar?: string;
+    total_naira?: string;
+
+    effort?: string;
+    merchant_id?: string;
+    ref_code?: string;
+    asset_price?: string;
+    status?: string;
+  };
 };
 
 export type SummaryRow = {
@@ -274,6 +313,8 @@ export async function insertGift(
 ): Promise<number> {
   const clean = (val?: string) => Number(val?.replace(/[^0-9.]/g, "") || 0);
 
+  const date = new Date(giftDetails.date!);
+
   const gift = {
     gift_id: giftDetails.gift_id,
     crypto: giftDetails.crypto,
@@ -283,7 +324,7 @@ export async function insertGift(
     amount_payable: clean(giftDetails.amount_payable),
     charges: clean(giftDetails.charges),
     crypto_amount: clean(giftDetails.crypto_amount),
-    date: giftDetails.date ? new Date(giftDetails.date) : null,
+    date,
     payer_id: payerId,
     current_rate: clean(giftDetails.current_rate),
     merchant_rate: clean(giftDetails.merchant_rate),

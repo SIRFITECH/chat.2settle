@@ -104,6 +104,7 @@ export async function processTransaction() {
     receiver,
     summary,
   };
+
   const giftData = {
     // GIFT
     // gift_id
@@ -123,22 +124,26 @@ export async function processTransaction() {
     // profit_rate
     // wallet_address
     // status
-    gift_id: generateChatId().toString(),
+    gift_id: generateTransactionId().toString(),
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
     estimate_amount: paymentStore.paymentNairaEstimate,
     amount_payable: paymentStore.paymentNairaEstimate,
-    charges: paymentStore.nairaCharge,
+    charges: cleanCurrency(paymentStore.nairaCharge),
     crypto_amount: paymentStore.paymentAssetEstimate,
     date: new Date(),
     gift_status: "Not claimed",
-    current_rate: paymentStore.rate,
+    current_rate: cleanCurrency(paymentStore.rate),
     merchant_rate: paymentStore.merchantRate,
     profit_rate: paymentStore.profitRate,
     wallet_address: paymentStore.activeWallet,
-    status: "Processing",
+    status,
+
+    payer,
+    summary,
   };
+
   const requestData = {
     // REQUEST
     // request_id
@@ -159,22 +164,26 @@ export async function processTransaction() {
     // wallet_address
     // status
 
-    request_id: generateChatId().toString(),
+    request_id: generateTransactionId().toString(),
     request_status: "Not paid",
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
     estimate_amount: paymentStore.paymentNairaEstimate,
     amount_payable: paymentStore.paymentNairaEstimate,
-    charges: paymentStore.nairaCharge,
+    charges: cleanCurrency(paymentStore.nairaCharge),
     crypto_amount: paymentStore.paymentAssetEstimate,
     date: new Date(),
-    current_rate: paymentStore.rate,
+    current_rate: cleanCurrency(paymentStore.rate),
     merchant_rate: paymentStore.merchantRate,
     profit_rate: paymentStore.profitRate,
     wallet_address: paymentStore.activeWallet,
-    status: "Processing",
+    status,
+
+    receiver,
+    summary,
   };
+
   const updateRequestData = {};
 
   if (isTransfer) {
