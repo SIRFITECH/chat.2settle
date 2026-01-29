@@ -258,6 +258,10 @@ export async function insertSummary(
     total_dollar: dollarAmount,
     total_naira: naira,
     transaction_id: transactionId,
+    asset_price: row.asset_price ? clean(row.asset_price) : null,
+    effort: row.effort ? clean(row.effort) : 0,
+    merchant_id: row.merchant_id ? Number(row.merchant_id) : null,
+    ref_code: row.ref_code ?? null,
   };
 
   await conn.query("INSERT INTO summaries SET ?", summary);
