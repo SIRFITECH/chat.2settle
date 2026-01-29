@@ -9,7 +9,7 @@ import {
   updateRequest,
 } from "@/services/transactionService/requestService/requestService";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
-import { generateChatId } from "@/utils/utilities";
+import { generateChatId, generateTransactionId } from "@/utils/utilities";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
@@ -27,7 +27,10 @@ export async function processTransaction() {
   const { giftId } = useTransactionStore.getState();
 
   const { acct_number, bank_name, receiver_name } = bankData;
-  const receiver_phoneNumber = user?.phone || "";
+  const receiver_phoneNumber = user?.phone!;
+  const status = "Processing";
+  const effort = parseFloat(paymentStore.paymentNairaEstimate) * 0.1;
+  const transferId = generateTransactionId().toString();
 
   function cleanCurrency(currencyStr: string): string {
     return currencyStr.replace(/[^0-9.]/g, "");
@@ -38,7 +41,7 @@ export async function processTransaction() {
   console.log("We are processing the payment", paymentStore);
 
   const payer = {
-    customer_phoneNumber: user?.phone!,
+    customer_phoneNumber: receiver_phoneNumber,
     chat_id: user?.chatId!.toString(),
   };
 
@@ -53,8 +56,9 @@ export async function processTransaction() {
     transaction_type: currentStep.transactionType?.toLowerCase(),
     total_dollar: paymentStore.paymentAssetEstimate,
     total_naira: paymentStore.paymentNairaEstimate,
-    // effort: "Processing",
+    effort: effort.toString(),
     asset_price: cleanCurrency(paymentStore.assetPrice),
+    status,
   };
 
   const isTransfer = currentStep.transactionType?.toLowerCase() === "transfer";
@@ -88,11 +92,13 @@ export async function processTransaction() {
     crypto_amount: paymentStore.paymentAssetEstimate,
     charges: cleanCurrency(paymentStore.nairaCharge),
     date: new Date(),
+    transfer_id: transferId,
     current_rate: cleanCurrency(paymentStore.rate),
     merchant_rate: paymentStore.merchantRate,
     profit_rate: paymentStore.profitRate,
+    estimate_amount: paymentStore.paymentNairaEstimate,
     wallet_address: paymentStore.activeWallet,
-    status: "Processing",
+    status,
 
     payer,
     receiver,
