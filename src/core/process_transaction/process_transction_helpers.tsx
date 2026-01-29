@@ -31,6 +31,10 @@ export async function processTransaction() {
   const { acct_number, bank_name, receiver_name } = bankData;
   const receiver_phoneNumber = user?.phone || "";
 
+  function cleanCurrency(currencyStr: string): string {
+    return currencyStr.replace(/[^0-9.]/g, "");
+  }
+
   console.log("We are processing the user", user);
   console.log("We are processing the reciever", bankData);
   console.log("We are processing the payment", paymentStore);
@@ -64,9 +68,9 @@ export async function processTransaction() {
     estimate_asset: paymentStore.estimateAsset,
     amount_payable: paymentStore.paymentNairaEstimate,
     crypto_amount: paymentStore.paymentAssetEstimate,
-    charges: paymentStore.nairaCharge,
+    charges: cleanCurrency(paymentStore.nairaCharge),
     date: new Date(),
-    current_rate: paymentStore.rate,
+    current_rate: cleanCurrency(paymentStore.rate),
     merchant_rate: paymentStore.merchantRate,
     profit_rate: paymentStore.profitRate,
     wallet_address: paymentStore.activeWallet,
@@ -147,7 +151,7 @@ export async function processTransaction() {
 
   if (isTransfer) {
     // call the endpoint that saves transfer transaction
-    console.log("Processing transfer transaction...");
+    console.log("Processing transfer transaction...", transferData);
     await createTransfer(transferData);
   } else if (isGift) {
     // call the endpoint that saves gift transaction
