@@ -40,7 +40,7 @@ export const updateGiftTransaction = async (
         gift_status: "Claimed",
       },
     });
-    console.log(response.data); // Handle the response
+    // console.log(response.data); // Handle the response
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       // Server responded with a status other than 2xx

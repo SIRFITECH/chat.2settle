@@ -6,6 +6,7 @@ import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { formatCurrency } from "../format_currency";
 import { useTransactionStore } from "stores/transactionStore";
+import { a } from "vitest/dist/chunks/suite.B2jumIFP.js";
 
 type ChargeMenuInput = {
   assetCharge: number;
@@ -100,9 +101,9 @@ export function buildChargeMenuMessage({
           {assetDisplay} = {nairaDisplay}
         </b>
         <br />
-        1. Charge from the amount
+        1. Charge from the Fiat(Naira) amount
         <br />
-        2. Add charges to the amount
+        2. Add charges to the {context.assetSymbol} amount
         <br />
         0. Go back
         <br />
@@ -117,12 +118,14 @@ export function commitChargeToStores(
   rate: number,
   context: ChargeContext,
   charge: ChargeCalculation,
+  input: string,
 ) {
   const {
     setPaymentAssetEstimate,
     setPaymentNairaEstimate,
     setNairaCharge,
     setDollarCharge,
+    setAmountPayable,
   } = usePaymentStore.getState();
 
   const { updateTransaction } = useTransactionStore.getState();
@@ -134,27 +137,39 @@ export function commitChargeToStores(
     paymentNairaEstimate = amount;
     paymentAssetEstimate = context.isUSDT
       ? amount / rate
-      : amount / rate / context.assetPrice;
+      : amount / (rate * context.assetPrice)
   } else if (context.estimateAsset === "dollar") {
-    paymentAssetEstimate = amount;
+    paymentAssetEstimate = amount / context.assetPrice;
     paymentNairaEstimate = amount * rate;
   } else {
-    paymentAssetEstimate = context.isUSDT
-      ? amount
-      : amount / context.assetPrice;
+    paymentAssetEstimate = amount;
+      // context.isUSDT
+      // ? amount
+      // : amount / context.assetPrice;
     paymentNairaEstimate = amount * rate * context.assetPrice;
   }
 
+  console.log("Payment Asset Estimate before charge:", paymentAssetEstimate);
+
+  if (input.trim() === "1") {
+    // charge from amount
+    paymentAssetEstimate = charge.assetCharge;
+    paymentNairaEstimate -= charge.nairaCharge;
+  }
+  if (input.trim() === "2") {
+    // add charge to amount
+    paymentAssetEstimate = charge.assetCharge;
+    paymentNairaEstimate += charge.nairaCharge;
+  }
+  // set estimations
   setPaymentAssetEstimate(paymentAssetEstimate.toString());
   setPaymentNairaEstimate(paymentNairaEstimate.toString());
+  setAmountPayable(paymentNairaEstimate.toString());
+
+  // Set charges
   setNairaCharge(formatCurrency(charge.nairaCharge.toString(), "NGN", "en-NG"));
 
-  setDollarCharge(
-    charge.assetCharge.toFixed(9).toString(),
-    // context.isUSDT
-    //   ? formatCurrency(paymentAssetEstimate.toString(), "USD", "en-NG")
-    //   : `${paymentAssetEstimate.toString()}`,
-  );
+  setDollarCharge(charge.assetCharge.toFixed(9).toString());
 
   updateTransaction({ charges: charge.assetCharge.toString() });
 }

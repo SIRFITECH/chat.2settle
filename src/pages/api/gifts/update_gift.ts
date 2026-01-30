@@ -81,14 +81,6 @@ export default async function handler(
     conn = await pool.getConnection();
     await conn.beginTransaction();
 
-    // let receiverId: number | null = null;
-    let receiverId: number | undefined;
-
-    // if (receiver) {
-    //   receiverId = await getOrCreateReceiver(conn, receiver);
-    //   giftUpdates.receiver_id = receiverId;
-    // }
-
     if (receiver) {
      
     const receiverId = await getOrCreateReceiver(conn, receiver);
@@ -125,7 +117,6 @@ export default async function handler(
 
     return res.status(200).json({
       message: "Gift updated successfully",
-      // receiver_id: receiverId,
     });
   } catch (err: any) {
     if (conn) await conn.rollback();
@@ -134,89 +125,3 @@ export default async function handler(
     if (conn) conn.end();
   }
 }
-
-
-// import { NextApiRequest, NextApiResponse } from "next";
-// import mysql from "mysql2/promise";
-// import pool from "@/lib/mysql";
-// import { getOrCreateReceiver } from "@/services/transactionService/transactionService";
-
-// export default async function handler(
-//   req: NextApiRequest,
-//   res: NextApiResponse,
-// ) {
-//   if (req.method !== "POST") {
-//     res.setHeader("Allow", ["POST"]);
-//     return res.status(405).end(`Method ${req.method} Not Allowed`);
-//   }
-
-//   const { gift_id, receiver, giftUpdates } = req.body;
-
-//   if (!gift_id) {
-//     return res.status(400).json({ message: "Gift ID is required" });
-//   }
-
-//   if (!giftUpdates || Object.keys(giftUpdates).length === 0) {
-//     return res.status(400).json({ message: "No gift fields to update" });
-//   }
-
-//   let conn: mysql.Connection | null = null;
-
-//   try {
-//     // 1️⃣ Get transactional connection
-//     conn = await pool.getConnection();
-//     await conn.beginTransaction();
-
-//     let receiverId: number | null = null;
-
-//     // 2️⃣ Create or fetch receiver
-//     if (receiver) {
-//       receiverId = await getOrCreateReceiver(conn, receiver);
-
-//       if (!receiverId) {
-//         throw new Error("Invalid receiver details");
-//       }
-
-//       giftUpdates.receiver_id = receiverId;
-//     }
-
-//     // 3️⃣ Build dynamic UPDATE
-//     const setClause = Object.keys(giftUpdates)
-//       .map((field) => `${field} = ?`)
-//       .join(", ");
-
-//     const values = Object.values(giftUpdates);
-
-//     const query = `
-//       UPDATE gifts
-//       SET ${setClause}
-//       WHERE gift_id = ?
-//     `;
-
-//     const [result] = await conn.execute<mysql.ResultSetHeader>(query, [
-//       ...values,
-//       gift_id,
-//     ]);
-
-//     if (result.affectedRows === 0) {
-//       throw new Error("Gift not found");
-//     }
-
-//     // 4️⃣ Commit transaction
-//     await conn.commit();
-
-//     return res.status(200).json({
-//       message: "Gift updated successfully",
-//       receiver_id: receiverId,
-//     });
-//   } catch (err) {
-//     if (conn) await conn.rollback();
-
-//     console.error("Transaction failed:", err);
-//     return res.status(500).json({
-//       message: err instanceof Error ? err.message : "Server error",
-//     });
-//   } finally {
-//     if (conn) conn.end();
-//   }
-// }

@@ -719,7 +719,13 @@ export const displayCharge = async (input: string) => {
     rate,
   );
 
-  commitChargeToStores(amount, rate, context, { assetCharge, nairaCharge });
+  commitChargeToStores(
+    amount,
+    rate,
+    context,
+    { assetCharge, nairaCharge },
+    input,
+  );
 
   const message = buildChargeMenuMessage({
     assetCharge,

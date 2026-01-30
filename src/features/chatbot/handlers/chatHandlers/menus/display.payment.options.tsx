@@ -38,7 +38,7 @@ export const displayPayIn = async () => {
   }
 
   const rangeMessage = (
-    <span >
+    <span>
       {estimateAsset.toLowerCase() === "naira" ? (
         <span>
           Min. = {formatCurrency("20000", "NGN", "en-NG")}
@@ -64,7 +64,7 @@ export const displayPayIn = async () => {
   );
   console.log(
     "Just to see what sharedPaymentMode is:",
-    currentStep.transactionType
+    currentStep.transactionType,
   );
   const paymentMode =
     currentStep.transactionType === "transfer" ||
@@ -77,8 +77,8 @@ export const displayPayIn = async () => {
       type: "incoming",
       content: (
         <span>
-          Enter the amount you want to {paymentMode} in {estimateAsset}(
-          {assetSymbol}) value
+          Enter the amount you want to {paymentMode} in {estimateAsset}
+          {estimateAsset.toLowerCase() === "naira" ? "" : ` ${assetSymbol}`} value
           <br />
           <br />
           NOTE:
