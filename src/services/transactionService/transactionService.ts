@@ -208,7 +208,6 @@ export async function getOrCreateReceiver(
   conn: mysql.Connection,
   receiverRow: ReceiverRow,
 ): Promise<number | null> {
-  console.log("Receiver Row:", receiverRow);
   if (!receiverRow.acct_number || !receiverRow.bank_name) return null;
 
   const [results]: any = await conn.query(
