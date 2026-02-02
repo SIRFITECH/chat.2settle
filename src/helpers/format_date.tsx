@@ -22,8 +22,7 @@ export function getFormattedDateTime(date?: Date | string): string {
   return `${time} ${formattedDate}`;
 }
 
-import React, { useState, useEffect } from "react";
-import { usePaymentStore } from "stores/paymentStore";
+import React, { useEffect, useState } from "react";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 
 interface CountdownTimerProps {

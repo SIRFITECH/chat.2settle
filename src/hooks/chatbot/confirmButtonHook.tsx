@@ -69,6 +69,7 @@ const ConfirmAndProceedButton = () => {
     }
     // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
   };
+
   const isExpired = walletIsExpired;
 
   const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
@@ -76,7 +77,6 @@ const ConfirmAndProceedButton = () => {
   useEffect(() => {
     // do not run if the user is not have already copied wallet
     if (hasCopyButtonBeenClicked) return;
-    console.log({ hasCopyButtonBeenClicked });
     // dont run if the user is not going to make payment in the next step
     if (currentStep.stepId !== SHOULD_OPEN_STEP) return; // make sure we pop up only when we have not send payment
     // do not open the dialog if the dialog is already opened
@@ -112,11 +112,16 @@ const ConfirmAndProceedButton = () => {
 
   // const showStatus = hasCopyButtonBeenClicked;
   const showCountdown = walletLastAssignedTime && !isExpired;
-  // console.log({ walletLastAssignedTime, isExpired });
-  // console.log({ hasCopyButtonBeenClicked });
+
   const showExpired = isExpired;
   const expiryTime = new Date(
     new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
+  );
+
+  console.log(
+    "hasCopyButtonBeenClicked on mount:",
+    hasCopyButtonBeenClicked,
+    showCountdown,
   );
 
   return (
