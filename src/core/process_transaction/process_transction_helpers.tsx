@@ -9,7 +9,7 @@ import {
   updateRequest,
 } from "@/services/transactionService/requestService/requestService";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
-import { generateChatId, generateTransactionId } from "@/utils/utilities";
+import { generateTransactionId } from "@/utils/utilities";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";

@@ -111,7 +111,12 @@ const ConfirmAndProceedButton = () => {
   };
 
   // const showStatus = hasCopyButtonBeenClicked;
-  const showCountdown = walletLastAssignedTime && !isExpired;
+  // const showCountdown = walletLastAssignedTime && !isExpired;
+  const showCountdown =
+    !!activeWallet &&
+    hasCopyButtonBeenClicked &&
+    !!walletLastAssignedTime &&
+    !walletIsExpired;
 
   const showExpired = isExpired;
   const expiryTime = new Date(
@@ -121,6 +126,8 @@ const ConfirmAndProceedButton = () => {
   console.log(
     "hasCopyButtonBeenClicked on mount:",
     hasCopyButtonBeenClicked,
+    walletLastAssignedTime,
+    isExpired,
     showCountdown,
   );
 
