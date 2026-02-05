@@ -125,7 +125,6 @@ export function commitChargeToStores(
     setPaymentNairaEstimate,
     setNairaCharge,
     setDollarCharge,
-    setAmountPayable,
   } = usePaymentStore.getState();
 
   const { updateTransaction } = useTransactionStore.getState();
@@ -137,34 +136,59 @@ export function commitChargeToStores(
     paymentNairaEstimate = amount;
     paymentAssetEstimate = context.isUSDT
       ? amount / rate
-      : amount / (rate * context.assetPrice)
+      : amount / (rate * context.assetPrice);
   } else if (context.estimateAsset === "dollar") {
     paymentAssetEstimate = amount / context.assetPrice;
     paymentNairaEstimate = amount * rate;
   } else {
-    paymentAssetEstimate = amount;
-      // context.isUSDT
-      // ? amount
-      // : amount / context.assetPrice;
-    paymentNairaEstimate = amount * rate * context.assetPrice;
+    paymentAssetEstimate = context.isUSDT
+      ? amount
+      : amount / context.assetPrice;
+    paymentNairaEstimate = context.isUSDT
+      ? amount * rate
+      : amount * rate * context.assetPrice;
   }
 
-  console.log("Payment Asset Estimate before charge:", paymentAssetEstimate);
+  // const char = charge.assetCharge;
+  // console.log("Payment Asset Estimate before charge:", paymentAssetEstimate);
+  // console.log("Payment Asset Estimate charge:", char);
 
-  if (input.trim() === "1") {
-    // charge from amount
-    paymentAssetEstimate = charge.assetCharge;
-    paymentNairaEstimate -= charge.nairaCharge;
-  }
-  if (input.trim() === "2") {
-    // add charge to amount
-    paymentAssetEstimate = charge.assetCharge;
-    paymentNairaEstimate += charge.nairaCharge;
-  }
+  // if (input.trim() === "1") {
+  //   // charge from amount
+  //   paymentAssetEstimate = charge.assetCharge;
+  //   paymentNairaEstimate -= charge.nairaCharge;
+
+  //   console.log(
+  //     "Charge from the Fiat",
+  //     paymentAssetEstimate,
+  //     paymentNairaEstimate,
+  //   );
+  // }
+  // if (input.trim() === "2") {
+  //   // add charge to amount
+  //   paymentAssetEstimate = charge.assetCharge;
+  //   paymentNairaEstimate += charge.nairaCharge;
+
+  //   console.log(
+  //     "Charge from the Asset",
+  //     paymentAssetEstimate,
+  //     paymentNairaEstimate,
+  //   );
+  // }
+
+  // console.log(
+  //   "After applying charge paymentAssetEstimate",
+  //   paymentAssetEstimate,
+  // );
+  // console.log(
+  //   "After applying charge paymentNairaEstimate",
+  //   paymentNairaEstimate,
+  // );
+
   // set estimations
   setPaymentAssetEstimate(paymentAssetEstimate.toString());
   setPaymentNairaEstimate(paymentNairaEstimate.toString());
-  setAmountPayable(paymentNairaEstimate.toString());
+  
 
   // Set charges
   setNairaCharge(formatCurrency(charge.nairaCharge.toString(), "NGN", "en-NG"));

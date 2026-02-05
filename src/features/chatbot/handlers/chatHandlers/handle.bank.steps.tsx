@@ -22,8 +22,10 @@ export const handleSearchBank = async (chatInput: string) => {
     paymentAssetEstimate,
     paymentNairaEstimate,
     nairaCharge,
+    dollarCharge,
     setPaymentAssetEstimate,
     setPaymentNairaEstimate,
+    setAmountPayable,
   } = usePaymentStore.getState();
 
   const { setGiftId } = useTransactionStore.getState();
@@ -181,38 +183,29 @@ export const handleSearchBank = async (chatInput: string) => {
       })();
     } else if (chatInput === "1") {
       const finalAssetPayment = parseFloat(paymentAssetEstimate);
-      const finalNairaPayment =
+      let finalNairaPayment =
         parseFloat(paymentNairaEstimate) -
         parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
-      console.log("Naira charger is :", nairaCharge);
-      console.log(
-        "We are setting setSharedPaymentNairaEstimate to:",
-        finalNairaPayment.toString(),
-      );
 
-      setPaymentAssetEstimate(finalAssetPayment.toString());
-      setPaymentNairaEstimate(finalNairaPayment.toString());
-      // setSharedChargeForDB(
-      //   `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
-      // ),
+      console.log("Charge from the Fiat", finalAssetPayment, finalNairaPayment);
+
+      setPaymentAssetEstimate(finalAssetPayment.toFixed(8));
+      setPaymentNairaEstimate(finalNairaPayment.toFixed(8));
+      setAmountPayable(finalNairaPayment.toFixed(8));
+
       displaySearchBank();
       next({ stepId: "selectBank" });
     } else if (chatInput === "2") {
-      const finalAssetPayment =
-        parseFloat(paymentAssetEstimate) +
-        parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
-      // const finalNairaPayment = parseFloat(sharedPaymentNairaEstimate);
+      let finalAssetPayment = parseFloat(paymentAssetEstimate);
+      const finalNairaPayment = parseFloat(paymentNairaEstimate);
 
-      console.log(
-        "We are setting setSharedPaymentNairaEstimate to:",
-        paymentNairaEstimate,
-      );
+      // add charge to amount
+      finalAssetPayment += parseFloat(dollarCharge);
 
-      setPaymentAssetEstimate(finalAssetPayment.toString());
-      // setSharedPaymentNairaEstimate(finalNairaPayment.toString());
-      // setSharedChargeForDB(
-      //   `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
-      // );
+      setPaymentAssetEstimate(finalAssetPayment.toFixed(8));
+      setPaymentNairaEstimate(finalNairaPayment.toFixed(8));
+      setAmountPayable(finalNairaPayment.toFixed(8));
+
       displaySearchBank();
       next({ stepId: "selectBank" });
     } else {
