@@ -15,8 +15,9 @@ import UserBootstrap from "@/components/dashboard/checkTelUser";
 
 export const client = new QueryClient();
 
-
 function MyApp({ Component, pageProps }: AppProps) {
+
+
   return (
     <>
       <Head>

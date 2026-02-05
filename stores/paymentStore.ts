@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-export type PaymentStoreType = {
+interface PaymentData {
   paymentMode: string;
   crypto: string;
   ticker: string;
@@ -27,7 +26,8 @@ export type PaymentStoreType = {
 
   totalVolume: string;
   lastTotalVolumeFetchedAt: number;
-
+}
+export type PaymentStoreType = PaymentData & {
   setRate: (val: string) => void;
   setWalletLastAssignedTime: (val: string) => void;
   setProfitRate: (val: string) => void;
@@ -49,32 +49,35 @@ export type PaymentStoreType = {
   reset: () => void;
 };
 
+const initialState: PaymentData = {
+  rate: "",
+  paymentMode: "",
+  crypto: "",
+  ticker: "",
+  network: "",
+  activeWallet: "",
+  assetPrice: "",
+  nairaCharge: "",
+  dollarCharge: "",
+  amountPayable: "",
+  estimateAsset: "",
+  paymentAssetEstimate: "",
+  paymentNairaEstimate: "",
+  walletLastAssignedTime: "",
+
+  lastRateFetchedAt: 0,
+  profitRate: "",
+  lastProfitRateFetchedAt: 0,
+  merchantRate: "",
+  lastMerchantRateFetchedAt: 0,
+  totalVolume: "",
+  lastTotalVolumeFetchedAt: 0,
+};
+
 export const usePaymentStore = create<PaymentStoreType>()(
   persist(
-    (set) => ({
-      rate: "",
-      paymentMode: "",
-      crypto: "",
-      ticker: "",
-      network: "",
-      activeWallet: "",
-      assetPrice: "",
-      nairaCharge: "",
-      dollarCharge: "",
-      amountPayable: "",
-      estimateAsset: "",
-      paymentAssetEstimate: "",
-      paymentNairaEstimate: "",
-      walletLastAssignedTime: "",
-
-      lastRateFetchedAt: 0,
-      profitRate: "",
-      lastProfitRateFetchedAt: 0,
-      merchantRate: "",
-      lastMerchantRateFetchedAt: 0,
-      totalVolume: "",
-      lastTotalVolumeFetchedAt: 0,
-
+    (set, get) => ({
+      ...initialState,
       setPaymentMode: (val) => set({ paymentMode: val }),
       setWalletLastAssignedTime: (val) => set({ walletLastAssignedTime: val }),
       setCrypto: (val) => set({ crypto: val }),
@@ -98,12 +101,42 @@ export const usePaymentStore = create<PaymentStoreType>()(
       setTotalVolume: (val: string) =>
         set({ totalVolume: val, lastTotalVolumeFetchedAt: Date.now() }),
 
-      reset: () =>
-        set({
-          activeWallet: "",
-          walletLastAssignedTime: "",
-          paymentMode: "",
-        }),
+      reset: () => {
+        const valuesToKeep = {
+          rate: get().rate,
+          lastRateFetchedAt: get().lastRateFetchedAt,
+          profitRate: get().profitRate,
+          lastProfitRateFetchedAt: get().lastProfitRateFetchedAt,
+          merchantRate: get().merchantRate,
+          lastMerchantRateFetchedAt: get().lastMerchantRateFetchedAt,
+          totalVolume: get().totalVolume,
+          lastTotalVolumeFetchedAt: get().lastTotalVolumeFetchedAt,
+        };
+
+        const actions = {
+          setRate: get().setRate,
+          reset: get().reset,
+          setPaymentMode: get().setPaymentMode,
+          setWalletLastAssignedTime: get().setWalletLastAssignedTime,
+          setCrypto: get().setCrypto,
+          setTicker: get().setTicker,
+          setNetwork: get().setNetwork,
+          setActiveWallet: get().setActiveWallet,
+          setAssetPrice: get().setAssetPrice,
+          setEstimateAsset: get().setEstimateAsset,
+          setNairaCharge: get().setNairaCharge,
+          setDollarCharge: get().setDollarCharge,
+          setAmountPayable: get().setAmountPayable,
+          setPaymentAssetEstimate: get().setPaymentAssetEstimate,
+          setPaymentNairaEstimate: get().setPaymentNairaEstimate,
+          setProfitRate: get().setProfitRate,
+          setMerchantRate: get().setMerchantRate,
+          setTotalVolume: get().setTotalVolume,
+        };
+
+        // Reset to initial state but merge back the preserved values
+        set({ ...initialState, ...valuesToKeep, ...actions }, true);
+      },
     }),
     {
       name: "payment-store",
@@ -123,3 +156,29 @@ export const usePaymentStore = create<PaymentStoreType>()(
     },
   ),
 );
+
+// paymentMode: string;
+// crypto: string;
+// ticker: string;
+// network: string;
+// activeWallet: string;
+// assetPrice: string;
+// estimateAsset: string;
+// nairaCharge: string;
+// dollarCharge: string;
+// amountPayable: string;
+// paymentAssetEstimate: string;
+// paymentNairaEstimate: string;
+// walletLastAssignedTime: string;
+
+// rate: string;
+// lastRateFetchedAt: number;
+
+// profitRate: string;
+// lastProfitRateFetchedAt: number;
+
+// merchantRate: string;
+// lastMerchantRateFetchedAt: number;
+
+// totalVolume: string;
+// lastTotalVolumeFetchedAt: number;

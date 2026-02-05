@@ -1,5 +1,6 @@
 import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { displayGiftFeedbackMessage } from "@/features/chatbot/handlers/chatHandlers/menus/display.gift.transaction.confirmation";
+import { displaySendPayment } from "@/features/chatbot/handlers/chatHandlers/menus/display.send.payment";
 import {
   createGift,
   updateGiftTransaction,
@@ -18,7 +19,7 @@ import { useUserStore } from "stores/userStore";
 
 export async function processTransaction() {
   const currentStep = useChatStore.getState().currentStep;
-  const { next } = useChatStore.getState();
+  const { next, addMessages } = useChatStore.getState();
   const { paymentMode } = usePaymentStore.getState();
 
   const paymentStore = usePaymentStore.getState();
@@ -29,7 +30,9 @@ export async function processTransaction() {
   const { acct_number, bank_name, receiver_name } = bankData;
   const receiver_phoneNumber = user?.phone!;
   const status = "Processing";
-  const effort = paymentStore.paymentNairaEstimate ? parseFloat(paymentStore.paymentNairaEstimate) * 0.1: null;
+  const effort = paymentStore.paymentNairaEstimate
+    ? parseFloat(paymentStore.paymentNairaEstimate) * 0.1
+    : null;
   const transferId = generateTransactionId().toString();
 
   function cleanCurrency(currencyStr: string): string {
@@ -52,7 +55,7 @@ export async function processTransaction() {
     transaction_type: currentStep.transactionType?.toLowerCase(),
     total_dollar: paymentStore.paymentAssetEstimate,
     total_naira: paymentStore.paymentNairaEstimate,
-    effort: effort?.toString() ,
+    effort: effort?.toString(),
     asset_price: cleanCurrency(paymentStore.assetPrice),
     status,
   };
@@ -184,16 +187,32 @@ export async function processTransaction() {
 
   if (isTransfer) {
     // call the endpoint that saves transfer transaction
-    console.log("Processing transfer transaction...", transferData);
-    await createTransfer(transferData);
+    try {
+      console.log("Processing transfer transaction...", transferData);
+      await createTransfer(transferData);
+      displaySendPayment();
+    } catch (error) {
+      console.error("Error creating transfer:", error);
+    }
   } else if (isGift) {
     // call the endpoint that saves gift transaction
-    console.log("Processing gift transaction...");
-    await createGift(giftData);
+    try {
+      console.log("Processing gift transaction...");
+      await createGift(giftData);
+      console.log("Gift created, displaying send payment...");
+      displaySendPayment();
+    } catch (error) {
+      console.error("Error creating gift:", error);
+    }
   } else if (isRequest) {
     // call the endpoint that saves request transaction
-    console.log("Processing request transaction...");
-    await createRequest(requestData);
+    try {
+      console.log("Processing request transaction...");
+      await createRequest(requestData);
+      displaySendPayment();
+    } catch (error) {
+      console.error("Error creating request:", error);
+    }
   } else if (isClaimGift) {
     // call the endpoint that saves gift transaction
     console.log("Processing claim gift transaction...");

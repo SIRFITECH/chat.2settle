@@ -32,7 +32,7 @@ const ConfirmAndProceedButton = () => {
   const setLoading = useChatStore((s) => s.setLoading);
   const currentStep = useChatStore((s) => s.currentStep);
 
-  const { network, paymentMode } = usePaymentStore();
+  const { network } = usePaymentStore();
   const activeWallet = usePaymentStore((s) => s.activeWallet);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
@@ -58,6 +58,7 @@ const ConfirmAndProceedButton = () => {
     console.log("Just confirmed");
     try {
       setLoading(true);
+      if (!network) throw new Error("Network is not set");
 
       await getAvaialableWallet(network.toLowerCase());
       setHasCopyButtonBeenClicked(false);
@@ -112,30 +113,18 @@ const ConfirmAndProceedButton = () => {
 
   // const showStatus = hasCopyButtonBeenClicked;
   // const showCountdown = walletLastAssignedTime && !isExpired;
-  const showCountdown =
-    !!activeWallet &&
-    hasCopyButtonBeenClicked &&
-    !!walletLastAssignedTime &&
-    !walletIsExpired;
+  const showCountdown = !!activeWallet && !isExpired;
 
   const showExpired = isExpired;
   const expiryTime = new Date(
     new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
   );
 
-  console.log(
-    "hasCopyButtonBeenClicked on mount:",
-    hasCopyButtonBeenClicked,
-    walletLastAssignedTime,
-    isExpired,
-    showCountdown,
-  );
-
   return (
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
       <Button
-        disabled={hasCopyButtonBeenClicked}
+        disabled={hasCopyButtonBeenClicked || Boolean(activeWallet)}
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
         variant="outline"
         onClick={() =>
@@ -166,20 +155,21 @@ const ConfirmAndProceedButton = () => {
       {activeWallet && (
         <WalletInfo
           wallet={activeWallet}
-          network={network}
+          network={network!}
           isCopyDisabled={isCopyButtonDisabled}
           onCopy={() => handleCopyWallet(activeWallet ?? "")}
           truncateWallet={truncateWallet}
         />
       )}
       {/* count down */}
-      {hasCopyButtonBeenClicked && (
+      {showCountdown && (
         <p role="status" className="text-sm text-muted-foreground">
-          {showCountdown && (
+          This wallet expires in <CountdownTimer expiryTime={expiryTime} />
+          {/* {showCountdown && (
             <>
               This wallet expires in <CountdownTimer expiryTime={expiryTime} />
             </>
-          )}
+          )} */}
           {showExpired && "This wallet has expired"}
         </p>
       )}

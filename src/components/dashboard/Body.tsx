@@ -50,22 +50,6 @@ export default function Body() {
     error: tvtError,
   } = useTotalVolume();
   const [showMaintenance, setShowMaintenance] = useState(false);
-  // const { rate, rateFetchedAt, setRate } = usePaymentStore();
-
-  // const shouldFetch = !rate || Date.now() - rateFetchedAt > 3 * 60 * 1000;
-
-  // const { data } = useQuery({
-  //   queryKey: ["rate"],
-  //   queryFn: fetchRate,
-  //   enabled: shouldFetch,
-  // });
-
-  // useEffect(() => {
-  //   if (data) {
-  //     setRate(data);
-  //   }
-  // }, [data]);
-
 
   // set rate for global use
   useEffect(() => {

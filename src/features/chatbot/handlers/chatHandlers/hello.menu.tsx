@@ -1,26 +1,21 @@
+import { shortWallet } from "@/helpers/ShortenAddress";
 import { config } from "@/wagmi";
 import useChatStore from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
+import { useUserStore } from "stores/userStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
-import { shortWallet } from "@/helpers/ShortenAddress";
-import { useUserStore } from "stores/userStore";
-import { usePaymentStore } from "stores/paymentStore";
-import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 
 export const helloMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { user } = useUserStore.getState();
-
   const setPaymentMode = usePaymentStore.getState().setPaymentMode;
-
-  console.log("we are at the start of the program", user);
-
-  const setHasCopyButtonBeenClicked =
-    useConfirmDialogStore.getState().setHasCopyButtonBeenClicked;
   const setActiveWallet = usePaymentStore.getState().setActiveWallet;
 
-  setHasCopyButtonBeenClicked(false);
-  setActiveWallet("");
+
+  const { reset } = usePaymentStore.getState();
+  reset();
+
 
   const account = getAccount(config);
 
@@ -32,8 +27,6 @@ export const helloMenu = async (chatInput?: string) => {
   console.log("User chatinput", chatInput);
 
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
-    // setHasCopyButtonBeenClicked(false);
-    // setActiveWallet("");
     if (walletIsConnected) {
       addMessages?.([
         {

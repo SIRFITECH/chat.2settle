@@ -1,5 +1,6 @@
 import { CopyableText } from "@/features/transact/CopyableText";
 import { formatCurrency } from "@/helpers/format_currency";
+import { CountdownTimer } from "@/helpers/format_date";
 import { getBaseSymbol } from "@/utils/utilities";
 import { ReactNode } from "react";
 import useChatStore, { MessageType } from "stores/chatStore";
@@ -21,6 +22,7 @@ export const displaySendPayment = async () =>
   // requestID?: number,
   // lastAssignedTime?: Date
   {
+    console.log("Displaying send payment message...");
     const { paymentAssetEstimate, paymentNairaEstimate, ticker } =
       usePaymentStore.getState();
     const { currentStep, addMessages } = useChatStore.getState();
@@ -28,6 +30,8 @@ export const displaySendPayment = async () =>
     const paymentTicker = getBaseSymbol(ticker);
     const transactionID = transaction?.transac_id;
     const requestID = "We are not there yet";
+    const payment = usePaymentStore.getState();
+    console.log({ payment });
 
     const allowedTime = 5;
     const assetPayment = parseFloat(paymentAssetEstimate);
@@ -38,7 +42,7 @@ export const displaySendPayment = async () =>
       currentStep.transactionType?.toLowerCase() === "payrequest";
 
     const copyableTransactionID = (
-      <>
+      <div>
         Tap to copy Transaction ID 👇🏾 : {transactionID}
         {/* <CopyableText
           text={transactionID.toString()}
@@ -47,11 +51,11 @@ export const displaySendPayment = async () =>
           nextStep={nextStep}
           lastAssignedTime={lastAssignedTime}
         /> */}
-      </>
+      </div>
     );
 
     const copyableGiftID = isGift ? (
-      <>
+      <div>
         Tap to copy Gift ID 👇🏾 : {giftId}
         {/* <CopyableText
           text={giftId}
@@ -60,11 +64,11 @@ export const displaySendPayment = async () =>
           nextStep={nextStep}
           lastAssignedTime={lastAssignedTime}
         /> */}
-      </>
+      </div>
     ) : null;
 
     const copyableRequestID = isRequest ? (
-      <>
+      <div>
         Tap to copy Request ID 👇🏾 : {requestID}
         {/* <CopyableText
           text={requestID}
@@ -73,11 +77,11 @@ export const displaySendPayment = async () =>
           nextStep={nextStep}
           lastAssignedTime={lastAssignedTime}
         /> */}
-      </>
+      </div>
     ) : null;
 
     const copyableWalletddress = (
-      <>
+      <div>
         Tap to copy 👇🏾:
         <br />
         {/* <CopyableText
@@ -88,10 +92,10 @@ export const displaySendPayment = async () =>
           nextStep={nextStep}
           lastAssignedTime={lastAssignedTime}
         /> */}
-      </>
+      </div>
     );
 
-    const connectedWallet = '';
+    const connectedWallet = "";
     // helper function to generate transaction message
     const generateTransactionMessage = (extraContent?: ReactNode) => {
       return isRequest ? (
@@ -106,7 +110,7 @@ export const displaySendPayment = async () =>
           <br />
         </span>
       ) : !connectedWallet ? (
-        <>
+        <div>
           Note: You are sending{" "}
           <b>
             {paymentAsset} =
@@ -124,8 +128,11 @@ export const displaySendPayment = async () =>
           <span>
             This wallet address expires in{" "}
             <b>{allowedTime.toString()} minutes </b>
+            <CountdownTimer
+              expiryTime={new Date(Date.now() + allowedTime * 60 * 1000)}
+            />
           </span>
-        </>
+        </div>
       ) : (
         <span>
           <b>
@@ -162,7 +169,7 @@ export const displaySendPayment = async () =>
         type: "incoming",
         content: generateTransactionMessage(
           isGift ? (
-            <>
+            <div>
               Note: You are sending{" "}
               <b>
                 {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} ={" "}
@@ -178,9 +185,9 @@ export const displaySendPayment = async () =>
               /> */}
               {copyableWalletddress}
               {copyableGiftID}
-            </>
+            </div>
           ) : isRequestPayment ? (
-            <>
+            <div>
               Note: You are sending{" "}
               <b>
                 {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} ={" "}
@@ -196,29 +203,20 @@ export const displaySendPayment = async () =>
               /> */}
               {copyableWalletddress}
               {copyableRequestID}
-            </>
+            </div>
           ) : isRequest ? (
-            <>
+            <div>
               Note: You are Requesting for payment of
-              <b>
-                {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
-              </b>
+              <b>{formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}</b>
               <br />
               {copyableRequestID}
-            </>
+            </div>
           ) : (
-            <>Tap to copy 👇🏾: {copyableTransactionID}</>
-          )
+            <div>Tap to copy 👇🏾: {copyableTransactionID}</div>
+          ),
         ),
         timestamp: new Date(),
       },
-      // {
-      //   type: "incoming",
-      //   content: connectedWallet
-      //     ? "Thank you for transacting with me"
-      //     : "Wait for  the pop-up. If missed, say 'hi' to restart.",
-      //   timestamp: new Date(),
-      // },
     ];
 
     addMessages(initialMessages);
