@@ -46,3 +46,4 @@ middleware.ts
 # Claude Code
 .claude/
 CLAUDE*
+.playwright-mcp

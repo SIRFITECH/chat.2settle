@@ -19,7 +19,7 @@ import { useUserStore } from "stores/userStore";
 
 export async function processTransaction() {
   const currentStep = useChatStore.getState().currentStep;
-  const { next, addMessages } = useChatStore.getState();
+  const { next } = useChatStore.getState();
   const { paymentMode } = usePaymentStore.getState();
 
   const paymentStore = usePaymentStore.getState();
@@ -39,6 +39,24 @@ export async function processTransaction() {
     return currencyStr.replace(/[^0-9.]/g, "");
   }
 
+  function toDecimal(val: string, maxTotal = 13, maxDecimals = 8): string {
+    const cleaned = cleanCurrency(val);
+    const num = parseFloat(cleaned);
+    if (isNaN(num)) return "0";
+    const intDigits = Math.floor(Math.abs(num)).toString().length;
+    const decimals = Math.max(0, Math.min(maxDecimals, maxTotal - intDigits));
+    const fixed = num.toFixed(decimals);
+    if (fixed.includes(".")) {
+      return fixed.replace(/0+$/, "").replace(/\.$/, "");
+    }
+    return fixed;
+  }
+
+  const estimateAmount =
+    paymentStore.estimateAsset === "Naira"
+      ? toDecimal(paymentStore.paymentNairaEstimate)
+      : toDecimal(paymentStore.paymentAssetEstimate);
+
   const payer = {
     customer_phoneNumber: receiver_phoneNumber,
     chat_id: user?.chatId!.toString(),
@@ -53,10 +71,10 @@ export async function processTransaction() {
 
   const summary = {
     transaction_type: currentStep.transactionType?.toLowerCase(),
-    total_dollar: paymentStore.paymentAssetEstimate,
-    total_naira: paymentStore.paymentNairaEstimate,
-    effort: effort?.toString(),
-    asset_price: cleanCurrency(paymentStore.assetPrice),
+    total_dollar: toDecimal(paymentStore.paymentAssetEstimate),
+    total_naira: toDecimal(paymentStore.paymentNairaEstimate),
+    effort: effort ? toDecimal(effort.toString()) : undefined,
+    asset_price: toDecimal(paymentStore.assetPrice),
     status,
   };
 
@@ -87,15 +105,15 @@ export async function processTransaction() {
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
-    amount_payable: paymentStore.paymentNairaEstimate,
-    crypto_amount: paymentStore.paymentAssetEstimate,
-    charges: cleanCurrency(paymentStore.nairaCharge),
+    amount_payable: toDecimal(paymentStore.paymentNairaEstimate),
+    crypto_amount: toDecimal(paymentStore.paymentAssetEstimate),
+    charges: toDecimal(paymentStore.nairaCharge),
     date: new Date(),
     transfer_id: transferId,
-    current_rate: cleanCurrency(paymentStore.rate),
-    merchant_rate: paymentStore.merchantRate,
-    profit_rate: paymentStore.profitRate,
-    estimate_amount: paymentStore.paymentNairaEstimate,
+    current_rate: toDecimal(paymentStore.rate),
+    merchant_rate: toDecimal(paymentStore.merchantRate),
+    profit_rate: toDecimal(paymentStore.profitRate),
+    estimate_amount: estimateAmount,
     wallet_address: paymentStore.activeWallet,
     status,
 
@@ -127,15 +145,15 @@ export async function processTransaction() {
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
-    estimate_amount: paymentStore.paymentNairaEstimate,
-    amount_payable: paymentStore.paymentNairaEstimate,
-    charges: cleanCurrency(paymentStore.nairaCharge),
-    crypto_amount: paymentStore.paymentAssetEstimate,
+    estimate_amount: estimateAmount,
+    amount_payable: toDecimal(paymentStore.paymentNairaEstimate),
+    charges: toDecimal(paymentStore.nairaCharge),
+    crypto_amount: toDecimal(paymentStore.paymentAssetEstimate),
     date: new Date(),
     gift_status: "Not claimed",
-    current_rate: cleanCurrency(paymentStore.rate),
-    merchant_rate: paymentStore.merchantRate,
-    profit_rate: paymentStore.profitRate,
+    current_rate: toDecimal(paymentStore.rate),
+    merchant_rate: toDecimal(paymentStore.merchantRate),
+    profit_rate: toDecimal(paymentStore.profitRate),
     wallet_address: paymentStore.activeWallet,
     status,
 
@@ -168,14 +186,14 @@ export async function processTransaction() {
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
-    estimate_amount: paymentStore.paymentNairaEstimate,
-    amount_payable: paymentStore.paymentNairaEstimate,
-    charges: cleanCurrency(paymentStore.nairaCharge),
-    crypto_amount: paymentStore.paymentAssetEstimate,
+    estimate_amount: estimateAmount,
+    amount_payable: toDecimal(paymentStore.paymentNairaEstimate),
+    charges: toDecimal(paymentStore.nairaCharge),
+    crypto_amount: toDecimal(paymentStore.paymentAssetEstimate),
     date: new Date(),
-    current_rate: cleanCurrency(paymentStore.rate),
-    merchant_rate: paymentStore.merchantRate,
-    profit_rate: paymentStore.profitRate,
+    current_rate: toDecimal(paymentStore.rate),
+    merchant_rate: toDecimal(paymentStore.merchantRate),
+    profit_rate: toDecimal(paymentStore.profitRate),
     wallet_address: paymentStore.activeWallet,
     status,
 

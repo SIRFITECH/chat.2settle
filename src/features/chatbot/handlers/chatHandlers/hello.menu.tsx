@@ -2,6 +2,7 @@ import { shortWallet } from "@/helpers/ShortenAddress";
 import { config } from "@/wagmi";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
+import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 import { useUserStore } from "stores/userStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
@@ -12,9 +13,10 @@ export const helloMenu = async (chatInput?: string) => {
   const setPaymentMode = usePaymentStore.getState().setPaymentMode;
   const setActiveWallet = usePaymentStore.getState().setActiveWallet;
 
-
   const { reset } = usePaymentStore.getState();
   reset();
+  setActiveWallet("");
+  useConfirmDialogStore.getState().reset();
 
 
   const account = getAccount(config);

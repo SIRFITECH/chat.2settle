@@ -6,7 +6,7 @@ export const longStr = (max = 255) => z.string().trim().max(max);
 
 // export const amountStr = () =>
 //   z.string().regex(/^\d+(\.\d+)?$/, "Invalid amount");
-export const amountStr = (maxDigits = 18, maxDecimals = 8) =>
+export const amountStr = (maxDigits = 13, maxDecimals = 8) =>
   z.string().refine((v) => {
     const [i, d = ""] = v.split(".");
     return i.length + d.length <= maxDigits && d.length <= maxDecimals;

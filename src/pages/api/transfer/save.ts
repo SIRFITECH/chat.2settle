@@ -14,6 +14,8 @@ export default async function handler(
   const parsed = transferSchema.safeParse(req.body);
 
   if (!parsed.success) {
+    console.error("Transfer validation failed:", JSON.stringify(parsed.error.flatten(), null, 2));
+    console.error("Request body:", JSON.stringify(req.body, null, 2));
     return res.status(400).json({
       error: "Invalid input",
       details: parsed.error.flatten(),
