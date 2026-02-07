@@ -69,9 +69,14 @@ export async function processTransaction() {
     receiver_phoneNumber: receiver_phoneNumber,
   };
 
+  // Calculate dollar equivalent of amount_payable (naira amount / exchange rate)
+  const nairaAmount = parseFloat(cleanCurrency(paymentStore.paymentNairaEstimate)) || 0;
+  const exchangeRate = parseFloat(cleanCurrency(paymentStore.rate)) || 1;
+  const dollarEquivalent = nairaAmount / exchangeRate;
+
   const summary = {
     transaction_type: currentStep.transactionType?.toLowerCase(),
-    total_dollar: toDecimal(paymentStore.paymentAssetEstimate),
+    total_dollar: toDecimal(dollarEquivalent.toString()),
     total_naira: toDecimal(paymentStore.paymentNairaEstimate),
     effort: effort ? toDecimal(effort.toString()) : undefined,
     asset_price: toDecimal(paymentStore.assetPrice),
