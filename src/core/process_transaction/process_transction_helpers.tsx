@@ -34,6 +34,7 @@ export async function processTransaction() {
     ? parseFloat(paymentStore.paymentNairaEstimate) * 0.1
     : null;
   const transferId = generateTransactionId().toString();
+  const transactionId = generateTransactionId().toString();
 
   function cleanCurrency(currencyStr: string): string {
     return currencyStr.replace(/[^0-9.]/g, "");
@@ -94,7 +95,7 @@ export async function processTransaction() {
     // network
     // estimate_asset
     // amount_payable
-    // crypto_amount
+    // crypto_amount // the amount the user is sending without charge
     // charges
     // date
     // transfer_id
@@ -103,7 +104,7 @@ export async function processTransaction() {
     // current_rate
     // merchant_rate
     // profit_rate
-    // estimate_amount
+    // estimate_amount // the amount the user is sending with or without charge
     // wallet_address
     // status
 
@@ -212,6 +213,9 @@ export async function processTransaction() {
     // call the endpoint that saves transfer transaction
     try {
       console.log("Processing transfer transaction...", transferData);
+      const { setTransferId, setTransactionId } = useTransactionStore.getState();
+      setTransactionId(transactionId);
+      setTransferId(transferId);
       await createTransfer(transferData);
       displaySendPayment();
     } catch (error) {
@@ -221,6 +225,9 @@ export async function processTransaction() {
     // call the endpoint that saves gift transaction
     try {
       console.log("Processing gift transaction...");
+      const { setGiftId, setTransactionId } = useTransactionStore.getState();
+      setTransactionId(transactionId);
+      setGiftId(giftData.gift_id);
       await createGift(giftData);
       console.log("Gift created, displaying send payment...");
       displaySendPayment();
@@ -231,6 +238,9 @@ export async function processTransaction() {
     // call the endpoint that saves request transaction
     try {
       console.log("Processing request transaction...");
+      const { setRequestId, setTransactionId } = useTransactionStore.getState();
+      setTransactionId(transactionId);
+      setRequestId(requestData.request_id);
       await createRequest(requestData);
       displaySendPayment();
     } catch (error) {

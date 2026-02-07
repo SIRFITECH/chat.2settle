@@ -7,23 +7,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MessageType } from "@/types/general_types";
 import { Check, Copy } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useChatStore from "stores/chatStore";
 
 export const CopyableText: React.FC<{
   text: string;
   label: string;
   isWallet?: boolean;
-  addChatMessages: (messages: MessageType[]) => void;
-  nextStep: (step: string) => void;
   lastAssignedTime?: Date;
 }> = ({
   text,
   label,
   isWallet = false,
-  addChatMessages,
-  nextStep,
   lastAssignedTime,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -87,7 +83,8 @@ export const CopyableText: React.FC<{
 
   const handleConfirm = useCallback(() => {
     setIsDialogOpen(false);
-    addChatMessages([
+    const { addMessages, next } = useChatStore.getState();
+    addMessages([
       {
         type: "incoming",
         content: (
@@ -104,12 +101,13 @@ export const CopyableText: React.FC<{
         timestamp: new Date(),
       },
     ]);
-    nextStep("paymentProcessing");
+    next({ stepId: "paymentProcessing" });
   }, []);
 
   const handleClose = useCallback(() => {
     setIsDialogOpen(false);
-    addChatMessages([
+    const { addMessages, next } = useChatStore.getState();
+    addMessages([
       {
         type: "incoming",
         content: (
@@ -126,7 +124,7 @@ export const CopyableText: React.FC<{
         timestamp: new Date(),
       },
     ]);
-    nextStep("paymentProcessing");
+    next({ stepId: "paymentProcessing" });
   }, []);
 
   const truncateText = useMemo(

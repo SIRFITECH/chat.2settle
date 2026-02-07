@@ -6,7 +6,6 @@ import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { formatCurrency } from "../format_currency";
 import { useTransactionStore } from "stores/transactionStore";
-import { a } from "vitest/dist/chunks/suite.B2jumIFP.js";
 
 type ChargeMenuInput = {
   assetCharge: number;
@@ -149,41 +148,15 @@ export function commitChargeToStores(
       : amount * rate * context.assetPrice;
   }
 
-  // const char = charge.assetCharge;
-  // console.log("Payment Asset Estimate before charge:", paymentAssetEstimate);
-  // console.log("Payment Asset Estimate charge:", char);
-
-  // if (input.trim() === "1") {
-  //   // charge from amount
-  //   paymentAssetEstimate = charge.assetCharge;
-  //   paymentNairaEstimate -= charge.nairaCharge;
-
-  //   console.log(
-  //     "Charge from the Fiat",
-  //     paymentAssetEstimate,
-  //     paymentNairaEstimate,
-  //   );
-  // }
-  // if (input.trim() === "2") {
-  //   // add charge to amount
-  //   paymentAssetEstimate = charge.assetCharge;
-  //   paymentNairaEstimate += charge.nairaCharge;
-
-  //   console.log(
-  //     "Charge from the Asset",
-  //     paymentAssetEstimate,
-  //     paymentNairaEstimate,
-  //   );
-  // }
-
-  // console.log(
-  //   "After applying charge paymentAssetEstimate",
-  //   paymentAssetEstimate,
-  // );
-  // console.log(
-  //   "After applying charge paymentNairaEstimate",
-  //   paymentNairaEstimate,
-  // );
+  // Apply charge based on user's selection
+  if (input.trim() === "1") {
+    // Charge deducted from Fiat (Naira) - asset stays same, naira decreases
+    paymentNairaEstimate -= charge.nairaCharge;
+  }
+  if (input.trim() === "2") {
+    // Charge added to crypto - asset increases, naira stays same
+    paymentAssetEstimate += charge.assetCharge;
+  }
 
   // set estimations
   setPaymentAssetEstimate(paymentAssetEstimate.toString());
@@ -192,11 +165,11 @@ export function commitChargeToStores(
 
   // Set charges
   setNairaCharge(formatCurrency(charge.nairaCharge.toString(), "NGN", "en-NG"));
-
-  setDollarCharge(charge.assetCharge.toFixed(9).toString());
+  setDollarCharge(charge.assetCharge.toFixed(8).toString());
 
   updateTransaction({ charges: charge.assetCharge.toString() });
 }
+
 
 export function navigateAfterCharge() {
   const { currentStep, next } = useChatStore.getState();
