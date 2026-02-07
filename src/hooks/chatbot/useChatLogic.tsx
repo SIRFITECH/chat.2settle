@@ -4,7 +4,6 @@ import { choiceMenu } from "@/features/chatbot/handlers/chatHandlers/choice.menu
 import { handleChooseTransactionType } from "@/features/chatbot/handlers/chatHandlers/choose.transaction.type";
 import { handleContinueToPay } from "@/features/chatbot/handlers/chatHandlers/complete.payement";
 import { handlePhoneNumber } from "@/features/chatbot/handlers/chatHandlers/enter.phone";
-import { handleAiChat } from "@/features/chatbot/handlers/chatHandlers/handle.ai.chat";
 import {
   handleBankAccountNumber,
   handleSearchBank,
@@ -13,7 +12,6 @@ import {
 import { handleClaimGift } from "@/features/chatbot/handlers/chatHandlers/handle.claim.gift";
 import { handlePayRequest } from "@/features/chatbot/handlers/chatHandlers/handle.pay.request";
 import { handleCompleteTransactionId } from "@/features/chatbot/handlers/chatHandlers/handle.transaction.id";
-import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { handleMakeAChoice } from "@/features/chatbot/handlers/chatHandlers/make.choice";
 import { displayWelcomeMenu } from "@/features/chatbot/handlers/chatHandlers/menus/welcome";
 import { handleNetwork } from "@/features/chatbot/handlers/chatHandlers/network";
@@ -23,12 +21,9 @@ import { handleCryptoPayment } from "@/features/chatbot/handlers/chatHandlers/se
 import { handleTransactCrypto } from "@/features/chatbot/handlers/chatHandlers/transact.crypto";
 import { handleTransferMoney } from "@/features/chatbot/handlers/chatHandlers/transfer.money";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
-import { geminiAi } from "@/services/ai/ai-services";
 
-import { Dispatch, JSX, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 import useChatStore, { MessageType } from "stores/chatStore";
-import { usePaymentStore } from "stores/paymentStore";
-import { useTransactionStore } from "stores/transactionStore";
 
 export interface ChatLogicProps {
   addChatMessages: (messages: MessageType[]) => void;
@@ -65,11 +60,6 @@ export const useChatLogic = ({
         console.log("Current Step:", currentStep);
         await stepHandlers["start"](chatInput);
       } else {
-        const paymentStore = usePaymentStore.getState();
-        const transaction = useTransactionStore.getState();
-
-        console.log("We are processing the payment", paymentStore);
-        console.log("We are processing the transaction", transaction);
         console.log("Current Step:", currentStep);
 
         // await handleAiChat(chatInput)

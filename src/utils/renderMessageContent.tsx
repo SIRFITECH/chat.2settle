@@ -2,10 +2,14 @@ import React from "react";
 import { MessageType } from "stores/chatStore";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import ConfirmAndProceedButton from "@/hooks/chatbot/confirmButtonHook";
+import { CopyableText } from "@/features/transact/CopyableText";
+import { CountdownTimer } from "@/helpers/format_date";
 
 const componentMap: Record<string, React.ComponentType<any>> = {
   ConnectButton,
   ConfirmAndProceedButton,
+  CopyableText,
+  CountdownTimer,
 };
 
 export const renderMessageContent = (msg: MessageType) => {

@@ -28,6 +28,7 @@ export const CopyableText: React.FC<{
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [walletCopied, setWalletCopied] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+  const [shouldShowDialog, setShouldShowDialog] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const allowedTime = 5;
 
@@ -44,7 +45,7 @@ export const CopyableText: React.FC<{
           clearInterval(timer);
           setTimeLeft("00:00");
           setIsExpired(true);
-          if (!walletCopied) {
+          if (!walletCopied && shouldShowDialog) {
             setDialogMessage(
               "This wallet is no longer available. Please start a new transaction."
             );
@@ -60,8 +61,13 @@ export const CopyableText: React.FC<{
             .padStart(2, "0")}`;
           setTimeLeft(timeString);
 
-          // Check if time is less than or equal to 2 minutes and popup hasn't been shown
-          if (minutes === 2 && seconds === 0 && walletCopied) {
+          // Enable dialog when we get within the last 2 minutes
+          if (minutes < 2 || (minutes === 2 && seconds === 0)) {
+            setShouldShowDialog(true);
+          }
+
+          // Show dialog at exactly 2 minutes if wallet was copied
+          if (minutes === 2 && seconds === 0 && walletCopied && shouldShowDialog) {
             setDialogMessage("Have you sent the payment?");
             setIsDialogOpen(true);
           }
@@ -70,7 +76,7 @@ export const CopyableText: React.FC<{
 
       return () => clearInterval(timer);
     }
-  }, [isWallet, lastAssignedTime, walletCopied]);
+  }, [isWallet, lastAssignedTime, walletCopied, shouldShowDialog]);
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
@@ -83,6 +89,7 @@ export const CopyableText: React.FC<{
 
   const handleConfirm = useCallback(() => {
     setIsDialogOpen(false);
+    setShouldShowDialog(false);
     const { addMessages, next } = useChatStore.getState();
     addMessages([
       {
@@ -106,6 +113,7 @@ export const CopyableText: React.FC<{
 
   const handleClose = useCallback(() => {
     setIsDialogOpen(false);
+    setShouldShowDialog(false);
     const { addMessages, next } = useChatStore.getState();
     addMessages([
       {
