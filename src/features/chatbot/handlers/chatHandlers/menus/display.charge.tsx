@@ -1,4 +1,3 @@
-import { formatCurrency } from "@/helpers/format_currency";
 import {
   buildChargeMenuMessage,
   calculateChargeFromTier,
@@ -9,10 +8,91 @@ import {
   parsePaymentInput,
 } from "@/helpers/transaction/transaction_charge";
 import { fetchRate } from "@/services/rate/rates.service";
-import { cleanCurrencyToFloatString, getBaseSymbol } from "@/utils/utilities";
-import useChatStore, { MessageType } from "stores/chatStore";
+import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
-import { useTransactionStore } from "stores/transactionStore";
+
+
+export type ChargeContext = {
+  ticker: string;
+  estimateAsset: "naira" | "dollar" | "crypto";
+  assetSymbol: string;
+  assetPrice: number;
+  isUSDT: boolean;
+};
+
+export type ChargeCalculation = {
+  nairaCharge: number;
+  assetCharge: number;
+};
+
+export const displayCharge = async (input: string) => {
+  const { addMessages } = useChatStore.getState();
+
+  const amount = parsePaymentInput(input);
+  const rate = await fetchRate();
+
+  let nairaEquivalent: number;
+
+  if (amount === null) {
+    addMessages([
+      {
+        type: "incoming",
+        content: "Invalid amount entered",
+        timestamp: new Date(),
+      },
+    ]);
+    return;
+  }
+
+  const context = getChargeContext();
+
+  if (Number.isNaN(context.assetPrice)) {
+    addMessages([
+      {
+        type: "incoming",
+        content: "Invalid asset price configuration",
+        timestamp: new Date(),
+      },
+    ]);
+    return;
+  }
+
+  if (context.estimateAsset === "naira") {
+    nairaEquivalent = amount;
+  } else if (context.estimateAsset === "dollar") {
+    nairaEquivalent = amount * rate;
+  } else {
+    nairaEquivalent = amount * context.assetPrice * rate;
+  }
+
+  const tier = getChargeTier(nairaEquivalent);
+
+  const { assetCharge, nairaCharge } = calculateChargeFromTier(
+    tier,
+    context,
+    rate,
+  );
+
+  
+  commitChargeToStores(
+    amount,
+    rate,
+    context,
+    { assetCharge, nairaCharge },
+    input,
+  );
+
+  const message = buildChargeMenuMessage({
+    assetCharge,
+    nairaCharge,
+    context,
+  });
+
+  addMessages([message]);
+  navigateAfterCharge();
+};
+
+
 
 // export const displayCharge = async (input: string) => {
 //   const currentStep = useChatStore.getState().currentStep;
@@ -658,81 +738,3 @@ import { useTransactionStore } from "stores/transactionStore";
 //     }
 //   }
 // };
-export type ChargeContext = {
-  ticker: string;
-  estimateAsset: "naira" | "dollar" | "crypto";
-  assetSymbol: string;
-  assetPrice: number;
-  isUSDT: boolean;
-};
-
-export type ChargeCalculation = {
-  nairaCharge: number;
-  assetCharge: number;
-};
-
-export const displayCharge = async (input: string) => {
-  const { addMessages } = useChatStore.getState();
-
-  const amount = parsePaymentInput(input);
-  const rate = await fetchRate();
-
-  let nairaEquivalent: number;
-
-  if (amount === null) {
-    addMessages([
-      {
-        type: "incoming",
-        content: "Invalid amount entered",
-        timestamp: new Date(),
-      },
-    ]);
-    return;
-  }
-
-  const context = getChargeContext();
-
-  if (Number.isNaN(context.assetPrice)) {
-    addMessages([
-      {
-        type: "incoming",
-        content: "Invalid asset price configuration",
-        timestamp: new Date(),
-      },
-    ]);
-    return;
-  }
-
-  if (context.estimateAsset === "naira") {
-    nairaEquivalent = amount;
-  } else if (context.estimateAsset === "dollar") {
-    nairaEquivalent = amount * rate;
-  } else {
-    nairaEquivalent = amount * context.assetPrice * rate;
-  }
-
-  const tier = getChargeTier(nairaEquivalent);
-
-  const { assetCharge, nairaCharge } = calculateChargeFromTier(
-    tier,
-    context,
-    rate,
-  );
-
-  commitChargeToStores(
-    amount,
-    rate,
-    context,
-    { assetCharge, nairaCharge },
-    input,
-  );
-
-  const message = buildChargeMenuMessage({
-    assetCharge,
-    nairaCharge,
-    context,
-  });
-
-  addMessages([message]);
-  navigateAfterCharge();
-};

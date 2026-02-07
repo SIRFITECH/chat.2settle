@@ -5,9 +5,11 @@ import { shortWallet } from "@/helpers/ShortenAddress";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 import { useUserStore } from "stores/userStore";
 import { usePaymentStore } from "stores/paymentStore";
+import { useTransactionStore } from "stores/transactionStore";
 export const displayWelcomeMenu = (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { reset } = usePaymentStore.getState();
+  const { resetTransaction } = useTransactionStore.getState();
 
   const { user } = useUserStore.getState();
 
@@ -19,6 +21,7 @@ export const displayWelcomeMenu = (chatInput?: string) => {
   const telFirstName = user?.telegram?.username;
 
   reset();
+  resetTransaction();
 
   console.log("User chatinput", chatInput);
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {

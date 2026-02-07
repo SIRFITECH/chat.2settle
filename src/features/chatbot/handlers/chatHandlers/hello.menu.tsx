@@ -6,6 +6,7 @@ import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 import { useUserStore } from "stores/userStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
+import { useTransactionStore } from "stores/transactionStore";
 
 export const helloMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
@@ -14,10 +15,12 @@ export const helloMenu = async (chatInput?: string) => {
   const setActiveWallet = usePaymentStore.getState().setActiveWallet;
 
   const { reset } = usePaymentStore.getState();
+  const { resetTransaction } = useTransactionStore.getState();
+
   reset();
+  resetTransaction();
   setActiveWallet("");
   useConfirmDialogStore.getState().reset();
-
 
   const account = getAccount(config);
 

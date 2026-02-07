@@ -140,9 +140,8 @@ export function commitChargeToStores(
     paymentAssetEstimate = amount / context.assetPrice;
     paymentNairaEstimate = amount * rate;
   } else {
-    paymentAssetEstimate = context.isUSDT
-      ? amount
-      : amount / context.assetPrice;
+    paymentAssetEstimate = amount;
+  
     paymentNairaEstimate = context.isUSDT
       ? amount * rate
       : amount * rate * context.assetPrice;
@@ -158,10 +157,12 @@ export function commitChargeToStores(
     paymentAssetEstimate += charge.assetCharge;
   }
 
+  console.log({ paymentAssetEstimate });
+  console.log({ paymentNairaEstimate });
+
   // set estimations
   setPaymentAssetEstimate(paymentAssetEstimate.toString());
   setPaymentNairaEstimate(paymentNairaEstimate.toString());
-  
 
   // Set charges
   setNairaCharge(formatCurrency(charge.nairaCharge.toString(), "NGN", "en-NG"));
@@ -169,7 +170,6 @@ export function commitChargeToStores(
 
   updateTransaction({ charges: charge.assetCharge.toString() });
 }
-
 
 export function navigateAfterCharge() {
   const { currentStep, next } = useChatStore.getState();

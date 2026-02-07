@@ -196,6 +196,8 @@ export const handleSearchBank = async (chatInput: string) => {
       displaySearchBank();
       next({ stepId: "selectBank" });
     } else if (chatInput === "2") {
+      console.log("Final asset payment is from handle.bank.steps", paymentAssetEstimate)
+
       let finalAssetPayment = parseFloat(paymentAssetEstimate);
       const finalNairaPayment = parseFloat(paymentNairaEstimate);
 
