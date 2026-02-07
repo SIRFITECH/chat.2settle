@@ -36,7 +36,7 @@ export const displaySendPayment = async () => {
     : new Date();
 
   const walletExpiryTime = new Date(
-    lastAssignedTime.getTime() + allowedTime * 60 * 1000
+    lastAssignedTime.getTime() + allowedTime * 60 * 1000,
   );
 
   const messages: MessageType[] = [
@@ -52,7 +52,12 @@ export const displaySendPayment = async () => {
     messages.push(
       {
         type: "incoming",
-        content: `You will receive ${formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}.`,
+        content: (
+          <span>
+            You will receive{" "}
+            <b>${formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} </b>.
+          </span>
+        ),
         timestamp: new Date(),
       },
       {
@@ -80,14 +85,23 @@ export const displaySendPayment = async () => {
         content:
           "Disclaimer: You would get your payment as soon as your request is fulfilled",
         timestamp: new Date(),
-      }
+      },
     );
   } else {
     // For transfer, gift, or request payment (needs wallet display)
     messages.push(
       {
         type: "incoming",
-        content: `Note: You are sending ${paymentAsset} = ${formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} only to 2Settle wallet address to complete your transaction`,
+        content: (
+          <span>
+            Note: You are sending{" "}
+            <b>
+              ${paymentAsset} = $
+              {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
+            </b>{" "}
+            only to 2Settle wallet address to complete your transaction
+          </span>
+        ),
         timestamp: new Date(),
       },
       {
@@ -95,7 +109,10 @@ export const displaySendPayment = async () => {
         intent: {
           kind: "component",
           name: "CopyableText",
-          props: { text: assetPayment.toFixed(8), label: `${paymentTicker} Amount` },
+          props: {
+            text: assetPayment.toFixed(8),
+            label: `${paymentTicker} Amount`,
+          },
           persist: true,
         },
         timestamp: new Date(),
@@ -124,7 +141,7 @@ export const displaySendPayment = async () => {
           persist: true,
         },
         timestamp: new Date(),
-      }
+      },
     );
 
     if (isGift) {
@@ -168,7 +185,11 @@ export const displaySendPayment = async () => {
 
     messages.push({
       type: "incoming",
-      content: `This wallet address expires in ${allowedTime} minutes`,
+      content: (
+        <span>
+          This wallet address expires in <b>{allowedTime}</b> minutes
+        </span>
+      ),
       intent: {
         kind: "component",
         name: "CountdownTimer",
