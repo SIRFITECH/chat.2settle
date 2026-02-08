@@ -22,7 +22,7 @@ export const displayEnterId = async (paymentMode: string) => {
   ];
   console.log("Next is giftFeedBack");
   // We have to check the request here and fill in the userData
-  paymentMode === "Claim Gift"
+  paymentMode.toLowerCase() === "claim gift"
     ? next({stepId: "enterBankSearchWord"})
     : next({stepId: "transferMoney"});
   addMessages(newMessages);

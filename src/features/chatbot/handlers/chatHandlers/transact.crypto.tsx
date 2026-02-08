@@ -6,11 +6,24 @@ import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { displayNetwork } from "./menus/display.network";
+import { displayEnterPhone } from "./menus/display.phone";
 
 export const handleTransactCrypto = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
-  const { assetPrice, setAssetPrice, setCrypto, setTicker, setNetwork } =
-    usePaymentStore.getState();
+  const {
+    assetPrice,
+    paymentMode,
+    setAssetPrice,
+    setCrypto,
+    setTicker,
+    setNetwork,
+  } = usePaymentStore.getState();
+
+  const usdtNext = next({ stepId: "network" });
+  const requestNext = next({ stepId: "enterPhone" });
+  const normalNext = next({ stepId: "payOptions" });
+
+  const isRequest = paymentMode.toLowerCase() === "payrequest";
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
@@ -28,8 +41,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setAssetPrice(asset.toString());
 
     console.log({ assetPrice });
-    displayHowToEstimation({ crypto, ticker });
-    next({ stepId: "payOptions" });
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker });
+    // next({ stepId: "payOptions" });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "2") {
     setCrypto("ETH");
     setTicker("ETHUSDT");
@@ -40,8 +56,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setAssetPrice(asset.toString());
 
     console.log({ assetPrice });
-    next({ stepId: "payOptions" });
-    displayHowToEstimation({ crypto, ticker });
+    // next({ stepId: "payOptions" });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "3") {
     setCrypto("BNB");
     setTicker("BNBUSDT");
@@ -52,8 +71,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setAssetPrice(asset.toString());
 
     console.log({ assetPrice });
-    displayHowToEstimation({ crypto, ticker });
-    next({ stepId: "payOptions" });
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker });
+    // next({ stepId: "payOptions" });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "4") {
     setCrypto("TRX");
     setTicker("TRXUSDT");
@@ -64,11 +86,15 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setAssetPrice(asset.toString());
 
     console.log({ assetPrice });
-    displayHowToEstimation({ crypto, ticker });
-    next({ stepId: "payOptions" });
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker });
+    // next({ stepId: "payOptions" });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "5") {
     displayNetwork();
-    next({ stepId: "network" });
+    // next({ stepId: "network" });
+    usdtNext;
   } else {
     addMessages([
       {
