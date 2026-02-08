@@ -188,7 +188,7 @@ export async function processTransaction() {
     // status
 
     request_id: generateTransactionId().toString(),
-    request_status: "Not paid",
+    request_status: "Pending",
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
@@ -197,9 +197,9 @@ export async function processTransaction() {
     charges: toDecimal(paymentStore.nairaCharge),
     crypto_amount: toDecimal(paymentStore.paymentAssetEstimate),
     date: new Date(),
-    current_rate: toDecimal(paymentStore.rate),
-    merchant_rate: toDecimal(paymentStore.merchantRate),
-    profit_rate: toDecimal(paymentStore.profitRate),
+    // current_rate: toDecimal(paymentStore.rate),
+    // merchant_rate: toDecimal(paymentStore.merchantRate),
+    // profit_rate: toDecimal(paymentStore.profitRate),
     wallet_address: paymentStore.activeWallet,
     status,
 
@@ -207,7 +207,40 @@ export async function processTransaction() {
     summary,
   };
 
-  const updateRequestData = {};
+  const updateRequestData = {
+    // REQUEST
+    // request_id
+    // request_status
+    // crypto
+    // network
+    // estimate_asset
+    // estimate_amount
+    // amount_payable
+    // charges
+    // crypto_amount
+    // date
+    // receiver_id
+    // payer_id
+    // current_rate
+    // merchant_rate
+    // profit_rate
+    // wallet_address
+    // status
+
+    request_status: "Paid",
+    crypto: paymentStore.crypto,
+    network: paymentStore.network,
+    charges: toDecimal(paymentStore.nairaCharge),
+    crypto_amount: toDecimal(paymentStore.paymentAssetEstimate),
+    date: new Date(),
+    current_rate: toDecimal(paymentStore.rate),
+    merchant_rate: toDecimal(paymentStore.merchantRate),
+    profit_rate: toDecimal(paymentStore.profitRate),
+    wallet_address: paymentStore.activeWallet,
+
+    payer,
+    summary,
+  };
 
   if (isTransfer) {
     // call the endpoint that saves transfer transaction
