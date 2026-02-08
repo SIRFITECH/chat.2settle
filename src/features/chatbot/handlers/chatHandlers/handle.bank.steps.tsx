@@ -31,6 +31,7 @@ export const handleSearchBank = async (chatInput: string) => {
   const { setGiftId } = useTransactionStore.getState();
   const currentStep = useChatStore.getState().currentStep;
   const { paymentMode } = usePaymentStore.getState();
+
   // IS USER TRYING TO CLAIM GIFT?
   let wantsToSendGift =
     currentStep.transactionType?.toLowerCase().trim() === "gift";
@@ -148,7 +149,9 @@ export const handleSearchBank = async (chatInput: string) => {
       // CLEAN THE STRING HERE
       chatInput = chatInput.replace(/[^0-9.]/g, "");
       if (Number(chatInput) >= 20000 && Number(chatInput) < 2000000) {
-        // setSharedPaymentNairaEstimate(chatInput);
+         const requestAmount = chatInput.trim();
+        setPaymentNairaEstimate(requestAmount);
+
         displaySearchBank();
         next({ stepId: "selectBank" });
       } else {
@@ -196,7 +199,10 @@ export const handleSearchBank = async (chatInput: string) => {
       displaySearchBank();
       next({ stepId: "selectBank" });
     } else if (chatInput === "2") {
-      console.log("Final asset payment is from handle.bank.steps", paymentAssetEstimate)
+      console.log(
+        "Final asset payment is from handle.bank.steps",
+        paymentAssetEstimate,
+      );
 
       let finalAssetPayment = parseFloat(paymentAssetEstimate);
       const finalNairaPayment = parseFloat(paymentNairaEstimate);
