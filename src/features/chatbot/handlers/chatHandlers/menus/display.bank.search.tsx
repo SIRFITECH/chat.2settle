@@ -99,8 +99,8 @@ export const displayEnterAccountNumber = (input: string) => {
 
     // Check if the parsed input is within the valid range
     if (parsedInput > 0 && parsedInput <= bankCodes.length) {
-      console.log("Bank code is: ", bankCodes[parsedInput - 1]);
-      console.log("Bank name is: ", bankNames[parsedInput - 1]);
+      // console.log("Bank code is: ", bankCodes[parsedInput - 1]);
+      // console.log("Bank name is: ", bankNames[parsedInput - 1]);
       setSelectedBankName(bankNames[parsedInput - 1]);
       setSelectedBankCode(bankCodes[parsedInput - 1]);
     } else {

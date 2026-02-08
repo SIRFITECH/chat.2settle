@@ -1,5 +1,6 @@
 import { formatCurrency } from "@/helpers/format_currency";
 import { getBaseSymbol } from "@/utils/utilities";
+import { useBankStore } from "stores/bankStore";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
@@ -14,6 +15,10 @@ export const displaySendPayment = async () => {
     activeWallet,
     walletLastAssignedTime,
   } = usePaymentStore.getState();
+
+  const { bankData } = useBankStore.getState();
+
+  const { acct_number, bank_name, receiver_name } = bankData;
 
   const { currentStep, addMessages, next } = useChatStore.getState();
 
@@ -56,6 +61,15 @@ export const displaySendPayment = async () => {
           <span>
             You will receive{" "}
             <b>${formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} </b>.
+            <br />
+            It would be paid into:
+            <br />
+            Bank Name: {bank_name}
+            Account Number: {acct_number}
+            Bank Name: {receiver_name}
+            <br />
+            You can copy the requestId below and share with the person to
+            fulfill the request
           </span>
         ),
         timestamp: new Date(),

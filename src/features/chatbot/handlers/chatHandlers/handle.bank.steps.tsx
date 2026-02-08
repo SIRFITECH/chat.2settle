@@ -145,8 +145,6 @@ export const handleSearchBank = async (chatInput: string) => {
         displayPayIn();
       })();
     } else {
-      // chatInput.trim()
-      // CLEAN THE STRING HERE
       chatInput = chatInput.replace(/[^0-9.]/g, "");
       if (Number(chatInput) >= 20000 && Number(chatInput) < 2000000) {
          const requestAmount = chatInput.trim();
