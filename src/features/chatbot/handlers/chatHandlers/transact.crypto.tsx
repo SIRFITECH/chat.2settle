@@ -19,10 +19,6 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setNetwork,
   } = usePaymentStore.getState();
 
-  const usdtNext = next({ stepId: "network" });
-  const requestNext = next({ stepId: "enterPhone" });
-  const normalNext = next({ stepId: "payOptions" });
-
   const isRequest = paymentMode.toLowerCase() === "payrequest";
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -93,8 +89,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "5") {
     displayNetwork();
-    // next({ stepId: "network" });
-    usdtNext;
+    next({ stepId: "network" });
   } else {
     addMessages([
       {
