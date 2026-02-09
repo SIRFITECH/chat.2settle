@@ -7,15 +7,16 @@ import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { getAccount } from "wagmi/actions";
 import { config } from "@/wagmi";
 import { displayEnterPhone } from "./menus/display.phone";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const handleNetwork = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { paymentMode } = usePaymentStore.getState();
 
-  const account = getAccount(config);
+   const { isConnected, address }= useWalletStore.getState()
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const { assetPrice, setAssetPrice, setCrypto, setTicker, setNetwork } =
     usePaymentStore.getState();

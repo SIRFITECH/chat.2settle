@@ -6,17 +6,18 @@ import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
 import { useUserStore } from "stores/userStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 export const displayWelcomeMenu = (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { reset } = usePaymentStore.getState();
   const { resetTransaction } = useTransactionStore.getState();
 
   const { user } = useUserStore.getState();
+  const { isConnected, address }= useWalletStore.getState()
 
-  const account = getAccount(config);
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const telFirstName = user?.telegram?.username;
 

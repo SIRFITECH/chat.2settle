@@ -7,6 +7,7 @@ import { useUserStore } from "stores/userStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { useTransactionStore } from "stores/transactionStore";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const helloMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
@@ -22,10 +23,10 @@ export const helloMenu = async (chatInput?: string) => {
   setActiveWallet("");
   useConfirmDialogStore.getState().reset();
 
-  const account = getAccount(config);
+   const { isConnected, address }= useWalletStore.getState()
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const telFirstName = user?.telegram?.username;
 

@@ -1,9 +1,8 @@
 import { formatCurrency } from "@/helpers/format_currency";
-import { fetchRate } from "@/services/rate/rates.service";
-import { config } from "@/wagmi";
-import useChatStore, { MessageType } from "stores/chatStore";
-import { getAccount } from "wagmi/actions";
 import { shortWallet } from "@/helpers/ShortenAddress";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import { fetchRate } from "@/services/rate/rates.service";
+import useChatStore, { MessageType } from "stores/chatStore";
 import { useUserStore } from "stores/userStore";
 
 export const displayMakeChoice = async () => {
@@ -14,11 +13,11 @@ export const displayMakeChoice = async () => {
   } catch (err) {
     console.error("Failed to fetch rate", err);
   }
-  const account = getAccount(config);
+  const { isConnected, address }= useWalletStore.getState()
   const { user } = useUserStore.getState();
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const formatRate = formatCurrency(rate?.toString() ?? "0", "NGN", "en-NG");
 

@@ -9,14 +9,15 @@ import { getWalletType } from "@/helpers/transaction/transact_crypto";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { usePaymentStore } from "stores/paymentStore";
 import { displayEnterPhone } from "./menus/display.phone";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 
 export const handleEstimateAsset = async (chatInput: string) => {
 
-    const account = getAccount(config);
+     const { isConnected, address }= useWalletStore.getState()
   
-    const walletIsConnected = account.isConnected;
-    const wallet = account.address;
+    const walletIsConnected = isConnected;
+    const wallet = address;
     
     console.log("User chatinput", chatInput);
   

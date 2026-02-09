@@ -28,11 +28,6 @@ export const connectWallet = async () => {
     {
       type: "incoming",
       intent: { kind: "component", name: "ConnectWallet", persist: false },
-      //   (
-      //   <span>
-      //     <ConnectWallet />
-      //   </span>
-      // ),
       timestamp: new Date(),
     },
     {
@@ -49,7 +44,6 @@ export const connectWallet = async () => {
     },
   ]);
 
-  // sendChatInput("connected");
   next({
     stepId: "chooseAction",
   });

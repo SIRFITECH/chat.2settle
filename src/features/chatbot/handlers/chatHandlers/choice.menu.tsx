@@ -20,7 +20,7 @@ export const choiceMenu = async (chatInput?: string) => {
   const { user } = useUserStore.getState();
 
   const telFirstName = user?.telegram?.username;
-  const { addMessages } = useChatStore.getState();
+  const { next, addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "0") {
@@ -50,86 +50,6 @@ export const choiceMenu = async (chatInput?: string) => {
       },
     ]);
   } else if (chatInput === "2") {
-    // if (walletIsConnected) {
-    //   addMessages([
-    //     {
-    //       type: "incoming",
-    //       content: (
-    //         <span>
-    //           How far {telFirstName} 👋
-    //           <br />
-    //           <br />
-    //           You are connected as <b>{shortWallet(wallet)}</b>
-    //           <br />
-    //           <br />
-    //           Your wallet is connected. The current rate is
-    //           <b> {formatRate}/$1</b>
-    //         </span>
-    //       ),
-    //       timestamp: new Date(),
-    //     },
-    //     {
-    //       type: "incoming",
-    //       content: (
-    //         <span>
-    //           1. Transact Crypto
-    //           <br />
-    //           2. Request for paycard
-    //           <br />
-    //           3. Customer support
-    //           <br />
-    //           4. Transaction ID
-    //           <br />
-    //           5. Reportly,
-    //         </span>
-    //       ),
-    //     },
-    //   ] as unknown as MessageType[]);
-    //   next({
-    //     stepId: "transactCrypto",
-    //   });
-    // } else {
-    //   {
-    //     addMessages([
-    //       {
-    //         type: "incoming",
-    //         content: (
-    //           <span>
-    //             You continued <b>without connecting your wallet</b>
-    //             <br />
-    //             <br />
-    //             Today Rate: <b>{formatRate}/$1</b> <br />
-    //             <br />
-    //             Welcome to 2SettleHQ {telFirstName}, how can I help you today?
-    //           </span>
-    //         ),
-    //         timestamp: new Date(),
-    //       },
-    //       {
-    //         type: "incoming",
-    //         content: (
-    //           <span>
-    //             1. Transact Crypto
-    //             <br />
-    //             2. Request for paycard
-    //             <br />
-    //             3. Customer support
-    //             <br />
-    //             4. Transaction ID
-    //             <br />
-    //             5. Reportly
-    //             <br />
-    //             0. Back
-    //           </span>
-    //         ),
-    //         timestamp: new Date(),
-    //       },
-    //     ]);
-    //   }
-    //   next({
-    //     stepId: "makeAChoice",
-    //   });
-    // }
     displayMakeChoice();
   } else {
     addMessages?.([
@@ -167,13 +87,10 @@ export async function choiceMenuRouter(input: string) {
 
   const telFirstName = "Mosnyik";
 
-  const { next, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
 
   const chatInput = (input ?? "").trim().toLowerCase();
 
-  // ----------------------------
-  // GREETINGS
-  // ----------------------------
   if (greetings.includes(chatInput)) {
     if (walletIsConnected) {
       addMessages([
@@ -251,9 +168,6 @@ export async function choiceMenuRouter(input: string) {
     }
   }
 
-  // ----------------------------
-  // OPTION 1
-  // ----------------------------
   if (chatInput === "1") {
     addMessages([
       {
@@ -270,9 +184,6 @@ export async function choiceMenuRouter(input: string) {
     ]);
   }
 
-  // ----------------------------
-  // OPTION 2
-  // ----------------------------
   if (chatInput === "2") {
     if (walletIsConnected) {
       addMessages([
