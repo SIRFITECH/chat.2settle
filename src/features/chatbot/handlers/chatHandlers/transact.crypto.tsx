@@ -7,6 +7,10 @@ import { helloMenu } from "./hello.menu";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { displayNetwork } from "./menus/display.network";
 import { displayEnterPhone } from "./menus/display.phone";
+import { getWalletType } from "@/helpers/transaction/transact_crypto";
+import { getAccount } from "wagmi/actions";
+import { config } from "@/wagmi";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const handleTransactCrypto = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
@@ -19,6 +23,16 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setNetwork,
   } = usePaymentStore.getState();
 
+  const walletD = useWalletStore.getState();
+  const account = getAccount(config);
+
+  walletD
+  // const walletIsConnected = account.isConnected;
+  const wallet = walletD.address;
+  const walletType = getWalletType(wallet);
+
+  console.log({ walletD})
+
   const isRequest = paymentMode.toLowerCase() === "payrequest";
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
@@ -28,6 +42,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
   } else if (chatInput === "0") {
     helloMenu("hi");
   } else if (chatInput === "1") {
+    // if not connected to btc,
+    // tell the user they can only transact btc if the connect to btc wallet
+
+    console.log({ walletType });
+
     setCrypto("BTC");
     setTicker("BTCUSDT");
     setNetwork("BTC");
@@ -43,6 +62,8 @@ export const handleTransactCrypto = async (chatInput: string) => {
     // next({ stepId: "payOptions" });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "2") {
+    console.log({ walletType });
+
     setCrypto("ETH");
     setTicker("ETHUSDT");
     setNetwork("ERC20");
@@ -58,6 +79,8 @@ export const handleTransactCrypto = async (chatInput: string) => {
       ? displayEnterPhone()
       : displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "3") {
+    console.log({ walletType });
+
     setCrypto("BNB");
     setTicker("BNBUSDT");
     setNetwork("BEP20");
@@ -73,6 +96,8 @@ export const handleTransactCrypto = async (chatInput: string) => {
     // next({ stepId: "payOptions" });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "4") {
+    console.log({ walletType });
+
     setCrypto("TRX");
     setTicker("TRXUSDT");
     setNetwork("TRC20");

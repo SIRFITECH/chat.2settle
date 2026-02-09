@@ -1,3 +1,5 @@
+declare module "*.css" {}
+
 declare module "html-react-parser" {
   import { ReactNode } from "react";
   function parse(htmlString: string): ReactNode;

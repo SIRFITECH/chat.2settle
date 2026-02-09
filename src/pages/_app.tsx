@@ -12,6 +12,7 @@ import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";
 import { RateBootstrapper } from "@/components/dashboard/RateBootstrapper";
 import UserBootstrap from "@/components/dashboard/checkTelUser";
+import { WalletBootstrap } from "@/components/crypto/WalletBootstrap";
 
 export const client = new QueryClient();
 
@@ -33,6 +34,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                   intervals and saving to zustand */}
                   <RateBootstrapper />
                   <UserBootstrap />
+                  <WalletBootstrap />
                   <Component {...pageProps} />
                   <ReactQueryDevtools />
                 </ErrorBoundary>

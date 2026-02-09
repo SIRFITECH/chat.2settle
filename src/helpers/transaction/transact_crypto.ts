@@ -1,6 +1,7 @@
 import { WalletAddress, WalletType } from "@/lib/wallets/types";
 
 export const getWalletType = (wallet: WalletAddress | null): WalletType => {
+  console.log({ wallet });
   if (!wallet) return "UNKNOWN";
   if (wallet.startsWith("0x")) return "EVM";
   if (

@@ -49,7 +49,6 @@ export const displayWelcomeMenu = (chatInput?: string) => {
         stepId: "chooseAction",
       });
     } else {
-      //   setSharedPaymentMode?.("");
       addMessages?.([
         {
           type: "incoming",
@@ -71,7 +70,6 @@ export const displayWelcomeMenu = (chatInput?: string) => {
         },
       ]);
       console.log("Wallet not connected");
-      // sendChatInput(chatInput!);
       next({
         stepId: "chooseAction",
       });
