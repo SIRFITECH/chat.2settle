@@ -162,6 +162,7 @@ export type SummaryRow = {
 
   effort?: string;
   merchant_id?: string;
+  transaction_id?: string;
   ref_code?: string;
   asset_price?: string;
   status?: string;

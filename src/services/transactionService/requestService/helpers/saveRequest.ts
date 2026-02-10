@@ -49,9 +49,13 @@ export const saveRequestTransaction = async (requestObj: RequestRow) => {
     const receiverId = await getOrCreateReceiver(connection!, receiver);
 
     const requestId = await insertRequest(connection!, requestObj, receiverId!);
-    const transactionId = generateTransactionId();
 
-    await insertSummary(connection, summary!, transactionId, "request");
+    await insertSummary(
+      connection,
+      summary!,
+      parseInt(requestObj.request_id!),
+      "request",
+    );
 
     await connection.commit();
     return requestId;

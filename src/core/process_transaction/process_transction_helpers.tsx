@@ -33,7 +33,7 @@ export async function processTransaction() {
   const effort = paymentStore.paymentNairaEstimate
     ? parseFloat(paymentStore.paymentNairaEstimate) * 0.1
     : null;
-  const transferId = generateTransactionId().toString();
+  // const transferId = generateTransactionId().toString();
   const transactionId = generateTransactionId().toString();
 
   function cleanCurrency(currencyStr: string): string {
@@ -77,6 +77,7 @@ export async function processTransaction() {
 
   const summary = {
     transaction_type: currentStep.transactionType?.toLowerCase(),
+    transactionId,
     total_dollar: toDecimal(dollarEquivalent.toString()),
     total_naira: toDecimal(paymentStore.paymentNairaEstimate),
     effort: effort ? toDecimal(effort.toString()) : undefined,
@@ -115,7 +116,7 @@ export async function processTransaction() {
     crypto_amount: toDecimal(paymentStore.paymentAssetEstimate),
     charges: toDecimal(paymentStore.nairaCharge),
     date: new Date(),
-    transfer_id: transferId,
+    transfer_id: transactionId,
     current_rate: toDecimal(paymentStore.rate),
     merchant_rate: toDecimal(paymentStore.merchantRate),
     profit_rate: toDecimal(paymentStore.profitRate),
@@ -147,7 +148,7 @@ export async function processTransaction() {
     // profit_rate
     // wallet_address
     // status
-    gift_id: generateTransactionId().toString(),
+    gift_id: transactionId,
     crypto: paymentStore.crypto,
     network: paymentStore.network,
     estimate_asset: paymentStore.estimateAsset,
@@ -187,7 +188,7 @@ export async function processTransaction() {
     // wallet_address
     // status
 
-    request_id: generateTransactionId().toString(),
+    request_id: transactionId,
     request_status: "Pending",
     crypto: paymentStore.crypto,
     network: paymentStore.network,
@@ -248,7 +249,7 @@ export async function processTransaction() {
       console.log("Processing transfer transaction...", transferData);
       const { setTransferId, setTransactionId } = useTransactionStore.getState();
       setTransactionId(transactionId);
-      setTransferId(transferId);
+      setTransferId(transactionId);
       await createTransfer(transferData);
       displaySendPayment();
     } catch (error) {

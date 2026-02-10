@@ -55,7 +55,7 @@ export const saveTransferTransaction = async (transferObj: TransferRow) => {
       payerId,
     );
 
-    await insertSummary(connection!, summary!, transferId, "transfer");
+    await insertSummary(connection!, summary!, parseInt(transferObj.transfer_id!), "transfer");
 
     //SUMMARY
     // transaction_type

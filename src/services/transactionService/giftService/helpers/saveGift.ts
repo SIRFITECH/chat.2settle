@@ -45,9 +45,8 @@ export const saveGiftTransaction = async (giftObj: GiftRow) => {
     }
 
     const giftId = await insertGift(connection, giftObj, payerId);
-    const transactionId = generateTransactionId();
 
-    await insertSummary(connection, summary!, transactionId, "gift");
+    await insertSummary(connection, summary!, parseInt(giftObj.gift_id!), "gift");
 
     await connection.commit();
     return giftId;

@@ -16,12 +16,7 @@ export const CopyableText: React.FC<{
   label: string;
   isWallet?: boolean;
   lastAssignedTime?: Date;
-}> = ({
-  text,
-  label,
-  isWallet = false,
-  lastAssignedTime,
-}) => {
+}> = ({ text, label, isWallet = false, lastAssignedTime }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
@@ -37,9 +32,11 @@ export const CopyableText: React.FC<{
       const timer = setInterval(() => {
         const now = new Date().getTime();
         const distance =
-          new Date(
-            lastAssignedTime.getTime() + allowedTime * 60 * 1000
-          ).getTime() - now;
+          lastAssignedTime instanceof Date
+            ? new Date(
+                lastAssignedTime.getTime() + allowedTime * 60 * 1000,
+              ).getTime() - now
+            : 0;
 
         if (distance < 0) {
           clearInterval(timer);
@@ -47,13 +44,13 @@ export const CopyableText: React.FC<{
           setIsExpired(true);
           if (!walletCopied && shouldShowDialog) {
             setDialogMessage(
-              "This wallet is no longer available. Please start a new transaction."
+              "This wallet is no longer available. Please start a new transaction.",
             );
             setIsDialogOpen(true);
           }
         } else {
           const minutes = Math.floor(
-            (distance % (1000 * 60 * 60)) / (1000 * 60)
+            (distance % (1000 * 60 * 60)) / (1000 * 60),
           );
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
           const timeString = `${minutes.toString().padStart(2, "0")}:${seconds
@@ -67,7 +64,12 @@ export const CopyableText: React.FC<{
           }
 
           // Show dialog at exactly 2 minutes if wallet was copied
-          if (minutes === 2 && seconds === 0 && walletCopied && shouldShowDialog) {
+          if (
+            minutes === 2 &&
+            seconds === 0 &&
+            walletCopied &&
+            shouldShowDialog
+          ) {
             setDialogMessage("Have you sent the payment?");
             setIsDialogOpen(true);
           }
@@ -139,7 +141,7 @@ export const CopyableText: React.FC<{
     () => (text: string) => {
       return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
     },
-    []
+    [],
   );
 
   const getButtonText = () => {
