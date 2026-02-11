@@ -73,7 +73,7 @@ dotenv.config();
 
 const model = new ChatOpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
-  model: "meta-llama/llama-3.3-70b-instruct:free",
+  model: "google/gemini-2.0-flash-lite-00",
   configuration: {
     baseURL: "https://openrouter.ai/api/v1",
   },
@@ -110,23 +110,15 @@ User input:
  
 
   const outputParser = StructuredOutputParser.fromNamesAndDescriptions({
-    bank_name:
-      "the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name or empty string ''",
-    crypto:
-      "the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER or empty string ''",
-    network:
-      "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto or empty string ''",
-    estimation:
-      "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt or empty string ''",
-    Amount:
-      "the Amount the user to send just the numeric e.g $100 or empty string ''",
-    acct_number:
-      "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443. or empty string ''",
-    receiver_phoneNumber:
-      "the phone number is nigeria phone number 11 digit number e.g 07035194443 or empty string ''",
+    bank_name:"the bank_name is the bank name in nigeria including micro-finance banks e.g(Access bank, opay) and also when user shorten the name make sure you write the full name or empty string ''",
+    crypto:"the  crypto_asset is the crypto token that the user is using to pay e.g(bitcoin) and make it all in CAPITAL LETTER or empty string ''",
+    network: "network is the network of the crypto if a user choose BTC the network is BTC, ETH is ETH, BNB is BNB while TRON is TRC20 and USDT Can be erc20, trc20 and bep20. automatically update it base on what the cypto or empty string ''",
+    estimation: "estimation is how user will like to estimate their money either dollar, naira , crypto and also the user can input maybe dollar, naira , crypt or empty string ''",
+    Amount: "the Amount the user to send just the numeric e.g $100 or empty string ''",
+    acct_number: "the account number is nigeria  bank account number it is a ten digit number e.g 7035194443. or empty string ''",
+    receiver_phoneNumber: "the phone number is nigeria phone number 11 digit number e.g 07035194443 or empty string ''",
     name: "the name of the person it can be any tribe name or english name e.g (olawale,maxwell,john) detect any name provided by the user or empty string ''",
-    gift_id:
-      "the gift id is a 6 digit number that a user will use to claim gift or empty string ''",
+    gift_id:"the gift id is a 6 digit number that a user will use to claim gift or empty string ''",
   });
 
   const chain = prompt.pipe(model).pipe(outputParser);
@@ -264,6 +256,7 @@ export default async function handler(
         lowercase
       );
       updatedSession["wallet_address"] = activeWallet;
+      console.log("wallet_address....", activeWallet);
       if (updatedSession.estimation === "naira") {
         updatedSession["numbersOnly"] = updatedSession.Amount.replace(
           /[^0-9.]/g,

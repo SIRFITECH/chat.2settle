@@ -24,7 +24,7 @@ export default async function handler(
   // const dbName = process.env.DB_DATABASE!;
 
   const userData = req.body;
-
+   console.error("the user data......", userData);
   try {
     // const connection = await mysql.createConnection({
     //   host: dbHost,
@@ -41,7 +41,7 @@ export default async function handler(
         try {
           const payerId = await getOrCreatePayer(row);
           const receiverId = await getOrCreateReceiver(row);
-
+           
           if (!receiverId) continue;
 
           const transferId = await insertTransfer(row, receiverId, payerId);
