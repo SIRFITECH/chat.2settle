@@ -1,28 +1,14 @@
-import { shortWallet } from "@/helpers/ShortenAddress";
-import { config } from "@/wagmi";
-import useChatStore, { MessageType } from "stores/chatStore";
-import { greetings } from "../../helpers/ChatbotConsts";
-import { formatCurrency } from "@/helpers/format_currency";
 import ConnectWallet from "@/components/crypto/ConnectWallet";
+import useChatStore from "stores/chatStore";
 import { useAccount } from "wagmi";
-import { useEffect } from "react";
 
 export function ConnectWalletWithChat() {
-  const { isConnected } = useAccount();
-  // const { sendChatInput } = useChatStore();
-
-  //   useEffect(() => {
-  //     if (isConnected) {
-  //       sendChatInput("connected");
-  //     }
-  //   }, [isConnected, sendChatInput]);
-
   return <ConnectWallet />;
 }
 export const connectWallet = async () => {
   const { next, addMessages } = useChatStore.getState();
 
-  console.log("We are connecting wallet")
+  console.log("We are connecting wallet");
 
   addMessages([
     {

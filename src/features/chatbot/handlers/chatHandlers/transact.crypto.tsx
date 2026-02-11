@@ -23,15 +23,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setNetwork,
   } = usePaymentStore.getState();
 
-  const walletD = useWalletStore.getState();
-  const account = getAccount(config);
+  const { isConnected, address } = useWalletStore.getState();
+  const walletIsConnected = isConnected;
 
-  walletD
-  // const walletIsConnected = account.isConnected;
-  const wallet = walletD.address;
+  const wallet = address;
   const walletType = getWalletType(wallet);
-
-  console.log({ walletD})
 
   const isRequest = paymentMode.toLowerCase() === "payrequest";
 
@@ -42,10 +38,17 @@ export const handleTransactCrypto = async (chatInput: string) => {
   } else if (chatInput === "0") {
     helloMenu("hi");
   } else if (chatInput === "1") {
-    // if not connected to btc,
-    // tell the user they can only transact btc if the connect to btc wallet
-
-    console.log({ walletType });
+    const walletType = getWalletType(wallet);
+    if (walletIsConnected && walletType !== "BTC") {
+      addMessages([
+        {
+          type: "incoming",
+          content: `BTC is only supported when BTC wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
 
     setCrypto("BTC");
     setTicker("BTCUSDT");
@@ -62,7 +65,16 @@ export const handleTransactCrypto = async (chatInput: string) => {
     // next({ stepId: "payOptions" });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "2") {
-    console.log({ walletType });
+    if (walletIsConnected && walletType !== "EVM") {
+      addMessages([
+        {
+          type: "incoming",
+          content: `ETH is only supported when ETH wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
 
     setCrypto("ETH");
     setTicker("ETHUSDT");
@@ -79,7 +91,16 @@ export const handleTransactCrypto = async (chatInput: string) => {
       ? displayEnterPhone()
       : displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "3") {
-    console.log({ walletType });
+    if (walletIsConnected && walletType !== "EVM") {
+      addMessages([
+        {
+          type: "incoming",
+          content: `BNB is only supported when BNB/ETH wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
 
     setCrypto("BNB");
     setTicker("BNBUSDT");
@@ -96,7 +117,16 @@ export const handleTransactCrypto = async (chatInput: string) => {
     // next({ stepId: "payOptions" });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "4") {
-    console.log({ walletType });
+    if (walletIsConnected && walletType !== "TRX") {
+      addMessages([
+        {
+          type: "incoming",
+          content: `TRX is only supported when TRX wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
 
     setCrypto("TRX");
     setTicker("TRXUSDT");
@@ -113,6 +143,16 @@ export const handleTransactCrypto = async (chatInput: string) => {
     // next({ stepId: "payOptions" });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "5") {
+    if (walletIsConnected && walletType !== "EVM" && walletType !== "TRX") {
+      addMessages([
+        {
+          type: "incoming",
+          content: `USDT is only supported when ETH or TRX wallet is connected. \n Please select the asset of the wallet connected`,
+          timestamp: new Date(),
+        },
+      ]);
+      return;
+    }
     displayNetwork();
     next({ stepId: "network" });
   } else {

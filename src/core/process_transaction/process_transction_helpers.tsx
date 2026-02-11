@@ -33,7 +33,6 @@ export async function processTransaction() {
   const effort = paymentStore.paymentNairaEstimate
     ? parseFloat(paymentStore.paymentNairaEstimate) * 0.1
     : null;
-  // const transferId = generateTransactionId().toString();
   const transactionId = generateTransactionId().toString();
 
   function cleanCurrency(currencyStr: string): string {

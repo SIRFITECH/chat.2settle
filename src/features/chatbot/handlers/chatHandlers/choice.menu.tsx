@@ -20,7 +20,7 @@ export const choiceMenu = async (chatInput?: string) => {
   const { user } = useUserStore.getState();
 
   const telFirstName = user?.telegram?.username;
-  const { next, addMessages } = useChatStore.getState();
+  const {addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "0") {
