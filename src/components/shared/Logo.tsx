@@ -7,7 +7,11 @@ const Logo = () => {
   return (
     <div className="relative h-8 w-16 text-2xl md:w-24 lg:w-36">
       <Image
-        src={isDec ? "/logos/christmas/xmas-logo.png" : "/simple_logo.png"}
+        src={
+          isDec
+            ? "/logos/christmas/xmas-logo.png"
+            : "/logos/normal/simple_logo.png"
+        }
         alt="Logo"
         fill
         objectFit="contain"

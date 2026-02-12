@@ -45,7 +45,7 @@ export default function CardFlip() {
           }}
         >
           <Image
-            src="/virtual-card.png"
+            src="virtual-card/virtual-card.png"
             alt="Virtual card front"
             fill
             className="object-cover"
