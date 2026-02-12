@@ -14,16 +14,9 @@ const ChatHeader = ({ onClose, showDateDropdown, currentDate }: Props) => {
     <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
       <div className="flex items-center justify-between px-4">
         <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
-          {/* <Image
-            src="/waaa.png"
-            alt="Avatar"
-            width={32}
-            height={32}
-            className="rounded"
-          /> */}
           {isOnline ? (
             <Image
-              src="/waaa.png"
+              src="wale/waaa.png"
               alt="Avatar"
               width={32}
               height={32}
