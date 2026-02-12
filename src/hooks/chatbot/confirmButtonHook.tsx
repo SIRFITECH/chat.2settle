@@ -62,6 +62,7 @@ const ConfirmAndProceedButton = () => {
 
       await getAvaialableWallet(network.toLowerCase());
       setHasCopyButtonBeenClicked(false);
+      
       await processTransaction();
     } catch (err) {
       console.log("Ther is an erro", err);
@@ -79,7 +80,7 @@ const ConfirmAndProceedButton = () => {
     // do not run if the user is not have already copied wallet
     if (hasCopyButtonBeenClicked) return;
     // dont run if the user is not going to make payment in the next step
-    if (currentStep.stepId !== SHOULD_OPEN_STEP ) return; // make sure we pop up only when we have not send payment
+    if (currentStep.stepId !== SHOULD_OPEN_STEP) return; // make sure we pop up only when we have not send payment
     // do not open the dialog if the dialog is already opened
     if (hasOpenedRef.current) return;
     hasOpenedRef.current = true;
@@ -111,8 +112,6 @@ const ConfirmAndProceedButton = () => {
     return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
   };
 
-  // const showStatus = hasCopyButtonBeenClicked;
-  // const showCountdown = walletLastAssignedTime && !isExpired;
   const showCountdown = !!activeWallet && !isExpired;
 
   const showExpired = isExpired;

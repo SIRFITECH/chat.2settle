@@ -60,7 +60,7 @@ export const displayMakeChoice = async () => {
       },
     ] as unknown as MessageType[]);
     next({
-      stepId: "transactCrypto",
+      stepId: "makeAChoice",
     });
   } else {
     {

@@ -1,3 +1,4 @@
+import { getBaseSymbol } from "@/utils/utilities";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 
@@ -12,6 +13,7 @@ export const displayHowToEstimation = async ({
   ticker,
 }: estimateType) => {
   const { addMessages } = useChatStore.getState();
+  const asset = getBaseSymbol(ticker)
 
   const ethChainId = 1;
   const bnbChainId = 56;
@@ -21,7 +23,7 @@ export const displayHowToEstimation = async ({
   const newMessages: MessageType[] = [
     {
       type: "incoming",
-      content: `How would you like to estimate your ${crypto} (${ticker.toUpperCase()})?`,
+      content: `How would you like to estimate your ${crypto} (${asset.toUpperCase()})?`,
       timestamp: new Date(),
     },
     {

@@ -1,12 +1,10 @@
-import { config } from "@/wagmi";
-import useChatStore from "stores/chatStore";
-import { getAccount } from "wagmi/actions";
-import { shortWallet } from "@/helpers/ShortenAddress";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
-import { useUserStore } from "stores/userStore";
+import { shortWallet } from "@/helpers/ShortenAddress";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
-import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import { useUserStore } from "stores/userStore";
 export const displayWelcomeMenu = (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { reset } = usePaymentStore.getState();
