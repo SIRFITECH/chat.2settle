@@ -6,18 +6,20 @@ import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
 import { useUserStore } from "stores/userStore";
 export const displayWelcomeMenu = (chatInput?: string) => {
-  const { next, addMessages } = useChatStore.getState();
+  const { next, addMessages, stepHistory } = useChatStore.getState();
   const { reset } = usePaymentStore.getState();
   const { resetTransaction } = useTransactionStore.getState();
 
   const { user } = useUserStore.getState();
-  const { isConnected, address }= useWalletStore.getState()
-
+  const { isConnected, address } = useWalletStore.getState();
 
   const walletIsConnected = isConnected;
   const wallet = address;
 
   const telFirstName = user?.telegram?.username;
+  if (stepHistory.length > 0) {
+    console.log("You have a chat running, do you want to clear it?");
+  }
 
   reset();
   resetTransaction();
