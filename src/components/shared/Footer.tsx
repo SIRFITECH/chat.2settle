@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import Logo from "./Logo";
-import ConnectWallet from "./ConnectWallet";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Settings } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import ConnectWallet from "../crypto/ConnectWallet";
 
 type NavItem = {
   name: string;
@@ -20,15 +20,19 @@ const navigation: NavItem[] = [
   { name: "History", href: "/history" },
   { name: "Reportly", href: "/reportly" },
   { name: "Settings", href: "/setting" },
+  { name: "Virtual Card", href: "/virtual-card" },
   { name: "Privacy Policy", href: "/privacy" },
   { name: "Term of service", href: "/terms" },
-  { name: "2settle Market", href: "https://market.2settle.io/",target:"_blank"},
+  {
+    name: "2settle Market",
+    href: "https://market.2settle.io/",
+    target: "_blank",
+  },
 ] as const;
 
 export default function Footer() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState({
     settings: false,
     logout: false,
@@ -46,7 +50,7 @@ export default function Footer() {
 
   const handleSettingsClick = () => {
     if (isAuthorized()) {
-        router.push("/newTrx");
+      router.push("/newTrx");
     } else {
       router.push("/login");
     }
@@ -223,8 +227,10 @@ export default function Footer() {
               <Link
                 key={item.name}
                 href={item.href}
-                target={item.target ?? "_self"} 
-                rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+                target={item.target ?? "_self"}
+                rel={
+                  item.target === "_blank" ? "noopener noreferrer" : undefined
+                }
                 className={cn(
                   "inline-flex items-center px-1 pt-1 border-b-1 text-xs sm:text-sm md:text-base lg:text-lg font-medium",
                   pathname === item.href

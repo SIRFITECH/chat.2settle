@@ -1,43 +1,27 @@
 import mysql from "mysql2/promise";
 
-// const dbConfig = {
-//   host: process.env.host,
-//   user: process.env.user,
-//   password: process.env.password,
-//   database: process.env.database,
-// };
-
-// let cachedConnection: mysql.Connection | null = null;
-
-// export async function getDBConnection() {
-//   if (cachedConnection) return cachedConnection;
-
-//   const connection = await mysql.createConnection(dbConfig);
-//   cachedConnection = connection;
-
-//   return connection;
-// }
-
-
 const config = {
   host: process.env.host,
   user: process.env.user,
   password: process.env.password,
   database: process.env.database,
+  waitForConnections: true,
+  connectionLimit: 2,
+  queueLimit: 0,
+  maxIdle: 2,
+  idleTimeout: 60000,
+  enableKeepAlive: false,
+  keepAliveInitialDelay: 0,
 };
 
-let connection: mysql.Pool;
-
 declare global {
-  // prevent multiple pools in dev
   var mysqlPool: mysql.Pool | undefined;
 }
 
-if (!global.mysqlPool) {
-  global.mysqlPool = mysql.createPool(config);
+export const pool  = global.mysqlPool || mysql.createPool(config);
+
+if (process.env.NODE_ENV !== "production") {
+  global.mysqlPool = pool ;
 }
 
-connection = global.mysqlPool;
-
-export default connection;
-
+export default pool ;

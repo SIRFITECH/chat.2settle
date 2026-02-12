@@ -15,9 +15,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"],
+      "stores/*": ["./stores/*"]
     },
     "incremental": true
   },
@@ -25,8 +25,8 @@
     "src",
     "__tests__",
     "global.d.ts",
-    "src/components/shared/manualTransactionForm/ManualTransactionForm.tsx",
+    "src/components/manualTransactionForm/ManualTransactionForm.tsx",
     "stores"
-  ],
+, "src/validation/helpers.ts"  ],
   "exclude": ["node_modules"]
 }

@@ -2,6 +2,8 @@ import { bscTestnet } from "viem/chains";
 import {
   BEP20_ABI,
   BEP20_CONTRACT,
+  BEP20_TEST_ABI,
+  BEP20_TEST_CONTRACT,
   ERC20_ABI,
   ERC20_CONTRACT,
 } from "./cryptoConstants";
@@ -30,6 +32,8 @@ export const CHAINS = {
     name: "Binance Smart Chain Testnet",
     rpcUrl: "https://data-seed-prebsc-1-s1.binance.org:8545/",
     nativeSymbol: "tBNB",
-    usdtContract: "0x55d398326f99059fF775485246999027B3197955",
+    usdtContract: BEP20_TEST_CONTRACT,
+    abi: BEP20_TEST_ABI,
+    network: "bnb",
   },
 } as const;

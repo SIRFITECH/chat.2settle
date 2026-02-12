@@ -1,5 +1,5 @@
 import Layout from "@/components/Layout";
-import ReportlyPage from "@/components/ReportlyPage";
+import ReportlyPage from "@/components/reports/ReportlyPage";
 import React from "react";
 
 const Reportly = () => {

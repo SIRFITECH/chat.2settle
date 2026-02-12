@@ -1,23 +1,42 @@
 import React from "react";
 import Image from "next/image";
+import { useOnlineStatus } from "./useOnlineStatus";
 interface Props {
   onClose: () => void;
   showDateDropdown: boolean;
   currentDate: string | null;
+  // isOnline: boolean;
 }
 
 const ChatHeader = ({ onClose, showDateDropdown, currentDate }: Props) => {
+  const isOnline = useOnlineStatus();
   return (
     <header className="py-4 text-center text-white bg-blue-500 shadow relative z-10">
       <div className="flex items-center justify-between px-4">
         <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
-          <Image
+          {/* <Image
             src="/waaa.png"
             alt="Avatar"
             width={32}
             height={32}
             className="rounded"
-          />
+          /> */}
+          {isOnline ? (
+            <Image
+              src="/waaa.png"
+              alt="Avatar"
+              width={32}
+              height={32}
+              className="rounded"
+            />
+          ) : (
+            <span
+              className="text-md font-semibold text-red-600"
+              title="You are offline"
+            >
+              ⚠️
+            </span>
+          )}
         </span>
         <h2 className="text-lg font-bold">2SettleHQ</h2>
         <button

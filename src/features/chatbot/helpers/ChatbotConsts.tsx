@@ -1,24 +1,18 @@
-import {
-  fetchMerchantRate,
-  fetchProfitRate,
-  fetchRate,
-} from "@/helpers/api_calls";
-import { formatCurrency } from "@/helpers/format_currency";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
+import { telegramUser } from "@/types/telegram_types";
 import {
+  differenceInDays,
+  differenceInMonths,
   format,
   isToday,
   isYesterday,
-  differenceInDays,
-  differenceInMonths,
 } from "date-fns";
 import {
   generateChatId,
   getChatId,
   saveChatId,
 } from "../../../utils/utilities";
-import { telegramUser } from "@/types/telegram_types";
 
 export const renderDateSeparator = (date: Date) => {
   const now = new Date();
@@ -61,41 +55,6 @@ export const componentMap: { [key: string]: React.ComponentType<any> } = {
 
 export const greetings = ["hi", "hello", "hey", "howdy"];
 
-// Replace multiple sequential API calls with Promise.all to batch API calls
-
-export const fetchData = async (
-  setRate: React.Dispatch<React.SetStateAction<string>>,
-  setFormattedRate: React.Dispatch<React.SetStateAction<string>>,
-  setMerchantRate: React.Dispatch<React.SetStateAction<string>>,
-  setProfitRate: React.Dispatch<React.SetStateAction<string>>,
-  setSharedRate: (rate: string) => void
-) => {
-  try {
-    const [fetchedRate, fetchedMerchantRate, fetchedProfitRate] =
-      await Promise.all([fetchRate(), fetchMerchantRate(), fetchProfitRate()]);
-
-    // Batch state updates
-    const updates = {
-      rate: fetchedRate.toString(),
-      formattedRate: formatCurrency(fetchedRate.toString(), "NGN", "en-NG"),
-      merchantRate: formatCurrency(
-        fetchedMerchantRate.toString(),
-        "NGN",
-        "en-NG"
-      ),
-      profitRate: formatCurrency(fetchedProfitRate.toString(), "NGN", "en-NG"),
-    };
-
-    // Update all states at once
-    setRate(updates.rate);
-    setFormattedRate(updates.formattedRate);
-    setMerchantRate(updates.merchantRate);
-    setProfitRate(updates.profitRate);
-    setSharedRate(updates.rate);
-  } catch (error) {
-    console.error("Failed to fetch rates:", error);
-  }
-};
 
 export const initializeChatId = (
   isTelUser: boolean,

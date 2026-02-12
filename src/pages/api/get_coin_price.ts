@@ -11,7 +11,6 @@ export default async function handler(
   }
 
   const { ticker } = req.body;
-
   console.log("Received request with symbol:", ticker);
 
   if (!ticker || typeof ticker !== "string") {
@@ -31,6 +30,8 @@ export default async function handler(
         },
       }
     );
+
+
 
     // console.log("Data fetched successfully:", response.data);
     const { price } = response.data.data[ticker].quote.USD;

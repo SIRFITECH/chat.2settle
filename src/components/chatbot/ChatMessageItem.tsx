@@ -1,7 +1,8 @@
 import React from "react";
 import Image from "next/image";
-import { MessageType } from "@/types/general_types";
 import { format } from "date-fns";
+import { MessageType } from "stores/chatStore";
+import { renderMessageContent } from "@/utils/renderMessageContent";
 interface Props {
   msg: MessageType;
   dateString: string;
@@ -27,6 +28,7 @@ const ChatMessageItem = ({ msg, dateString, index }: Props) => {
           />
         </span>
       )}
+
       <div className="flex flex-col max-w-[75%]">
         <div
           className={`p-2 md:p-3 rounded-lg ${
@@ -35,8 +37,9 @@ const ChatMessageItem = ({ msg, dateString, index }: Props) => {
               : "bg-blue-500 text-white rounded-br-none"
           }`}
         >
-          <p className="text-xs md:text-sm">{msg.content}</p>
+          {renderMessageContent(msg)}
         </div>
+
         <span
           className={`text-xs text-gray-500 mt-1 ${
             msg.type === "incoming" ? "self-end" : "self-start"

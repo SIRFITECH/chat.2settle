@@ -4,8 +4,3 @@ export interface ChatBotProps {
   onError?: (error: Error) => void;
 } 
 
-// ChatBotProps {
-//   isMobile: boolean;
-//   onClose: () => void;
-// }
-

@@ -6,15 +6,19 @@ import { config } from "../wagmi";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { SharedStateProvider } from "../context/SharedStateContext";
-import ErrorBoundary from "@/components/TelegramError";
+import ErrorBoundary from "@/components/social/telegram/TelegramError";
 import { SessionProvider } from "next-auth/react";
 import "@rainbow-me/rainbowkit/styles.css";
 import "../../globals.css";
+import { RateBootstrapper } from "@/components/dashboard/RateBootstrapper";
+import UserBootstrap from "@/components/dashboard/checkTelUser";
+import { WalletBootstrap } from "@/components/crypto/WalletBootstrap";
 
-const client = new QueryClient();
-//  session;
+export const client = new QueryClient();
 
 function MyApp({ Component, pageProps }: AppProps) {
+
+
   return (
     <>
       <Head>
@@ -26,6 +30,11 @@ function MyApp({ Component, pageProps }: AppProps) {
             <RainbowKitProvider>
               <SharedStateProvider>
                 <ErrorBoundary>
+                  {/* usefull for fetching rates in
+                  intervals and saving to zustand */}
+                  <RateBootstrapper />
+                  <UserBootstrap />
+                  <WalletBootstrap />
                   <Component {...pageProps} />
                   <ReactQueryDevtools />
                 </ErrorBoundary>

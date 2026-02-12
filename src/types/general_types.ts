@@ -5,16 +5,14 @@ export type MessageType = {
   type: string;
   content: React.ReactNode;
   timestamp: Date;
-  // isComponent?: boolean;
-  // componentName?: string;
 };
 
 //WALLET
-export type EthereumAddress = `0x${string}`|undefined;
+export type EthereumAddress = `0x${string}` | undefined;
 
 // RATES FROM THE VENDOR TABLE
 export interface ExchangeRate {
-  rate: number;
+  current_rate: number;
   merchant_rate: string;
   profit_rate: string;
 }
@@ -70,6 +68,7 @@ export interface userData {
   profit_rate?: string | null;
   name?: string | null;
   gift_status?: string | null;
+  request_status?: string | null;
   gift_chatID?: string | null;
   asset_price?: string | null;
   ref_code?: string | null;

@@ -2,7 +2,8 @@ import React, { ReactNode } from "react";
 import Image from "next/image";
 import ChatMessageItem from "./ChatMessageItem";
 import Loader from "../shared/Loader";
-import { MessageType } from "@/types/general_types";
+import { MessageType } from "stores/chatStore";
+
 interface Props {
   groupedMessages: Record<string, MessageType[]>;
   chatMessages: MessageType[];
