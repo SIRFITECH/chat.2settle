@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/helpers/format_currency";
+import { resetAllTransactionState } from "@/utils/resetTransactionState";
 import { getBaseSymbol } from "@/utils/utilities";
 import { useBankStore } from "stores/bankStore";
 import useChatStore, { MessageType } from "stores/chatStore";
@@ -215,5 +216,9 @@ export const displaySendPayment = async () => {
   }
 
   addMessages(messages);
-  next({ stepId: "start" });
+
+  // Reset all transaction state after displaying completion message
+  resetAllTransactionState();
+
+  next({ stepId: "start", transactionType: undefined });
 };
