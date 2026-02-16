@@ -3,6 +3,11 @@ import * as bitcoin from "bitcoinjs-lib";
 import axios from "axios";
 
 const NETWORK = bitcoin.networks.bitcoin; // bitcoin.networks.bitcoin;
+const isDev = process.env.NODE_ENV === "development";
+
+const baseUrl = isDev
+  ? "https://blockstream.info/testnet/api/tx"
+  : "https://blockstream.info/api/tx";
 
 type BroadcastTxRequest = {
   signedPsbtBase64: string;
@@ -10,7 +15,7 @@ type BroadcastTxRequest = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -24,11 +29,7 @@ export default async function handler(
     const tx = psbt.finalizeAllInputs().extractTransaction();
     const rawTxHex = tx.toHex();
 
-    const { data: txid } = await axios.post(
-      // "https://blockstream.info/testnet/api/tx",
-      "https://blockstream.info/api/tx",
-      rawTxHex
-    );
+    const { data: txid } = await axios.post(baseUrl, rawTxHex);
 
     return res.status(200).json({ txid });
   } catch (error) {
