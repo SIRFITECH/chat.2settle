@@ -3,311 +3,235 @@ import { sendBTC, spendTRX } from "@/helpers/ethereum_script/spend_crypto";
 import { WalletAddress } from "@/lib/wallets/types";
 import { networkType } from "@/services/transactionService/cryptoService/types";
 import { useSpendNative } from "@/services/transactionService/cryptoService/useSpendBepToken";
+import { useSpendEVMUSDT } from "@/services/transactionService/cryptoService/useSpendEVMUSDT";
 import { useSpendTRC20 } from "@/services/transactionService/cryptoService/useSpendTRC20";
 import { EthereumAddress } from "@/types/general_types";
 import { parseUnits } from "ethers/utils";
-import { useEffect, useState } from "react";
+
+/**
+ * Truncate decimal places to avoid parseUnits underflow errors
+ * USDT decimals: ERC20 = 6, TRC20 = 6, BEP20 = 18
+ */
+function truncateDecimals(value: string, decimals: number): string {
+  const [intPart, decPart = ""] = value.split(".");
+  if (!decPart) return value;
+  return `${intPart}.${decPart.slice(0, decimals)}`;
+}
 import { request, RpcErrorCode } from "sats-connect";
 import { TransactionReceipt } from "viem";
-import { ConfirmAndProceedButtonProps } from "./confirmButtonHook";
-import { useSpendEVMUSDT } from "@/services/transactionService/cryptoService/useSpendEVMUSDT";
 import { useBTCWallet } from "stores/btcWalletStore";
+import { usePaymentStore } from "stores/paymentStore";
+import useChatStore from "stores/chatStore";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
+import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
 
-const useConfirmAndProceedState = ({
-  phoneNumber,
-  setLoading,
-  sharedPaymentMode,
-  processTransaction,
-  network,
-  amount,
-}: ConfirmAndProceedButtonProps) => {
-  const [state, setState] = useState({
-    isButtonClicked: false,
-    isProcessing: false,
-    error: null as string | null,
-    activeWallet: null as string | null,
-    lastAssignedTime: null as Date | null,
-    isDialogOpen: true,
-    isExpired: false,
-    isCopied: false,
-    hasCopyButtonBeenClicked: false,
-  });
+/**
+ * Check if user's wallet is connected for the current network
+ */
+export function isWalletConnectedForNetwork(): boolean {
+  const { isConnected, walletType } = useWalletStore.getState();
+  const { network } = usePaymentStore.getState();
 
-  const { spendEVMUSDT } = useSpendEVMUSDT();
+  if (!isConnected || !network) return false;
+
+  const networkLower = network.toLowerCase();
+
+  // EVM networks require EVM wallet
+  if (["eth", "bnb", "erc20", "bep20"].includes(networkLower)) {
+    return walletType === "EVM";
+  }
+
+  // TRON networks require TRON wallet
+  if (["trx", "trc20"].includes(networkLower)) {
+    return walletType === "TRC20";
+  }
+
+  // BTC requires BTC wallet
+  if (networkLower === "btc") {
+    return walletType === "BTC";
+  }
+
+  return false;
+}
+
+/**
+ * Hook for executing blockchain payments by directly debiting user's connected wallet.
+ * Must be used inside a React component because it uses wagmi hooks.
+ */
+export function useBlockchainPayment() {
+  const { network, paymentAssetEstimate } = usePaymentStore();
+  const { setLoading } = useChatStore();
+  const { setWalletFetchError } = useConfirmDialogStore();
+  const { paymentAddress: btcPaymentAddress } = useBTCWallet();
+  const { isConnected, walletType } = useWalletStore();
+
+  // These are React hooks - they must be called at the top level of this hook
   const { spendNative } = useSpendNative();
+  const { spendEVMUSDT } = useSpendEVMUSDT();
   const { spendTRC20 } = useSpendTRC20();
 
-  const { paymentAddress } = useBTCWallet();
+  const amount = paymentAssetEstimate;
 
-  const handleBlockchainPayment = async () => {
-    console.log("handleBlockchainPayment called with network:", network);
-    setState((prev) => {
-      if (
-        prev.isDialogOpen === false &&
-        prev.isButtonClicked &&
-        prev.isProcessing &&
-        prev.error === null
-      )
-        return prev;
-      return {
-        ...prev,
-        isDialogOpen: true,
-        isButtonClicked: false,
-        isProcessing: false,
-        error: null,
-      };
-    });
+  const executePayment = async (): Promise<{ success: boolean; error?: string }> => {
+    if (!network) {
+      return { success: false, error: "Network is not set" };
+    }
+
+    if (!amount) {
+      return { success: false, error: "Payment amount is not set" };
+    }
+
+    if (!isConnected) {
+      return { success: false, error: "Wallet is not connected" };
+    }
+
+    console.log("executePayment called with network:", network, "amount:", amount);
+
     try {
-      const wallet = await getDirectDebitWallet(network.toLowerCase());
-      let reciept: TransactionReceipt | null = null;
+      setLoading(true);
+
+      // Get direct debit wallet address (where to send funds)
+      const receiverWallet = await getDirectDebitWallet(network.toLowerCase());
+
+      if (!receiverWallet) {
+        return { success: false, error: "Failed to get receiver wallet address" };
+      }
+
+      let receipt: TransactionReceipt | null = null;
       let btcSent = false;
       let trxSent = false;
 
-      if (wallet) {
-        console.log("Wallet is available and network is:", network);
-        switch (network.toLowerCase()) {
-          case "eth":
-            console.log("We are doing a ETH trx", amount);
-            reciept = await spendNative(
-              wallet as `0x${string}`,
-              amount,
-              network as networkType
-            );
-            console.log("The trx was successfull", reciept);
-            break;
-          case "bnb":
-            console.log("We are doing a BNB trx", amount);
-            reciept = await spendNative(
-              wallet as `0x${string}`,
-              amount,
-              network as networkType
-            );
-            console.log("The trx was successfull", reciept);
-            break;
-          case "erc20":
-            console.log("We are doing a ERC20 trx");
-            reciept = await spendEVMUSDT(
-              wallet as `0x${string}`,
-              parseUnits(amount, 6),
-              true
-            );
-            console.log("The trx was successfull", reciept);
-            break;
-          case "bep20":
-            console.log("We are doing a BEP20 trx");
-            reciept = await spendEVMUSDT(
-              wallet as `0x${string}`,
-              parseUnits(amount, 18)
-            );
+      console.log("Receiver wallet:", receiverWallet, "network:", network);
 
-            console.log("The trx was successfull", reciept);
-            break;
-          case "trc20":
-            // const usdtTrnsaction = await spendTRC20(
-            //   wallet as EthereumAddress,
-            //   amount
-            // );
+      switch (network.toLowerCase()) {
+        case "eth":
+          console.log("Processing ETH transaction:", amount);
+          receipt = await spendNative(
+            receiverWallet as `0x${string}`,
+            amount,
+            "eth" as networkType
+          );
+          console.log("ETH transaction result:", receipt);
+          break;
 
-            const trx = await spendTRC20(wallet, parseInt(amount));
-            console.log("TRC20 trx", trx);
-            trxSent = !!trx?.result;
-            break;
-          case "btc":
-            const txid = await sendBTC({
-              senderAddress: paymentAddress as WalletAddress,
-              recipient: wallet as WalletAddress,
-              amount: parseFloat(amount),
-              signPsbtFn: async (psbt: string) => {
-                try {
-                  if (!paymentAddress) {
-                    throw new Error("Payment address is undefined.");
-                  }
+        case "bnb":
+          console.log("Processing BNB transaction:", amount);
+          receipt = await spendNative(
+            receiverWallet as `0x${string}`,
+            amount,
+            "bnb" as networkType
+          );
+          console.log("BNB transaction result:", receipt);
+          break;
 
-                  const response = await request("signPsbt", {
-                    psbt: psbt,
-                    signInputs: {
-                      [paymentAddress!]: [0],
-                    },
-                  });
+        case "erc20":
+          console.log("Processing ERC20 USDT transaction");
+          receipt = await spendEVMUSDT(
+            receiverWallet as `0x${string}`,
+            parseUnits(truncateDecimals(amount, 6), 6),
+            true
+          );
+          console.log("ERC20 transaction result:", receipt);
+          break;
 
-                  // if the transaction is ready to broadcast and you want to broadcast
-                  // it yourself at this point, then remember to finalize the inputs in
-                  // the returned PSBT before broadcasting
+        case "bep20":
+          console.log("Processing BEP20 USDT transaction");
+          receipt = await spendEVMUSDT(
+            receiverWallet as `0x${string}`,
+            parseUnits(amount, 18)
+          );
+          console.log("BEP20 transaction result:", receipt);
+          break;
 
-                  if (response.status === "success") {
-                    // handle success response
-                    return response.result.psbt;
-                  } else {
-                    if (response.error.code === RpcErrorCode.USER_REJECTION) {
-                      console.log("User cancelled the signing process");
-                      throw new Error("User cancelled the signing process.");
-                      // handle user request cancelation
-                    } else {
-                      throw new Error(
-                        `Error signing PSBT: ${response.error.message}`
-                      );
-                      // handle error
-                    }
-                  }
-                } catch (err) {
-                  console.log(err);
-                  throw new Error("Failed to sign PSBT.");
+        case "trc20":
+          console.log("Processing TRC20 transaction");
+          // TRC20 USDT uses 6 decimals, convert to smallest unit (sun)
+          const trc20Amount = Math.floor(parseFloat(truncateDecimals(amount, 6)) * 1e6);
+          const trc20Result = await spendTRC20(receiverWallet, trc20Amount);
+          console.log("TRC20 transaction result:", trc20Result);
+          trxSent = !!trc20Result?.result;
+          break;
+
+        case "btc":
+          console.log("Processing BTC transaction");
+          const txid = await sendBTC({
+            senderAddress: btcPaymentAddress as WalletAddress,
+            recipient: receiverWallet as WalletAddress,
+            amount: parseFloat(amount),
+            signPsbtFn: async (psbt: string) => {
+              if (!btcPaymentAddress) {
+                throw new Error("Payment address is undefined.");
+              }
+
+              const response = await request("signPsbt", {
+                psbt: psbt,
+                signInputs: {
+                  [btcPaymentAddress]: [0],
+                },
+              });
+
+              if (response.status === "success") {
+                return response.result.psbt;
+              } else {
+                if (response.error.code === RpcErrorCode.USER_REJECTION) {
+                  throw new Error("User cancelled the signing process.");
+                } else {
+                  throw new Error(`Error signing PSBT: ${response.error.message}`);
                 }
-              },
-            });
-            btcSent = !!txid;
-            break;
-          case "trx":
-            console.log("TRX network is not supported yet.");
-            const transaction = await spendTRX(
-              wallet as EthereumAddress,
-              amount
-            );
-            trxSent = !!transaction.txid;
-            break;
-          default:
-            break;
-        }
+              }
+            },
+          });
+          btcSent = !!txid;
+          break;
+
+        case "trx":
+          console.log("Processing TRX transaction");
+          const trxTransaction = await spendTRX(
+            receiverWallet as EthereumAddress,
+            amount
+          );
+          trxSent = !!trxTransaction.txid;
+          break;
+
+        default:
+          return { success: false, error: `Unsupported network: ${network}` };
       }
 
-      if (reciept && reciept.transactionHash && reciept.status === "success") {
-        setState((prev) => {
-          if (prev.activeWallet === wallet) return prev;
-          return {
-            ...prev,
-            activeWallet: wallet,
-          };
-        });
+      // Check if transaction was successful
+      const transactionSuccessful =
+        (receipt && receipt.transactionHash && receipt.status === "success") ||
+        btcSent ||
+        trxSent;
 
-        const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-        const requestPayment =
-          sharedPaymentMode.toLowerCase() === "request" ||
-          sharedPaymentMode.toLowerCase() === "payrequest";
+      if (transactionSuccessful) {
+        // Update payment store with active wallet
+        usePaymentStore.getState().setActiveWallet(receiverWallet);
+        usePaymentStore.getState().setWalletLastAssignedTime(new Date().toISOString());
 
-        setLoading(true);
+        // Process the transaction (save to DB, display confirmation, etc.)
+        await processTransaction();
 
-        await processTransaction(
-          phoneNumber,
-          false,
-          isGiftTrx,
-          requestPayment,
-          wallet
-        );
-        console.log("requestPayment from state", requestPayment);
+        console.log("Blockchain payment successful");
+        return { success: true };
       }
 
-      if (btcSent) {
-        setState((prev) => {
-          if (prev.activeWallet === wallet) return prev;
-          return {
-            ...prev,
-            activeWallet: wallet,
-          };
-        });
-
-        const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-        const requestPayment =
-          sharedPaymentMode.toLowerCase() === "request" ||
-          sharedPaymentMode.toLowerCase() === "payrequest";
-
-        setLoading(true);
-
-        await processTransaction(
-          phoneNumber,
-          false,
-          isGiftTrx,
-          requestPayment,
-          wallet
-        );
-        console.log("requestPayment from state", requestPayment);
-      }
-
-      if (trxSent) {
-        setState((prev) => {
-          if (prev.activeWallet === wallet) return prev;
-          return {
-            ...prev,
-            activeWallet: wallet,
-          };
-        });
-
-        const isGiftTrx = sharedPaymentMode.toLowerCase() === "gift";
-        const requestPayment =
-          sharedPaymentMode.toLowerCase() === "request" ||
-          sharedPaymentMode.toLowerCase() === "payrequest";
-
-        setLoading(true);
-
-        await processTransaction(
-          phoneNumber,
-          false,
-          isGiftTrx,
-          requestPayment,
-          wallet
-        );
-        console.log("requestPayment from state", requestPayment);
-      }
+      return { success: false, error: "Transaction was not confirmed" };
     } catch (error) {
-      console.error("Error processing the transaction:", error);
-      setState((prev) => ({
-        ...prev,
-        error:
-          error instanceof Error ? error.message : "An unknown error occured",
-        isButtonClicked: false,
-      }));
+      console.error("Error processing blockchain payment:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An unknown error occurred";
+      setWalletFetchError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
-      setState((prev) => {
-        if (prev.isProcessing === false) return prev;
-        return { ...prev, isProcessing: false };
-      });
       setLoading(false);
     }
   };
 
-  const handleCopyWallet = (wallet: string) => {
-    navigator.clipboard.writeText(wallet).then(() => {
-      setState((prev) => ({
-        ...prev,
-        isCopied: true,
-        hasCopyButtonBeenClicked: true,
-      }));
-
-      setTimeout(
-        () =>
-          setState((prev) => {
-            if (prev.isCopied === false) return prev;
-
-            return { ...prev, isCopied: false };
-          }),
-        3000 // 3 sec
-      );
-    });
-  };
-
-  const truncateWallet = (wallet: string) => {
-    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
-  };
-
-  // If the wallet is in use, we count down 5 mins then set it to expired
-  useEffect(() => {
-    if (state.lastAssignedTime) {
-      const timer = setTimeout(() => {
-        setState((prev) => {
-          if (prev.isExpired) return prev;
-          return { ...prev, isExpired: true };
-        });
-      }, 5 * 60 * 1000); // set timer for 5 minutes
-      return () => clearTimeout(timer);
-    }
-  }, [state.lastAssignedTime]);
-
   return {
-    state,
-    setState,
-    handleBlockchainPayment,
-    handleCopyWallet,
-    truncateWallet,
+    executePayment,
+    isWalletConnected: isConnected,
+    walletType,
+    network,
   };
-};
-
-export default useConfirmAndProceedState;
+}

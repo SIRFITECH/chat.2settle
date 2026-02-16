@@ -15,6 +15,13 @@ type BankStoreType = {
   setSelectedBankCode: (code: string) => void;
   setSelectedBankName: (name: string) => void;
   updateBankData: (data: Partial<UserBankData>) => void;
+  resetBankData: () => void;
+};
+
+const initialBankData: UserBankData = {
+  acct_number: "",
+  bank_name: "",
+  receiver_name: "",
 };
 
 export const useBankStore = create<BankStoreType>((set) => ({
@@ -23,7 +30,7 @@ export const useBankStore = create<BankStoreType>((set) => ({
   bankList: [], // list of banks and their codes eg ["1. Opay 1234", "2. Palmpay 456"]
   selectedBankCode: "",
   selectedBankName: "",
-  bankData: [],
+  bankData: initialBankData,
 
   setBankCodes: (codes) => set({ bankCodes: codes }),
   setBankNames: (names) => set({ bankNames: names }),
@@ -34,5 +41,13 @@ export const useBankStore = create<BankStoreType>((set) => ({
     set((state) => ({
       bankData: { ...state.bankData, ...data },
     })),
-  //   updateBankData: (data) => set({ bankData: data }),
+  resetBankData: () =>
+    set({
+      bankCodes: [],
+      bankNames: [],
+      bankList: [],
+      selectedBankCode: "",
+      selectedBankName: "",
+      bankData: initialBankData,
+    }),
 }));

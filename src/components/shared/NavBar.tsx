@@ -152,13 +152,13 @@ export default function Navbar() {
 
           {/* Right */}
           <div className="flex items-center">
-            <div className="hidden sm:flex">
+            <div className="hidden lg:flex">
               <ConnectWallet />
             </div>
 
             <button
               onClick={toggleMenu}
-              className="sm:hidden inline-flex items-center justify-center p-2 rounded-md"
+              className="lg:hidden inline-flex items-center justify-center p-2 rounded-md"
             >
               {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>

@@ -80,7 +80,7 @@ export const getAvaialableWallet = async (
 };
 
 export const getDirectDebitWallet = async (type: string): Promise<string> => {
-  const serial_id = 14;
+  const serial_id = 1;
 
   try {
     const response = await axios.get(

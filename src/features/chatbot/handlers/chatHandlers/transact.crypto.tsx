@@ -78,7 +78,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
 
     setCrypto("ETH");
     setTicker("ETHUSDT");
-    setNetwork("ERC20");
+    setNetwork("ETH");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
     const asset = await fetchCoinPrice(ticker);
@@ -104,7 +104,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
 
     setCrypto("BNB");
     setTicker("BNBUSDT");
-    setNetwork("BEP20");
+    setNetwork("BNB");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
     const asset = await fetchCoinPrice(ticker);
@@ -130,7 +130,7 @@ export const handleTransactCrypto = async (chatInput: string) => {
 
     setCrypto("TRX");
     setTicker("TRXUSDT");
-    setNetwork("TRC20");
+    setNetwork("TRX");
     const crypto = getBaseSymbol(usePaymentStore.getState().crypto);
     const ticker = getBaseSymbol(usePaymentStore.getState().ticker);
     const asset = await fetchCoinPrice(ticker);

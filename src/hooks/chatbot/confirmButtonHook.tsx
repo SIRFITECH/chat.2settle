@@ -9,24 +9,12 @@ import React, { useEffect, useRef } from "react";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
-import { useAccount } from "wagmi";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import {
+  isWalletConnectedForNetwork,
+  useBlockchainPayment,
+} from "./useConfirmAndProceedState";
 
-export interface ConfirmAndProceedButtonProps {
-  phoneNumber: string;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  sharedPaymentMode: string;
-  processTransaction: (
-    phoneNumber: string,
-    isRetry: boolean,
-    isGiftTrx: boolean,
-    requestPayment: boolean,
-    activeWallet: string,
-    assignedTime?: Date,
-  ) => Promise<void>;
-  network: string;
-  connectedWallet: boolean;
-  amount: string;
-}
 const ConfirmAndProceedButton = () => {
   const loading = useChatStore((s) => s.loading);
   const setLoading = useChatStore((s) => s.setLoading);
@@ -48,33 +36,105 @@ const ConfirmAndProceedButton = () => {
   const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
   const walletIsExpired = useConfirmDialogStore((s) => s.walletIsExpired);
   const walletFetchError = useConfirmDialogStore((s) => s.walletFetchError);
+  const setWalletFetchError = useConfirmDialogStore((s) => s.setWalletFetchError);
 
   const hasOpenedRef = useRef(false);
-  const account = useAccount();
   const SHOULD_OPEN_STEP = "sendPayment";
-  const connectedWallet = account.isConnected;
 
-  const handleConfirm = async () => {
-    console.log("Just confirmed");
+  // Use unified wallet store for connection state
+  const { isConnected, walletType } = useWalletStore();
+  const connectedWallet = isWalletConnectedForNetwork();
+
+  // Get blockchain payment hook for direct wallet debiting
+  const { executePayment } = useBlockchainPayment();
+
+  /**
+   * Handle blockchain payment - directly debit user's connected wallet
+   */
+  const handleBlockchainPayment = async () => {
+    console.log("handleBlockchainPayment: Directly debiting user wallet");
+    try {
+      setLoading(true);
+      setWalletFetchError('');
+
+      const result = await executePayment();
+
+      if (!result.success) {
+        console.error("Blockchain payment failed:", result.error);
+        setWalletFetchError(result.error || "Payment failed");
+      } else {
+        console.log("Blockchain payment successful");
+        setHasCopyButtonBeenClicked(true);
+      }
+    } catch (err) {
+      console.error("Error in handleBlockchainPayment:", err);
+      setWalletFetchError(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Handle manual payment - user copies wallet and sends manually
+   */
+  const handleManualPayment = async () => {
+    console.log("handleManualPayment: Getting wallet for manual transfer");
     try {
       setLoading(true);
       if (!network) throw new Error("Network is not set");
 
       await getAvaialableWallet(network.toLowerCase());
       setHasCopyButtonBeenClicked(false);
-      
+
       await processTransaction();
     } catch (err) {
-      console.log("Ther is an erro", err);
+      console.error("Error in handleManualPayment:", err);
+      setWalletFetchError(
+        err instanceof Error ? err.message : "An error occurred"
+      );
     } finally {
       setLoading(false);
     }
-    // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
+  };
+
+  /**
+   * Main confirm handler - routes to appropriate payment method
+   */
+  const handleConfirm = async () => {
+    console.log("handleConfirm: connectedWallet =", connectedWallet, "walletType =", walletType);
+
+    if (connectedWallet) {
+      // Wallet is connected for this network - directly debit
+      await handleBlockchainPayment();
+    } else {
+      // No wallet connected - manual transfer flow
+      await handleManualPayment();
+    }
   };
 
   const isExpired = walletIsExpired;
 
   const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
+
+  // Dynamic dialog description based on wallet connection
+  const getDialogDescription = () => {
+    if (connectedWallet) {
+      return (
+        <span>
+          You are paying directly from your <b>{network?.toUpperCase()}</b> wallet.
+          <br />
+          Please confirm to proceed with the transaction.
+        </span>
+      );
+    }
+    return (
+      <span>
+        Make sure you complete the transfer within <b>5 mins</b>
+      </span>
+    );
+  };
 
   useEffect(() => {
     // do not run if the user is not have already copied wallet
@@ -86,16 +146,12 @@ const ConfirmAndProceedButton = () => {
     hasOpenedRef.current = true;
     openConfirmDialog({
       title: "Please Note",
-      description: (
-        <span>
-          Make sure you complete the transfer within <b>5 mins</b>
-        </span>
-      ),
+      description: getDialogDescription(),
       onConfirm: async () => {
         handleConfirm();
       },
     });
-  }, [openConfirmDialog, closeConfirmDialog]);
+  }, [openConfirmDialog, closeConfirmDialog, connectedWallet]);
 
   const handleCopyWallet = async (wallet: string) => {
     try {
@@ -129,7 +185,7 @@ const ConfirmAndProceedButton = () => {
         onClick={() =>
           openConfirmDialog({
             title: "Please Note",
-            description: "Please confirm to proceed.",
+            description: getDialogDescription(),
             onConfirm: async () => {
               handleConfirm();
             },
@@ -137,11 +193,13 @@ const ConfirmAndProceedButton = () => {
         }
       >
         {loading ? (
-          "Generating wallet for you..."
+          connectedWallet ? "Processing payment..." : "Generating wallet for you..."
         ) : hasCopyButtonBeenClicked ? (
           <span>
             Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
           </span>
+        ) : connectedWallet ? (
+          "Pay Now"
         ) : (
           "Confirm & Proceed"
         )}
@@ -150,8 +208,8 @@ const ConfirmAndProceedButton = () => {
       {/* error state */}
       {walletFetchError && <p className="text-red-500">{walletFetchError}</p>}
 
-      {/* copiable wallet */}
-      {activeWallet && (
+      {/* copiable wallet - only show for manual payment flow */}
+      {activeWallet && !connectedWallet && (
         <WalletInfo
           wallet={activeWallet}
           network={network!}
@@ -160,8 +218,8 @@ const ConfirmAndProceedButton = () => {
           truncateWallet={truncateWallet}
         />
       )}
-      {/* count down */}
-      {showCountdown && (
+      {/* count down - only show for manual payment flow */}
+      {showCountdown && !connectedWallet && (
         <p role="status" className="text-sm text-muted-foreground">
           This wallet expires in <CountdownTimer expiryTime={expiryTime} />
           {showExpired && "This wallet has expired"}

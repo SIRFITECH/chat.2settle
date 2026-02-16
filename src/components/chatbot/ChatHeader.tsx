@@ -16,7 +16,7 @@ const ChatHeader = ({ onClose, showDateDropdown, currentDate }: Props) => {
         <span className="flex-shrink-0 w-8 h-8 bg-white rounded">
           {isOnline ? (
             <Image
-              src="wale/waaa.png"
+              src="/wale/waaa.png"
               alt="Avatar"
               width={32}
               height={32}

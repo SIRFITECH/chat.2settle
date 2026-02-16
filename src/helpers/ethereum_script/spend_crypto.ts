@@ -1125,7 +1125,7 @@ export async function sendBTC({
   const satoshiAmount = Math.round(amount * SATOSHIS_PER_BTC);
   try {
     // 1. Request PSBT from server
-    const buildRes = await axios.post("/api/build_btc_tx", {
+    const buildRes = await axios.post("/api/crypto/build_btc_tx", {
       senderAddress,
       recipient,
       amount: satoshiAmount,

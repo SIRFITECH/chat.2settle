@@ -10,18 +10,18 @@ const pool = mysql.createPool({
 
 // Mapping input strings to DB column names
 const walletColumnMap: Record<string, string> = {
-  btc: "bitcoin_wallet",
-  eth: "eth_bnb_wallet",
-  bnb: "eth_bnb_wallet",
-  erc20: "eth_bnb_wallet",
-  bep20: "eth_bnb_wallet",
-  trx: "tron_wallet",
-  trc20: "tron_wallet",
+  btc: "bitcoin",
+  eth: "evm",
+  bnb: "evm",
+  erc20: "evm",
+  bep20: "evm",
+  trx: "tron",
+  trc20: "tron",
 };
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== "GET") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -45,8 +45,8 @@ export default async function handler(
 
   try {
     const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT \`${column}\` AS wallet FROM wallets WHERE serial_id = ?`,
-      [id]
+      `SELECT \`${column}\` AS wallet FROM wallets WHERE id = ?`,
+      [id],
     );
 
     if (rows.length === 0 || !rows[0].wallet) {

@@ -20,7 +20,7 @@ const ChatMessageItem = ({ msg, dateString, index }: Props) => {
       {msg.type === "incoming" && (
         <span className="flex-shrink-0 w-6 h-6 md:w-8 md:h-8 mr-2 md:mr-4 bg-white rounded self-end">
           <Image
-            src="wale/waaa.png"
+            src="/wale/waaa.png"
             alt="Avatar"
             width={32}
             height={32}
