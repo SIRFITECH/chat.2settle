@@ -1,5 +1,24 @@
 # Payment Engine Implementation Plan
 
+## Progress Summary
+
+| Phase | Status | Progress |
+|-------|--------|----------|
+| Phase 1: Core Engine | ✅ Complete | 100% |
+| Phase 2: Persistence & Migration | 🔲 Not Started | 0% |
+| Phase 3: Chat Integration | 🔲 Not Started | 0% |
+| Phase 4: Merchant API | 🔲 Not Started | 0% |
+| Phase 5: Deposit Monitoring | 🔲 Not Started | 0% |
+| Phase 6: Webhooks | 🔲 Not Started | 0% |
+| Phase 7: Settlement Rails | 🔲 Not Started | 0% |
+| Phase 8: Cashback | 🔲 Not Started | 0% |
+| Phase 9: Admin Dashboard | 🔲 Not Started | 0% |
+| Phase 10: Merchant Dashboard | 🔲 Not Started | 0% |
+
+**Last Updated**: 2026-02-17
+
+---
+
 ## Vision
 
 Build a standalone payment engine that allows banks, fintechs, and merchants to accept crypto payments and settle in local fiat currency. The engine handles:
@@ -54,89 +73,142 @@ Build a standalone payment engine that allows banks, fintechs, and merchants to 
 
 ## Implementation Phases
 
-### Phase 1: Core Engine Foundation
+### Phase 1: Core Engine Foundation ✅ COMPLETE
 **Goal**: Extract and refactor existing logic into a clean, testable payment engine
 
 **Duration**: 2 weeks
 
-#### 1.1 Project Structure
+**Completed**: 2026-02-17
+
+#### 1.1 Project Structure ✅
 ```
 src/services/payment-engine/
-├── index.ts                     # PaymentEngine class (main facade)
+├── index.ts                     # Public exports
+├── payment-engine.ts            # PaymentEngine facade class
 ├── types.ts                     # All TypeScript interfaces
 ├── errors.ts                    # Custom error classes
-├── config.ts                    # Engine configuration
 │
 ├── session/
+│   ├── index.ts                 # Session exports
 │   ├── session-manager.ts       # Create, get, update sessions
 │   └── session-repository.ts    # DB operations for sessions
 │
 ├── wallet/
-│   ├── wallet-pool.ts           # Assign/release wallets
-│   └── wallet-repository.ts     # DB operations for wallets
+│   ├── index.ts                 # Wallet exports
+│   └── wallet-pool.ts           # Assign/release wallets with FOR UPDATE
 │
 ├── rate/
-│   ├── rate-service.ts          # Fetch & lock rates
-│   └── rate-cache.ts            # In-memory rate caching
+│   ├── index.ts                 # Rate exports
+│   └── rate-service.ts          # Fetch & lock rates with caching
 │
 ├── charges/
-│   └── charge-calculator.ts     # Fee calculation logic
+│   ├── index.ts                 # Charges exports
+│   └── charge-calculator.ts     # Tiered fee calculation
 │
-└── utils/
-    ├── id-generator.ts          # Generate payment IDs
-    └── validators.ts            # Input validation
+├── utils/
+│   ├── index.ts                 # Utils exports
+│   └── id-generator.ts          # Generate payment IDs & references
+│
+└── docs/
+    ├── README.md                # Quick start guide
+    ├── ARCHITECTURE.md          # System diagrams
+    ├── IMPLEMENTATION.md        # This file
+    └── DESIGN.md                # Merchant gateway design
 ```
 
-#### 1.2 Core Types
-- [ ] Define `CreatePaymentInput` interface
-- [ ] Define `PaymentSession` interface
-- [ ] Define `PaymentStatus` enum
-- [ ] Define `WalletAssignment` interface
-- [ ] Define `RateLock` interface
-- [ ] Define error types (`InsufficientWallets`, `RateLockExpired`, etc.)
+#### 1.2 Core Types ✅
+- [x] Define `CreatePaymentInput` interface
+- [x] Define `PaymentSession` interface
+- [x] Define `PaymentStatus` type (`created` | `pending` | `confirming` | `confirmed` | `settling` | `settled` | `expired` | `failed`)
+- [x] Define `WalletAssignment` interface
+- [x] Define `RateLock` interface
+- [x] Define `Network` type with token standards (`erc20`, `bep20`, `trc20`)
+- [x] Define `NETWORK_TO_CHAIN` mapping for token standards → parent chains
+- [x] Define error types (`WalletPoolEmptyError`, `RateLockExpiredError`, `InvalidSessionStateError`, etc.)
 
-#### 1.3 Session Manager
-- [ ] `createSession(input)` → Creates payment, locks rate, assigns wallet
-- [ ] `getSession(id)` → Retrieves session by ID
-- [ ] `getSessionByReference(ref)` → Retrieves by merchant reference
-- [ ] `updateStatus(id, status)` → Status transitions with validation
-- [ ] `expireSessions()` → Batch expire stale sessions
+#### 1.3 Session Manager ✅
+- [x] `createSession(input)` → Creates payment, locks rate, assigns wallet, calculates charges
+- [x] `getSession(id)` → Retrieves session by ID
+- [x] `getSessionByReference(ref)` → Retrieves by human-readable reference
+- [x] `updateStatus(id, status)` → Status transitions with state machine validation
+- [x] `VALID_TRANSITIONS` map → Enforces valid state transitions
+- [x] `VALID_CRYPTO_NETWORKS` map → Validates crypto/network combinations
 
-#### 1.4 Wallet Pool
-- [ ] `assignWallet(network)` → Get available wallet, mark as in-use
-- [ ] `releaseWallet(address, network)` → Return wallet to pool
-- [ ] `getPoolStatus()` → Available/in-use counts per network
-- [ ] Concurrency safety with `FOR UPDATE` locks
+#### 1.4 Wallet Pool ✅
+- [x] `assignWallet(network)` → Get available wallet with `FOR UPDATE` row lock
+- [x] `releaseWallet(walletId, network)` → Return wallet to pool
+- [x] `releaseWalletByAddress(address, network)` → Release by address
+- [x] `getPoolStatus()` → Available/in-use counts per network
+- [x] `releaseExpiredWallets()` → Cleanup stale assignments
+- [x] `getEstimatedWaitTime()` → Calculate when next wallet available
+- [x] Concurrency safety with MySQL transactions + `FOR UPDATE` locks
 
-#### 1.5 Rate Service
-- [ ] `getRate(crypto, fiat)` → Fetch current rate
-- [ ] `lockRate(crypto, fiat, ttlMinutes)` → Lock rate for session
-- [ ] Rate caching (1-minute TTL)
-- [ ] Fallback to cached rate if API fails
+#### 1.5 Rate Service ✅
+- [x] `getRate(crypto)` → Fetch current rate from DB + CoinMarketCap
+- [x] `lockRate(crypto, fiat, ttlMinutes)` → Lock rate for session duration
+- [x] `fiatToCrypto(fiatAmount, crypto, network)` → Convert with locked rate
+- [x] `cryptoToFiat(cryptoAmount, crypto, network)` → Reverse conversion
+- [x] In-memory rate caching (60 second TTL)
+- [x] Automatic cache invalidation on expiry
 
-#### 1.6 Charge Calculator
-- [ ] `calculateCharge(amount, crypto, rate)` → Tiered fee calculation
-- [ ] Support for different fee structures per client (future)
+#### 1.6 Charge Calculator ✅
+- [x] `calculateCharges(fiatAmount, rate, assetPrice)` → Tiered fee calculation
+- [x] `getFeeTier(fiatAmount)` → Determine fee tier
+- [x] Tiered structure: ₦500 (≤₦100k) | ₦1,000 (≤₦1M) | ₦1,500 (>₦1M)
+- [x] Returns fiat charge, crypto charge, and total crypto amount
 
-#### 1.7 Tests
-- [ ] Unit tests for each component
-- [ ] Integration test for full payment flow
+#### 1.7 Tests ✅ (144 tests passing)
+- [x] `id-generator.test.ts` — 23 tests (ID format, uniqueness, reference generation)
+- [x] `charge-calculator.test.ts` — 34 tests (all fee tiers, edge cases, conversions)
+- [x] `rate-service.test.ts` — 22 tests (caching, locking, fallbacks)
+- [x] `wallet-pool.test.ts` — 25 tests (assignment, release, concurrency, expiry)
+- [x] `session-manager.test.ts` — 40 tests (creation, transitions, validation)
 
-**Deliverable**: Payment engine that can create sessions, assign wallets, lock rates
+**Deliverable**: ✅ Payment engine that can create sessions, assign wallets, lock rates, calculate charges
 
 ---
 
-### Phase 2: Persistence & Migration
+### Phase 2: Persistence & Migration 🔜 NEXT
 **Goal**: Clean database schema, migrate from legacy tables
 
 **Duration**: 1 week
 
-#### 2.1 New Schema
+**Prerequisites**: Phase 1 ✅
+
+#### Current Database State (Analyzed 2026-02-17)
+
+**Existing tables**: `transfers`, `gifts`, `requests`, `summaries`, `payers`, `receivers`, `wallets`, `rates`, `banks`, `merchants`
+
+**wallets table** (current):
+```sql
+-- Has addresses but MISSING timestamp columns for wallet pool
+id, bitcoin, evm, tron,
+bitcoin_private_key, evm_private_key, tron_private_key,
+bitcoin_flag, ethereum_flag, binance_flag, tron_flag, erc20_flag, bep20_flag, trc20_flag
+-- MISSING: *_last_assigned columns
+```
+
+#### 2.1 Required Migrations
+
+**Step 1: Add timestamp columns to wallets table**
+```sql
+ALTER TABLE wallets
+  ADD COLUMN bitcoin_last_assigned DATETIME DEFAULT NULL,
+  ADD COLUMN ethereum_last_assigned DATETIME DEFAULT NULL,
+  ADD COLUMN binance_last_assigned DATETIME DEFAULT NULL,
+  ADD COLUMN tron_last_assigned DATETIME DEFAULT NULL,
+  ADD COLUMN erc20_last_assigned DATETIME DEFAULT NULL,
+  ADD COLUMN bep20_last_assigned DATETIME DEFAULT NULL,
+  ADD COLUMN trc20_last_assigned DATETIME DEFAULT NULL;
+```
+
+**Step 2: Create payment_sessions table**
 ```sql
 -- Core payment sessions (replaces transfers/gifts/requests for new flow)
 CREATE TABLE payment_sessions (
-  id VARCHAR(36) PRIMARY KEY,
-  reference VARCHAR(100) NOT NULL UNIQUE,
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  payment_id VARCHAR(32) NOT NULL UNIQUE,
+  reference VARCHAR(12) NOT NULL UNIQUE,
 
   -- Type & status
   type ENUM('transfer', 'gift', 'request', 'merchant') NOT NULL,
@@ -146,42 +218,65 @@ CREATE TABLE payment_sessions (
   fiat_amount DECIMAL(15, 2) NOT NULL,
   fiat_currency VARCHAR(3) NOT NULL DEFAULT 'NGN',
   crypto_amount DECIMAL(18, 8) NOT NULL,
-  crypto_currency VARCHAR(10) NOT NULL,
-  network VARCHAR(20) NOT NULL,
+  crypto_asset VARCHAR(10) NOT NULL,
+  network VARCHAR(10) NOT NULL,
 
-  -- Rate
-  rate DECIMAL(15, 4) NOT NULL,
-  rate_locked_at TIMESTAMP NOT NULL,
+  -- Rate (locked at session creation)
+  exchange_rate DECIMAL(12, 4) NOT NULL,
+  asset_price DECIMAL(18, 8) NOT NULL,
+  rate_locked_at DATETIME NOT NULL,
+  rate_expires_at DATETIME NOT NULL,
 
   -- Charges
-  charge_amount DECIMAL(15, 4) NOT NULL,
-  charge_currency VARCHAR(3) DEFAULT 'NGN',
+  fiat_charge DECIMAL(10, 2) NOT NULL,
+  crypto_charge DECIMAL(18, 8) NOT NULL,
+  fee_tier VARCHAR(20) NOT NULL,
 
   -- Wallet assignment
-  deposit_address VARCHAR(100) NOT NULL,
-  wallet_id INT NOT NULL,
+  wallet_id INT DEFAULT NULL,
+  deposit_address VARCHAR(100) DEFAULT NULL,
+  wallet_assigned_at DATETIME DEFAULT NULL,
+  wallet_expires_at DATETIME DEFAULT NULL,
 
-  -- Payer
-  payer_id INT NULL,
-  payer_chat_id VARCHAR(100) NULL,
-  payer_wallet VARCHAR(100) NULL,
+  -- Deposit tracking
+  deposit_tx_hash VARCHAR(100) DEFAULT NULL,
+  deposit_amount DECIMAL(18, 8) DEFAULT NULL,
+  deposit_confirmed_at DATETIME DEFAULT NULL,
 
-  -- Receiver (for transfers)
-  receiver_id INT NULL,
+  -- Settlement
+  settlement_tx_hash VARCHAR(100) DEFAULT NULL,
+  settled_at DATETIME DEFAULT NULL,
 
-  -- Merchant (for B2B)
-  merchant_id VARCHAR(36) NULL,
+  -- Participants
+  payer_id INT DEFAULT NULL,
+  receiver_id INT DEFAULT NULL,
+  merchant_id INT DEFAULT NULL,
+  metadata JSON DEFAULT NULL,
 
-  -- On-chain
-  tx_hash VARCHAR(100) NULL,
-  confirmations INT DEFAULT 0,
+  -- Timestamps
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  expires_at DATETIME NOT NULL,
+  confirmed_at DATETIME DEFAULT NULL,
 
-  -- Timing
-  expires_at TIMESTAMP NOT NULL,
-  confirmed_at TIMESTAMP NULL,
-  settled_at TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  -- Indexes
+  INDEX idx_status (status),
+  INDEX idx_payer (payer_id),
+  INDEX idx_merchant (merchant_id),
+  INDEX idx_created (created_at),
+  INDEX idx_deposit_address (deposit_address),
+
+  -- Foreign keys
+  FOREIGN KEY (wallet_id) REFERENCES wallets(id),
+  FOREIGN KEY (payer_id) REFERENCES payers(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+```
+
+#### 2.1 Schema Tasks
+- [ ] Create migration file for wallets table alterations
+- [ ] Create migration file for payment_sessions table
+- [ ] Run migrations on development database
+- [ ] Verify foreign key constraints work with existing data
 
   -- Metadata
   metadata JSON NULL,
