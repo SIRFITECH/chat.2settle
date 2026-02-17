@@ -199,14 +199,14 @@ export async function assignWallet(
     // Find an available wallet with row lock
     // The TRIM handles cases where flag might have whitespace
     // The IN clause handles different representations (string, number, boolean)
-    const [rows] = await connection.query<any[]>(
+    const [rows] = await connection.query(
       `SELECT *
        FROM wallets
        WHERE TRIM(${flagColumn}) IN ('true', '1', 1, true)
          AND ${walletColumn} IS NOT NULL
        LIMIT 1
        FOR UPDATE`
-    );
+    ) as [any[], any];
 
     if (!rows || rows.length === 0) {
       // No wallets available - check when one might become free
@@ -327,11 +327,11 @@ async function getEstimatedWaitTime(
   const flagColumn = getFlagColumn(network);
 
   // Find the oldest assignment that's still in use
-  const [rows] = await connection.query<any[]>(
+  const [rows] = await connection.query(
     `SELECT MIN(${lastAssignedColumn}) as oldest_assigned
      FROM wallets
      WHERE ${flagColumn} IN ('false', '0', 0, false)`
-  );
+  ) as [any[], any];
 
   if (!rows || rows.length === 0 || !rows[0].oldest_assigned) {
     return undefined;
@@ -359,7 +359,7 @@ async function getEstimatedWaitTime(
 export async function getPoolStatus(): Promise<Record<string, { available: number; inUse: number }>> {
   const pool = (await import('@/lib/mysql')).default;
 
-  const [rows] = await pool.query<any[]>(`
+  const [rows] = await pool.query(`
     SELECT
       SUM(CASE WHEN bitcoin_flag IN ('true', '1', 1, true) THEN 1 ELSE 0 END) as btc_available,
       SUM(CASE WHEN bitcoin_flag IN ('false', '0', 0, false) THEN 1 ELSE 0 END) as btc_in_use,
@@ -376,7 +376,7 @@ export async function getPoolStatus(): Promise<Record<string, { available: numbe
       SUM(CASE WHEN trc20_flag IN ('true', '1', 1, true) THEN 1 ELSE 0 END) as trc20_available,
       SUM(CASE WHEN trc20_flag IN ('false', '0', 0, false) THEN 1 ELSE 0 END) as trc20_in_use
     FROM wallets
-  `);
+  `) as [any[], any];
 
   const data = rows[0];
 
@@ -419,14 +419,14 @@ export async function releaseExpiredWallets(): Promise<number> {
   let totalReleased = 0;
 
   for (const { flag, lastAssigned } of networks) {
-    const [result] = await pool.query<any>(
+    const [result] = await pool.query(
       `UPDATE wallets
        SET ${flag} = 1
        WHERE ${flag} IN ('false', '0', 0, false)
          AND ${lastAssigned} IS NOT NULL
          AND ${lastAssigned} < ?`,
       [cutoffTime]
-    );
+    ) as [any, any];
 
     totalReleased += result.affectedRows || 0;
   }
