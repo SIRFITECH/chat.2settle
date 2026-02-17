@@ -1,7 +1,7 @@
 import useChatStore, { MessageType } from "stores/chatStore";
 
 export const displayEnterPhone = (): void => {
-  const { next, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
 
   const newMessages: MessageType[] = [
     {
