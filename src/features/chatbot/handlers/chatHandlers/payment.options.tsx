@@ -17,13 +17,7 @@ export const handlePayOptions = (chatInput: string) => {
       helloMenu("hi");
     })();
   } else if (chatInput === "0") {
-    // (() => {
-    //   displayHowToEstimation(
-    //     addChatMessages,
-    //     `${sharedCrypto} (${sharedNetwork})`,
-    //     sharedPaymentMode
-    //   );
-    // })();
+  
   } else if (chatInput === "1") {
     displayPayIn();
 

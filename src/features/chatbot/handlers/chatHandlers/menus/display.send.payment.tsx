@@ -61,7 +61,7 @@ export const displaySendPayment = async () => {
         content: (
           <span>
             You will receive{" "}
-            <b>${formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} </b>.
+            <b>{formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} </b>.
             <br />
             It would be paid into:
             <br />
@@ -111,7 +111,7 @@ export const displaySendPayment = async () => {
           <span>
             Note: You are sending{" "}
             <b>
-              ${paymentAsset} = $
+              ${paymentAsset} = 
               {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
             </b>{" "}
             only to 2Settle wallet address to complete your transaction

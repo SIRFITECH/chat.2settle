@@ -25,7 +25,7 @@ export const displayPayIn = async () => {
   // clean the rate into a float string before parsing it
   const rate = parseFloat(cleanCurrencyToFloatString(usdtRate.toString()));
   const upperDollar = 2000000 / rate;
-  const lowerDollar = 20000 / rate;
+  const lowerDollar = 0;
   const assetPrice = parseFloat(assetP.trim().replace(/[^\d.]/g, ""));
   let max: number;
   let min: number;
@@ -37,31 +37,20 @@ export const displayPayIn = async () => {
     min = lowerDollar / assetPrice;
   }
 
-  const rangeMessage = (
-    <span>
-      {estimateAsset.toLowerCase() === "naira" ? (
-        <span>
-          Min. = {formatCurrency("20000", "NGN", "en-NG")}
-          <br />
-          Max. = {formatCurrency("2000000", "NGN", "en-NG")}
-        </span>
-      ) : estimateAsset.toLowerCase() === "dollar" || isDollar ? (
-        <span>
-          Min. = {formatCurrency(min.toFixed(2).toString(), "USD", "en-NG")}
-          <br />
-          Max. = {formatCurrency(max.toFixed(2).toString(), "USD")}
-        </span>
-      ) : isCrypto ? (
-        <span>
-          Min. = {min.toFixed(5)} {assetSymbol}
-          <br />
-          Max. = {max.toFixed(5)} {assetSymbol}
-        </span>
-      ) : (
-        ""
-      )}
-    </span>
-  );
+  let maxDisplay = "";
+
+  if (estimateAsset.toLowerCase() === "naira") {
+    maxDisplay = formatCurrency("2000000", "NGN", "en-NG");
+  } else if (estimateAsset.toLowerCase() === "dollar" || isDollar) {
+    maxDisplay = formatCurrency(max.toFixed(2), "USD", "en-NG");
+  } else if (isCrypto) {
+    maxDisplay = `${max.toFixed(5)} ${assetSymbol}`;
+  }
+
+  const rangeMessage = maxDisplay ? (
+    <span>Maximum allowed: {maxDisplay}</span>
+  ) : null;
+
   console.log(
     "Just to see what sharedPaymentMode is:",
     currentStep.transactionType,
@@ -78,7 +67,10 @@ export const displayPayIn = async () => {
       content: (
         <span>
           Enter the amount you want to {paymentMode} in {estimateAsset}
-          {estimateAsset.toLowerCase() === "naira" ? "" : ` ${assetSymbol}`} value
+          {estimateAsset.toLowerCase() === "naira"
+            ? ""
+            : ` ${assetSymbol}`}{" "}
+          value
           <br />
           <br />
           NOTE:

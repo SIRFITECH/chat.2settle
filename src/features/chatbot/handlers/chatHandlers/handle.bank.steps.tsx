@@ -101,8 +101,28 @@ export const handleSearchBank = async (chatInput: string) => {
       })();
     } else if (chatInput === "1") {
       const finalAssetPayment = parseFloat(paymentAssetEstimate);
-      const finalNairaPayment =
-        parseFloat(paymentNairaEstimate) - parseFloat(nairaCharge);
+      const chargeAmount = parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
+      const nairaAmount = parseFloat(paymentNairaEstimate);
+
+      // Validate charge is not greater than or equal to the amount
+      if (chargeAmount >= nairaAmount) {
+        addMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                The charge ({formatCurrency(chargeAmount.toString(), "NGN", "en-NG")}) is greater than or equal to your amount.
+                <br />
+                Please select option 2 to add charges to the crypto amount instead.
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
+
+      const finalNairaPayment = nairaAmount - chargeAmount;
 
       setPaymentAssetEstimate(finalAssetPayment.toString());
       setPaymentNairaEstimate(finalNairaPayment.toString());
@@ -146,7 +166,7 @@ export const handleSearchBank = async (chatInput: string) => {
       })();
     } else {
       chatInput = chatInput.replace(/[^0-9.]/g, "");
-      if (Number(chatInput) >= 20000 && Number(chatInput) < 2000000) {
+      if (Number(chatInput) >= 0 && Number(chatInput) <= 2000000) {
         const requestAmount = chatInput.trim();
         setPaymentNairaEstimate(requestAmount);
 
@@ -159,7 +179,7 @@ export const handleSearchBank = async (chatInput: string) => {
             content: (
               <span>
                 You can only recieve <br />
-                <b>Min: {formatCurrency("20000", "NGN", "en-NG")}</b> and <br />
+                <b>Min: {formatCurrency("0", "NGN", "en-NG")}</b> and <br />
                 <b>Max: {formatCurrency("2000000", "NGN", "en-NG")}</b>
               </span>
             ),
@@ -184,9 +204,28 @@ export const handleSearchBank = async (chatInput: string) => {
       })();
     } else if (chatInput === "1") {
       const finalAssetPayment = parseFloat(paymentAssetEstimate);
-      let finalNairaPayment =
-        parseFloat(paymentNairaEstimate) -
-        parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
+      const chargeAmount = parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
+      const nairaAmount = parseFloat(paymentNairaEstimate);
+
+      // Validate charge is not greater than or equal to the amount
+      if (chargeAmount >= nairaAmount) {
+        addMessages([
+          {
+            type: "incoming",
+            content: (
+              <span>
+                The charge ({formatCurrency(chargeAmount.toString(), "NGN", "en-NG")}) is greater than or equal to your amount.
+                <br />
+                Please select option 2 to add charges to the crypto amount instead.
+              </span>
+            ),
+            timestamp: new Date(),
+          },
+        ]);
+        return;
+      }
+
+      let finalNairaPayment = nairaAmount - chargeAmount;
 
       console.log("Charge from the Fiat", finalAssetPayment, finalNairaPayment);
 
