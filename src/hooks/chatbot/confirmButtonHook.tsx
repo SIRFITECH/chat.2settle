@@ -20,11 +20,14 @@ const ConfirmAndProceedButton = () => {
   const setLoading = useChatStore((s) => s.setLoading);
   const currentStep = useChatStore((s) => s.currentStep);
 
-  const { network } = usePaymentStore();
+  const { network, paymentMode } = usePaymentStore();
   const activeWallet = usePaymentStore((s) => s.activeWallet);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
   );
+
+  // Check if user is claiming a gift - skip confirmation dialog
+  const isClaimingGift = paymentMode?.toLowerCase().trim() === "claim gift";
 
   const hasCopyButtonBeenClicked = useConfirmDialogStore(
     (s) => s.hasCopyButtonBeenClicked,
@@ -36,13 +39,15 @@ const ConfirmAndProceedButton = () => {
   const closeConfirmDialog = useConfirmDialogStore((s) => s.close);
   const walletIsExpired = useConfirmDialogStore((s) => s.walletIsExpired);
   const walletFetchError = useConfirmDialogStore((s) => s.walletFetchError);
-  const setWalletFetchError = useConfirmDialogStore((s) => s.setWalletFetchError);
+  const setWalletFetchError = useConfirmDialogStore(
+    (s) => s.setWalletFetchError,
+  );
 
   const hasOpenedRef = useRef(false);
   const SHOULD_OPEN_STEP = "sendPayment";
 
   // Use unified wallet store for connection state
-  const { isConnected, walletType } = useWalletStore();
+  const { walletType } = useWalletStore();
   const connectedWallet = isWalletConnectedForNetwork();
 
   // Get blockchain payment hook for direct wallet debiting
@@ -55,7 +60,7 @@ const ConfirmAndProceedButton = () => {
     console.log("handleBlockchainPayment: Directly debiting user wallet");
     try {
       setLoading(true);
-      setWalletFetchError('');
+      setWalletFetchError("");
 
       const result = await executePayment();
 
@@ -69,7 +74,7 @@ const ConfirmAndProceedButton = () => {
     } catch (err) {
       console.error("Error in handleBlockchainPayment:", err);
       setWalletFetchError(
-        err instanceof Error ? err.message : "An unknown error occurred"
+        err instanceof Error ? err.message : "An unknown error occurred",
       );
     } finally {
       setLoading(false);
@@ -81,6 +86,7 @@ const ConfirmAndProceedButton = () => {
    */
   const handleManualPayment = async () => {
     console.log("handleManualPayment: Getting wallet for manual transfer");
+    
     try {
       setLoading(true);
       if (!network) throw new Error("Network is not set");
@@ -92,7 +98,7 @@ const ConfirmAndProceedButton = () => {
     } catch (err) {
       console.error("Error in handleManualPayment:", err);
       setWalletFetchError(
-        err instanceof Error ? err.message : "An error occurred"
+        err instanceof Error ? err.message : "An error occurred",
       );
     } finally {
       setLoading(false);
@@ -103,7 +109,12 @@ const ConfirmAndProceedButton = () => {
    * Main confirm handler - routes to appropriate payment method
    */
   const handleConfirm = async () => {
-    console.log("handleConfirm: connectedWallet =", connectedWallet, "walletType =", walletType);
+    console.log(
+      "handleConfirm: connectedWallet =",
+      connectedWallet,
+      "walletType =",
+      walletType,
+    );
 
     if (connectedWallet) {
       // Wallet is connected for this network - directly debit
@@ -123,7 +134,8 @@ const ConfirmAndProceedButton = () => {
     if (connectedWallet) {
       return (
         <span>
-          You are paying directly from your <b>{network?.toUpperCase()}</b> wallet.
+          You are paying directly from your <b>{network?.toUpperCase()}</b>{" "}
+          wallet.
           <br />
           Please confirm to proceed with the transaction.
         </span>
@@ -139,11 +151,19 @@ const ConfirmAndProceedButton = () => {
   useEffect(() => {
     // do not run if the user is not have already copied wallet
     if (hasCopyButtonBeenClicked) return;
+    if (activeWallet) return;
     // dont run if the user is not going to make payment in the next step
     if (currentStep.stepId !== SHOULD_OPEN_STEP) return; // make sure we pop up only when we have not send payment
     // do not open the dialog if the dialog is already opened
     if (hasOpenedRef.current) return;
     hasOpenedRef.current = true;
+
+    // Skip dialog for claim gift - proceed directly
+    if (isClaimingGift) {
+      handleConfirm();
+      return;
+    }
+
     openConfirmDialog({
       title: "Please Note",
       description: getDialogDescription(),
@@ -151,7 +171,7 @@ const ConfirmAndProceedButton = () => {
         handleConfirm();
       },
     });
-  }, [openConfirmDialog, closeConfirmDialog, connectedWallet]);
+  }, [openConfirmDialog, closeConfirmDialog, connectedWallet, activeWallet, isClaimingGift]);
 
   const handleCopyWallet = async (wallet: string) => {
     try {
@@ -179,21 +199,30 @@ const ConfirmAndProceedButton = () => {
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
       <Button
-        disabled={hasCopyButtonBeenClicked || Boolean(activeWallet)}
+        disabled={!hasCopyButtonBeenClicked || !!activeWallet}
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
         variant="outline"
-        onClick={() =>
+        onClick={() => {
+          // Skip dialog for claim gift - proceed directly
+          if (isClaimingGift) {
+            handleConfirm();
+            return;
+          }
           openConfirmDialog({
             title: "Please Note",
             description: getDialogDescription(),
             onConfirm: async () => {
               handleConfirm();
             },
-          })
-        }
+          });
+        }}
       >
         {loading ? (
-          connectedWallet ? "Processing payment..." : "Generating wallet for you..."
+          connectedWallet ? (
+            "Processing payment..."
+          ) : (
+            "Generating wallet for you..."
+          )
         ) : hasCopyButtonBeenClicked ? (
           <span>
             Completed <CheckCircle className="ml-2 h-4 w-4" />{" "}
