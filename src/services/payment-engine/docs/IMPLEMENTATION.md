@@ -154,7 +154,9 @@ src/services/payment-engine/
 #### 1.6 Charge Calculator ✅
 - [x] `calculateCharges(fiatAmount, rate, assetPrice)` → Tiered fee calculation
 - [x] `getFeeTier(fiatAmount)` → Determine fee tier
-- [x] Tiered structure: ₦500 (≤₦100k) | ₦1,000 (≤₦1M) | ₦1,500 (>₦1M)
+- [x] `validateAmount(fiatAmount)` → Enforce min/max limits
+- [x] Tiered structure: ₦500 (≤₦100k) | ₦1,000 (≤₦1M) | ₦1,500 (≤₦2M)
+- [x] Amount limits: Min ₦0, Max ₦2,000,000
 - [x] Returns fiat charge, crypto charge, and total crypto amount
 
 #### 1.7 Tests ✅ (144 tests passing)

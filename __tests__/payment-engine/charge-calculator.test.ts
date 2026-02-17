@@ -13,9 +13,12 @@ import {
   calculateCharges,
   formatCryptoAmount,
   formatFiatAmount,
+  validateAmount,
   DEFAULT_FEE_TIERS,
+  AMOUNT_LIMITS,
 } from '@/services/payment-engine/charges/charge-calculator';
 import { RateLock } from '@/services/payment-engine/types';
+import { InvalidInputError } from '@/services/payment-engine/errors';
 
 // ===========================================================================
 // TEST HELPERS
@@ -55,16 +58,21 @@ describe('Charge Calculator', () => {
       expect(getFeeTier(1000000).name).toBe('standard');
     });
 
-    it('should return premium tier for amounts > 1,000,000', () => {
+    it('should return premium tier for amounts 1,000,001 - 2,000,000', () => {
       expect(getFeeTier(1000001).name).toBe('premium');
-      expect(getFeeTier(5000000).name).toBe('premium');
-      expect(getFeeTier(100000000).name).toBe('premium');
+      expect(getFeeTier(1500000).name).toBe('premium');
+      expect(getFeeTier(2000000).name).toBe('premium');
+    });
+
+    it('should throw error for amounts > 2,000,000', () => {
+      expect(() => getFeeTier(2000001)).toThrow(InvalidInputError);
+      expect(() => getFeeTier(5000000)).toThrow(InvalidInputError);
     });
 
     it('should return correct fee amounts for each tier', () => {
       expect(getFeeTier(50000).feeAmount).toBe(500);
       expect(getFeeTier(500000).feeAmount).toBe(1000);
-      expect(getFeeTier(5000000).feeAmount).toBe(1500);
+      expect(getFeeTier(1500000).feeAmount).toBe(1500);
     });
 
     it('should handle edge cases at tier boundaries', () => {
@@ -79,11 +87,23 @@ describe('Charge Calculator', () => {
 
       // At exactly 1,000,001 -> premium
       expect(getFeeTier(1000001).feeAmount).toBe(1500);
+
+      // At exactly 2,000,000 -> premium (max limit)
+      expect(getFeeTier(2000000).feeAmount).toBe(1500);
+
+      // Above 2,000,000 -> error
+      expect(() => getFeeTier(2000001)).toThrow(InvalidInputError);
     });
 
     it('should handle very small amounts', () => {
+      expect(getFeeTier(0).name).toBe('basic');
       expect(getFeeTier(1).name).toBe('basic');
       expect(getFeeTier(0.01).name).toBe('basic');
+    });
+
+    it('should throw error for negative amounts', () => {
+      expect(() => getFeeTier(-1)).toThrow(InvalidInputError);
+      expect(() => getFeeTier(-100)).toThrow(InvalidInputError);
     });
 
     it('should handle custom fee tiers', () => {
@@ -94,6 +114,48 @@ describe('Charge Calculator', () => {
 
       expect(getFeeTier(25000, customTiers).name).toBe('micro');
       expect(getFeeTier(75000, customTiers).name).toBe('default');
+    });
+  });
+
+  // ===========================================================================
+  // validateAmount
+  // ===========================================================================
+
+  describe('validateAmount', () => {
+    it('should accept amounts within limits', () => {
+      expect(() => validateAmount(0)).not.toThrow();
+      expect(() => validateAmount(1)).not.toThrow();
+      expect(() => validateAmount(100000)).not.toThrow();
+      expect(() => validateAmount(1000000)).not.toThrow();
+      expect(() => validateAmount(2000000)).not.toThrow();
+    });
+
+    it('should throw for negative amounts', () => {
+      expect(() => validateAmount(-1)).toThrow(InvalidInputError);
+      expect(() => validateAmount(-0.01)).toThrow(InvalidInputError);
+      expect(() => validateAmount(-100000)).toThrow(InvalidInputError);
+    });
+
+    it('should throw for amounts exceeding maximum', () => {
+      expect(() => validateAmount(2000001)).toThrow(InvalidInputError);
+      expect(() => validateAmount(3000000)).toThrow(InvalidInputError);
+      expect(() => validateAmount(10000000)).toThrow(InvalidInputError);
+    });
+
+    it('should include helpful error messages', () => {
+      try {
+        validateAmount(3000000);
+      } catch (error) {
+        expect(error).toBeInstanceOf(InvalidInputError);
+        expect((error as InvalidInputError).message).toContain('2,000,000');
+      }
+
+      try {
+        validateAmount(-100);
+      } catch (error) {
+        expect(error).toBeInstanceOf(InvalidInputError);
+        expect((error as InvalidInputError).message).toContain('negative');
+      }
     });
   });
 
@@ -113,9 +175,14 @@ describe('Charge Calculator', () => {
       expect(getFiatCharge(1000000)).toBe(1000);
     });
 
-    it('should return ₦1,500 for amounts > 1,000,000', () => {
+    it('should return ₦1,500 for amounts 1,000,001 - 2,000,000', () => {
       expect(getFiatCharge(1000001)).toBe(1500);
-      expect(getFiatCharge(5000000)).toBe(1500);
+      expect(getFiatCharge(1500000)).toBe(1500);
+      expect(getFiatCharge(2000000)).toBe(1500);
+    });
+
+    it('should throw for amounts > 2,000,000', () => {
+      expect(() => getFiatCharge(2000001)).toThrow(InvalidInputError);
     });
   });
 
@@ -314,7 +381,7 @@ describe('Charge Calculator', () => {
     it('should have tiers in ascending order', () => {
       expect(DEFAULT_FEE_TIERS[0].maxAmount).toBe(100000);
       expect(DEFAULT_FEE_TIERS[1].maxAmount).toBe(1000000);
-      expect(DEFAULT_FEE_TIERS[2].maxAmount).toBe(Infinity);
+      expect(DEFAULT_FEE_TIERS[2].maxAmount).toBe(2000000);
     });
 
     it('should have correct fee amounts', () => {
@@ -327,6 +394,20 @@ describe('Charge Calculator', () => {
       expect(DEFAULT_FEE_TIERS[0].name).toBe('basic');
       expect(DEFAULT_FEE_TIERS[1].name).toBe('standard');
       expect(DEFAULT_FEE_TIERS[2].name).toBe('premium');
+    });
+  });
+
+  // ===========================================================================
+  // AMOUNT_LIMITS
+  // ===========================================================================
+
+  describe('AMOUNT_LIMITS', () => {
+    it('should have MIN of 0', () => {
+      expect(AMOUNT_LIMITS.MIN).toBe(0);
+    });
+
+    it('should have MAX of 2,000,000', () => {
+      expect(AMOUNT_LIMITS.MAX).toBe(2000000);
     });
   });
 });

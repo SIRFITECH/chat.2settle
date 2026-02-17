@@ -5,11 +5,16 @@
  *
  * Fee Structure (Tiered):
  * -----------------------
- * | Fiat Amount          | Charge (NGN) |
- * |----------------------|--------------|
- * | ≤ ₦100,000          | ₦500         |
- * | ₦100,001 - ₦1,000,000| ₦1,000       |
- * | > ₦1,000,000         | ₦1,500       |
+ * | Fiat Amount              | Charge (NGN) |
+ * |--------------------------|--------------|
+ * | ₦0 - ₦100,000           | ₦500         |
+ * | ₦100,001 - ₦1,000,000   | ₦1,000       |
+ * | ₦1,000,001 - ₦2,000,000 | ₦1,500       |
+ *
+ * Limits:
+ * -------
+ * - Minimum: ₦0
+ * - Maximum: ₦2,000,000
  *
  * The charge is always calculated in fiat (NGN), then converted to crypto
  * using the locked rates.
@@ -24,6 +29,7 @@
  */
 
 import { CryptoCurrency, RateLock } from '../types';
+import { InvalidInputError } from '../errors';
 
 // =============================================================================
 // TYPES
@@ -67,20 +73,28 @@ export interface ChargeResult {
 }
 
 // =============================================================================
-// FEE TIERS
+// LIMITS & FEE TIERS
 // =============================================================================
+
+/**
+ * Transaction amount limits.
+ */
+export const AMOUNT_LIMITS = {
+  /** Minimum transaction amount (₦0) */
+  MIN: 0,
+  /** Maximum transaction amount (₦2,000,000) */
+  MAX: 2_000_000,
+} as const;
 
 /**
  * Default fee tiers.
  *
  * The tiers are checked in order. The first tier where
  * amount <= maxAmount is used.
- *
- * The last tier has Infinity as maxAmount to catch all amounts.
  */
 export const DEFAULT_FEE_TIERS: FeeTier[] = [
   {
-    maxAmount: 100_000,        // Up to ₦100,000
+    maxAmount: 100_000,        // ₦0 - ₦100,000
     feeAmount: 500,            // ₦500 fee
     name: 'basic',
   },
@@ -90,7 +104,7 @@ export const DEFAULT_FEE_TIERS: FeeTier[] = [
     name: 'standard',
   },
   {
-    maxAmount: Infinity,       // Above ₦1,000,000
+    maxAmount: 2_000_000,      // ₦1,000,001 - ₦2,000,000
     feeAmount: 1_500,          // ₦1,500 fee
     name: 'premium',
   },
@@ -101,16 +115,44 @@ export const DEFAULT_FEE_TIERS: FeeTier[] = [
 // =============================================================================
 
 /**
+ * Validate that the fiat amount is within allowed limits.
+ *
+ * @param fiatAmount - The transaction amount in fiat
+ * @throws InvalidInputError if amount is outside limits
+ */
+export function validateAmount(fiatAmount: number): void {
+  if (fiatAmount < AMOUNT_LIMITS.MIN) {
+    throw new InvalidInputError(
+      `Amount cannot be negative. Minimum is ₦${AMOUNT_LIMITS.MIN.toLocaleString()}.`,
+      'fiatAmount',
+      fiatAmount
+    );
+  }
+
+  if (fiatAmount > AMOUNT_LIMITS.MAX) {
+    throw new InvalidInputError(
+      `Amount exceeds maximum limit. Maximum is ₦${AMOUNT_LIMITS.MAX.toLocaleString()}.`,
+      'fiatAmount',
+      fiatAmount
+    );
+  }
+}
+
+/**
  * Determine which fee tier applies for a given amount.
  *
  * @param fiatAmount - The transaction amount in fiat
  * @param tiers - Fee tier configuration (defaults to DEFAULT_FEE_TIERS)
  * @returns The applicable fee tier
+ * @throws InvalidInputError if amount exceeds maximum limit
  */
 export function getFeeTier(
   fiatAmount: number,
   tiers: FeeTier[] = DEFAULT_FEE_TIERS
 ): FeeTier {
+  // Validate amount is within limits
+  validateAmount(fiatAmount);
+
   // Find the first tier where amount <= maxAmount
   for (const tier of tiers) {
     if (fiatAmount <= tier.maxAmount) {

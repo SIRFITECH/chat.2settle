@@ -10,9 +10,11 @@ export {
   type ChargeResult,
 
   // Constants
+  AMOUNT_LIMITS,
   DEFAULT_FEE_TIERS,
 
   // Functions
+  validateAmount,
   getFeeTier,
   getFiatCharge,
   fiatChargeToCrypto,
