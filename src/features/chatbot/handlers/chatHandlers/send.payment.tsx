@@ -66,16 +66,6 @@ export const handleCryptoPayment = async (chatInput: string) => {
                     You are going to be charged <b>{paymentAsset}</b> directly
                     from your {network} ({cryptoTicker}) wallet.
                   </p>
-
-                  {/* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */}
                 </div>
               ),
               intent: {
@@ -95,16 +85,6 @@ export const handleCryptoPayment = async (chatInput: string) => {
                     Do you understand that you need to complete your payment
                     within <b>5 minutes</b>, otherwise you may lose your money.
                   </p>
-
-                  {/* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */}
                 </div>
               ),
               intent: {
@@ -133,15 +113,6 @@ export const handleCryptoPayment = async (chatInput: string) => {
                     You are going to be charged <b>{paymentAsset}</b> directly
                     from your {cryptoTicker} ({network}) wallet.
                   </p>
-                  {/* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */}
                 </div>
               ),
               intent: {
@@ -161,16 +132,6 @@ export const handleCryptoPayment = async (chatInput: string) => {
                     Do you understand that you need to complete your payment
                     within <b>5 minutes</b>, otherwise you may lose your money.
                   </p>
-
-                  {/* <ConfirmAndProceedButton
-                    phoneNumber={phoneNumber}
-                    setLoading={setLoading}
-                    sharedPaymentMode={sharedPaymentMode}
-                    processTransaction={processTransaction}
-                    network={network}
-                    connectedWallet={ethConnect}
-                    amount={sharedPaymentAssetEstimate}
-                  /> */}
                 </div>
               ),
               intent: {

@@ -6,14 +6,17 @@ import { usePaymentStore } from "stores/paymentStore";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { getAccount } from "wagmi/actions";
 import { config } from "@/wagmi";
+import { displayEnterPhone } from "./menus/display.phone";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const handleNetwork = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
+  const { paymentMode } = usePaymentStore.getState();
 
-  const account = getAccount(config);
+   const { isConnected, address }= useWalletStore.getState()
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const { assetPrice, setAssetPrice, setCrypto, setTicker, setNetwork } =
     usePaymentStore.getState();
@@ -22,6 +25,8 @@ export const handleNetwork = async (chatInput: string) => {
   setAssetPrice(rate);
 
   const walletType = getWalletType(wallet);
+
+  const isRequest = paymentMode.toLowerCase() === "payrequest";
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "00") {
@@ -38,8 +43,9 @@ export const handleNetwork = async (chatInput: string) => {
     setNetwork("ERC20");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
-    displayHowToEstimation({ crypto, ticker });
-    // if (sharedPaymentMode.toLowerCase() === "payrequest") {
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker }); // if (sharedPaymentMode.toLowerCase() === "payrequest") {
     //   displayEnterPhone(addChatMessages, nextStep);
     // } else {
     //   if (walletIsConnected && walletType !== "EVM") {
@@ -54,7 +60,9 @@ export const handleNetwork = async (chatInput: string) => {
     //   } else {
 
     // nextStep();
-    next({ stepId: "payOptions" });
+
+    console.log({ isRequest });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
     //   }
     // }
   } else if (chatInput === "2") {
@@ -76,10 +84,12 @@ export const handleNetwork = async (chatInput: string) => {
     setNetwork("TRC20");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
-    displayHowToEstimation({ crypto, ticker });
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker });
 
     // nextStep();
-    next({ stepId: "payOptions" });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
     //   }
     // }
   } else if (chatInput === "3") {
@@ -102,9 +112,10 @@ export const handleNetwork = async (chatInput: string) => {
     setNetwork("BEP20");
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
-    displayHowToEstimation({ crypto, ticker });
-    // nextStep();
-    next({ stepId: "payOptions" });
+    isRequest
+      ? displayEnterPhone()
+      : displayHowToEstimation({ crypto, ticker });
+    isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
     //   }
     // }
   } else {

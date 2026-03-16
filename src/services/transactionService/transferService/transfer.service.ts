@@ -1,14 +1,12 @@
-import api from "../../api-client"
-export const createTransaction = async (user: any): Promise<any> => {
+import api from "../../api-client";
+import { TransferRow } from "../transactionService";
+export const createTransfer = async (transferData: TransferRow): Promise<any> => {
   try {
-    const response = await api.post<any>(
-      `/api/transaction/create_transaction`,
-      user
-    );
-    console.log("Use transaction created successfully");
+    const response = await api.post<any>(`/api/transfer/save`, transferData);
+    console.log("Use transfer created successfully");
     return response.data;
   } catch (error) {
-    console.error("Error storing user data:", error);
-    throw new Error("Failed to store user data");
+    console.error("Error storing transferData data:", error);
+    throw new Error("Failed to store transferData data");
   }
 };

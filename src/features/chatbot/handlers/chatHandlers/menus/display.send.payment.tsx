@@ -1,225 +1,219 @@
-import { CopyableText } from "@/features/transact/CopyableText";
 import { formatCurrency } from "@/helpers/format_currency";
 import { getBaseSymbol } from "@/utils/utilities";
-import { ReactNode } from "react";
+import { useBankStore } from "stores/bankStore";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useTransactionStore } from "stores/transactionStore";
 
-export const displaySendPayment = async () =>
-  // addChatMessages: (messages: MessageType[]) => void,
-  // nextStep: (step: string) => void,
-  // wallet: string,
-  // sharedCrypto: string,
-  // sharedPaymentAssetEstimate: string,
-  // sharedPaymentNairaEstimate: string,
-  // transactionID: number,
-  // sharedNetwork: string,
-  // sharedPaymentMode: string,
-  // connectedWallet: boolean,
-  // giftID?: number,
-  // requestID?: number,
-  // lastAssignedTime?: Date
-  {
-    const { paymentAssetEstimate, paymentNairaEstimate, ticker } =
-      usePaymentStore.getState();
-    const { currentStep, addMessages } = useChatStore.getState();
-    const { transaction, giftId } = useTransactionStore.getState();
-    const paymentTicker = getBaseSymbol(ticker);
-    const transactionID = transaction?.transac_id;
-    const requestID = "We are not there yet";
+export const displaySendPayment = async () => {
+  console.log("Displaying send payment message...");
 
-    const allowedTime = 5;
-    const assetPayment = parseFloat(paymentAssetEstimate);
-    const paymentAsset = `${assetPayment.toFixed(8)} ${paymentTicker}`;
-    const isGift = currentStep.transactionType?.toLowerCase() === "gift";
-    const isRequest = currentStep.transactionType?.toLowerCase() === "request";
-    const isRequestPayment =
-      currentStep.transactionType?.toLowerCase() === "payrequest";
+  const {
+    paymentAssetEstimate,
+    paymentNairaEstimate,
+    ticker,
+    activeWallet,
+    walletLastAssignedTime,
+  } = usePaymentStore.getState();
 
-    const copyableTransactionID = (
-      <>
-        Tap to copy Transaction ID 👇🏾 : {transactionID}
-        {/* <CopyableText
-          text={transactionID.toString()}
-          label={"Transaction ID"}
-          addChatMessages={addChatMessages}
-          nextStep={nextStep}
-          lastAssignedTime={lastAssignedTime}
-        /> */}
-      </>
-    );
+  const { bankData } = useBankStore.getState();
 
-    const copyableGiftID = isGift ? (
-      <>
-        Tap to copy Gift ID 👇🏾 : {giftId}
-        {/* <CopyableText
-          text={giftId}
-          label={"Gift ID"}
-          addChatMessages={addChatMessages}
-          nextStep={nextStep}
-          lastAssignedTime={lastAssignedTime}
-        /> */}
-      </>
-    ) : null;
+  const { acct_number, bank_name, receiver_name } = bankData;
 
-    const copyableRequestID = isRequest ? (
-      <>
-        Tap to copy Request ID 👇🏾 : {requestID}
-        {/* <CopyableText
-          text={requestID}
-          label={"Request ID"}
-          addChatMessages={addChatMessages}
-          nextStep={nextStep}
-          lastAssignedTime={lastAssignedTime}
-        /> */}
-      </>
-    ) : null;
+  const { currentStep, addMessages, next } = useChatStore.getState();
 
-    const copyableWalletddress = (
-      <>
-        Tap to copy 👇🏾:
-        <br />
-        {/* <CopyableText
-          text={wallet}
-          label={"Wallet Address"}
-          isWallet={true}
-          addChatMessages={addChatMessages}
-          nextStep={nextStep}
-          lastAssignedTime={lastAssignedTime}
-        /> */}
-      </>
-    );
+  const { giftId, transferId, requestId, transactionId } =
+    useTransactionStore.getState();
 
-    const connectedWallet = '';
-    // helper function to generate transaction message
-    const generateTransactionMessage = (extraContent?: ReactNode) => {
-      return isRequest ? (
-        <span>
-          You will recieve{" "}
-          <b>{formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}</b>.
-          <br />
-          {extraContent}
-          <br />
-          Disclaimer: You would get your payment as soon as your request is
-          fulfilled
-          <br />
-        </span>
-      ) : !connectedWallet ? (
-        <>
-          Note: You are sending{" "}
-          <b>
-            {paymentAsset} =
-            {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
-          </b>{" "}
-          only to 2Settle wallet address to complete your transaction
-          {/* <CopyableText
-            text={assetPayment.toFixed(8)}
-            label={`${sharedCrypto} amount`}
-            addChatMessages={addChatMessages}
-            nextStep={nextStep}
-            lastAssignedTime={lastAssignedTime}
-          /> */}
-          {copyableWalletddress}
+  const paymentTicker = getBaseSymbol(ticker);
+  const allowedTime = 5;
+  const assetPayment = parseFloat(paymentAssetEstimate);
+  const paymentAsset = `${assetPayment.toFixed(8)} ${paymentTicker}`;
+
+  const isGift = currentStep.transactionType?.toLowerCase() === "gift";
+  const isRequest = currentStep.transactionType?.toLowerCase() === "request";
+  const isTransfer = currentStep.transactionType?.toLowerCase() === "transfer";
+  const isRequestPayment =
+    currentStep.transactionType?.toLowerCase() === "payrequest";
+
+  const lastAssignedTime = walletLastAssignedTime
+    ? new Date(walletLastAssignedTime)
+    : new Date();
+
+  const walletExpiryTime = new Date(
+    lastAssignedTime.getTime() + allowedTime * 60 * 1000,
+  );
+
+  const messages: MessageType[] = [
+    {
+      type: "incoming",
+      content: "Phone number confirmed",
+      timestamp: new Date(),
+    },
+  ];
+
+  // For request (no wallet needed, user is requesting payment)
+  if (isRequest) {
+    messages.push(
+      {
+        type: "incoming",
+        content: (
           <span>
-            This wallet address expires in{" "}
-            <b>{allowedTime.toString()} minutes </b>
+            You will receive{" "}
+            <b>${formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} </b>.
+            <br />
+            It would be paid into:
+            <br />
+            Bank Name: {bank_name} <br/>
+            Account Number: {acct_number} <br/>
+            Bank Name: {receiver_name}
+            <br />
+            <b>You can copy the requestId below</b> and share with the person to
+            fulfill the request
           </span>
-        </>
-      ) : (
-        <span>
-          <b>
-            {paymentAsset} ={""}
-            {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
-          </b>{" "}
-          {/* will be deducted from your {sharedCrypto} ({sharedNetwork}) wallet.
-          <br />
-          {extraContent}
-          <br />
-          Disclaimer: The estimated amount <b>{paymentAsset}</b> does not
-          include {sharedCrypto} ({sharedNetwork}) transaction fee.
-          {isGift
-            ? `This wallet address expires in ${allowedTime.toString()} minutes`
-            : ""}
-          <br /> */}
-        </span>
-      );
-    };
-    // Define initial message
-    /**
-     * isGift - for creating gift
-     * isRquestPayment - for fulfilling a request
-     * isRequest - making a request
-     * last option - for making a regular transtion
-     */
-    const initialMessages: MessageType[] = [
-      {
-        type: "incoming",
-        content: "Phone number confirmed",
-        timestamp: new Date(),
-      },
-      {
-        type: "incoming",
-        content: generateTransactionMessage(
-          isGift ? (
-            <>
-              Note: You are sending{" "}
-              <b>
-                {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} ={" "}
-                {paymentAsset}{" "}
-              </b>{" "}
-              only to 2Settle wallet address
-              {/* <CopyableText
-                text={assetPayment.toFixed(8)}
-                label={`${sharedCrypto} amount`}
-                addChatMessages={addChatMessages}
-                nextStep={nextStep}
-                lastAssignedTime={lastAssignedTime}
-              /> */}
-              {copyableWalletddress}
-              {copyableGiftID}
-            </>
-          ) : isRequestPayment ? (
-            <>
-              Note: You are sending{" "}
-              <b>
-                {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")} ={" "}
-                {paymentAsset}
-              </b>{" "}
-              only to 2Settle wallet address to fulfill the request
-              {/* <CopyableText
-                text={assetPayment.toFixed(8)}
-                label={`${sharedCrypto} amount`}
-                addChatMessages={addChatMessages}
-                nextStep={nextStep}
-                lastAssignedTime={lastAssignedTime}
-              /> */}
-              {copyableWalletddress}
-              {copyableRequestID}
-            </>
-          ) : isRequest ? (
-            <>
-              Note: You are Requesting for payment of
-              <b>
-                {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
-              </b>
-              <br />
-              {copyableRequestID}
-            </>
-          ) : (
-            <>Tap to copy 👇🏾: {copyableTransactionID}</>
-          )
         ),
         timestamp: new Date(),
       },
-      // {
-      //   type: "incoming",
-      //   content: connectedWallet
-      //     ? "Thank you for transacting with me"
-      //     : "Wait for  the pop-up. If missed, say 'hi' to restart.",
-      //   timestamp: new Date(),
-      // },
-    ];
+      {
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: { text: transactionId, label: "Transaction ID" },
+          persist: true,
+        },
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: { text: requestId, label: "Request ID" },
+          persist: true,
+        },
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        content:
+          "Disclaimer: You would get your payment as soon as your request is fulfilled",
+        timestamp: new Date(),
+      },
+    );
+  } else {
+    // For transfer, gift, or request payment (needs wallet display)
+    messages.push(
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Note: You are sending{" "}
+            <b>
+              ${paymentAsset} = $
+              {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
+            </b>{" "}
+            only to 2Settle wallet address to complete your transaction
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: {
+            text: assetPayment.toFixed(8),
+            label: `${paymentTicker} Amount`,
+          },
+          persist: true,
+        },
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: {
+            text: activeWallet,
+            label: "Wallet Address",
+            isWallet: true,
+            lastAssignedTime: lastAssignedTime,
+          },
+          persist: true,
+        },
+        timestamp: new Date(),
+      },
+      {
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: { text: transactionId, label: "Transaction ID" },
+          persist: true,
+        },
+        timestamp: new Date(),
+      },
+    );
 
-    addMessages(initialMessages);
-  };
+    if (isGift) {
+      messages.push({
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: { text: giftId, label: "Gift ID" },
+          persist: true,
+        },
+        timestamp: new Date(),
+      });
+    }
+
+    if (isTransfer) {
+      messages.push({
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: { text: transferId, label: "Transfer ID" },
+          persist: true,
+        },
+        timestamp: new Date(),
+      });
+    }
+
+    if (isRequestPayment) {
+      messages.push({
+        type: "incoming",
+        intent: {
+          kind: "component",
+          name: "CopyableText",
+          props: { text: requestId, label: "Request ID" },
+          persist: true,
+        },
+        timestamp: new Date(),
+      });
+    }
+
+    messages.push({
+      type: "incoming",
+      content: (
+        <span>
+          This wallet address expires in <b>{allowedTime}</b> minutes
+        </span>
+      ),
+      intent: {
+        kind: "component",
+        name: "CountdownTimer",
+        props: { expiryTime: walletExpiryTime },
+        persist: true,
+      },
+      timestamp: new Date(),
+    });
+  }
+
+  addMessages(messages);
+  next({ stepId: "start" });
+};

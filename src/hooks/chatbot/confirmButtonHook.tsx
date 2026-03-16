@@ -32,7 +32,7 @@ const ConfirmAndProceedButton = () => {
   const setLoading = useChatStore((s) => s.setLoading);
   const currentStep = useChatStore((s) => s.currentStep);
 
-  const { network, paymentMode } = usePaymentStore();
+  const { network } = usePaymentStore();
   const activeWallet = usePaymentStore((s) => s.activeWallet);
   const walletLastAssignedTime = usePaymentStore(
     (s) => s.walletLastAssignedTime,
@@ -58,6 +58,7 @@ const ConfirmAndProceedButton = () => {
     console.log("Just confirmed");
     try {
       setLoading(true);
+      if (!network) throw new Error("Network is not set");
 
       await getAvaialableWallet(network.toLowerCase());
       setHasCopyButtonBeenClicked(false);
@@ -69,6 +70,7 @@ const ConfirmAndProceedButton = () => {
     }
     // connectedWallet ? handleBlockchainPayment() : handleConfirmCallback()
   };
+
   const isExpired = walletIsExpired;
 
   const isCopyButtonDisabled = hasCopyButtonBeenClicked || isExpired;
@@ -76,9 +78,8 @@ const ConfirmAndProceedButton = () => {
   useEffect(() => {
     // do not run if the user is not have already copied wallet
     if (hasCopyButtonBeenClicked) return;
-    console.log({ hasCopyButtonBeenClicked });
     // dont run if the user is not going to make payment in the next step
-    if (currentStep.stepId !== SHOULD_OPEN_STEP) return; // make sure we pop up only when we have not send payment
+    if (currentStep.stepId !== SHOULD_OPEN_STEP ) return; // make sure we pop up only when we have not send payment
     // do not open the dialog if the dialog is already opened
     if (hasOpenedRef.current) return;
     hasOpenedRef.current = true;
@@ -111,9 +112,9 @@ const ConfirmAndProceedButton = () => {
   };
 
   // const showStatus = hasCopyButtonBeenClicked;
-  const showCountdown = walletLastAssignedTime && !isExpired;
-  // console.log({ walletLastAssignedTime, isExpired });
-  // console.log({ hasCopyButtonBeenClicked });
+  // const showCountdown = walletLastAssignedTime && !isExpired;
+  const showCountdown = !!activeWallet && !isExpired;
+
   const showExpired = isExpired;
   const expiryTime = new Date(
     new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
@@ -123,7 +124,7 @@ const ConfirmAndProceedButton = () => {
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
       <Button
-        disabled={hasCopyButtonBeenClicked}
+        disabled={hasCopyButtonBeenClicked || Boolean(activeWallet)}
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
         variant="outline"
         onClick={() =>
@@ -154,20 +155,16 @@ const ConfirmAndProceedButton = () => {
       {activeWallet && (
         <WalletInfo
           wallet={activeWallet}
-          network={network}
+          network={network!}
           isCopyDisabled={isCopyButtonDisabled}
           onCopy={() => handleCopyWallet(activeWallet ?? "")}
           truncateWallet={truncateWallet}
         />
       )}
       {/* count down */}
-      {hasCopyButtonBeenClicked && (
+      {showCountdown && (
         <p role="status" className="text-sm text-muted-foreground">
-          {showCountdown && (
-            <>
-              This wallet expires in <CountdownTimer expiryTime={expiryTime} />
-            </>
-          )}
+          This wallet expires in <CountdownTimer expiryTime={expiryTime} />
           {showExpired && "This wallet has expired"}
         </p>
       )}

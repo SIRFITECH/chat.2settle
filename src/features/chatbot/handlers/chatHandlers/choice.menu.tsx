@@ -1,14 +1,12 @@
 import { formatCurrency } from "@/helpers/format_currency";
+import { shortWallet } from "@/helpers/ShortenAddress";
 import { fetchRate } from "@/services/rate/rates.service";
 import { config } from "@/wagmi";
 import useChatStore, { MessageType } from "stores/chatStore";
+import { useUserStore } from "stores/userStore";
 import { getAccount } from "wagmi/actions";
 import { greetings } from "../../helpers/ChatbotConsts";
-import { shortWallet } from "@/helpers/ShortenAddress";
-import ConnectWallet from "@/components/crypto/ConnectWallet";
 import { helloMenu } from "./hello.menu";
-import { useUserStore } from "stores/userStore";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { displayMakeChoice } from "./menus/display.make.choice";
 
 export const choiceMenu = async (chatInput?: string) => {
@@ -19,11 +17,10 @@ export const choiceMenu = async (chatInput?: string) => {
   } catch (err) {
     console.error("Failed to fetch rate", err);
   }
-  const account = getAccount(config);
   const { user } = useUserStore.getState();
 
   const telFirstName = user?.telegram?.username;
-  const { addMessages } = useChatStore.getState();
+  const {addMessages } = useChatStore.getState();
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
     helloMenu(chatInput);
   } else if (chatInput === "0") {
@@ -53,86 +50,6 @@ export const choiceMenu = async (chatInput?: string) => {
       },
     ]);
   } else if (chatInput === "2") {
-    // if (walletIsConnected) {
-    //   addMessages([
-    //     {
-    //       type: "incoming",
-    //       content: (
-    //         <span>
-    //           How far {telFirstName} 👋
-    //           <br />
-    //           <br />
-    //           You are connected as <b>{shortWallet(wallet)}</b>
-    //           <br />
-    //           <br />
-    //           Your wallet is connected. The current rate is
-    //           <b> {formatRate}/$1</b>
-    //         </span>
-    //       ),
-    //       timestamp: new Date(),
-    //     },
-    //     {
-    //       type: "incoming",
-    //       content: (
-    //         <span>
-    //           1. Transact Crypto
-    //           <br />
-    //           2. Request for paycard
-    //           <br />
-    //           3. Customer support
-    //           <br />
-    //           4. Transaction ID
-    //           <br />
-    //           5. Reportly,
-    //         </span>
-    //       ),
-    //     },
-    //   ] as unknown as MessageType[]);
-    //   next({
-    //     stepId: "transactCrypto",
-    //   });
-    // } else {
-    //   {
-    //     addMessages([
-    //       {
-    //         type: "incoming",
-    //         content: (
-    //           <span>
-    //             You continued <b>without connecting your wallet</b>
-    //             <br />
-    //             <br />
-    //             Today Rate: <b>{formatRate}/$1</b> <br />
-    //             <br />
-    //             Welcome to 2SettleHQ {telFirstName}, how can I help you today?
-    //           </span>
-    //         ),
-    //         timestamp: new Date(),
-    //       },
-    //       {
-    //         type: "incoming",
-    //         content: (
-    //           <span>
-    //             1. Transact Crypto
-    //             <br />
-    //             2. Request for paycard
-    //             <br />
-    //             3. Customer support
-    //             <br />
-    //             4. Transaction ID
-    //             <br />
-    //             5. Reportly
-    //             <br />
-    //             0. Back
-    //           </span>
-    //         ),
-    //         timestamp: new Date(),
-    //       },
-    //     ]);
-    //   }
-    //   next({
-    //     stepId: "makeAChoice",
-    //   });
-    // }
     displayMakeChoice();
   } else {
     addMessages?.([
@@ -170,13 +87,10 @@ export async function choiceMenuRouter(input: string) {
 
   const telFirstName = "Mosnyik";
 
-  const { next, addMessages } = useChatStore.getState();
+  const { addMessages } = useChatStore.getState();
 
   const chatInput = (input ?? "").trim().toLowerCase();
 
-  // ----------------------------
-  // GREETINGS
-  // ----------------------------
   if (greetings.includes(chatInput)) {
     if (walletIsConnected) {
       addMessages([
@@ -254,9 +168,6 @@ export async function choiceMenuRouter(input: string) {
     }
   }
 
-  // ----------------------------
-  // OPTION 1
-  // ----------------------------
   if (chatInput === "1") {
     addMessages([
       {
@@ -273,9 +184,6 @@ export async function choiceMenuRouter(input: string) {
     ]);
   }
 
-  // ----------------------------
-  // OPTION 2
-  // ----------------------------
   if (chatInput === "2") {
     if (walletIsConnected) {
       addMessages([

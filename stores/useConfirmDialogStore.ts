@@ -81,6 +81,8 @@ export const useConfirmDialogStore = create<ConfirmDialogState>()(
       reset: () =>
         set({
           hasCopyButtonBeenClicked: false,
+          walletIsExpired: false,
+          walletFetchError: "",
         }),
     }),
     {

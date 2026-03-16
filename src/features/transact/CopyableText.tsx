@@ -7,31 +7,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MessageType } from "@/types/general_types";
 import { Check, Copy } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useChatStore from "stores/chatStore";
 
 export const CopyableText: React.FC<{
   text: string;
   label: string;
   isWallet?: boolean;
-  addChatMessages: (messages: MessageType[]) => void;
-  nextStep: (step: string) => void;
   lastAssignedTime?: Date;
-}> = ({
-  text,
-  label,
-  isWallet = false,
-  addChatMessages,
-  nextStep,
-  lastAssignedTime,
-}) => {
+}> = ({ text, label, isWallet = false, lastAssignedTime }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [walletCopied, setWalletCopied] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
+  const [shouldShowDialog, setShouldShowDialog] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const allowedTime = 5;
 
@@ -40,23 +32,25 @@ export const CopyableText: React.FC<{
       const timer = setInterval(() => {
         const now = new Date().getTime();
         const distance =
-          new Date(
-            lastAssignedTime.getTime() + allowedTime * 60 * 1000
-          ).getTime() - now;
+          lastAssignedTime instanceof Date
+            ? new Date(
+                lastAssignedTime.getTime() + allowedTime * 60 * 1000,
+              ).getTime() - now
+            : 0;
 
         if (distance < 0) {
           clearInterval(timer);
           setTimeLeft("00:00");
           setIsExpired(true);
-          if (!walletCopied) {
+          if (!walletCopied && shouldShowDialog) {
             setDialogMessage(
-              "This wallet is no longer available. Please start a new transaction."
+              "This wallet is no longer available. Please start a new transaction.",
             );
             setIsDialogOpen(true);
           }
         } else {
           const minutes = Math.floor(
-            (distance % (1000 * 60 * 60)) / (1000 * 60)
+            (distance % (1000 * 60 * 60)) / (1000 * 60),
           );
           const seconds = Math.floor((distance % (1000 * 60)) / 1000);
           const timeString = `${minutes.toString().padStart(2, "0")}:${seconds
@@ -64,8 +58,18 @@ export const CopyableText: React.FC<{
             .padStart(2, "0")}`;
           setTimeLeft(timeString);
 
-          // Check if time is less than or equal to 2 minutes and popup hasn't been shown
-          if (minutes === 2 && seconds === 0 && walletCopied) {
+          // Enable dialog when we get within the last 2 minutes
+          if (minutes < 2 || (minutes === 2 && seconds === 0)) {
+            setShouldShowDialog(true);
+          }
+
+          // Show dialog at exactly 2 minutes if wallet was copied
+          if (
+            minutes === 2 &&
+            seconds === 0 &&
+            walletCopied &&
+            shouldShowDialog
+          ) {
             setDialogMessage("Have you sent the payment?");
             setIsDialogOpen(true);
           }
@@ -74,7 +78,7 @@ export const CopyableText: React.FC<{
 
       return () => clearInterval(timer);
     }
-  }, [isWallet, lastAssignedTime, walletCopied]);
+  }, [isWallet, lastAssignedTime, walletCopied, shouldShowDialog]);
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(text).then(() => {
       setIsCopied(true);
@@ -87,7 +91,9 @@ export const CopyableText: React.FC<{
 
   const handleConfirm = useCallback(() => {
     setIsDialogOpen(false);
-    addChatMessages([
+    setShouldShowDialog(false);
+    const { addMessages, next } = useChatStore.getState();
+    addMessages([
       {
         type: "incoming",
         content: (
@@ -104,12 +110,14 @@ export const CopyableText: React.FC<{
         timestamp: new Date(),
       },
     ]);
-    nextStep("paymentProcessing");
+    next({ stepId: "paymentProcessing" });
   }, []);
 
   const handleClose = useCallback(() => {
     setIsDialogOpen(false);
-    addChatMessages([
+    setShouldShowDialog(false);
+    const { addMessages, next } = useChatStore.getState();
+    addMessages([
       {
         type: "incoming",
         content: (
@@ -126,14 +134,14 @@ export const CopyableText: React.FC<{
         timestamp: new Date(),
       },
     ]);
-    nextStep("paymentProcessing");
+    next({ stepId: "paymentProcessing" });
   }, []);
 
   const truncateText = useMemo(
     () => (text: string) => {
       return text.length > 7 ? `${text.slice(0, 6)}...${text.slice(-4)}` : text;
     },
-    []
+    [],
   );
 
   const getButtonText = () => {

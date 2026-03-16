@@ -9,19 +9,19 @@ import { getWalletType } from "@/helpers/transaction/transact_crypto";
 import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { usePaymentStore } from "stores/paymentStore";
 import { displayEnterPhone } from "./menus/display.phone";
-
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const handleEstimateAsset = async (chatInput: string) => {
+  const { isConnected, address } = useWalletStore.getState();
 
-    const account = getAccount(config);
-  
-    const walletIsConnected = account.isConnected;
-    const wallet = account.address;
-    
-    console.log("User chatinput", chatInput);
-  
-    const { next, addMessages } = useChatStore.getState();
-    const { crypto, ticker, paymentMode } = usePaymentStore.getState();
+  const walletIsConnected = isConnected;
+  const wallet = address;
+  const walletType = getWalletType(wallet);
+
+  console.log("User chatinput", chatInput);
+
+  const { addMessages } = useChatStore.getState();
+  const { crypto, ticker, paymentMode } = usePaymentStore.getState();
 
   if (greetings.includes(chatInput.trim().toLowerCase())) {
     helloMenu(chatInput);
@@ -53,7 +53,6 @@ export const handleEstimateAsset = async (chatInput: string) => {
   } else if (chatInput === "00") {
     helloMenu("hi");
   } else if (chatInput === "1") {
-    const walletType = getWalletType(wallet);
     if (walletIsConnected && walletType !== "BTC") {
       addMessages([
         {
@@ -75,7 +74,6 @@ export const handleEstimateAsset = async (chatInput: string) => {
       // nextStep("payOptions");
     }
   } else if (chatInput === "2") {
-    const walletType = getWalletType(wallet);
     if (walletIsConnected && walletType !== "EVM") {
       addMessages([
         {
@@ -93,14 +91,8 @@ export const handleEstimateAsset = async (chatInput: string) => {
         crypto,
         ticker,
       });
-      // nextStep();
-      // nextStep("payOptions");
     }
-    // setSharedTicker("ETHUSDT");
-    // setSharedCrypto("ETH");
-    // setSharedNetwork("ERC20");
   } else if (chatInput === "3") {
-    const walletType = getWalletType(wallet);
     if (walletIsConnected && walletType !== "EVM") {
       addMessages([
         {
@@ -118,14 +110,8 @@ export const handleEstimateAsset = async (chatInput: string) => {
         crypto,
         ticker,
       });
-      // nextStep();
-      // nextStep("payOptions");
     }
-    // setSharedTicker("BNBUSDT");
-    // setSharedCrypto("BNB");
-    // setSharedNetwork("BEP20");
   } else if (chatInput === "4") {
-    const walletType = getWalletType(wallet);
     if (walletIsConnected && walletType !== "TRX") {
       addMessages([
         {
@@ -143,14 +129,8 @@ export const handleEstimateAsset = async (chatInput: string) => {
         crypto,
         ticker,
       });
-      // nextStep();
-      // nextStep("payOptions");
     }
-    // setSharedTicker("TRXUSDT");
-    // setSharedCrypto("TRX");
-    // setSharedNetwork("TRC20");
   } else if (chatInput === "5") {
-    const walletType = getWalletType(wallet);
     if (walletIsConnected && walletType !== "EVM" && walletType !== "TRX") {
       addMessages([
         {

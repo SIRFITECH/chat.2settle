@@ -1,40 +1,38 @@
+import { shortWallet } from "@/helpers/ShortenAddress";
 import { config } from "@/wagmi";
 import useChatStore from "stores/chatStore";
-import { getAccount } from "wagmi/actions";
-import { greetings } from "../../helpers/ChatbotConsts";
-import { shortWallet } from "@/helpers/ShortenAddress";
-import { useUserStore } from "stores/userStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { useConfirmDialogStore } from "stores/useConfirmDialogStore";
+import { useUserStore } from "stores/userStore";
+import { getAccount } from "wagmi/actions";
+import { greetings } from "../../helpers/ChatbotConsts";
+import { useTransactionStore } from "stores/transactionStore";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const helloMenu = async (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
   const { user } = useUserStore.getState();
-
   const setPaymentMode = usePaymentStore.getState().setPaymentMode;
+  const setActiveWallet = usePaymentStore.getState().setActiveWallet;
 
-  console.log("we are at the start of the program", user);
+  const { reset } = usePaymentStore.getState();
+  const { resetTransaction } = useTransactionStore.getState();
 
-  const setHasCopyButtonBeenClicked = useConfirmDialogStore(
-    (s) => s.setHasCopyButtonBeenClicked,
-  );
-  const setActiveWallet = usePaymentStore((s) => s.setActiveWallet);
-
-  setHasCopyButtonBeenClicked(false);
+  reset();
+  resetTransaction();
   setActiveWallet("");
+  useConfirmDialogStore.getState().reset();
 
-  const account = getAccount(config);
+   const { isConnected, address }= useWalletStore.getState()
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const telFirstName = user?.telegram?.username;
 
   console.log("User chatinput", chatInput);
 
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
-    // setHasCopyButtonBeenClicked(false);
-    // setActiveWallet("");
     if (walletIsConnected) {
       addMessages?.([
         {

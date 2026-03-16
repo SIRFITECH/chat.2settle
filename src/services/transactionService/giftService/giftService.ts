@@ -1,22 +1,21 @@
 import { userData } from "@/types/general_types";
 import api from "../../api-client";
 import axios from "axios";
+import { GiftRow, ReceiverRow } from "../transactionService";
 
 export const isGiftValid = async (
-  gift_id: string
+  gift_id: string,
 ): Promise<{ exists: boolean; user?: userData }> => {
   try {
     const response = await api.get("/api/gifts/check_gift", {
       params: { gift_id },
     });
 
-    console.log({ response })
+    console.log({ response });
 
     if (response.data.exists && response.data.user) {
       // Extract the first transaction as the userData object
-      const firstTransaction: userData =
-        response.data.user;
-
+      const firstTransaction: userData = response.data.user;
 
       // Return the exists flag and the user object
       return { exists: true, user: firstTransaction };
@@ -30,15 +29,18 @@ export const isGiftValid = async (
 };
 
 export const updateGiftTransaction = async (
-  gift_chatID: string,
-  updateData: Record<string, any>
+  gift_id: string,
+  receiver: ReceiverRow,
 ) => {
   try {
     const response = await api.post("/api/gifts/update_gift", {
-      gift_chatID,
-      ...updateData,
+      gift_id,
+      receiver: receiver,
+      giftUpdates: {
+        gift_status: "Claimed",
+      },
     });
-    console.log(response.data); // Handle the response
+    // console.log(response.data); // Handle the response
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
       // Server responded with a status other than 2xx
@@ -52,3 +54,15 @@ export const updateGiftTransaction = async (
     }
   }
 };
+
+export const createGift = async (giftData: GiftRow): Promise<any> => {
+  try {
+    const response = await api.post<any>(`/api/gifts/save`, giftData);
+    console.log("Use gift created successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error storing gift data:", error);
+    throw new Error("Failed to store gift data");
+  }
+};
+

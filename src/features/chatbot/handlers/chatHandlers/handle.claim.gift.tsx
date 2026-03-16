@@ -1,9 +1,13 @@
 import { isGiftValid } from "@/services/transactionService/giftService/giftService";
 import useChatStore from "stores/chatStore";
 import { displaySearchBank } from "./menus/display.bank.search";
+import { useTransactionStore } from "stores/transactionStore";
 
 export const handleClaimGift = async (chatInput: string) => {
+  const setGiftId = useTransactionStore.getState().setGiftId;
   const { next, addMessages } = useChatStore.getState();
+
+  setGiftId(chatInput.trim());
   const giftId = chatInput.trim();
 
   const result = await isGiftValid(giftId);

@@ -115,6 +115,7 @@ import { useEffect } from "react";
 import useChatStore from "stores/chatStore";
 
 const ChatBot = ({ isMobile, onClose }: ChatBotProps) => {
+
   const {
     chatInput,
     setChatInput,

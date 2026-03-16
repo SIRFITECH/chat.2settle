@@ -38,6 +38,35 @@ class MyDocument extends Document {
         </Head>
 
         <body>
+          {/* Prevent TronLink from crashing with "Cannot redefine property: ethereum".
+              TronLink tries to redefine window.ethereum but Wagmi marks it non-configurable.
+              This ensures the property stays configurable so both can coexist. */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                if (!window.ethereum) {
+                  Object.defineProperty(window, 'ethereum', {
+                    value: undefined,
+                    writable: true,
+                    configurable: true,
+                  });
+                } else {
+                  try {
+                    var desc = Object.getOwnPropertyDescriptor(window, 'ethereum');
+                    if (desc && !desc.configurable) {
+                      var val = desc.value;
+                      delete window.ethereum;
+                      Object.defineProperty(window, 'ethereum', {
+                        value: val,
+                        writable: true,
+                        configurable: true,
+                      });
+                    }
+                  } catch(e) {}
+                }
+              `,
+            }}
+          />
           <Main />
           <NextScript />
         </body>

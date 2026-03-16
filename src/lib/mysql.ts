@@ -18,10 +18,10 @@ declare global {
   var mysqlPool: mysql.Pool | undefined;
 }
 
-export const connection = global.mysqlPool || mysql.createPool(config);
+export const pool  = global.mysqlPool || mysql.createPool(config);
 
 if (process.env.NODE_ENV !== "production") {
-  global.mysqlPool = connection;
+  global.mysqlPool = pool ;
 }
 
-export default connection;
+export default pool ;

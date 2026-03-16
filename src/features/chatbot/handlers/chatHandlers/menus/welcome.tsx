@@ -1,19 +1,26 @@
-import { config } from "@/wagmi";
-import useChatStore from "stores/chatStore";
-import { getAccount } from "wagmi/actions";
-import { shortWallet } from "@/helpers/ShortenAddress";
 import { greetings } from "@/features/chatbot/helpers/ChatbotConsts";
+import { shortWallet } from "@/helpers/ShortenAddress";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import useChatStore from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
+import { useTransactionStore } from "stores/transactionStore";
 import { useUserStore } from "stores/userStore";
 export const displayWelcomeMenu = (chatInput?: string) => {
   const { next, addMessages } = useChatStore.getState();
-  const { user } = useUserStore.getState();
-  console.log("we are at the start of the program", user);
-  const account = getAccount(config);
+  const { reset } = usePaymentStore.getState();
+  const { resetTransaction } = useTransactionStore.getState();
 
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const { user } = useUserStore.getState();
+  const { isConnected, address }= useWalletStore.getState()
+
+
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const telFirstName = user?.telegram?.username;
+
+  reset();
+  resetTransaction();
 
   console.log("User chatinput", chatInput);
   if (greetings.includes((chatInput ?? "").trim().toLowerCase())) {
@@ -41,7 +48,6 @@ export const displayWelcomeMenu = (chatInput?: string) => {
         stepId: "chooseAction",
       });
     } else {
-      //   setSharedPaymentMode?.("");
       addMessages?.([
         {
           type: "incoming",
@@ -63,7 +69,6 @@ export const displayWelcomeMenu = (chatInput?: string) => {
         },
       ]);
       console.log("Wallet not connected");
-      // sendChatInput(chatInput!);
       next({
         stepId: "chooseAction",
       });

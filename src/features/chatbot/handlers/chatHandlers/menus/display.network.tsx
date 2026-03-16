@@ -1,7 +1,11 @@
 import useChatStore, { MessageType } from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
 
 export const displayNetwork = () => {
   const { next, addMessages } = useChatStore.getState();
+  const { paymentMode } = usePaymentStore.getState();
+  const isRequest = paymentMode.toLowerCase() === "payrequest";
+
   const newMessages: MessageType[] = [
     {
       type: "incoming",
@@ -22,10 +26,8 @@ export const displayNetwork = () => {
   ];
 
   console.log("Next is payOptions");
-  //   sharedPaymentMode !== "request"
-  //     ?
-  next({ stepId: "payOptions" });
-  //     :
-  //   next({stepId: "continueToPay"});
+  console.log({isRequest})
+  isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
+
   addMessages(newMessages);
 };
