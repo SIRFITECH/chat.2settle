@@ -4,6 +4,7 @@ import { choiceMenu } from "@/features/chatbot/handlers/chatHandlers/choice.menu
 import { handleChooseTransactionType } from "@/features/chatbot/handlers/chatHandlers/choose.transaction.type";
 import { handleContinueToPay } from "@/features/chatbot/handlers/chatHandlers/complete.payement";
 import { handlePhoneNumber } from "@/features/chatbot/handlers/chatHandlers/enter.phone";
+import { handleAiChat } from "@/features/chatbot/handlers/chatHandlers/handle.ai.chat";
 import {
   handleBankAccountNumber,
   handleSearchBank,
@@ -62,8 +63,8 @@ export const useChatLogic = ({
       } else {
         console.log("Current Step:", currentStep);
 
-        // await handleAiChat(chatInput)
-        await stepHandlers[currentStep.stepId as StepId](chatInput);
+        await handleAiChat(chatInput)
+       // await stepHandlers[currentStep.stepId as StepId](chatInput);
       }
     } catch (error) {
       console.error(error);

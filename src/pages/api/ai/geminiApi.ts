@@ -73,7 +73,7 @@ dotenv.config();
 
 const model = new ChatOpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
-  model: "google/gemini-2.0-flash-lite-00",
+  model: "google/gemini-2.5-flash-lite-preview-09-2025",
   configuration: {
     baseURL: "https://openrouter.ai/api/v1",
   },
