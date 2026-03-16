@@ -3,6 +3,7 @@ import { connectWallet } from "@/features/chatbot/handlers/chatHandlers/chatbot.
 import { choiceMenu } from "@/features/chatbot/handlers/chatHandlers/choice.menu";
 import { handleChooseTransactionType } from "@/features/chatbot/handlers/chatHandlers/choose.transaction.type";
 import { handleContinueToPay } from "@/features/chatbot/handlers/chatHandlers/complete.payement";
+import { handleConfirmResetChat } from "@/features/chatbot/handlers/chatHandlers/confirm.reset.chat";
 import { handlePhoneNumber } from "@/features/chatbot/handlers/chatHandlers/enter.phone";
 import { handleAiChat } from "@/features/chatbot/handlers/chatHandlers/handle.ai.chat";
 import {
@@ -86,6 +87,7 @@ export const useChatLogic = ({
 
 const steps = [
   "start",
+  "confirmResetChat",
   "connectWallet",
   "chooseAction",
   "makeAChoice",
@@ -133,6 +135,7 @@ const stepHandlers: Record<
   (chatInput: string) => Promise<void> | void
 > = {
   start: async (chatInput) => displayWelcomeMenu(chatInput),
+  confirmResetChat: async (chatInput) => handleConfirmResetChat(chatInput),
   connectWallet: async () => connectWallet(), // I will work on thisn later
   // choose what you want to do in 2settle (transactCrypto, ...reportly)
   chooseAction: async (chatInput) => choiceMenu(chatInput),

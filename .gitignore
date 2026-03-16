@@ -44,7 +44,7 @@ middleware.ts
 .qodo
 
 # Claude Code
-# .claude/
-# CLAUDE*
+.claude/
+CLAUDE*
 # .playwright-mcp
 

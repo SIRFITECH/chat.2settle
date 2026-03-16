@@ -1,10 +1,9 @@
 import { formatCurrency } from "@/helpers/format_currency";
 import { shortWallet } from "@/helpers/ShortenAddress";
 import { fetchRate } from "@/services/rate/rates.service";
-import { config } from "@/wagmi";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { useUserStore } from "stores/userStore";
-import { getAccount } from "wagmi/actions";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
 import { displayMakeChoice } from "./menus/display.make.choice";
@@ -79,9 +78,9 @@ export async function choiceMenuRouter(input: string) {
     console.error("Failed to fetch rate", err);
   }
 
-  const account = getAccount(config);
-  const walletIsConnected = account.isConnected;
-  const wallet = account.address;
+  const { isConnected, address } = useWalletStore.getState();
+  const walletIsConnected = isConnected;
+  const wallet = address;
 
   const formatRate = formatCurrency(rate?.toString() ?? "0", "NGN", "en-NG");
 

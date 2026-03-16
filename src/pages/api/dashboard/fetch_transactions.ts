@@ -3,7 +3,7 @@ import connection from "@/lib/mysql";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== "GET") {
     res.setHeader("Allow", ["GET"]);
@@ -13,7 +13,6 @@ export default async function handler(
   const { transaction_id, status } = req.query;
 
   try {
-    // Build base query
     let query = `
 SELECT *
 FROM (
@@ -95,7 +94,6 @@ WHERE 1=1
     query += " LIMIT 20";
 
     const [rows] = await connection.execute(query, values);
-    // await connection.end();
 
     return res.status(200).json({ transactions: rows });
   } catch (err) {

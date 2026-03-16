@@ -1,5 +1,6 @@
 export const steps = [
   "start",
+  "confirmResetChat",
   "connectWallet",
   "chooseAction",
   "makeAChoice",

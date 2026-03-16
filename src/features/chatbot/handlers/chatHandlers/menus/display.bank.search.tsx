@@ -44,8 +44,8 @@ export const displaySelectBank = () => {
       });
     }
   });
-  console.log({ bankList });
-  console.log({ results });
+  // console.log({ bankList });
+  // console.log({ results });
 
   if (results.length === 0) {
     const retryMessages: MessageType[] = [

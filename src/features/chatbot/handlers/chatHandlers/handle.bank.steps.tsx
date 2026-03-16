@@ -147,7 +147,7 @@ export const handleSearchBank = async (chatInput: string) => {
     } else {
       chatInput = chatInput.replace(/[^0-9.]/g, "");
       if (Number(chatInput) >= 20000 && Number(chatInput) < 2000000) {
-         const requestAmount = chatInput.trim();
+        const requestAmount = chatInput.trim();
         setPaymentNairaEstimate(requestAmount);
 
         displaySearchBank();
@@ -249,11 +249,8 @@ export const handleSelectBank = async (chatInput: string) => {
     let bankList: string[] = [];
 
     try {
-      const bankNames = await fetchBankNames(chatInput.trim()).catch((e) => {
-        console.log("There was an error");
-        prev();
-        return;
-      });
+      const bankNames = await fetchBankNames(chatInput.trim());
+
       console.log("BankNames 1", bankNames);
       if (bankNames) {
         console.log("The bank name", bankNames["message"]);
@@ -274,6 +271,19 @@ export const handleSelectBank = async (chatInput: string) => {
       }
     } catch (error) {
       console.error("Failed to fetch bank names:", error);
+      addMessages([
+        {
+          type: "incoming",
+          content: (
+            <span>
+              There was an error fetching your bank. <br />
+              Please check to be sure the bank is a valid Nigerian Bank or MSB,
+            </span>
+          ),
+          timestamp: new Date(),
+        },
+      ]);
+      return;
     }
 
     displaySelectBank();

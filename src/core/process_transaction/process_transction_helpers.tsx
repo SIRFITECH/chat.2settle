@@ -1,4 +1,3 @@
-import { helloMenu } from "@/features/chatbot/handlers/chatHandlers/hello.menu";
 import { displayGiftFeedbackMessage } from "@/features/chatbot/handlers/chatHandlers/menus/display.gift.transaction.confirmation";
 import { displaySendPayment } from "@/features/chatbot/handlers/chatHandlers/menus/display.send.payment";
 import {
@@ -10,6 +9,7 @@ import {
   updateRequest,
 } from "@/services/transactionService/requestService/requestService";
 import { createTransfer } from "@/services/transactionService/transferService/transfer.service";
+import { resetAllTransactionState } from "@/utils/resetTransactionState";
 import { generateTransactionId } from "@/utils/utilities";
 import { useBankStore } from "stores/bankStore";
 import useChatStore from "stores/chatStore";
@@ -289,12 +289,16 @@ export async function processTransaction() {
       receiver_phoneNumber,
     });
     displayGiftFeedbackMessage();
-    helloMenu("hi");
-    next({ stepId: "chooseAction" });
+
+    // Reset all transaction state after claim gift completion
+    resetAllTransactionState();
+
+    next({ stepId: "start", transactionType: undefined });
   } else {
-    // call the endpoint that saves request transaction
+    // call the endpoint that saves request transaction (pay request)
     console.log("Paying request transaction...");
     await updateRequest(updateRequestData);
+    displaySendPayment();
   }
 
   // const {

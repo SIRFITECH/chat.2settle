@@ -137,11 +137,13 @@ export function commitChargeToStores(
       ? amount / rate
       : amount / (rate * context.assetPrice);
   } else if (context.estimateAsset === "dollar") {
-    paymentAssetEstimate = amount / context.assetPrice;
+    paymentAssetEstimate = context.isUSDT
+      ? amount
+      : amount / context.assetPrice;
     paymentNairaEstimate = amount * rate;
   } else {
     paymentAssetEstimate = amount;
-  
+
     paymentNairaEstimate = context.isUSDT
       ? amount * rate
       : amount * rate * context.assetPrice;
