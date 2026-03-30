@@ -5,32 +5,32 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1: Core Engine | ✅ Complete | 100% |
-| Phase 2: Persistence & Migration | 🔲 Not Started | 0% |
-| Phase 3: Chat Integration | 🔲 Not Started | 0% |
-| Phase 4: Merchant API | 🔲 Not Started | 0% |
-| Phase 5: Deposit Monitoring | 🔲 Not Started | 0% |
-| Phase 6: Webhooks | 🔲 Not Started | 0% |
-| Phase 7: Settlement Rails | 🔲 Not Started | 0% |
-| Phase 8: Cashback | 🔲 Not Started | 0% |
-| Phase 9: Admin Dashboard | 🔲 Not Started | 0% |
-| Phase 10: Merchant Dashboard | 🔲 Not Started | 0% |
+| Phase 2: Transaction Types | 🔲 Not Started | 0% |
+| Phase 3: Persistence & Migration | 🔲 Not Started | 0% |
+| Phase 4: Chat Integration | 🔲 Not Started | 0% |
+| Phase 5: Merchant API | 🔲 Not Started | 0% |
+| Phase 6: Deposit Monitoring | 🔲 Not Started | 0% |
+| Phase 7: Webhooks | 🔲 Not Started | 0% |
+| Phase 8: Settlement Rails | 🔲 Not Started | 0% |
+| Phase 9: Cashback | 🔲 Not Started | 0% |
+| Phase 10: Admin Dashboard | 🔲 Not Started | 0% |
+| Phase 11: Merchant Dashboard | 🔲 Not Started | 0% |
 
-**Last Updated**: 2026-02-17
+**Last Updated**: 2026-02-18
 
 ---
 
 ## Vision
 
-Build a standalone payment engine that allows banks, fintechs, and merchants to accept crypto payments and settle in local fiat currency. The engine handles:
+Build a standalone payment engine that supports three core transaction types:
 
-- Crypto-to-fiat conversion
-- Wallet pool management
-- Rate locking
-- Deposit detection & reconciliation
-- Fiat settlement
-- Webhooks & notifications
+| Type | Description | Flow |
+|------|-------------|------|
+| **Transfer** | Direct crypto-to-fiat payment | Single phase: payer + receiver known upfront |
+| **Gift** | Send crypto as claimable gift | Two phases: create (sender pays) → claim (receiver provides bank) |
+| **Request** | Request payment from someone | Two phases: create (receiver specifies amount) → pay (payer sends crypto) |
 
-**Target clients**: Banks, fintechs, e-commerce platforms, payment aggregators
+**Target clients**: Banks, fintechs, e-commerce platforms, payment aggregators, end users via chat
 
 ---
 
@@ -54,6 +54,16 @@ Build a standalone payment engine that allows banks, fintechs, and merchants to 
 │  │   Manager   │  │    Pool     │  │   Service   │  │ Calculator │ │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │
 │                                                                      │
+│  ┌─────────────────────────────────────────────────────────────────┐│
+│  │                    Transaction Types                             ││
+│  │  ┌───────────┐  ┌─────────────────┐  ┌─────────────────────┐   ││
+│  │  │ Transfer  │  │      Gift       │  │      Request        │   ││
+│  │  │           │  │                 │  │                     │   ││
+│  │  │ • create  │  │ • createGift    │  │ • createRequest     │   ││
+│  │  │           │  │ • claimGift     │  │ • payRequest        │   ││
+│  │  └───────────┘  └─────────────────┘  └─────────────────────┘   ││
+│  └─────────────────────────────────────────────────────────────────┘│
+│                                                                      │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │
 │  │  Deposit    │  │ Settlement  │  │  Webhook    │  │  Cashback  │ │
 │  │  Monitor    │  │   Rails     │  │  Dispatcher │  │   Engine   │ │
@@ -64,7 +74,7 @@ Build a standalone payment engine that allows banks, fintechs, and merchants to 
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        Data Layer                                    │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐            │
-│  │ Payments │  │ Wallets  │  │ Merchants│  │ Webhooks │            │
+│  │ Sessions │  │ Wallets  │  │ Merchants│  │ Webhooks │            │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -74,7 +84,8 @@ Build a standalone payment engine that allows banks, fintechs, and merchants to 
 ## Implementation Phases
 
 ### Phase 1: Core Engine Foundation ✅ COMPLETE
-**Goal**: Extract and refactor existing logic into a clean, testable payment engine
+
+**Goal**: Basic session management, wallet pool, rate service, charge calculation
 
 **Duration**: 2 weeks
 
@@ -112,88 +123,229 @@ src/services/payment-engine/
 └── docs/
     ├── README.md                # Quick start guide
     ├── ARCHITECTURE.md          # System diagrams
-    ├── IMPLEMENTATION.md        # This file
-    └── DESIGN.md                # Merchant gateway design
+    ├── DESIGN.md                # Merchant gateway design
+    └── IMPLEMENTATION.md        # This file
 ```
 
 #### 1.2 Core Types ✅
-- [x] Define `CreatePaymentInput` interface
-- [x] Define `PaymentSession` interface
-- [x] Define `PaymentStatus` type (`created` | `pending` | `confirming` | `confirmed` | `settling` | `settled` | `expired` | `failed`)
-- [x] Define `WalletAssignment` interface
-- [x] Define `RateLock` interface
-- [x] Define `Network` type with token standards (`erc20`, `bep20`, `trc20`)
-- [x] Define `NETWORK_TO_CHAIN` mapping for token standards → parent chains
-- [x] Define error types (`WalletPoolEmptyError`, `RateLockExpiredError`, `InvalidSessionStateError`, etc.)
+- [x] `PaymentStatus` type with all states including `pending_claim`, `pending_payment`
+- [x] `CreatePaymentInput` interface
+- [x] `PaymentSession` interface
+- [x] `WalletAssignment` interface
+- [x] `RateLock` interface
+- [x] `Network` type with token standards
+- [x] Error types
 
-#### 1.3 Session Manager ✅
-- [x] `createSession(input)` → Creates payment, locks rate, assigns wallet, calculates charges
-- [x] `getSession(id)` → Retrieves session by ID
-- [x] `getSessionByReference(ref)` → Retrieves by human-readable reference
-- [x] `updateStatus(id, status)` → Status transitions with state machine validation
-- [x] `VALID_TRANSITIONS` map → Enforces valid state transitions
-- [x] `VALID_CRYPTO_NETWORKS` map → Validates crypto/network combinations
+#### 1.3 Components ✅
+- [x] Session Manager - basic CRUD
+- [x] Wallet Pool - assign/release with concurrency
+- [x] Rate Service - fetch, lock, cache
+- [x] Charge Calculator - tiered fees
 
-#### 1.4 Wallet Pool ✅
-- [x] `assignWallet(network)` → Get available wallet with `FOR UPDATE` row lock
-- [x] `releaseWallet(walletId, network)` → Return wallet to pool
-- [x] `releaseWalletByAddress(address, network)` → Release by address
-- [x] `getPoolStatus()` → Available/in-use counts per network
-- [x] `releaseExpiredWallets()` → Cleanup stale assignments
-- [x] `getEstimatedWaitTime()` → Calculate when next wallet available
-- [x] Concurrency safety with MySQL transactions + `FOR UPDATE` locks
+#### 1.4 Tests ✅ (144 tests passing)
+- [x] `id-generator.test.ts` — 23 tests
+- [x] `charge-calculator.test.ts` — 34 tests
+- [x] `rate-service.test.ts` — 22 tests
+- [x] `wallet-pool.test.ts` — 25 tests
+- [x] `session-manager.test.ts` — 40 tests
 
-#### 1.5 Rate Service ✅
-- [x] `getRate(crypto)` → Fetch current rate from DB + CoinMarketCap
-- [x] `lockRate(crypto, fiat, ttlMinutes)` → Lock rate for session duration
-- [x] `fiatToCrypto(fiatAmount, crypto, network)` → Convert with locked rate
-- [x] `cryptoToFiat(cryptoAmount, crypto, network)` → Reverse conversion
-- [x] In-memory rate caching (60 second TTL)
-- [x] Automatic cache invalidation on expiry
-
-#### 1.6 Charge Calculator ✅
-- [x] `calculateCharges(fiatAmount, rate, assetPrice)` → Tiered fee calculation
-- [x] `getFeeTier(fiatAmount)` → Determine fee tier
-- [x] `validateAmount(fiatAmount)` → Enforce min/max limits
-- [x] Tiered structure: ₦500 (≤₦100k) | ₦1,000 (≤₦1M) | ₦1,500 (≤₦2M)
-- [x] Amount limits: Min ₦0, Max ₦2,000,000
-- [x] Returns fiat charge, crypto charge, and total crypto amount
-
-#### 1.7 Tests ✅ (144 tests passing)
-- [x] `id-generator.test.ts` — 23 tests (ID format, uniqueness, reference generation)
-- [x] `charge-calculator.test.ts` — 34 tests (all fee tiers, edge cases, conversions)
-- [x] `rate-service.test.ts` — 22 tests (caching, locking, fallbacks)
-- [x] `wallet-pool.test.ts` — 25 tests (assignment, release, concurrency, expiry)
-- [x] `session-manager.test.ts` — 40 tests (creation, transitions, validation)
-
-**Deliverable**: ✅ Payment engine that can create sessions, assign wallets, lock rates, calculate charges
+**Deliverable**: ✅ Basic payment engine with transfer flow
 
 ---
 
-### Phase 2: Persistence & Migration 🔜 NEXT
-**Goal**: Clean database schema, migrate from legacy tables
+### Phase 2: Transaction Types 🔜 NEXT
 
-**Duration**: 1 week
+**Goal**: Implement Gift and Request flows on top of Phase 1 foundation
+
+**Duration**: 2 weeks
 
 **Prerequisites**: Phase 1 ✅
 
-#### Current Database State (Analyzed 2026-02-17)
+#### 2.1 Types Extension
 
-**Existing tables**: `transfers`, `gifts`, `requests`, `summaries`, `payers`, `receivers`, `wallets`, `rates`, `banks`, `merchants`
+```typescript
+// types.ts additions
 
-**wallets table** (current):
-```sql
--- Has addresses but MISSING timestamp columns for wallet pool
-id, bitcoin, evm, tron,
-bitcoin_private_key, evm_private_key, tron_private_key,
-bitcoin_flag, ethereum_flag, binance_flag, tron_flag, erc20_flag, bep20_flag, trc20_flag
--- MISSING: *_last_assigned columns
+// Payment session type
+type PaymentType = 'transfer' | 'gift' | 'request' | 'merchant';
+
+// Extended status for gift/request
+type PaymentStatus =
+  | 'created'
+  | 'pending_payment'    // Request: waiting for payer
+  | 'pending'            // Wallet assigned, waiting for deposit
+  | 'confirming'
+  | 'confirmed'
+  | 'pending_claim'      // Gift: waiting for recipient
+  | 'settling'
+  | 'settled'
+  | 'expired'
+  | 'failed';
+
+// Gift-specific input
+interface CreateGiftInput {
+  fiatAmount: number;
+  fiatCurrency: string;
+  crypto: CryptoAsset;
+  network: Network;
+  sender: {
+    chatId: string;
+    phone: string;
+    name?: string;       // Display name for gift message
+  };
+  message?: string;      // Gift message
+}
+
+// Gift claim input
+interface ClaimGiftInput {
+  giftId: string;
+  receiver: {
+    bankCode: string;
+    accountNumber: string;
+    accountName: string;
+    phone?: string;
+  };
+}
+
+// Request-specific input
+interface CreateRequestInput {
+  fiatAmount: number;
+  fiatCurrency: string;
+  receiver: {
+    chatId: string;
+    phone: string;
+    bankCode: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  description?: string;
+}
+
+// Pay request input
+interface PayRequestInput {
+  requestId: string;
+  crypto: CryptoAsset;
+  network: Network;
+  payer: {
+    chatId: string;
+    phone: string;
+  };
+}
 ```
 
-#### 2.1 Required Migrations
+#### 2.2 Session Manager Extensions
 
-**Step 1: Add timestamp columns to wallets table**
+```typescript
+// session-manager.ts additions
+
+class SessionManager {
+  // Existing
+  async createSession(input: CreatePaymentInput): Promise<PaymentSession>;
+
+  // NEW: Gift methods
+  async createGift(input: CreateGiftInput): Promise<GiftSession>;
+  async claimGift(input: ClaimGiftInput): Promise<PaymentSession>;
+  async getGiftByGiftId(giftId: string): Promise<GiftSession | null>;
+
+  // NEW: Request methods
+  async createRequest(input: CreateRequestInput): Promise<RequestSession>;
+  async payRequest(input: PayRequestInput): Promise<PaymentSession>;
+  async getRequestByRequestId(requestId: string): Promise<RequestSession | null>;
+}
+```
+
+#### 2.3 State Machine Updates
+
+```typescript
+// Valid transitions by type
+const VALID_TRANSITIONS: Record<PaymentType, Record<PaymentStatus, PaymentStatus[]>> = {
+  transfer: {
+    created: ['pending'],
+    pending: ['confirming', 'expired'],
+    confirming: ['confirmed'],
+    confirmed: ['settling'],
+    settling: ['settled', 'failed'],
+    // Terminal states
+    settled: [],
+    expired: [],
+    failed: [],
+  },
+
+  gift: {
+    created: ['pending'],
+    pending: ['confirming', 'expired'],
+    confirming: ['confirmed'],
+    confirmed: ['pending_claim'],         // Gift waits for claim
+    pending_claim: ['settling', 'expired'], // Claim or expire
+    settling: ['settled', 'failed'],
+    settled: [],
+    expired: [],
+    failed: [],
+  },
+
+  request: {
+    created: ['pending_payment'],         // Request waits for payer
+    pending_payment: ['pending', 'expired'], // Payer joins or expires
+    pending: ['confirming', 'expired'],
+    confirming: ['confirmed'],
+    confirmed: ['settling'],
+    settling: ['settled', 'failed'],
+    settled: [],
+    expired: [],
+    failed: [],
+  },
+};
+```
+
+#### 2.4 ID Generation
+
+```typescript
+// utils/id-generator.ts additions
+
+// Generate gift ID: GIFT-XXXXXX
+function generateGiftId(): string;
+
+// Generate request ID: REQ-XXXXXX
+function generateRequestId(): string;
+```
+
+#### 2.5 Tasks
+
+- [ ] Add `pending_claim` and `pending_payment` to `PaymentStatus` type
+- [ ] Add `type` field to session: `'transfer' | 'gift' | 'request'`
+- [ ] Add gift-specific fields: `giftId`, `giftMessage`, `giftSenderName`, `giftClaimExpiresAt`
+- [ ] Add request-specific fields: `requestId`, `requestDescription`, `requestExpiresAt`
+- [ ] Implement `createGift()` - locks rate, assigns wallet, generates giftId
+- [ ] Implement `claimGift()` - validates gift, adds receiver, triggers settlement
+- [ ] Implement `createRequest()` - stores receiver info, NO wallet yet
+- [ ] Implement `payRequest()` - locks rate, assigns wallet, starts payment flow
+- [ ] Update state machine with type-specific transitions
+- [ ] Add `generateGiftId()` and `generateRequestId()` utilities
+- [ ] Update `getSession()` to handle gift/request lookups
+
+#### 2.6 Tests
+
+- [ ] `gift-flow.test.ts` — Create gift, claim gift, expiry
+- [ ] `request-flow.test.ts` — Create request, pay request, expiry
+- [ ] `state-machine.test.ts` — Verify transitions per type
+- [ ] Update existing tests for backward compatibility
+
+**Deliverable**: Full gift and request flows working
+
+---
+
+### Phase 3: Persistence & Migration
+
+**Goal**: Clean database schema, proper repository layer
+
+**Duration**: 1 week
+
+**Prerequisites**: Phase 2
+
+#### 3.1 Database Schema
+
 ```sql
+-- Add timestamp columns to wallets table
 ALTER TABLE wallets
   ADD COLUMN bitcoin_last_assigned DATETIME DEFAULT NULL,
   ADD COLUMN ethereum_last_assigned DATETIME DEFAULT NULL,
@@ -202,11 +354,8 @@ ALTER TABLE wallets
   ADD COLUMN erc20_last_assigned DATETIME DEFAULT NULL,
   ADD COLUMN bep20_last_assigned DATETIME DEFAULT NULL,
   ADD COLUMN trc20_last_assigned DATETIME DEFAULT NULL;
-```
 
-**Step 2: Create payment_sessions table**
-```sql
--- Core payment sessions (replaces transfers/gifts/requests for new flow)
+-- Create unified payment_sessions table
 CREATE TABLE payment_sessions (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   payment_id VARCHAR(32) NOT NULL UNIQUE,
@@ -214,27 +363,29 @@ CREATE TABLE payment_sessions (
 
   -- Type & status
   type ENUM('transfer', 'gift', 'request', 'merchant') NOT NULL,
-  status ENUM('created', 'pending', 'confirming', 'confirmed', 'settling', 'settled', 'expired', 'failed') DEFAULT 'created',
+  status ENUM('created', 'pending_payment', 'pending', 'confirming',
+              'confirmed', 'pending_claim', 'settling', 'settled',
+              'expired', 'failed') DEFAULT 'created',
 
   -- Amounts
   fiat_amount DECIMAL(15, 2) NOT NULL,
   fiat_currency VARCHAR(3) NOT NULL DEFAULT 'NGN',
-  crypto_amount DECIMAL(18, 8) NOT NULL,
-  crypto_asset VARCHAR(10) NOT NULL,
-  network VARCHAR(10) NOT NULL,
+  crypto_amount DECIMAL(18, 8) NULL,      -- NULL for requests until paid
+  crypto_asset VARCHAR(10) NULL,
+  network VARCHAR(10) NULL,
 
-  -- Rate (locked at session creation)
-  exchange_rate DECIMAL(12, 4) NOT NULL,
-  asset_price DECIMAL(18, 8) NOT NULL,
-  rate_locked_at DATETIME NOT NULL,
-  rate_expires_at DATETIME NOT NULL,
+  -- Rate (locked when applicable)
+  exchange_rate DECIMAL(12, 4) NULL,
+  asset_price DECIMAL(18, 8) NULL,
+  rate_locked_at DATETIME NULL,
+  rate_expires_at DATETIME NULL,
 
   -- Charges
-  fiat_charge DECIMAL(10, 2) NOT NULL,
-  crypto_charge DECIMAL(18, 8) NOT NULL,
-  fee_tier VARCHAR(20) NOT NULL,
+  fiat_charge DECIMAL(10, 2) NULL,
+  crypto_charge DECIMAL(18, 8) NULL,
+  fee_tier VARCHAR(20) NULL,
 
-  -- Wallet assignment
+  -- Wallet assignment (NULL for requests until paid)
   wallet_id INT DEFAULT NULL,
   deposit_address VARCHAR(100) DEFAULT NULL,
   wallet_assigned_at DATETIME DEFAULT NULL,
@@ -249,9 +400,23 @@ CREATE TABLE payment_sessions (
   settlement_tx_hash VARCHAR(100) DEFAULT NULL,
   settled_at DATETIME DEFAULT NULL,
 
-  -- Participants
-  payer_id INT DEFAULT NULL,
-  receiver_id INT DEFAULT NULL,
+  -- Participants (nullable based on type/phase)
+  payer_id INT DEFAULT NULL,              -- NULL for requests until paid
+  receiver_id INT DEFAULT NULL,           -- NULL for gifts until claimed
+
+  -- Gift-specific
+  gift_id VARCHAR(20) DEFAULT NULL UNIQUE,
+  gift_message TEXT DEFAULT NULL,
+  gift_sender_name VARCHAR(100) DEFAULT NULL,
+  gift_claim_expires_at DATETIME DEFAULT NULL,
+  gift_claimed_at DATETIME DEFAULT NULL,
+
+  -- Request-specific
+  request_id VARCHAR(20) DEFAULT NULL UNIQUE,
+  request_description TEXT DEFAULT NULL,
+  request_expires_at DATETIME DEFAULT NULL,
+
+  -- Merchant (for API)
   merchant_id INT DEFAULT NULL,
   metadata JSON DEFAULT NULL,
 
@@ -262,11 +427,15 @@ CREATE TABLE payment_sessions (
   confirmed_at DATETIME DEFAULT NULL,
 
   -- Indexes
-  INDEX idx_status (status),
+  INDEX idx_type_status (type, status),
+  INDEX idx_gift_id (gift_id),
+  INDEX idx_request_id (request_id),
   INDEX idx_payer (payer_id),
+  INDEX idx_receiver (receiver_id),
   INDEX idx_merchant (merchant_id),
-  INDEX idx_created (created_at),
   INDEX idx_deposit_address (deposit_address),
+  INDEX idx_pending_claim (status, gift_claim_expires_at),
+  INDEX idx_pending_payment (status, request_expires_at),
 
   -- Foreign keys
   FOREIGN KEY (wallet_id) REFERENCES wallets(id),
@@ -274,277 +443,210 @@ CREATE TABLE payment_sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 ```
 
-#### 2.1 Schema Tasks
-- [ ] Create migration file for wallets table alterations
-- [ ] Create migration file for payment_sessions table
-- [ ] Run migrations on development database
-- [ ] Verify foreign key constraints work with existing data
+#### 3.2 Repository Layer
 
-  -- Metadata
-  metadata JSON NULL,
-
-  INDEX idx_status (status),
-  INDEX idx_merchant (merchant_id),
-  INDEX idx_expires (expires_at, status),
-  INDEX idx_deposit_address (deposit_address)
-);
-
--- Wallet pool improvements
-ALTER TABLE wallets
-  ADD COLUMN current_session_id VARCHAR(36) NULL,
-  ADD COLUMN assigned_at TIMESTAMP NULL,
-  ADD COLUMN cooldown_until TIMESTAMP NULL;
+```
+src/services/payment-engine/
+├── repositories/
+│   ├── index.ts
+│   ├── session-repository.ts    # Full CRUD for payment_sessions
+│   ├── wallet-repository.ts     # Wallet pool DB operations
+│   └── types.ts                 # Repository interfaces
 ```
 
-#### 2.2 Repository Layer
-- [ ] `PaymentSessionRepository` - CRUD for payment_sessions
-- [ ] `WalletRepository` - Wallet pool operations
-- [ ] Transaction wrapper for atomic operations
+#### 3.3 Tasks
 
-#### 2.3 Migration Strategy
-- [ ] New payments use `payment_sessions` table
-- [ ] Legacy code continues using `transfers`, `gifts`, `requests`
-- [ ] Gradual migration path (not breaking existing flow)
+- [ ] Create migration file for wallets table alterations
+- [ ] Create migration file for payment_sessions table
+- [ ] Implement `SessionRepository` with all CRUD operations
+- [ ] Implement `WalletRepository` with atomic assignment
+- [ ] Add transaction wrapper for multi-table operations
+- [ ] Run migrations on development database
+- [ ] Test foreign key constraints
 
 **Deliverable**: Clean database schema, repository layer
 
 ---
 
-### Phase 3: Chat Integration
+### Phase 4: Chat Integration
+
 **Goal**: Refactor existing chatbot to use the payment engine
 
 **Duration**: 1.5 weeks
 
-#### 3.1 Adapter Layer
+**Prerequisites**: Phase 3
+
+#### 4.1 Adapter Layer
+
 ```
 src/features/chatbot/adapters/
 ├── payment-engine-adapter.ts    # Bridge between chatbot and engine
 └── legacy-adapter.ts            # Keep old flow working during migration
 ```
 
-#### 3.2 Handler Refactoring
-- [ ] Refactor `transferHandler` to use engine
-- [ ] Refactor `giftHandler` to use engine
-- [ ] Refactor `requestHandler` to use engine
+#### 4.2 Handler Mapping
+
+| Chat Handler | Engine Method |
+|--------------|---------------|
+| `transferHandler` | `PaymentEngine.createPayment()` |
+| `giftHandler` (create) | `PaymentEngine.createGift()` |
+| `giftHandler` (claim) | `PaymentEngine.claimGift()` |
+| `requestHandler` (create) | `PaymentEngine.createRequest()` |
+| `requestHandler` (pay) | `PaymentEngine.payRequest()` |
+
+#### 4.3 Tasks
+
+- [ ] Create `PaymentEngineAdapter` class
+- [ ] Refactor `transferHandler` to use adapter
+- [ ] Refactor `giftHandler` (create flow) to use adapter
+- [ ] Refactor `giftHandler` (claim flow) to use adapter
+- [ ] Refactor `requestHandler` (create flow) to use adapter
+- [ ] Refactor `requestHandler` (pay flow) to use adapter
 - [ ] Update stores to work with `PaymentSession` type
+- [ ] Add `USE_PAYMENT_ENGINE` feature flag
+- [ ] Test all flows via chatbot
 
-#### 3.3 Feature Flag
-- [ ] Add `USE_PAYMENT_ENGINE` flag
-- [ ] Toggle between old and new flow
-- [ ] Gradual rollout
-
-**Deliverable**: Existing chat product works on new engine
+**Deliverable**: Chat product works on new engine
 
 ---
 
-### Phase 4: Merchant API
-**Goal**: REST API for external clients (banks, fintechs)
+### Phase 5: Merchant API
+
+**Goal**: REST API for external clients
 
 **Duration**: 2 weeks
 
-#### 4.1 Merchant Management
-```
-src/services/payment-engine/merchant/
-├── merchant-service.ts          # CRUD for merchants
-├── api-key-service.ts           # Generate/validate API keys
-└── merchant-repository.ts       # DB operations
-```
+**Prerequisites**: Phase 4
 
-Schema:
-```sql
-CREATE TABLE merchants (
-  id VARCHAR(36) PRIMARY KEY,
-  business_name VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  webhook_url VARCHAR(500) NULL,
-  webhook_secret VARCHAR(255) NULL,
-  settlement_currency VARCHAR(3) DEFAULT 'NGN',
-  kyc_status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
-  is_active TINYINT(1) DEFAULT 1,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+#### 5.1 API Endpoints
 
-CREATE TABLE merchant_api_keys (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  merchant_id VARCHAR(36) NOT NULL,
-  public_key VARCHAR(50) NOT NULL UNIQUE,   -- pk_live_xxx
-  secret_key_hash VARCHAR(255) NOT NULL,    -- bcrypt hash
-  environment ENUM('live', 'test') DEFAULT 'test',
-  is_active TINYINT(1) DEFAULT 1,
-  last_used_at TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (merchant_id) REFERENCES merchants(id)
-);
-
-CREATE TABLE merchant_settlement_accounts (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  merchant_id VARCHAR(36) NOT NULL,
-  currency VARCHAR(3) NOT NULL,
-  bank_code VARCHAR(10) NOT NULL,
-  account_number VARCHAR(20) NOT NULL,
-  account_name VARCHAR(255) NOT NULL,
-  is_default TINYINT(1) DEFAULT 0,
-  FOREIGN KEY (merchant_id) REFERENCES merchants(id)
-);
-```
-
-#### 4.2 API Endpoints
 ```
 src/pages/api/v1/
 ├── payments/
-│   ├── initialize.ts            # POST - Create payment
+│   ├── initialize.ts            # POST - Create transfer payment
 │   ├── [id].ts                  # GET - Get payment by ID
 │   └── verify/[reference].ts    # GET - Verify by reference
+├── gifts/
+│   ├── create.ts                # POST - Create gift
+│   ├── claim.ts                 # POST - Claim gift
+│   └── [giftId].ts              # GET - Get gift status
+├── requests/
+│   ├── create.ts                # POST - Create request
+│   ├── pay.ts                   # POST - Pay request
+│   └── [requestId].ts           # GET - Get request status
 ├── rates.ts                     # GET - Current rates
 └── merchants/
     └── me.ts                    # GET - Merchant profile
 ```
 
-Endpoints:
-- [ ] `POST /api/v1/payments/initialize` - Create payment session
-- [ ] `GET /api/v1/payments/:id` - Get payment details
-- [ ] `GET /api/v1/payments/verify/:reference` - Verify payment
-- [ ] `GET /api/v1/rates` - Get current rates
+#### 5.2 Hosted Checkout Pages
 
-#### 4.3 Authentication Middleware
-- [ ] API key validation middleware
-- [ ] Rate limiting per merchant
-- [ ] Request logging
-
-#### 4.4 Hosted Checkout Page
 ```
-src/pages/pay/[paymentId].tsx
+src/pages/
+├── pay/[paymentId].tsx          # Transfer checkout
+├── gift/[giftId].tsx            # Gift claim page
+└── request/[requestId].tsx      # Request payment page
 ```
-- [ ] Clean checkout UI (no chatbot)
-- [ ] Crypto selector
-- [ ] QR code + address display
-- [ ] Countdown timer
-- [ ] Status polling
-- [ ] Redirect on completion
 
-**Deliverable**: Working merchant API with hosted checkout
+#### 5.3 Tasks
+
+- [ ] Create merchant schema (merchants, api_keys, settlement_accounts)
+- [ ] Implement API key generation and validation
+- [ ] Build transfer endpoints (initialize, verify)
+- [ ] Build gift endpoints (create, claim, status)
+- [ ] Build request endpoints (create, pay, status)
+- [ ] Build rates endpoint
+- [ ] Create hosted checkout page for transfers
+- [ ] Create gift claim page
+- [ ] Create request payment page
+- [ ] Add rate limiting middleware
+- [ ] Add request logging
+
+**Deliverable**: Working merchant API with hosted pages
 
 ---
 
-### Phase 5: Deposit Monitoring (Reconciliation)
+### Phase 6: Deposit Monitoring
+
 **Goal**: Automated on-chain deposit detection
 
 **Duration**: 2 weeks
 
-#### 5.1 Monitor Architecture
+**Prerequisites**: Phase 5
+
+#### 6.1 Monitor Architecture
+
 ```
 src/services/payment-engine/monitoring/
 ├── deposit-monitor.ts           # Main monitor orchestrator
 ├── chain-adapters/
-│   ├── types.ts                 # Common interface
+│   ├── types.ts                 # ChainAdapter interface
 │   ├── bitcoin-adapter.ts       # BTC monitoring
-│   ├── evm-adapter.ts           # ETH, BSC, Polygon, etc.
+│   ├── evm-adapter.ts           # ETH, BSC, Polygon
 │   └── tron-adapter.ts          # TRON monitoring
 └── confirmation-tracker.ts      # Track confirmation counts
 ```
 
-#### 5.2 Chain Adapters
-Interface:
-```typescript
-interface ChainAdapter {
-  chain: string;
+#### 6.2 Tasks
 
-  // Check for incoming transactions to an address
-  getIncomingTransactions(address: string, since?: Date): Promise<Transaction[]>;
+- [ ] Define `ChainAdapter` interface
+- [ ] Implement Bitcoin adapter (blockstream.info or mempool.space)
+- [ ] Implement EVM adapter (Alchemy/Infura)
+- [ ] Implement TRON adapter (TronGrid)
+- [ ] Build deposit monitor cron job
+- [ ] Implement amount matching with tolerance
+- [ ] Handle expiry (releases wallet, fires webhook)
+- [ ] Add monitoring for `pending_claim` expiry (gifts)
+- [ ] Add monitoring for `pending_payment` expiry (requests)
 
-  // Get confirmation count for a transaction
-  getConfirmations(txHash: string): Promise<number>;
-
-  // Required confirmations for this chain
-  requiredConfirmations: number;
-}
-```
-
-Implementations:
-- [ ] Bitcoin adapter (blockstream.info API or mempool.space)
-- [ ] EVM adapter (Alchemy/Infura/public RPC)
-- [ ] TRON adapter (TronGrid API)
-
-#### 5.3 Monitor Cron Job
-```
-src/pages/api/cron/monitor-deposits.ts
-```
-- [ ] Fetch all `pending` payments
-- [ ] Check each deposit address for incoming tx
-- [ ] Match amount (with tolerance for fees)
-- [ ] Update status to `confirming`
-- [ ] Track confirmations until threshold
-- [ ] Update to `confirmed` when ready
-- [ ] Trigger settlement
-
-#### 5.4 Reconciliation Logic
-- [ ] Amount matching with fee tolerance
-- [ ] Handle partial payments
-- [ ] Handle overpayments
-- [ ] Handle multiple deposits to same address
-- [ ] Expiry handling
-
-**Deliverable**: Automated deposit detection, no manual confirmation needed
+**Deliverable**: Automated deposit detection
 
 ---
 
-### Phase 6: Webhooks
-**Goal**: Notify merchants of payment events
+### Phase 7: Webhooks
+
+**Goal**: Notify clients of payment events
 
 **Duration**: 1 week
 
-#### 6.1 Webhook System
-```
-src/services/payment-engine/webhooks/
-├── webhook-dispatcher.ts        # Send webhooks
-├── webhook-signer.ts            # HMAC signing
-├── webhook-queue.ts             # Retry queue
-└── webhook-repository.ts        # Log deliveries
-```
+**Prerequisites**: Phase 6
 
-#### 6.2 Events
-- [ ] `payment.pending` - Wallet assigned
-- [ ] `payment.confirming` - Deposit detected
-- [ ] `payment.confirmed` - Deposit confirmed
-- [ ] `payment.settled` - Fiat paid out
-- [ ] `payment.expired` - No deposit received
-- [ ] `payment.failed` - Something went wrong
+#### 7.1 Events
 
-#### 6.3 Delivery
-- [ ] HMAC-SHA512 signature
-- [ ] Retry with exponential backoff (1m, 5m, 30m)
-- [ ] Delivery logging
-- [ ] Manual retry from dashboard (future)
+| Event | Transaction Types |
+|-------|-------------------|
+| `payment.pending` | All (when wallet assigned) |
+| `payment.confirming` | All |
+| `payment.confirmed` | All |
+| `gift.pending_claim` | Gift |
+| `gift.claimed` | Gift |
+| `payment.settled` | All |
+| `payment.expired` | All |
+| `payment.failed` | All |
 
-#### 6.4 Schema
-```sql
-CREATE TABLE webhook_deliveries (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  merchant_id VARCHAR(36) NOT NULL,
-  payment_id VARCHAR(36) NOT NULL,
-  event VARCHAR(50) NOT NULL,
-  url VARCHAR(500) NOT NULL,
-  payload JSON NOT NULL,
-  response_code INT NULL,
-  response_body TEXT NULL,
-  attempt INT DEFAULT 1,
-  status ENUM('pending', 'delivered', 'failed') DEFAULT 'pending',
-  next_retry_at TIMESTAMP NULL,
-  delivered_at TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+#### 7.2 Tasks
 
-**Deliverable**: Reliable webhook delivery to merchants
+- [ ] Create webhook_deliveries table
+- [ ] Implement webhook dispatcher with retry
+- [ ] Implement HMAC-SHA512 signing
+- [ ] Add delivery logging
+- [ ] Hook into session manager status changes
+- [ ] Add gift-specific events (pending_claim, claimed)
+
+**Deliverable**: Reliable webhook delivery
 
 ---
 
-### Phase 7: Settlement Rails
-**Goal**: Automated fiat payout to merchants
+### Phase 8: Settlement Rails
+
+**Goal**: Automated fiat payout
 
 **Duration**: 1.5 weeks
 
-#### 7.1 Settlement Architecture
+**Prerequisites**: Phase 7
+
+#### 8.1 Architecture
+
 ```
 src/services/payment-engine/settlement/
 ├── settlement-engine.ts         # Orchestrator
@@ -556,123 +658,75 @@ src/services/payment-engine/settlement/
 └── settlement-repository.ts     # DB operations
 ```
 
-#### 7.2 NGN Rail
-- [ ] Integrate with existing bank transfer logic
-- [ ] Payout to merchant's settlement account
-- [ ] Transaction reference generation
-- [ ] Status tracking
+#### 8.2 Tasks
 
-#### 7.3 Settlement Modes
-- [ ] **Instant**: Settle immediately after confirmation
-- [ ] **Batched**: Aggregate and settle daily/weekly
-- [ ] **Manual**: Merchant triggers settlement
+- [ ] Define `SettlementRail` interface
+- [ ] Implement NGN rail using existing bank transfer logic
+- [ ] Create settlements table
+- [ ] Build settlement trigger on confirmation
+- [ ] Handle settlement for gifts (after claim)
+- [ ] Handle settlement for requests (after confirm)
+- [ ] Add settlement status tracking
 
-#### 7.4 Schema
-```sql
-CREATE TABLE settlements (
-  id VARCHAR(36) PRIMARY KEY,
-  merchant_id VARCHAR(36) NOT NULL,
-  amount DECIMAL(15, 2) NOT NULL,
-  currency VARCHAR(3) NOT NULL,
-  bank_code VARCHAR(10) NOT NULL,
-  account_number VARCHAR(20) NOT NULL,
-  account_name VARCHAR(255) NOT NULL,
-  reference VARCHAR(100) NOT NULL,
-  status ENUM('pending', 'processing', 'completed', 'failed') DEFAULT 'pending',
-  payment_ids JSON NOT NULL,           -- Array of payment IDs included
-  provider_reference VARCHAR(100) NULL, -- Bank's reference
-  completed_at TIMESTAMP NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-**Deliverable**: Automated fiat settlement to merchant bank accounts
+**Deliverable**: Automated fiat settlement
 
 ---
 
-### Phase 8: Cashback System
+### Phase 9: Cashback System
+
 **Goal**: Reward users for transactions
 
 **Duration**: 1 week
 
-#### 8.1 Cashback Architecture
-```
-src/services/payment-engine/rewards/
-├── cashback-engine.ts           # Calculate & credit cashbacks
-├── cashback-rules.ts            # Rule definitions
-├── cashback-ledger.ts           # User balances
-└── cashback-repository.ts       # DB operations
-```
+**Prerequisites**: Phase 8
 
-#### 8.2 Features
-- [ ] Rule-based cashback calculation
-- [ ] Percentage or fixed amount
-- [ ] Transaction type filtering
-- [ ] User tier support
-- [ ] Campaign/promo support
-- [ ] Expiring cashbacks
-- [ ] Balance tracking
-- [ ] Redemption (apply to future transactions)
+#### 9.1 Tasks
 
-#### 8.3 Schema
-```sql
-CREATE TABLE cashback_rules (
-  id VARCHAR(36) PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  type ENUM('percentage', 'fixed') NOT NULL,
-  value DECIMAL(10, 2) NOT NULL,
-  min_transaction DECIMAL(15, 2) NULL,
-  max_cashback DECIMAL(15, 2) NULL,
-  applies_to JSON NULL,
-  valid_from TIMESTAMP NULL,
-  valid_until TIMESTAMP NULL,
-  is_active TINYINT(1) DEFAULT 1
-);
-
-CREATE TABLE cashback_ledger (
-  id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(100) NOT NULL,
-  payment_id VARCHAR(36) NOT NULL,
-  rule_id VARCHAR(36) NOT NULL,
-  amount DECIMAL(15, 2) NOT NULL,
-  currency VARCHAR(3) DEFAULT 'NGN',
-  status ENUM('credited', 'redeemed', 'expired') DEFAULT 'credited',
-  credited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  expires_at TIMESTAMP NULL,
-  INDEX idx_user (user_id, status)
-);
-```
+- [ ] Create cashback_rules table
+- [ ] Create cashback_ledger table
+- [ ] Implement rule-based calculation
+- [ ] Support percentage and fixed amounts
+- [ ] Add user balance tracking
+- [ ] Implement redemption logic
 
 **Deliverable**: Working cashback system
 
 ---
 
-### Phase 9: Admin Dashboard
-**Goal**: Internal tools for managing the platform
+### Phase 10: Admin Dashboard
+
+**Goal**: Internal operations tools
 
 **Duration**: 2 weeks
 
-#### 9.1 Features
-- [ ] Payment monitoring (all sessions, statuses)
+**Prerequisites**: Phase 9
+
+#### 10.1 Features
+
+- [ ] Payment monitoring (all types, all statuses)
+- [ ] Gift tracking (pending claims, expired)
+- [ ] Request tracking (pending payments, expired)
 - [ ] Wallet pool status
 - [ ] Merchant management
 - [ ] Settlement overview
 - [ ] Webhook delivery logs
 - [ ] Cashback rules management
-- [ ] Rate monitoring
-- [ ] Alerts & anomaly detection
 
-**Deliverable**: Admin dashboard for operations team
+**Deliverable**: Admin dashboard
 
 ---
 
-### Phase 10: Merchant Dashboard
+### Phase 11: Merchant Dashboard
+
 **Goal**: Self-service portal for merchants
 
 **Duration**: 2 weeks
 
-#### 10.1 Features
-- [ ] Payment history
+**Prerequisites**: Phase 10
+
+#### 11.1 Features
+
+- [ ] Payment history (transfers, gifts, requests)
 - [ ] Settlement reports
 - [ ] API key management
 - [ ] Webhook configuration
@@ -687,46 +741,51 @@ CREATE TABLE cashback_ledger (
 
 | Phase | Duration | Cumulative |
 |-------|----------|------------|
-| 1. Core Engine | 2 weeks | 2 weeks |
-| 2. Persistence | 1 week | 3 weeks |
-| 3. Chat Integration | 1.5 weeks | 4.5 weeks |
-| 4. Merchant API | 2 weeks | 6.5 weeks |
-| 5. Deposit Monitoring | 2 weeks | 8.5 weeks |
-| 6. Webhooks | 1 week | 9.5 weeks |
-| 7. Settlement Rails | 1.5 weeks | 11 weeks |
-| 8. Cashback | 1 week | 12 weeks |
-| 9. Admin Dashboard | 2 weeks | 14 weeks |
-| 10. Merchant Dashboard | 2 weeks | 16 weeks |
+| 1. Core Engine ✅ | 2 weeks | 2 weeks |
+| 2. Transaction Types | 2 weeks | 4 weeks |
+| 3. Persistence | 1 week | 5 weeks |
+| 4. Chat Integration | 1.5 weeks | 6.5 weeks |
+| 5. Merchant API | 2 weeks | 8.5 weeks |
+| 6. Deposit Monitoring | 2 weeks | 10.5 weeks |
+| 7. Webhooks | 1 week | 11.5 weeks |
+| 8. Settlement Rails | 1.5 weeks | 13 weeks |
+| 9. Cashback | 1 week | 14 weeks |
+| 10. Admin Dashboard | 2 weeks | 16 weeks |
+| 11. Merchant Dashboard | 2 weeks | 18 weeks |
 
-**Total: ~16 weeks (4 months) for full platform**
+**Total: ~18 weeks (4.5 months) for full platform**
 
 ---
 
-## MVP Scope (8 weeks)
+## MVP Scope (10 weeks)
 
-For a working B2B product, prioritize:
+For a working product with all transaction types:
 
 1. ✅ Phase 1: Core Engine (2 weeks)
-2. ✅ Phase 2: Persistence (1 week)
-3. ⏭️ Skip Phase 3 initially (chat can use legacy)
-4. ✅ Phase 4: Merchant API (2 weeks)
-5. ✅ Phase 5: Deposit Monitoring (2 weeks)
-6. ✅ Phase 6: Webhooks (1 week)
+2. ✅ Phase 2: Transaction Types (2 weeks) ← **Gift & Request flows**
+3. ✅ Phase 3: Persistence (1 week)
+4. ✅ Phase 4: Chat Integration (1.5 weeks)
+5. ✅ Phase 5: Merchant API (2 weeks)
+6. ✅ Phase 6: Deposit Monitoring (2 weeks)
 
-**MVP in 8 weeks** = Banks/fintechs can integrate, payments are auto-confirmed, webhooks notify them.
+**MVP in 10 weeks** = All three transaction types working via chat + API, with automated deposit detection.
 
-Settlement (Phase 7) can be manual initially, dashboards (9-10) can come later.
+Settlement (Phase 8) can be triggered manually initially. Webhooks (Phase 7) can be added shortly after.
 
 ---
 
 ## Success Metrics
 
-- **Payment Success Rate**: % of created payments that reach `settled`
-- **Avg Confirmation Time**: Time from deposit to `confirmed`
-- **Wallet Pool Utilization**: % of wallets in use at any time
-- **Webhook Delivery Rate**: % of webhooks delivered on first attempt
-- **Settlement Success Rate**: % of settlements completed successfully
-- **API Latency**: p50, p95, p99 response times
+| Metric | Description |
+|--------|-------------|
+| Transfer Success Rate | % of transfers that reach `settled` |
+| Gift Claim Rate | % of gifts claimed before expiry |
+| Request Fulfillment Rate | % of requests paid before expiry |
+| Avg Time to Claim | Time from gift confirmation to claim |
+| Avg Time to Pay Request | Time from request creation to payment |
+| Wallet Pool Utilization | % of wallets in use at any time |
+| Webhook Delivery Rate | % delivered on first attempt |
+| Settlement Success Rate | % of settlements completed |
 
 ---
 
@@ -735,19 +794,19 @@ Settlement (Phase 7) can be manual initially, dashboards (9-10) can come later.
 | Risk | Mitigation |
 |------|------------|
 | Wallet pool exhaustion | Monitor utilization, scale pool proactively |
-| Blockchain API rate limits | Multiple providers, caching, backoff |
-| Settlement failures | Retry logic, manual intervention alerts |
-| Rate volatility | Short rate lock windows, margin buffer |
-| Security breaches | API key rotation, webhook signing, audit logs |
+| Gift ID guessing | Use crypto-random 12+ char IDs |
+| Request spam | Rate limit per user, add captcha |
+| Unclaimed gifts | Clear 30-day expiry, notify sender |
+| Rate volatility | Short lock windows, margin buffer |
+| Blockchain API limits | Multiple providers, caching |
 
 ---
 
 ## Next Steps
 
 1. Review and approve this plan
-2. Set up the folder structure for Phase 1
-3. Define the core types
-4. Implement session manager with tests
-5. Implement wallet pool with tests
-6. Implement rate service with tests
-7. Wire it all together in PaymentEngine class
+2. Begin Phase 2: Transaction Types
+3. Implement `createGift()` and `claimGift()`
+4. Implement `createRequest()` and `payRequest()`
+5. Update state machine for all types
+6. Write tests for gift and request flows

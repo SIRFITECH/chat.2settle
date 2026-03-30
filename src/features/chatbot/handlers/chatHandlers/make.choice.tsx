@@ -3,7 +3,7 @@ import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
 import { displayCustomerSupportWelcome } from "./menus/customer.support";
 import { displayKYCInfo } from "./menus/kyc.info";
-import { displayReportlyWelcome } from "./menus/reportly.welcome";
+import { displayReportlyWelcome } from "./menus/reportly/reportly.welcome";
 import { displayTransactCrypto } from "./menus/transact.crypto";
 import { displayTransactIDWelcome } from "./menus/transactionid.welcome";
 

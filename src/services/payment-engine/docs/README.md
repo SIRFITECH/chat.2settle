@@ -2,18 +2,31 @@
 
 A standalone crypto-to-fiat payment engine that enables banks, fintechs, and merchants to accept cryptocurrency payments and settle in local fiat currency.
 
+## Transaction Types
+
+The payment engine supports three core transaction types:
+
+| Type | Description | Phases |
+|------|-------------|--------|
+| **Transfer** | Direct crypto-to-bank payment | Single phase: pay crypto, receive fiat |
+| **Gift** | Send crypto as a claimable gift | Two phases: create gift, claim gift |
+| **Request** | Request payment from someone | Two phases: create request, pay request |
+
 ## Quick Start
+
+### Transfer (Direct Payment)
+
+User provides bank details and pays crypto in one flow:
 
 ```typescript
 import { PaymentEngine } from '@/services/payment-engine';
 
-// Create a payment session
 const session = await PaymentEngine.createPayment({
   type: 'transfer',
   fiatAmount: 50000,        // ₦50,000
   fiatCurrency: 'NGN',
   crypto: 'USDT',
-  network: 'bep20',         // BSC network
+  network: 'bep20',
   payer: {
     chatId: 'user_123',
     phone: '08012345678'
@@ -30,21 +43,102 @@ console.log(session.cryptoAmount);    // How much to send
 console.log(session.reference);       // Human-readable reference (2S-XXXXXX)
 ```
 
+### Gift (Two-Phase)
+
+**Phase 1: Create Gift** - Sender pays crypto, gets a gift ID:
+
+```typescript
+const gift = await PaymentEngine.createGift({
+  fiatAmount: 25000,        // ₦25,000 worth
+  fiatCurrency: 'NGN',
+  crypto: 'USDT',
+  network: 'bep20',
+  sender: {
+    chatId: 'sender_123',
+    phone: '08011111111',
+    name: 'Alice'           // Optional sender name for gift message
+  },
+  message: 'Happy Birthday!'  // Optional gift message
+});
+
+console.log(gift.depositAddress);  // Sender pays crypto here
+console.log(gift.cryptoAmount);    // Amount to send
+console.log(gift.giftId);          // Share this with recipient (e.g., GIFT-XXXXXX)
+```
+
+**Phase 2: Claim Gift** - Recipient provides bank details to receive fiat:
+
+```typescript
+const claimed = await PaymentEngine.claimGift({
+  giftId: 'GIFT-ABC123',
+  receiver: {
+    bankCode: '058',
+    accountNumber: '0987654321',
+    accountName: 'Bob Smith',
+    phone: '08022222222'
+  }
+});
+
+console.log(claimed.status);        // 'settling' - fiat payout initiated
+console.log(claimed.fiatAmount);    // ₦25,000 to be received
+```
+
+### Request (Two-Phase)
+
+**Phase 1: Create Request** - User specifies how much fiat they want to receive:
+
+```typescript
+const request = await PaymentEngine.createRequest({
+  fiatAmount: 100000,       // ₦100,000 requested
+  fiatCurrency: 'NGN',
+  receiver: {
+    chatId: 'requester_123',
+    phone: '08033333333',
+    bankCode: '058',
+    accountNumber: '1234567890',
+    accountName: 'Charlie Brown'
+  },
+  description: 'Payment for freelance work'  // Optional
+});
+
+console.log(request.requestId);     // Share with payer (e.g., REQ-XXXXXX)
+console.log(request.fiatAmount);    // ₦100,000
+```
+
+**Phase 2: Pay Request** - Payer pays the crypto equivalent:
+
+```typescript
+const payment = await PaymentEngine.payRequest({
+  requestId: 'REQ-XYZ789',
+  crypto: 'BTC',            // Payer chooses crypto
+  network: 'bitcoin',
+  payer: {
+    chatId: 'payer_456',
+    phone: '08044444444'
+  }
+});
+
+console.log(payment.depositAddress);  // Payer sends crypto here
+console.log(payment.cryptoAmount);    // BTC equivalent of ₦100,000
+console.log(payment.status);          // 'pending' - waiting for deposit
+```
+
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [Architecture](./ARCHITECTURE.md) | System diagrams and component overview |
+| [Architecture](./ARCHITECTURE.md) | System diagrams, state machines, and component overview |
+| [Design](./DESIGN.md) | Merchant gateway and B2B integration design |
 | [Implementation Plan](./IMPLEMENTATION.md) | Phased development roadmap |
-| [API Reference](./API.md) | Detailed API documentation |
 
 ## Features
 
+- **Three Transaction Types** - Transfer, Gift, and Request with appropriate flows
 - **Rate Locking** - Freeze exchange rates during payment window
 - **Wallet Pool** - Automatic wallet assignment with concurrency safety
 - **Tiered Fees** - Configurable fee tiers based on transaction amount
 - **Multi-Chain** - Support for BTC, ETH, BNB, TRX, and USDT (ERC20/BEP20/TRC20)
-- **State Machine** - Valid status transitions enforced
+- **State Machine** - Valid status transitions enforced per transaction type
 
 ## Architecture Overview
 
@@ -103,31 +197,56 @@ src/services/payment-engine/
 └── docs/
     ├── README.md            # This file
     ├── ARCHITECTURE.md      # Detailed diagrams
+    ├── DESIGN.md            # Merchant gateway design
     └── IMPLEMENTATION.md    # Development roadmap
 ```
 
 ## Payment Session Lifecycle
 
+### Transfer Flow
 ```
-┌──────────┐    ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌──────────┐    ┌─────────┐
-│ CREATED  │───▶│ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ SETTLING │───▶│ SETTLED │
-└──────────┘    └─────────┘    └────────────┘    └───────────┘    └──────────┘    └─────────┘
-     │               │
-     │               ▼
-     │          ┌─────────┐
-     └────────▶│ EXPIRED │
-               └─────────┘
+┌─────────┐    ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌──────────┐    ┌─────────┐
+│ CREATED │───▶│ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ SETTLING │───▶│ SETTLED │
+└─────────┘    └─────────┘    └────────────┘    └───────────┘    └──────────┘    └─────────┘
 ```
+
+### Gift Flow
+```
+┌─────────┐    ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌─────────────────┐
+│ CREATED │───▶│ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ PENDING_CLAIM   │
+└─────────┘    └─────────┘    └────────────┘    └───────────┘    └────────┬────────┘
+                                                                          │ claimGift()
+                                                                          ▼
+                                                                 ┌──────────┐    ┌─────────┐
+                                                                 │ SETTLING │───▶│ SETTLED │
+                                                                 └──────────┘    └─────────┘
+```
+
+### Request Flow
+```
+┌─────────┐    ┌─────────────────┐
+│ CREATED │───▶│ PENDING_PAYMENT │ (waiting for payer)
+└─────────┘    └────────┬────────┘
+                        │ payRequest()
+                        ▼
+               ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌──────────┐    ┌─────────┐
+               │ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ SETTLING │───▶│ SETTLED │
+               └─────────┘    └────────────┘    └───────────┘    └──────────┘    └─────────┘
+```
+
+## Status Definitions
 
 | Status | Description |
 |--------|-------------|
-| `created` | Session initialized, wallet not yet assigned |
+| `created` | Session initialized |
 | `pending` | Wallet assigned, waiting for crypto deposit |
-| `confirming` | Deposit detected, waiting for confirmations |
-| `confirmed` | Deposit confirmed, ready for settlement |
+| `confirming` | Deposit detected, waiting for blockchain confirmations |
+| `confirmed` | Deposit confirmed on-chain |
+| `pending_claim` | **Gift only**: Crypto received, waiting for recipient to claim |
+| `pending_payment` | **Request only**: Request created, waiting for payer |
 | `settling` | Fiat payout in progress |
 | `settled` | Complete - recipient received fiat |
-| `expired` | No deposit received within time window |
+| `expired` | No deposit/claim received within time window |
 | `failed` | Error occurred during processing |
 
 ## Fee Structure
@@ -156,6 +275,8 @@ src/services/payment-engine/
 const DEFAULT_CONFIG = {
   sessionTtlMinutes: 30,      // Payment window
   rateLockTtlMinutes: 30,     // Rate validity
+  giftClaimTtlDays: 30,       // Gift claim window
+  requestTtlDays: 7,          // Request validity
   amountTolerance: 0.02,      // 2% tolerance for deposits
   confirmations: {
     bitcoin: 2,

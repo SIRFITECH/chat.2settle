@@ -8,6 +8,7 @@ This document describes the architecture for exposing 2Settle's crypto-to-fiat p
 
 - Merchants integrate via API/SDK to accept crypto payments
 - 2Settle receives crypto into its own wallet pool, settles fiat to merchant's bank
+- Support all three transaction types: Transfer, Gift, and Request
 - Multi-currency fiat support (NGN first, extensible to GHS, KES, ZAR, etc.)
 - Business-level KYC (2Settle KYCs the merchant, merchant KYCs their users)
 
@@ -16,6 +17,60 @@ This document describes the architecture for exposing 2Settle's crypto-to-fiat p
 - End-user KYC by 2Settle
 - Non-custodial / user-connects-wallet model (existing chat product handles this separately)
 - Crypto-to-crypto payments
+
+---
+
+## Transaction Types
+
+The payment engine supports three distinct transaction types, each with its own flow:
+
+### 1. Transfer (Direct Payment)
+
+**Use Case**: Customer pays merchant directly with crypto, merchant receives fiat.
+
+```
+Customer ──[crypto]──▶ 2Settle ──[fiat]──▶ Merchant's Bank
+```
+
+**Flow**:
+1. Merchant creates payment with customer + bank details
+2. Customer sends crypto to assigned wallet
+3. 2Settle confirms deposit
+4. 2Settle settles fiat to merchant
+
+**Single Phase**: Both payer and receiver known at creation.
+
+### 2. Gift (Send as Gift)
+
+**Use Case**: User sends crypto as a gift. Recipient claims later with their bank details.
+
+```
+Sender ──[crypto]──▶ 2Settle ──[gift ID]──▶ Recipient ──[bank details]──▶ 2Settle ──[fiat]──▶ Recipient's Bank
+```
+
+**Flow**:
+1. **Create Gift**: Sender pays crypto, receives gift ID
+2. Sender shares gift ID with recipient (any channel)
+3. **Claim Gift**: Recipient provides bank details using gift ID
+4. 2Settle settles fiat to recipient
+
+**Two Phases**: Sender known at creation, receiver known at claim.
+
+### 3. Request (Payment Request)
+
+**Use Case**: User requests payment by sharing a link. Payer fulfills with crypto.
+
+```
+Requester ──[request ID]──▶ Payer ──[crypto]──▶ 2Settle ──[fiat]──▶ Requester's Bank
+```
+
+**Flow**:
+1. **Create Request**: Requester specifies fiat amount + bank details, receives request ID
+2. Requester shares request ID with payer (invoice, link, QR)
+3. **Pay Request**: Payer chooses crypto, pays to assigned wallet
+4. 2Settle settles fiat to requester
+
+**Two Phases**: Receiver known at creation, payer known at payment.
 
 ---
 
@@ -29,6 +84,8 @@ This document describes the architecture for exposing 2Settle's crypto-to-fiat p
 │  │ Hosted       │  │ JS SDK       │  │ REST API           │ │
 │  │ Checkout     │  │ (inline.js)  │  │ (server-to-server) │ │
 │  │ /pay/{ref}   │  │ iframe modal │  │ POST /v1/payments  │ │
+│  │ /gift/{id}   │  │              │  │ POST /v1/gifts     │ │
+│  │ /request/{id}│  │              │  │ POST /v1/requests  │ │
 │  └──────┬───────┘  └──────┬───────┘  └─────────┬──────────┘ │
 │         │                 │                     │            │
 └─────────┼─────────────────┼─────────────────────┼────────────┘
@@ -54,6 +111,7 @@ This document describes the architecture for exposing 2Settle's crypto-to-fiat p
 │ - Rate lock  │  │ - Cooldown   │  │ - Multi-curr │
 │ - Status     │  │ - Monitoring │  │ - Bank rails │
 │ - Expiry     │  │ - Release    │  │ - Batching   │
+│ - Gift/Req   │  │              │  │              │
 └──────────────┘  └──────────────┘  └──────────────┘
           │                │                │
           ▼                ▼                ▼
@@ -84,55 +142,52 @@ CREATE TABLE wallets (
   tron_flag     TINYINT(1),
   erc20_flag    TINYINT(1),
   bep20_flag    TINYINT(1),
-  trc20_flag    TINYINT(1)
+  trc20_flag    TINYINT(1),
+  -- Timestamp columns for tracking
+  bitcoin_last_assigned   DATETIME,
+  ethereum_last_assigned  DATETIME,
+  -- ... etc
 );
 ```
 
-### Assignment Flow
+### Assignment Flow by Transaction Type
 
 ```
-1. Transaction initiated → network selected (e.g. "btc")
-2. SELECT * FROM wallets WHERE bitcoin_flag = 1 LIMIT 1 FOR UPDATE
+TRANSFER / GIFT (Create):
+────────────────────────────
+1. Transaction initiated → network selected (e.g. "bep20")
+2. SELECT * FROM wallets WHERE bep20_flag = 1 LIMIT 1 FOR UPDATE
 3. If found:
-   - Set bitcoin_flag = 0
-   - Record bitcoin_last_assigned = NOW()
+   - Set bep20_flag = 0
+   - Record bep20_last_assigned = NOW()
    - Return wallet address to payment session
 4. If none available:
    - Return 503 with estimated wait time
-   - Wallet released after WALLET_EXPIRY_TIME (5 minutes)
+
+REQUEST (Create):
+─────────────────
+1. Request created → NO wallet assigned yet
+2. Store fiat amount and receiver bank details only
+3. Return request ID
+
+REQUEST (Pay):
+──────────────
+1. Payer calls payRequest() with crypto choice
+2. NOW: SELECT * FROM wallets WHERE {network}_flag = 1 LIMIT 1 FOR UPDATE
+3. Lock rate, calculate crypto amount
+4. Assign wallet, return deposit address
 ```
 
 **Concurrency safety**: `FOR UPDATE` row lock within a DB transaction prevents two payments from being assigned the same wallet.
 
-### Adaptations for Merchant Gateway
+### Wallet Release by Transaction Type
 
-The current wallet pool works for the chat product where one user transacts at a time. For the merchant gateway with concurrent payments from multiple merchants, the pool needs:
-
-1. **More wallets** — Scale the pool to match expected concurrent payment volume
-2. **Payment-scoped assignment** — Wallet is tied to a `payment_id`, not just flagged as "in use"
-3. **Longer hold times** — Merchant payments may take longer than 5 minutes (customer delay). Consider 30-minute holds with configurable expiry.
-4. **Deposit monitoring** — Actively watch assigned wallet addresses for incoming transactions on-chain. Currently the system relies on user confirmation; the merchant flow needs automated detection.
-5. **Wallet recycling** — After a payment is confirmed or expired, release the wallet back to the pool
-
-### Proposed Schema Extension
-
-```sql
--- Link wallet assignment to a specific payment
-ALTER TABLE wallets ADD COLUMN current_payment_id VARCHAR(36) DEFAULT NULL;
-ALTER TABLE wallets ADD COLUMN assigned_at TIMESTAMP DEFAULT NULL;
-
--- Or track assignment history separately
-CREATE TABLE wallet_assignments (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  wallet_id       INT NOT NULL,
-  payment_id      VARCHAR(36) NOT NULL,
-  chain           ENUM('btc', 'evm', 'tron') NOT NULL,
-  assigned_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  released_at     TIMESTAMP NULL,
-  status          ENUM('active', 'completed', 'expired') DEFAULT 'active',
-  FOREIGN KEY (wallet_id) REFERENCES wallets(id)
-);
-```
+| Type | When Released |
+|------|---------------|
+| Transfer | After deposit confirmed |
+| Gift | After deposit confirmed (before pending_claim) |
+| Request | After deposit confirmed |
+| Expired | When payment window expires |
 
 ---
 
@@ -191,53 +246,126 @@ Following the Paystack convention:
 
 ## Payment Session Lifecycle
 
-### States
+### States by Transaction Type
 
 ```
-┌──────────┐    ┌─────────┐    ┌───────────┐    ┌───────────┐
-│ CREATED  │───▶│ PENDING │───▶│ CONFIRMED │───▶│ SETTLED   │
-└──────────┘    └─────────┘    └───────────┘    └───────────┘
-     │               │
-     │               ▼
-     │          ┌─────────┐
-     └────────▶│ EXPIRED │
-               └─────────┘
+TRANSFER:
+┌──────────┐    ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌──────────┐    ┌─────────┐
+│ CREATED  │───▶│ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ SETTLING │───▶│ SETTLED │
+└──────────┘    └─────────┘    └────────────┘    └───────────┘    └──────────┘    └─────────┘
+
+GIFT:
+┌──────────┐    ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌───────────────┐
+│ CREATED  │───▶│ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ PENDING_CLAIM │
+└──────────┘    └─────────┘    └────────────┘    └───────────┘    └───────┬───────┘
+                                                                          │ claimGift()
+                                                                          ▼
+                                                                 ┌──────────┐    ┌─────────┐
+                                                                 │ SETTLING │───▶│ SETTLED │
+                                                                 └──────────┘    └─────────┘
+
+REQUEST:
+┌──────────┐    ┌─────────────────┐
+│ CREATED  │───▶│ PENDING_PAYMENT │ (waiting for payer)
+└──────────┘    └────────┬────────┘
+                         │ payRequest()
+                         ▼
+                ┌─────────┐    ┌────────────┐    ┌───────────┐    ┌──────────┐    ┌─────────┐
+                │ PENDING │───▶│ CONFIRMING │───▶│ CONFIRMED │───▶│ SETTLING │───▶│ SETTLED │
+                └─────────┘    └────────────┘    └───────────┘    └──────────┘    └─────────┘
 ```
 
-- **CREATED** — Payment initialized via API. Wallet not yet assigned.
-- **PENDING** — Wallet assigned. Waiting for customer to send crypto.
-- **CONFIRMED** — Crypto deposit detected and confirmed on-chain (N confirmations).
-- **SETTLED** — Fiat paid out to merchant's bank account.
-- **EXPIRED** — Customer didn't pay within the time window. Wallet released.
+### Status Definitions
+
+| Status | Description |
+|--------|-------------|
+| `created` | Session initialized |
+| `pending_payment` | **Request only**: Waiting for payer to pay |
+| `pending` | Wallet assigned, waiting for crypto deposit |
+| `confirming` | Deposit detected, waiting for confirmations |
+| `confirmed` | Deposit confirmed on-chain |
+| `pending_claim` | **Gift only**: Waiting for recipient to claim |
+| `settling` | Fiat payout in progress |
+| `settled` | Complete - fiat paid out |
+| `expired` | Timeout - no deposit or claim |
+| `failed` | Error occurred |
 
 ### Schema
 
 ```sql
-CREATE TABLE payments (
+CREATE TABLE payment_sessions (
   id                VARCHAR(36) PRIMARY KEY,
-  reference         VARCHAR(100) NOT NULL UNIQUE,   -- Merchant-provided or auto-generated
-  merchant_id       VARCHAR(36) NOT NULL,
-  amount_fiat       DECIMAL(15, 2) NOT NULL,        -- Amount in settlement currency
-  settlement_currency VARCHAR(3) NOT NULL,           -- NGN, GHS, KES
-  crypto_currency   VARCHAR(10) NULL,                -- BTC, ETH, USDT, etc. (set when customer chooses)
-  crypto_amount     DECIMAL(18, 8) NULL,             -- Calculated from rate at lock time
-  rate              DECIMAL(15, 4) NULL,             -- Locked rate at payment creation
+  payment_id        VARCHAR(32) NOT NULL UNIQUE,
+  reference         VARCHAR(12) NOT NULL UNIQUE,   -- Human-readable (2S-XXXXXX)
+
+  -- Type determines flow
+  type              ENUM('transfer', 'gift', 'request', 'merchant') NOT NULL,
+  status            ENUM('created', 'pending_payment', 'pending', 'confirming',
+                         'confirmed', 'pending_claim', 'settling', 'settled',
+                         'expired', 'failed') DEFAULT 'created',
+
+  -- Amounts
+  fiat_amount       DECIMAL(15, 2) NOT NULL,
+  fiat_currency     VARCHAR(3) NOT NULL DEFAULT 'NGN',
+  crypto_currency   VARCHAR(10) NULL,                -- NULL for requests until paid
+  crypto_amount     DECIMAL(18, 8) NULL,             -- Calculated when rate locked
+  network           VARCHAR(10) NULL,                -- NULL for requests until paid
+
+  -- Rate (locked when applicable)
+  exchange_rate     DECIMAL(15, 4) NULL,             -- NULL for requests until paid
+  asset_price       DECIMAL(18, 8) NULL,
   rate_locked_at    TIMESTAMP NULL,
-  wallet_address    VARCHAR(100) NULL,               -- Assigned from pool
+  rate_expires_at   TIMESTAMP NULL,
+
+  -- Wallet assignment
+  wallet_address    VARCHAR(100) NULL,               -- NULL for requests until paid
   wallet_id         INT NULL,
-  chain             VARCHAR(10) NULL,                -- btc, evm, tron
+
+  -- Participants
+  payer_id          INT NULL,                        -- NULL for requests until paid
+  receiver_id       INT NULL,                        -- NULL for gifts until claimed
+
+  -- Gift-specific
+  gift_id           VARCHAR(20) NULL,                -- e.g., GIFT-XXXXXX
+  gift_message      TEXT NULL,
+  gift_sender_name  VARCHAR(100) NULL,
+  gift_claim_expires_at TIMESTAMP NULL,              -- 30 days from confirmation
+  gift_claimed_at   TIMESTAMP NULL,
+
+  -- Request-specific
+  request_id        VARCHAR(20) NULL,                -- e.g., REQ-XXXXXX
+  request_description TEXT NULL,
+  request_expires_at TIMESTAMP NULL,                 -- 7 days from creation
+
+  -- Deposit tracking
   tx_hash           VARCHAR(100) NULL,               -- On-chain transaction hash
-  status            ENUM('created', 'pending', 'confirmed', 'settled', 'expired') DEFAULT 'created',
-  expires_at        TIMESTAMP NULL,                  -- Payment window expiry
-  confirmed_at      TIMESTAMP NULL,
+  deposit_amount    DECIMAL(18, 8) NULL,
+  deposit_confirmed_at TIMESTAMP NULL,
+
+  -- Settlement
+  settlement_reference VARCHAR(100) NULL,
   settled_at        TIMESTAMP NULL,
-  callback_url      VARCHAR(500) NULL,               -- Per-payment redirect URL
-  metadata          JSON NULL,                       -- Merchant-provided metadata
+
+  -- Merchant (for merchant API)
+  merchant_id       VARCHAR(36) NULL,
+  callback_url      VARCHAR(500) NULL,
+  metadata          JSON NULL,
+
+  -- Timestamps
   created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  expires_at        TIMESTAMP NULL,                  -- Payment window expiry
+
   FOREIGN KEY (merchant_id) REFERENCES merchants(id),
   FOREIGN KEY (wallet_id) REFERENCES wallets(id)
 );
+
+-- Indexes for common queries
+CREATE INDEX idx_type_status ON payment_sessions(type, status);
+CREATE INDEX idx_gift_id ON payment_sessions(gift_id);
+CREATE INDEX idx_request_id ON payment_sessions(request_id);
+CREATE INDEX idx_pending_claim ON payment_sessions(status, gift_claim_expires_at);
+CREATE INDEX idx_pending_payment ON payment_sessions(status, request_expires_at);
 ```
 
 ---
@@ -256,14 +384,12 @@ Test:  https://sandbox.2settle.io/v1
 All API requests include the secret key in the `Authorization` header:
 
 ```
-Authorization: Bearer live-api-key
+Authorization: Bearer sk_live_xxx
 ```
 
-Hosted checkout and JS SDK use the public key. Make the API key `live`
+### Transfer Endpoints
 
-### Endpoints
-
-#### Initialize Payment
+#### Initialize Transfer Payment
 
 ```
 POST /v1/payments/initialize
@@ -273,13 +399,24 @@ Headers:
 
 Body:
 {
-  "amount": 5000,                     // Amount in settlement currency (minor or major units — decide convention)
-  "currency": "NGN",                  // Settlement currency
+  "type": "transfer",
+  "amount": 50000,                    // Fiat amount
+  "currency": "NGN",
+  "crypto": "USDT",                   // Optional, can be chosen on checkout
+  "network": "bep20",                 // Optional
+  "payer": {
+    "email": "customer@example.com",
+    "phone": "08012345678"
+  },
+  "receiver": {
+    "bank_code": "058",
+    "account_number": "1234567890",
+    "account_name": "John Doe"
+  },
   "reference": "order_12345",         // Optional, auto-generated if omitted
   "callback_url": "https://merchant.com/callback",
-  "metadata": {                       // Optional, returned in webhooks
-    "order_id": "12345",
-    "customer_email": "user@example.com"
+  "metadata": {
+    "order_id": "12345"
   }
 }
 
@@ -289,15 +426,198 @@ Response 200:
   "message": "Payment initialized",
   "data": {
     "payment_id": "pay_abc123",
-    "reference": "order_12345",
+    "reference": "2S-ABC123",
     "checkout_url": "https://spend.2settle.io/pay/pay_abc123",
-    "amount": 5000,
+    "deposit_address": "0x1234...",
+    "crypto_amount": "31.25",
+    "amount": 50000,
     "currency": "NGN",
-    "status": "created",
-    "expires_at": null
+    "status": "pending",
+    "expires_at": "2026-02-18T11:30:00Z"
   }
 }
 ```
+
+### Gift Endpoints
+
+#### Create Gift
+
+```
+POST /v1/gifts/create
+
+Body:
+{
+  "amount": 25000,
+  "currency": "NGN",
+  "crypto": "USDT",
+  "network": "bep20",
+  "sender": {
+    "name": "Alice",                  // Optional display name
+    "phone": "08011111111"
+  },
+  "message": "Happy Birthday!"        // Optional
+}
+
+Response 200:
+{
+  "status": true,
+  "data": {
+    "payment_id": "pay_xyz789",
+    "gift_id": "GIFT-ABC123",         // Share this with recipient
+    "deposit_address": "0x1234...",
+    "crypto_amount": "15.62",
+    "amount": 25000,
+    "currency": "NGN",
+    "status": "pending",
+    "share_url": "https://spend.2settle.io/gift/GIFT-ABC123",
+    "expires_at": "2026-02-18T11:30:00Z"
+  }
+}
+```
+
+#### Claim Gift
+
+```
+POST /v1/gifts/claim
+
+Body:
+{
+  "gift_id": "GIFT-ABC123",
+  "receiver": {
+    "bank_code": "058",
+    "account_number": "0987654321",
+    "account_name": "Bob Smith",
+    "phone": "08022222222"
+  }
+}
+
+Response 200:
+{
+  "status": true,
+  "message": "Gift claimed successfully",
+  "data": {
+    "payment_id": "pay_xyz789",
+    "gift_id": "GIFT-ABC123",
+    "amount": 25000,
+    "currency": "NGN",
+    "status": "settling",
+    "sender_name": "Alice",
+    "message": "Happy Birthday!"
+  }
+}
+```
+
+#### Get Gift Status
+
+```
+GET /v1/gifts/:gift_id
+
+Response 200:
+{
+  "status": true,
+  "data": {
+    "gift_id": "GIFT-ABC123",
+    "amount": 25000,
+    "currency": "NGN",
+    "status": "pending_claim",        // or "settled", "expired"
+    "sender_name": "Alice",
+    "message": "Happy Birthday!",
+    "created_at": "2026-02-17T10:00:00Z",
+    "claim_expires_at": "2026-03-19T10:00:00Z"
+  }
+}
+```
+
+### Request Endpoints
+
+#### Create Payment Request
+
+```
+POST /v1/requests/create
+
+Body:
+{
+  "amount": 100000,                   // Fiat amount requested
+  "currency": "NGN",
+  "receiver": {
+    "phone": "08033333333",
+    "bank_code": "058",
+    "account_number": "1234567890",
+    "account_name": "Charlie Brown"
+  },
+  "description": "Payment for freelance work"  // Optional
+}
+
+Response 200:
+{
+  "status": true,
+  "data": {
+    "payment_id": "pay_req456",
+    "request_id": "REQ-XYZ789",       // Share with payer
+    "amount": 100000,
+    "currency": "NGN",
+    "status": "pending_payment",
+    "pay_url": "https://spend.2settle.io/request/REQ-XYZ789",
+    "expires_at": "2026-02-25T10:00:00Z"  // 7 days
+  }
+}
+```
+
+#### Pay Request
+
+```
+POST /v1/requests/pay
+
+Body:
+{
+  "request_id": "REQ-XYZ789",
+  "crypto": "BTC",
+  "network": "bitcoin",
+  "payer": {
+    "phone": "08044444444",
+    "email": "payer@example.com"      // Optional
+  }
+}
+
+Response 200:
+{
+  "status": true,
+  "data": {
+    "payment_id": "pay_req456",
+    "request_id": "REQ-XYZ789",
+    "deposit_address": "bc1qxy2...",
+    "crypto_amount": "0.00103",       // BTC equivalent of ₦100,000
+    "fiat_amount": 100000,
+    "currency": "NGN",
+    "status": "pending",
+    "expires_at": "2026-02-18T11:30:00Z"
+  }
+}
+```
+
+#### Get Request Status
+
+```
+GET /v1/requests/:request_id
+
+Response 200:
+{
+  "status": true,
+  "data": {
+    "request_id": "REQ-XYZ789",
+    "amount": 100000,
+    "currency": "NGN",
+    "status": "pending",              // or "pending_payment", "settled"
+    "description": "Payment for freelance work",
+    "crypto": "BTC",
+    "crypto_amount": "0.00103",
+    "created_at": "2026-02-17T10:00:00Z",
+    "expires_at": "2026-02-25T10:00:00Z"
+  }
+}
+```
+
+### Common Endpoints
 
 #### Verify Payment
 
@@ -309,30 +629,18 @@ Response 200:
   "status": true,
   "data": {
     "payment_id": "pay_abc123",
-    "reference": "order_12345",
-    "amount": 5000,
+    "reference": "2S-ABC123",
+    "type": "transfer",
+    "amount": 50000,
     "currency": "NGN",
     "crypto_currency": "USDT",
-    "crypto_amount": "3.48",
+    "crypto_amount": "31.25",
     "status": "confirmed",
     "tx_hash": "0xabc...",
-    "confirmed_at": "2026-02-09T12:34:56Z",
+    "confirmed_at": "2026-02-18T10:34:56Z",
     "settled_at": null,
     "metadata": { "order_id": "12345" }
   }
-}
-```
-
-#### List Payments
-
-```
-GET /v1/payments?status=confirmed&page=1&limit=50
-
-Response 200:
-{
-  "status": true,
-  "data": [...],
-  "meta": { "page": 1, "total": 120, "limit": 50 }
 }
 ```
 
@@ -347,100 +655,57 @@ Response 200:
   "data": {
     "currency": "NGN",
     "rates": {
-      "BTC": { "rate": 1436.96, "unit": "NGN per USD" },
-      "ETH": { "rate": 1436.96, "unit": "NGN per USD" },
-      "USDT": { "rate": 1436.96, "unit": "NGN per USD" },
-      "BNB": { "rate": 1436.96, "unit": "NGN per USD" }
+      "BTC": { "price": 156000000, "unit": "NGN per BTC" },
+      "ETH": { "price": 4400000, "unit": "NGN per ETH" },
+      "USDT": { "price": 1600, "unit": "NGN per USDT" },
+      "BNB": { "price": 992000, "unit": "NGN per BNB" }
     },
-    "timestamp": "2026-02-09T12:00:00Z"
+    "timestamp": "2026-02-18T10:00:00Z"
   }
 }
 ```
 
 ---
 
-## Hosted Checkout Page
+## Hosted Checkout Pages
 
-The simplest integration path. Merchant redirects customer to:
+### Transfer Checkout
 
 ```
 https://spend.2settle.io/pay/{payment_id}
 ```
 
-### Checkout Flow
-
-```
-┌─────────────────┐     ┌──────────────────────────────────────┐
-│ Merchant Site   │     │ 2Settle Hosted Checkout               │
-│                 │     │ /pay/{payment_id}                     │
-│ Customer clicks │     │                                       │
-│ "Pay with       │────▶│  1. Show payment amount in fiat       │
-│  Crypto"        │     │  2. Customer selects crypto (BTC/ETH/ │
-│                 │     │     USDT/BNB/TRX)                     │
-│                 │     │  3. Lock rate, calculate crypto amount │
-│                 │     │  4. Assign wallet from pool            │
-│                 │     │  5. Show deposit address + QR code     │
-│                 │     │  6. Show countdown timer               │
-│                 │     │  7. Poll for payment confirmation      │
-│                 │     │  8. On confirm → redirect to callback  │
-│                 │◀────│     with ?reference=order_12345        │
-│                 │     │                                       │
-│ Verify server-  │     │  On expire → show "Payment expired"   │
-│ side via API    │     │                                       │
-└─────────────────┘     └──────────────────────────────────────┘
-```
-
-### Page Location
-
-```
-src/pages/pay/[paymentId].tsx
-```
-
-This is a standalone page — no chatbot, no app chrome. Clean payment UI with:
-- 2Settle branding
-- Payment amount (fiat + crypto equivalent)
-- Crypto selector (BTC, ETH, USDT, BNB, TRX)
+Shows:
+- Payment amount (fiat + crypto)
+- Crypto selector (if not pre-selected)
 - Wallet address + QR code
 - Countdown timer
-- Status polling
+- Status updates
 
----
+### Gift Claim Page
 
-## JS SDK (Phase 2)
-
-```html
-<script src="https://js.2settle.io/v1/inline.js"></script>
-
-<button onclick="payWith2Settle()">Pay ₦5,000</button>
-
-<script>
-  function payWith2Settle() {
-    TwoSettle.pay({
-      key: "pk_live_xxxxxxxxxx",
-      amount: 5000,
-      currency: "NGN",
-      reference: "order_12345",       // optional
-      callback_url: "https://merchant.com/callback",
-      metadata: {
-        order_id: "12345"
-      },
-      onSuccess: function(response) {
-        // response.reference, response.tx_hash, response.status
-        // Verify server-side before fulfilling order
-      },
-      onClose: function() {
-        // Customer closed the payment modal
-      }
-    });
-  }
-</script>
+```
+https://spend.2settle.io/gift/{gift_id}
 ```
 
-Under the hood, `TwoSettle.pay()`:
-1. Calls `/v1/payments/initialize` using the public key
-2. Opens an iframe pointing to the hosted checkout page
-3. Listens for postMessage events from the iframe
-4. Calls `onSuccess` / `onClose` callbacks
+Shows:
+- Gift amount
+- Sender name + message
+- Bank details form
+- Claim button
+
+### Request Payment Page
+
+```
+https://spend.2settle.io/request/{request_id}
+```
+
+Shows:
+- Requested amount
+- Description
+- Crypto selector
+- After selection: wallet address + QR code
+- Countdown timer
 
 ---
 
@@ -448,12 +713,16 @@ Under the hood, `TwoSettle.pay()`:
 
 ### Event Types
 
-| Event | Trigger |
-|---|---|
-| `payment.pending` | Wallet assigned, waiting for deposit |
-| `payment.confirmed` | Crypto deposit confirmed on-chain |
-| `payment.settled` | Fiat paid to merchant's bank |
-| `payment.expired` | Payment window expired, no deposit |
+| Event | Trigger | Transaction Types |
+|-------|---------|-------------------|
+| `payment.pending` | Wallet assigned | Transfer, Gift, Request (after pay) |
+| `payment.confirming` | Deposit detected | All |
+| `payment.confirmed` | Deposit confirmed | All |
+| `gift.pending_claim` | Gift ready to claim | Gift |
+| `gift.claimed` | Gift claimed | Gift |
+| `payment.settled` | Fiat paid out | All |
+| `payment.expired` | Timeout | All |
+| `payment.failed` | Error | All |
 
 ### Payload Format
 
@@ -462,11 +731,12 @@ Under the hood, `TwoSettle.pay()`:
   "event": "payment.confirmed",
   "data": {
     "payment_id": "pay_abc123",
-    "reference": "order_12345",
-    "amount": 5000,
+    "reference": "2S-ABC123",
+    "type": "transfer",
+    "amount": 50000,
     "currency": "NGN",
     "crypto_currency": "USDT",
-    "crypto_amount": "3.48",
+    "crypto_amount": "31.25",
     "tx_hash": "0xabc...",
     "status": "confirmed",
     "metadata": { "order_id": "12345" }
@@ -474,211 +744,54 @@ Under the hood, `TwoSettle.pay()`:
 }
 ```
 
+### Gift-Specific Events
+
+```json
+{
+  "event": "gift.claimed",
+  "data": {
+    "payment_id": "pay_xyz789",
+    "gift_id": "GIFT-ABC123",
+    "amount": 25000,
+    "currency": "NGN",
+    "status": "settling",
+    "sender_name": "Alice",
+    "claimed_by": {
+      "account_name": "Bob Smith"
+    }
+  }
+}
+```
+
 ### Security
 
-Webhooks are signed with HMAC-SHA512 using the merchant's webhook secret:
+Webhooks are signed with HMAC-SHA512:
 
 ```
 X-2Settle-Signature: sha512=<HMAC of raw body>
 ```
 
-Merchant verifies:
-
-```javascript
-const crypto = require("crypto");
-const hash = crypto
-  .createHmac("sha512", webhookSecret)
-  .update(rawBody)
-  .digest("hex");
-
-if (hash === req.headers["x-2settle-signature"]) {
-  // Authentic webhook from 2Settle
-}
-```
-
-### Delivery
-
-- POST to merchant's `webhook_url`
-- Retry on failure: 3 attempts with exponential backoff (1min, 5min, 30min)
-- Timeout: 10 seconds per attempt
-- Log all delivery attempts for debugging
-
-### Webhook Log Table
-
-```sql
-CREATE TABLE webhook_logs (
-  id              INT AUTO_INCREMENT PRIMARY KEY,
-  merchant_id     VARCHAR(36) NOT NULL,
-  payment_id      VARCHAR(36) NOT NULL,
-  event           VARCHAR(50) NOT NULL,
-  url             VARCHAR(500) NOT NULL,
-  payload         JSON NOT NULL,
-  response_code   INT NULL,
-  response_body   TEXT NULL,
-  attempt         INT DEFAULT 1,
-  delivered_at    TIMESTAMP NULL,
-  next_retry_at   TIMESTAMP NULL,
-  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (merchant_id) REFERENCES merchants(id),
-  FOREIGN KEY (payment_id) REFERENCES payments(id)
-);
-```
-
----
-
-## Multi-Currency Settlement Engine
-
-### Design Principle
-
-Each fiat currency is a **settlement rail** — an implementation of a common interface. Adding a new currency means implementing a new rail and registering it.
-
-### Interface
-
-```typescript
-interface SettlementRail {
-  currency: string;                                     // "NGN", "GHS", "KES"
-
-  // Rate
-  getRate(): Promise<number>;                           // Crypto-to-fiat rate
-
-  // Bank validation
-  getBanks(): Promise<Bank[]>;                          // List of supported banks
-  validateAccount(bankCode: string, accountNumber: string): Promise<AccountInfo>;
-
-  // Payout
-  initiatePayout(params: {
-    amount: number;
-    bankCode: string;
-    accountNumber: string;
-    accountName: string;
-    reference: string;
-  }): Promise<PayoutResult>;
-
-  // Status
-  verifyPayout(reference: string): Promise<PayoutStatus>;
-}
-```
-
-### NGN Rail (First Implementation)
-
-Uses existing 2Settle infrastructure:
-- Rate: CoinMarketCap API (already integrated)
-- Banks: Nigerian banks list (already have)
-- Validation: Bank account verification API (already have)
-- Payout: Existing bank transfer logic
-
-### Adding a New Currency
-
-```
-src/services/settlement/
-  index.ts                    # Rail registry + factory
-  rails/
-    ngn.ts                    # Nigerian Naira rail
-    ghs.ts                    # Ghanaian Cedi rail (future)
-    kes.ts                    # Kenyan Shilling rail (future)
-    zar.ts                    # South African Rand rail (future)
-```
-
-```typescript
-// src/services/settlement/index.ts
-const rails: Record<string, SettlementRail> = {};
-
-export function registerRail(rail: SettlementRail) {
-  rails[rail.currency] = rail;
-}
-
-export function getRail(currency: string): SettlementRail {
-  const rail = rails[currency];
-  if (!rail) throw new Error(`Unsupported currency: ${currency}`);
-  return rail;
-}
-```
-
-Each new currency requires:
-1. A banking/payout partner for that country
-2. A rate source for crypto-to-local-currency
-3. Bank list + account validation for that country
-4. Implement the `SettlementRail` interface
-
----
-
-## Deposit Monitoring
-
-The merchant gateway needs **automated deposit detection** — unlike the chat product where the user confirms they've sent crypto.
-
-### Approach
-
-A background job polls/monitors assigned wallet addresses for incoming transactions.
-
-```
-┌─────────────────────┐
-│   Deposit Monitor    │
-│   (cron / worker)    │
-│                      │
-│  For each PENDING    │
-│  payment:            │
-│   1. Check chain for │
-│      incoming tx to  │
-│      assigned wallet │
-│   2. If found:       │
-│      - Verify amount │
-│      - Wait for N    │
-│        confirmations │
-│      - Update status │
-│        to CONFIRMED  │
-│      - Fire webhook  │
-│      - Trigger       │
-│        settlement    │
-│   3. If expired:     │
-│      - Set EXPIRED   │
-│      - Release wallet│
-│      - Fire webhook  │
-└─────────────────────┘
-```
-
-### Confirmation Requirements
-
-| Chain | Confirmations | ~Time |
-|---|---|---|
-| BTC | 2 | ~20 min |
-| ETH | 12 | ~2.5 min |
-| BSC | 15 | ~45 sec |
-| TRON | 19 | ~1 min |
-
-### Implementation Options
-
-1. **Polling** — Cron job checks balances/transactions every 30 seconds. Simple, works at low-medium volume.
-2. **Blockchain node websockets** — Subscribe to pending transactions. More real-time, more infrastructure.
-3. **Third-party service** — Use Alchemy/Moralis/Tatum webhooks for transaction notifications. Easiest to start.
-
-**Recommendation**: Start with polling via a cron job or Next.js API route triggered by a scheduler (Vercel Cron). Move to a dedicated worker or third-party webhooks as volume grows.
-
-### Cron Endpoint
-
-```
-src/pages/api/cron/monitor-deposits.ts
-```
-
-Triggered every 30 seconds. For each `PENDING` payment:
-- Fetch recent transactions for the assigned wallet address
-- Match against expected `crypto_amount` (with tolerance for network fees)
-- Check confirmation count
-- Update payment status accordingly
-
 ---
 
 ## Relationship to Existing Chat Product
 
-The chat product (current 2Settle frontend) and the merchant gateway share the same underlying infrastructure:
+The chat product and merchant gateway share the same underlying payment engine:
 
 ```
 ┌───────────────────┐     ┌───────────────────┐
 │  Chat Frontend    │     │  Merchant API      │
 │  (spend.2settle)  │     │  (api.2settle)     │
 │                   │     │                    │
-│  - Chatbot UI     │     │  - REST endpoints  │
-│  - User wallet    │     │  - Hosted checkout │
-│  - Step machine   │     │  - JS SDK          │
+│  TRANSFER:        │     │  TRANSFER:         │
+│  - Chatbot flow   │     │  - API call        │
+│                   │     │                    │
+│  GIFT:            │     │  GIFT:             │
+│  - Create via chat│     │  - Create via API  │
+│  - Claim via chat │     │  - Claim via API   │
+│                   │     │                    │
+│  REQUEST:         │     │  REQUEST:          │
+│  - Create via chat│     │  - Create via API  │
+│  - Pay via chat   │     │  - Pay via hosted  │
 └────────┬──────────┘     └────────┬───────────┘
          │                         │
          ▼                         ▼
@@ -686,82 +799,33 @@ The chat product (current 2Settle frontend) and the merchant gateway share the s
 │           Shared Payment Engine               │
 │                                              │
 │  src/services/payment-engine/                │
-│  - rate service (existing)                   │
-│  - wallet pool (existing, extended)          │
-│  - settlement rails (new)                    │
-│  - transaction recording (existing)          │
+│  - createPayment() / createGift() /          │
+│    createRequest()                           │
+│  - claimGift() / payRequest()                │
+│  - rate service                              │
+│  - wallet pool                               │
+│  - settlement rails                          │
 └──────────────────────────────────────────────┘
          │
          ▼
 ┌──────────────────────────────────────────────┐
 │                  MySQL                        │
-│  wallets │ payments │ merchants │ transfers   │
-│  gifts   │ requests │ settlements │ webhooks  │
+│  payment_sessions │ wallets │ merchants       │
+│  payers │ receivers │ settlements             │
 └──────────────────────────────────────────────┘
 ```
 
-### Migration Path
-
-1. **Extract** business logic from chatbot handlers (`src/features/`) into `src/services/payment-engine/`
-2. **Refactor** chatbot handlers to call the payment engine service instead of duplicating logic
-3. **Build** the merchant API layer on top of the same payment engine
-4. Both products evolve independently but share the core engine
-
 ---
 
-## Implementation Phases
+## Expiry and Timeout Rules
 
-### Phase 1: Foundation (Weeks 1–3)
-
-- [ ] Extract payment engine service from chatbot handlers
-- [ ] Create merchant DB schema (merchants, api_keys, settlement_accounts)
-- [ ] Build merchant registration + API key generation
-- [ ] Build core API endpoints: initialize, verify, list payments
-- [ ] Build payment session lifecycle (create → pending → confirmed → settled → expired)
-
-### Phase 2: Hosted Checkout (Weeks 4–5)
-
-- [ ] Build `/pay/[paymentId]` checkout page
-- [ ] Crypto selector with rate locking
-- [ ] Wallet assignment from pool
-- [ ] QR code + deposit address display
-- [ ] Countdown timer + status polling UI
-- [ ] Callback redirect on success/expiry
-
-### Phase 3: Deposit Monitoring (Weeks 5–6)
-
-- [ ] Build deposit monitor cron job
-- [ ] Chain-specific balance/transaction checking (BTC, EVM, TRON)
-- [ ] Confirmation tracking
-- [ ] Auto-update payment status on confirmed deposit
-
-### Phase 4: Webhooks + Settlement (Weeks 6–7)
-
-- [ ] Webhook dispatch system with retry logic
-- [ ] Webhook signature verification
-- [ ] Webhook logs
-- [ ] Automated fiat settlement trigger on confirmed payment
-- [ ] NGN settlement rail (refactor existing payout logic)
-
-### Phase 5: JS SDK (Weeks 8–9)
-
-- [ ] Build `inline.js` SDK
-- [ ] iframe integration with hosted checkout
-- [ ] postMessage bridge for callbacks
-- [ ] NPM package for React/Node integrations
-
-### Phase 6: Merchant Dashboard (Weeks 9–11)
-
-- [ ] Transaction history
-- [ ] Settlement reports
-- [ ] API key management
-- [ ] Webhook configuration
-- [ ] Settlement account management
-
-### Phase 7: Multi-Currency (Ongoing)
-
-- [ ] Abstract settlement rail interface
-- [ ] Add GHS, KES, ZAR rails as banking partners are onboarded
+| Transaction | Phase | Timeout | Action |
+|-------------|-------|---------|--------|
+| Transfer | Pending deposit | 30 min | Expire, release wallet |
+| Gift | Pending deposit | 30 min | Expire, release wallet |
+| Gift | Pending claim | 30 days | Expire (crypto already received) |
+| Request | Pending payment | 7 days | Expire (no wallet assigned) |
+| Request | Pending deposit | 30 min | Expire, release wallet |
 
 ---
 
@@ -771,18 +835,20 @@ The chat product (current 2Settle frontend) and the merchant gateway share the s
 2. **Wallet private keys** — Already in DB. Must be encrypted at rest. Consider moving to a secrets manager (AWS KMS, Vault) as you scale.
 3. **Webhook secrets** — Unique per merchant. HMAC-SHA512 signatures on all payloads.
 4. **Rate limiting** — Per-merchant, per-endpoint. Prevent abuse and wallet pool exhaustion.
-5. **Wallet pool exhaustion** — If all wallets are assigned, new payments queue or return 503. Monitor pool utilization as a key metric.
-6. **Amount validation** — On-chain deposit must match expected crypto amount (with configurable tolerance for fee variance).
-7. **Replay protection** — Idempotency keys on payment initialization. Webhook deduplication on merchant side.
-8. **Test environment** — Separate test wallets, test API keys, no real crypto movement. Simulated deposit confirmations.
+5. **Wallet pool exhaustion** — If all wallets are assigned, new payments queue or return 503. Monitor pool utilization.
+6. **Amount validation** — On-chain deposit must match expected crypto amount (with configurable tolerance).
+7. **Gift/Request ID security** — IDs should be unguessable (use crypto-random generation).
+8. **Claim validation** — Verify gift hasn't been claimed, isn't expired.
 
 ---
 
 ## Key Metrics to Track
 
-- Payment conversion rate (created → confirmed)
+- Payment conversion rate by type (created → settled)
+- Gift claim rate (pending_claim → settled)
+- Request fulfillment rate (pending_payment → settled)
 - Average time to confirmation (per chain)
-- Settlement success rate
+- Average time to claim (for gifts)
 - Wallet pool utilization (% in use at any time)
 - Webhook delivery success rate
 - API response times (p50, p95, p99)
