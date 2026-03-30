@@ -521,6 +521,7 @@ export default function PaymentPage() {
   useEffect(() => {
     if (!payment) return
     if (TERMINAL_STATUSES.includes(payment.status)) return
+    if (payment.status === 'pending' && countdown === 0) return
 
     const interval = setInterval(async () => {
       const updated = await fetchPayment()
@@ -528,7 +529,7 @@ export default function PaymentPage() {
     }, 8000)
 
     return () => clearInterval(interval)
-  }, [payment?.status, fetchPayment])
+  }, [payment?.status, countdown, fetchPayment])
 
   // Countdown timer
   useEffect(() => {
