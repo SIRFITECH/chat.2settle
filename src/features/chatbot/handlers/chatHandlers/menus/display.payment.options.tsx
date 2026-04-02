@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/helpers/format_currency";
-import { fetchRate } from "@/services/rate/rates.service";
+import { getRate } from "@/services/rate/getRates";
 import { cleanCurrencyToFloatString, getBaseSymbol } from "@/utils/utilities";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
@@ -10,7 +10,7 @@ export const displayPayIn = async () => {
   const { assetPrice: assetP, ticker } = usePaymentStore.getState();
   let usdtRate;
   try {
-    usdtRate = await fetchRate();
+    usdtRate = await getRate();
   } catch (e) {
     console.log("There was an error fetching rate");
     throw new Error("Error refetching rate");

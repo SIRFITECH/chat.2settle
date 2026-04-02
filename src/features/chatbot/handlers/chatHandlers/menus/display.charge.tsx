@@ -7,7 +7,7 @@ import {
   navigateAfterCharge,
   parsePaymentInput,
 } from "@/helpers/transaction/transaction_charge";
-import { fetchRate } from "@/services/rate/rates.service";
+import { getRate } from "@/services/rate/getRates";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 
@@ -29,7 +29,7 @@ export const displayCharge = async (input: string) => {
   const { addMessages } = useChatStore.getState();
 
   const amount = parsePaymentInput(input);
-  const rate = await fetchRate();
+  const rate = await getRate();
 
   let nairaEquivalent: number;
 
