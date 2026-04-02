@@ -1,16 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import mysql, { RowDataPacket } from "mysql2/promise";
+import { RowDataPacket } from "mysql2/promise";
 import { formatPhoneNumber } from "@/utils/utilities";
 import connection from "@/lib/mysql";
 
-// TODO: we need to work on this
-const db = connection;
-// mysql.createPool({
-//   host: process.env.host,
-//   user: process.env.user,
-//   password: process.env.password,
-//   database: process.env.database,
-// });
+// Map payment_sessions status to legacy display status
+const STATUS_MAP: Record<string, string> = {
+  settled: "Successful",
+  created: "Processing",
+  pending: "Processing",
+  confirming: "Processing",
+  confirmed: "Processing",
+  settling: "Processing",
+  expired: "Cancelled",
+  failed: "UnSuccessful",
+  settlement_reversed: "UnSuccessful",
+};
 
 export default async function handler(
   req: NextApiRequest,
@@ -30,36 +34,54 @@ export default async function handler(
   const offset = (pageNumber - 1) * limitNumber;
 
   try {
-    let queryStr = `
-      SELECT SQL_CALC_FOUND_ROWS * FROM payer 
-      WHERE 1=1
-    `;
-    const queryParams: (string | number | null)[] = [];
+    const queryParams: (string | number)[] = [];
+    let whereClause = "";
 
     if (phoneNumber) {
       const phoneNo = formatPhoneNumber(phoneNumber as string);
-      queryStr += " AND customer_phoneNumber = ?";
+      whereClause = "py.phone = ?";
       queryParams.push(phoneNo);
-    }
-
-    if (walletAddress) {
-      queryStr += " AND send_from = ?";
+    } else {
+      // wallet address: match against payer's chat_id (Telegram/chat identifier)
+      whereClause = "py.chat_id = ?";
       queryParams.push(walletAddress as string);
     }
 
-    queryStr += " LIMIT ? OFFSET ?";
-    queryParams.push(limitNumber, offset);
-
-    const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
-    const [countResult] = await db.query<RowDataPacket[]>(
-      "SELECT FOUND_ROWS() as total"
+    const [[{ total }]] = await connection.query<RowDataPacket[]>(
+      `SELECT COUNT(*) AS total
+       FROM payment_sessions ps
+       INNER JOIN payers py ON ps.payer_id = py.id
+       WHERE ${whereClause}`,
+      queryParams
     );
-    const total = countResult[0].total;
 
-    if (rows.length > 0) {
+    const [rows] = await connection.query<RowDataPacket[]>(
+      `SELECT
+         ps.type        AS mode_of_payment,
+         ps.fiat_amount AS Amount,
+         ps.crypto,
+         ps.created_at  AS Date,
+         ps.status,
+         ps.reference,
+         ps.network,
+         ps.crypto_amount
+       FROM payment_sessions ps
+       INNER JOIN payers py ON ps.payer_id = py.id
+       WHERE ${whereClause}
+       ORDER BY ps.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [...queryParams, limitNumber, offset]
+    );
+
+    const transactions = rows.map((row) => ({
+      ...row,
+      status: STATUS_MAP[row.status] ?? row.status,
+    }));
+
+    if (transactions.length > 0) {
       return res.status(200).json({
         exists: true,
-        transactions: rows,
+        transactions,
         pagination: {
           currentPage: pageNumber,
           totalPages: Math.ceil(total / limitNumber),

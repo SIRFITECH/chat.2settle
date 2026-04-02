@@ -1,17 +1,37 @@
-import { ServerData } from "@/types/general_types";
+import axios from "axios";
 import api from "../api-client";
-// FETCH CURRENT EXCHANGE RATE FROM DB
+
+const engineUrl = process.env.NEXT_PUBLIC_SETTLE_API_URL;
+
+// FETCH ALL RATES FROM PAYMENT ENGINE IN ONE CALL
+const fetchAllRatesFromEngine = async (): Promise<{
+  rateNumeric: number;
+  merchantRate: number;
+  profitRate: number;
+}> => {
+  const response = await axios.get<{
+    rate: string;
+    rateNumeric: number;
+    merchantRate: number;
+    profitRate: number;
+  }>(`${engineUrl}/rate/all`);
+  return {
+    rateNumeric: response.data.rateNumeric,
+    merchantRate: response.data.merchantRate,
+    profitRate: response.data.profitRate,
+  };
+};
+
+// FETCH CURRENT EXCHANGE RATE FROM PAYMENT ENGINE
 export const fetchRate = async (): Promise<number> => {
   try {
-    const response = await api.get<ServerData>(`/api/rates/rate`);
-    const rawRate = response.data.rate.replace(/,/g, "");
-    const rate = parseFloat(rawRate);
+    const { rateNumeric } = await fetchAllRatesFromEngine();
 
-    if (isNaN(rate)) {
+    if (isNaN(rateNumeric)) {
       throw new Error("Invalid rate received");
     }
 
-    return rate;
+    return rateNumeric;
   } catch (error) {
     console.error("Error fetching rates:", error);
     throw error;
@@ -40,30 +60,26 @@ export const fetchTotalVolume = async (): Promise<number> => {
   }
 };
 
-// FETCH MERCHANT RATE FROM DB
+// FETCH MERCHANT RATE FROM PAYMENT ENGINE
 export const fetchMerchantRate = async (): Promise<number> => {
   try {
-    const response = await api.get<ServerData>(`/api/rates/merchant_rate`);
-    const rawRate = response.data.merchantRate.replace(/,/g, "");
-    const merchant_rate = parseFloat(rawRate);
+    const { merchantRate } = await fetchAllRatesFromEngine();
 
-    if (isNaN(merchant_rate)) {
+    if (isNaN(merchantRate)) {
       throw new Error("Invalid rate received");
     }
 
-    return merchant_rate;
+    return merchantRate;
   } catch (error) {
     console.error("Error fetching merchant rate:", error);
     throw error;
   }
 };
 
-// FETCH PROFIT RATE FROM DB
+// FETCH PROFIT RATE FROM PAYMENT ENGINE
 export const fetchProfitRate = async (): Promise<number> => {
   try {
-    const response = await api.get<ServerData>(`/api/rates/merchant_profit`);
-    const rawRate = response.data.profitRate.replace(/,/g, "");
-    const profitRate = parseFloat(rawRate);
+    const { profitRate } = await fetchAllRatesFromEngine();
 
     if (isNaN(profitRate)) {
       throw new Error("Invalid profit rate received");
