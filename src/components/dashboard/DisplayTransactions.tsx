@@ -12,7 +12,7 @@ import DashboardFilteredTransactions from "./DashboardFilteredTransactions";
 
 
 const DisplayTransactions = () => {
-  const { data: filteredTransactions, isLoading } =
+  const { data: filteredTransactions, isLoading, isError } =
     useTransactionDashboardData();
 
   const hasTransactions =
@@ -38,6 +38,12 @@ const DisplayTransactions = () => {
           <TableRow>
             <TableCell colSpan={6} className="text-center py-4">
               Loading...
+            </TableCell>
+          </TableRow>
+        ) : isError ? (
+          <TableRow>
+            <TableCell colSpan={7} className="text-center text-gray-500 py-4">
+              Unable to load transactions. Please try again later.
             </TableCell>
           </TableRow>
         ) : hasTransactions ? (
