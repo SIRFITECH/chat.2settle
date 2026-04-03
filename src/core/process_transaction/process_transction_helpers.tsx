@@ -2,6 +2,7 @@ import { displayGiftFeedbackMessage } from "@/features/chatbot/handlers/chatHand
 import { displaySendPayment } from "@/features/chatbot/handlers/chatHandlers/menus/display.send.payment";
 import {
   claimGift,
+  verifyReceiver,
   createEnginePayment,
   fulfillRequest,
   mapNetwork,
@@ -120,6 +121,8 @@ export async function processTransaction() {
 
   } else if (isClaimGift) {
     try {
+      await verifyReceiver({ bankCode, accountNumber: acct_number });
+
       await claimGift(giftId, {
         bankCode,
         accountNumber: acct_number,

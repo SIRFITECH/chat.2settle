@@ -31,16 +31,14 @@ export const handleClaimGift = async (chatInput: string) => {
     return;
   }
 
-  const { status, gift_status } = result.user;
+  const { status } = result.user;
+  const normalizedStatus = status?.toLowerCase();
 
-  if (
-    status?.toLowerCase() === "successful" &&
-    gift_status?.toLowerCase() === "not claimed"
-  ) {
+  if (normalizedStatus === "confirmed") {
+    // Gift has been paid — proceed to collect bank details
     displaySearchBank();
-    next({ stepId: "selectBank" });
-    // next({ stepId: "enterBankSearchWord" });
-  } else if (gift_status?.toLowerCase() === "claimed") {
+    next({ stepId: "enterBankSearchWord" });
+  } else if (normalizedStatus === "settled") {
     addMessages([
       {
         type: "incoming",
@@ -48,8 +46,7 @@ export const handleClaimGift = async (chatInput: string) => {
         timestamp: new Date(),
       },
     ]);
-    return;
-  } else if (status?.toLowerCase() === "processing") {
+  } else if (normalizedStatus === "pending" || normalizedStatus === "awaiting_payment") {
     addMessages([
       {
         type: "incoming",
@@ -58,7 +55,6 @@ export const handleClaimGift = async (chatInput: string) => {
         timestamp: new Date(),
       },
     ]);
-    return;
   } else {
     addMessages([
       {

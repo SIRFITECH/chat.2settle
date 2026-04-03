@@ -85,6 +85,13 @@ export async function fulfillRequest(
   return response.data.payment;
 }
 
+export async function verifyReceiver(input: ClaimGiftInput): Promise<void> {
+  await api.post("/api/payments/verify-receiver", {
+    bankCode: input.bankCode,
+    accountNumber: input.accountNumber,
+  });
+}
+
 export async function claimGift(
   reference: string,
   input: ClaimGiftInput

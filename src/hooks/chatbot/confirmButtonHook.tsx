@@ -193,7 +193,7 @@ const ConfirmAndProceedButton = () => {
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
       <Button
-        disabled={!hasCopyButtonBeenClicked || !!activeWallet}
+        disabled={(!hasCopyButtonBeenClicked || !!activeWallet) && !walletFetchError}
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
         variant="outline"
         onClick={() => {
