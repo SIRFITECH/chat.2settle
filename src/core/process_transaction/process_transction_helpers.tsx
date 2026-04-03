@@ -61,6 +61,7 @@ export async function processTransaction() {
         fiatAmount,
         crypto: paymentStore.crypto,
         network: paymentStore.network,
+        chargeFrom: paymentStore.chargeFrom,
         payer,
         receiver: { bankCode, accountNumber: acct_number },
       });
@@ -83,6 +84,7 @@ export async function processTransaction() {
         fiatAmount,
         crypto: paymentStore.crypto,
         network: paymentStore.network,
+        chargeFrom: paymentStore.chargeFrom,
         payer,
       });
 
@@ -102,6 +104,7 @@ export async function processTransaction() {
       const payment = await createEnginePayment({
         type: "request",
         fiatAmount,
+        chargeFrom: paymentStore.chargeFrom,
         receiver: { bankCode, accountNumber: acct_number },
         payer,
       });

@@ -2,6 +2,8 @@ import {
   ChargeCalculation,
   ChargeContext,
 } from "@/features/chatbot/handlers/chatHandlers/menus/display.charge";
+import { displaySearchBank } from "@/features/chatbot/handlers/chatHandlers/menus/display.bank.search";
+import { displayEnterPhone } from "@/features/chatbot/handlers/chatHandlers/menus/display.phone";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 import { formatCurrency } from "../format_currency";
@@ -178,7 +180,9 @@ export function navigateAfterCharge() {
 
   if (currentStep.transactionType?.toLowerCase() === "gift") {
     next({ stepId: "enterPhone" });
+    displayEnterPhone();
   } else {
     next({ stepId: "enterBankSearchWord" });
+    displaySearchBank();
   }
 }

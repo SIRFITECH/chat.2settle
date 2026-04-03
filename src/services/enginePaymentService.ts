@@ -32,6 +32,7 @@ interface CreatePaymentInput {
   fiatCurrency?: string;
   crypto?: string;
   network?: string;
+  chargeFrom?: "fiat" | "crypto";
   payer?: { chatId: string; phone?: string };
   receiver?: { bankCode: string; accountNumber: string };
 }
@@ -56,6 +57,7 @@ export async function createEnginePayment(input: CreatePaymentInput): Promise<En
 
   if (input.crypto) body.crypto = input.crypto;
   if (input.network) body.network = mapNetwork(input.network);
+  if (input.chargeFrom) body.chargeFrom = input.chargeFrom;
   if (input.payer) body.payer = input.payer;
   if (input.receiver) body.receiver = input.receiver;
 

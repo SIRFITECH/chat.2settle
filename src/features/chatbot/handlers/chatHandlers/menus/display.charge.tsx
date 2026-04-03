@@ -12,6 +12,9 @@ import { getRate } from "@/services/rate/getRates";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 
+const resolveChargeFrom = (input: "1" | "2"): "fiat" | "crypto" =>
+  input === "1" ? "fiat" : "crypto";
+
 export type ChargeContext = {
   ticker: string;
   estimateAsset: "naira" | "dollar" | "crypto";
@@ -25,7 +28,8 @@ export type ChargeCalculation = {
   assetCharge: number;
 };
 
-// Holds intermediate charge calculation between the two phases
+// Holds intermediate charge calculation between the two phases.
+// Stored on globalThis so Next.js HMR doesn't reset it between steps.
 type PendingCharge = {
   amount: number;
   rate: number;
@@ -33,22 +37,27 @@ type PendingCharge = {
   charge: ChargeCalculation;
 };
 
-let pendingCharge: PendingCharge | null = null;
+const g = globalThis as any;
+const getPending = (): PendingCharge | null => g.__pendingCharge ?? null;
+const setPending = (v: PendingCharge | null) => { g.__pendingCharge = v; };
 
 export const displayCharge = async (input: string) => {
   const { addMessages, setLoading } = useChatStore.getState();
 
   // ── Phase 2: user picked "1" or "2" from the charge menu ──────────────────
-  if (pendingCharge && (input.trim() === "1" || input.trim() === "2")) {
-    const { amount, rate, context, charge } = pendingCharge;
-    pendingCharge = null;
+  const pending = getPending();
+  if (pending && (input.trim() === "1" || input.trim() === "2")) {
+    const { amount, rate, context, charge } = pending;
+    const choice = input.trim() as "1" | "2";
+    setPending(null);
+    usePaymentStore.getState().setChargeFrom(resolveChargeFrom(choice));
     commitChargeToStores(amount, rate, context, charge, input);
     navigateAfterCharge();
     return;
   }
 
   // ── Phase 1: user entered an amount ───────────────────────────────────────
-  pendingCharge = null; // clear any stale pending from a previous attempt
+  setPending(null); // clear any stale pending from a previous attempt
 
   const { crypto, estimateAsset, setAssetPrice } = usePaymentStore.getState();
 
@@ -64,18 +73,20 @@ export const displayCharge = async (input: string) => {
     return;
   }
 
-  const rate = await getRate();
-
-  // Fetch limits — validates bounds and locks in the asset price
+  // Show loading for the full async computation (rate + limits)
+  setLoading(true);
+  let rate: number;
   let limits;
   try {
-    setLoading(true);
-    limits = await getLimits(crypto, estimateAsset);
+    [rate, limits] = await Promise.all([
+      getRate(),
+      getLimits(crypto, estimateAsset),
+    ]);
     if (limits.cryptoPrice > 0) {
       setAssetPrice(limits.cryptoPrice.toString());
     }
   } catch (e) {
-    console.error("Error fetching limits for validation:", e);
+    console.error("Error fetching rate/limits:", e);
     addMessages([
       {
         type: "incoming",
@@ -127,6 +138,7 @@ export const displayCharge = async (input: string) => {
 
   // If the amount is too small to absorb the fiat charge, auto-add it to crypto
   if (nairaEquivalent <= nairaCharge) {
+    usePaymentStore.getState().setChargeFrom("crypto");
     commitChargeToStores(amount, rate, context, { assetCharge, nairaCharge }, "2");
     addMessages([
       {
@@ -146,6 +158,6 @@ export const displayCharge = async (input: string) => {
   }
 
   // Amount is large enough — let the user decide
-  pendingCharge = { amount, rate, context, charge: { assetCharge, nairaCharge } };
+  setPending({ amount, rate, context, charge: { assetCharge, nairaCharge } });
   addMessages([buildChargeMenuMessage({ assetCharge, nairaCharge, context })]);
 };
