@@ -76,7 +76,8 @@ export const handleContinueToPay = async (chatInput: string) => {
        });
        displayContinueToPay();
 
-       next({ stepId: "enterPhone" });
+       const { currentStep: cs } = useChatStore.getState();
+       next({ stepId: "enterPhone", transactionType: cs.transactionType });
      } catch (error) {
        console.error("Failed to fetch bank data:", error);
        const errorMessage: MessageType[] = [

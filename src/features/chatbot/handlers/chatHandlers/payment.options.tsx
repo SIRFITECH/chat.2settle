@@ -17,20 +17,16 @@ export const handlePayOptions = async (chatInput: string) => {
     // go back
   } else if (chatInput === "1") {
     setEstimateAsset("Naira");
-    await displayPayIn();
-    next({ stepId: "charge" });
+    if (await displayPayIn()) next({ stepId: "charge" });
   } else if (chatInput === "2") {
     setEstimateAsset("Dollar");
-    await displayPayIn();
-    next({ stepId: "charge" });
+    if (await displayPayIn()) next({ stepId: "charge" });
   } else if (chatInput === "3") {
     setEstimateAsset(crypto);
-    await displayPayIn();
-    next({ stepId: "charge" });
+    if (await displayPayIn()) next({ stepId: "charge" });
   } else if (currentStep.transactionType?.trim().toLowerCase() === "request") {
     setEstimateAsset("Naira");
-    await displayPayIn();
-    next({ stepId: "charge" });
+    if (await displayPayIn()) next({ stepId: "charge" });
   } else {
     addMessages([
       {

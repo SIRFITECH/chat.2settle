@@ -85,15 +85,8 @@ const ConfirmAndProceedButton = () => {
    * Handle manual payment - user copies wallet and sends manually
    */
   const handleManualPayment = async () => {
-    console.log("handleManualPayment: Getting wallet for manual transfer");
-    
     try {
       setLoading(true);
-      if (!network) throw new Error("Network is not set");
-
-      await getAvaialableWallet(network.toLowerCase());
-      setHasCopyButtonBeenClicked(false);
-
       await processTransaction();
     } catch (err) {
       console.error("Error in handleManualPayment:", err);
@@ -191,9 +184,10 @@ const ConfirmAndProceedButton = () => {
   const showCountdown = !!activeWallet && !isExpired;
 
   const showExpired = isExpired;
-  const expiryTime = new Date(
-    new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
-  );
+  // walletLastAssignedTime stores the engine's expiresAt directly
+  const expiryTime = walletLastAssignedTime
+    ? new Date(walletLastAssignedTime)
+    : new Date(Date.now() + 5 * 60 * 1000);
 
   return (
     <div className="flex flex-col items-center space-y-4">

@@ -3,7 +3,6 @@ import useChatStore, { MessageType } from "stores/chatStore";
 import { useUserStore } from "stores/userStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
-import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
 
 export const handleCryptoPayment = async (chatInput: string) => {
   const { setLoading, addMessages } = useChatStore.getState();
@@ -16,7 +15,7 @@ export const handleCryptoPayment = async (chatInput: string) => {
     helloMenu("hi");
   } else if (chatInput !== "0") {
     if (!phoneNumberPattern.test(phoneNumber)) {
-      const newMessages: MessageType[] = [
+      addMessages([
         {
           type: "incoming",
           content: (
@@ -27,18 +26,33 @@ export const handleCryptoPayment = async (chatInput: string) => {
           ),
           timestamp: new Date(),
         },
-      ];
-      addMessages(newMessages);
+      ]);
       return;
     }
 
     updateUser({ phone: phoneNumber });
+    setLoading(false);
 
-    setLoading(true);
-    try {
-      await processTransaction();
-    } finally {
-      setLoading(false);
-    }
+    const newMessages: MessageType[] = [
+      {
+        type: "incoming",
+        content: (
+          <div className="flex flex-col items-center">
+            <p className="mb-4">
+              Do you understand that you need to complete your payment within{" "}
+              <b>the allotted time</b>, otherwise you may lose your money.
+            </p>
+          </div>
+        ),
+        intent: {
+          kind: "component",
+          name: "ConfirmAndProceedButton",
+          persist: true,
+        },
+        timestamp: new Date(),
+      },
+    ];
+
+    addMessages(newMessages);
   }
 };

@@ -4,7 +4,7 @@ import { getBaseSymbol } from "@/utils/utilities";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
 
-export const displayPayIn = async () => {
+export const displayPayIn = async (): Promise<boolean> => {
   const currentStep = useChatStore.getState().currentStep;
   const { addMessages, setLoading } = useChatStore.getState();
 
@@ -28,7 +28,7 @@ export const displayPayIn = async () => {
         timestamp: new Date(),
       },
     ]);
-    return;
+    return false;
   } finally {
     setLoading(false);
   }
@@ -81,4 +81,5 @@ export const displayPayIn = async () => {
   ];
 
   addMessages(newMessages);
+  return true;
 };
