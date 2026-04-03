@@ -32,7 +32,7 @@ export const handlePhoneNumber = async (chatInput: string) => {
           <div className="flex flex-col items-center">
             <p className="mb-4">
               Do you understand that you need to complete your payment within{" "}
-              <b>the allotted time</b>, otherwise you may lose your money.
+              <b>5 minutes</b>, otherwise you may lose your money.
             </p>
           </div>
         ),

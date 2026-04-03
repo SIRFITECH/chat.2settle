@@ -136,7 +136,7 @@ const ConfirmAndProceedButton = () => {
     }
     return (
       <span>
-        Make sure you complete the transfer within <b>5 mins</b>
+        Make sure you complete the transfer within <b>30 mins</b>
       </span>
     );
   };
@@ -187,7 +187,7 @@ const ConfirmAndProceedButton = () => {
   // walletLastAssignedTime stores the engine's expiresAt directly
   const expiryTime = walletLastAssignedTime
     ? new Date(walletLastAssignedTime)
-    : new Date(Date.now() + 5 * 60 * 1000);
+    : new Date(Date.now() + 30 * 60 * 1000);
 
   return (
     <div className="flex flex-col items-center space-y-4">
@@ -244,7 +244,7 @@ const ConfirmAndProceedButton = () => {
       {/* count down - only show for manual payment flow */}
       {showCountdown && !connectedWallet && (
         <p role="status" className="text-sm text-muted-foreground">
-          This wallet expires in <CountdownTimer expiryTime={expiryTime} />
+          Address expires in <CountdownTimer expiryTime={expiryTime} />
           {showExpired && "This wallet has expired"}
         </p>
       )}

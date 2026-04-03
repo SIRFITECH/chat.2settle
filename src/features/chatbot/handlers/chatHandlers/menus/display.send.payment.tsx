@@ -27,7 +27,6 @@ export const displaySendPayment = async () => {
     useTransactionStore.getState();
 
   const paymentTicker = getBaseSymbol(ticker);
-  const allowedTime = 5;
   const assetPayment = parseFloat(paymentAssetEstimate);
   const paymentAsset = `${assetPayment.toFixed(8)} ${paymentTicker}`;
 
@@ -37,11 +36,12 @@ export const displaySendPayment = async () => {
   const isRequestPayment =
     currentStep.transactionType?.toLowerCase() === "payrequest";
 
-  // walletLastAssignedTime now stores the engine's expiresAt directly
+  // walletLastAssignedTime stores the engine's expiresAt directly
   const lastAssignedTime = new Date();
   const walletExpiryTime = walletLastAssignedTime
     ? new Date(walletLastAssignedTime)
-    : new Date(Date.now() + allowedTime * 60 * 1000);
+    : new Date(Date.now() + 5 * 60 * 1000);
+  const allowedMinutes = Math.ceil((walletExpiryTime.getTime() - Date.now()) / 60000);
 
   const messages: MessageType[] = [
     {
@@ -109,7 +109,7 @@ export const displaySendPayment = async () => {
           <span>
             Note: You are sending{" "}
             <b>
-              ${paymentAsset} = 
+              {paymentAsset} ={" "}
               {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
             </b>{" "}
             only to 2Settle wallet address to complete your transaction
@@ -200,7 +200,7 @@ export const displaySendPayment = async () => {
       type: "incoming",
       content: (
         <span>
-          This wallet address expires in <b>{allowedTime}</b> minutes
+          Address expires in <b>{allowedMinutes}</b> minute{allowedMinutes !== 1 ? "s" : ""}
         </span>
       ),
       intent: {
