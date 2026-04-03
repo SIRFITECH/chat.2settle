@@ -1,3 +1,4 @@
+import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
 import { phoneNumberPattern } from "@/utils/utilities";
 import useChatStore from "stores/chatStore";
 import { useUserStore } from "stores/userStore";
@@ -22,28 +23,39 @@ export const handlePhoneNumber = async (chatInput: string) => {
     displayEnterPhone();
     next({ stepId: "enterPhone", transactionType: currentStep.transactionType }); // carry transactionType so processTransaction knows transfer/gift/request
   } else if (phoneNumberPattern.test(chatInput.trim())) {
-    // Phone number entered — store it, advance to sendPayment step, show ConfirmAndProceedButton
     updateUser({ phone: chatInput.trim() });
-    next({ stepId: "sendPayment", transactionType: currentStep.transactionType });
-    addMessages([
-      {
-        type: "incoming",
-        content: (
-          <div className="flex flex-col items-center">
-            <p className="mb-4">
-              Do you understand that you need to complete your payment within{" "}
-              <b>5 minutes</b>, otherwise you may lose your money.
-            </p>
-          </div>
-        ),
-        intent: {
-          kind: "component",
-          name: "ConfirmAndProceedButton",
-          persist: true,
+
+    if (currentStep.transactionType?.toLowerCase() === "request") {
+      // Request flow: create request directly, no payment confirmation needed
+      setLoading(true);
+      try {
+        await processTransaction();
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Transfer / gift flow: show ConfirmAndProceedButton
+      next({ stepId: "sendPayment", transactionType: currentStep.transactionType });
+      addMessages([
+        {
+          type: "incoming",
+          content: (
+            <div className="flex flex-col items-center">
+              <p className="mb-4">
+                Do you understand that you need to complete your payment within{" "}
+                <b>30 minutes</b>, otherwise you may lose your money.
+              </p>
+            </div>
+          ),
+          intent: {
+            kind: "component",
+            name: "ConfirmAndProceedButton",
+            persist: true,
+          },
+          timestamp: new Date(),
         },
-        timestamp: new Date(),
-      },
-    ]);
+      ]);
+    }
   } else {
     addMessages([
       {

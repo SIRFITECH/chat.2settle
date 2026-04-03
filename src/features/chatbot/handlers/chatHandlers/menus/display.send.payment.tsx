@@ -65,7 +65,7 @@ export const displaySendPayment = async () => {
             <br />
             Bank Name: {bank_name} <br/>
             Account Number: {acct_number} <br/>
-            Bank Name: {receiver_name}
+            Account Name: {receiver_name}
             <br />
             <b>You can copy the requestId below</b> and share with the person to
             fulfill the request

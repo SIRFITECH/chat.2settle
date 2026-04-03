@@ -1,7 +1,6 @@
 import useChatStore from "stores/chatStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
-import { displayPayIn } from "./menus/display.payment.options";
 import { displayTransferMoney } from "./menus/transfer.money";
 import { usePaymentStore } from "stores/paymentStore";
 
@@ -35,13 +34,28 @@ export const handleChooseTransactionType = (chatInput: string) => {
       transactionType: "gift",
     });
   } else if (chatInput === "3") {
-    displayPayIn();
     setEstimateAsset("Naira");
     setPaymentMode("");
     next({
-      stepId: "enterBankSearchWord",
+      stepId: "charge",
       transactionType: "request",
     });
+    addMessages([
+      {
+        type: "incoming",
+        content: (
+          <span>
+            Enter the amount you want to request in Naira
+            <br />
+            <br />
+            0. Go back
+            <br />
+            00. Exit
+          </span>
+        ),
+        timestamp: new Date(),
+      },
+    ]);
   } else {
     addMessages([
       {

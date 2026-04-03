@@ -10,17 +10,21 @@ export const isRequestValid = async (
       params: { request_id },
     });
 
-    if (response.data.exists && response.data.user) {
-      // Extract the first transaction as the userData object
-      const firstTransaction: userData = response.data.user;
+    const payment = response.data?.payment;
 
-      // Return the exists flag and the user object
-      return { exists: true, user: firstTransaction };
+    if (response.data?.success && payment && payment.type === "request") {
+      return {
+        exists: true,
+        user: {
+          request_status: payment.status, // e.g. "pending", "confirmed", "settled"
+          ...payment,
+        } as userData,
+      };
     } else {
       return { exists: false };
     }
   } catch (error) {
-    console.error("Error checking gift validity:", error);
+    console.error("Error checking request validity:", error);
     throw error;
   }
 };

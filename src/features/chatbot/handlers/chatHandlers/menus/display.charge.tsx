@@ -59,7 +59,22 @@ export const displayCharge = async (input: string) => {
   // ── Phase 1: user entered an amount ───────────────────────────────────────
   setPending(null); // clear any stale pending from a previous attempt
 
-  const { crypto, estimateAsset, setAssetPrice } = usePaymentStore.getState();
+  const { crypto, estimateAsset, setAssetPrice, setPaymentNairaEstimate, setPaymentAssetEstimate } = usePaymentStore.getState();
+  const { currentStep } = useChatStore.getState();
+  const isRequest = currentStep.transactionType?.toLowerCase() === "request";
+
+  // Request flow: no crypto involved — just capture the NGN amount and move on
+  if (isRequest) {
+    const amount = parsePaymentInput(input);
+    if (amount === null || amount <= 0) {
+      addMessages([{ type: "incoming", content: "Please enter a valid amount.", timestamp: new Date() }]);
+      return;
+    }
+    setPaymentNairaEstimate(amount.toString());
+    setPaymentAssetEstimate("0");
+    navigateAfterCharge();
+    return;
+  }
 
   const amount = parsePaymentInput(input);
   if (amount === null) {

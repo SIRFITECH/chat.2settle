@@ -105,9 +105,7 @@ export async function processTransaction() {
       const payment = await createEnginePayment({
         type: "request",
         fiatAmount,
-        chargeFrom: paymentStore.chargeFrom,
         receiver: { bankCode, accountNumber: acct_number },
-        payer,
       });
 
       setTransactionId(payment.reference);
