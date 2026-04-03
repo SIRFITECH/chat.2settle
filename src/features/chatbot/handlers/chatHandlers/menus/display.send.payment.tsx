@@ -36,12 +36,12 @@ export const displaySendPayment = async () => {
   const isRequestPayment =
     currentStep.transactionType?.toLowerCase() === "payrequest";
 
-  const allowedTime = 30;
   // walletLastAssignedTime stores the engine's expiresAt directly
-  const lastAssignedTime = new Date();
   const walletExpiryTime = walletLastAssignedTime
     ? new Date(walletLastAssignedTime)
-    : new Date(Date.now() + allowedTime * 60 * 1000);
+    : new Date(Date.now() + 30 * 60 * 1000);
+  const allowedTime = Math.ceil((walletExpiryTime.getTime() - Date.now()) / 60000);
+  const lastAssignedTime = walletExpiryTime;
 
   const messages: MessageType[] = [
     {
