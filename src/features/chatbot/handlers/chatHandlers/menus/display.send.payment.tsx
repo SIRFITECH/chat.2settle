@@ -36,7 +36,7 @@ export const displaySendPayment = async () => {
   const isRequestPayment =
     currentStep.transactionType?.toLowerCase() === "payrequest";
 
-  const allowedTime = 5;
+  const allowedTime = 30;
   // walletLastAssignedTime stores the engine's expiresAt directly
   const lastAssignedTime = new Date();
   const walletExpiryTime = walletLastAssignedTime
@@ -105,11 +105,19 @@ export const displaySendPayment = async () => {
     messages.push(
       {
         type: "incoming",
-        content: (
+        content: isRequestPayment ? (
+          <span>
+            You are paying{" "}
+            <b>{paymentAsset} = {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}</b>{" "}
+            to fulfill request <b>{requestId}</b>.
+            <br />
+            Send the crypto to the 2Settle wallet address below to complete the payment.
+          </span>
+        ) : (
           <span>
             Note: You are sending{" "}
             <b>
-              {paymentAsset } ={" "}
+              {paymentAsset} ={" "}
               {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
             </b>{" "}
             only to 2Settle wallet address to complete your transaction

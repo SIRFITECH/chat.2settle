@@ -45,6 +45,7 @@ export async function processTransaction() {
   const {
     setActiveWallet,
     setPaymentAssetEstimate,
+    setPaymentNairaEstimate,
     setWalletLastAssignedTime,
   } = usePaymentStore.getState();
 
@@ -71,6 +72,7 @@ export async function processTransaction() {
       setTransferId(payment.reference);
       setActiveWallet(payment.depositAddress ?? "");
       setPaymentAssetEstimate(String(payment.cryptoAmount ?? ""));
+      setPaymentNairaEstimate(String(payment.fiatAmount ?? fiatAmount));
       setWalletLastAssignedTime(payment.expiresAt ?? "");
 
       displaySendPayment();
@@ -93,6 +95,7 @@ export async function processTransaction() {
       setGiftId(payment.reference);
       setActiveWallet(payment.depositAddress ?? "");
       setPaymentAssetEstimate(String(payment.cryptoAmount ?? ""));
+      setPaymentNairaEstimate(String(payment.fiatAmount ?? fiatAmount));
       setWalletLastAssignedTime(payment.expiresAt ?? "");
 
       displaySendPayment();
@@ -110,6 +113,7 @@ export async function processTransaction() {
 
       setTransactionId(payment.reference);
       setRequestId(payment.reference);
+      setPaymentNairaEstimate(String(payment.fiatAmount ?? fiatAmount));
       // Requests have no deposit address — payer gets one when they fulfill
 
       displaySendPayment();
@@ -146,6 +150,7 @@ export async function processTransaction() {
       setRequestId(payment.reference);
       setActiveWallet(payment.depositAddress ?? "");
       setPaymentAssetEstimate(String(payment.cryptoAmount ?? ""));
+      setPaymentNairaEstimate(String(payment.fiatAmount ?? fiatAmount));
       setWalletLastAssignedTime(payment.expiresAt ?? "");
 
       displaySendPayment();

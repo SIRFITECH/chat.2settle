@@ -25,7 +25,7 @@ export type MessageType = {
 
 interface StepContext {
   stepId: StepId;
-  transactionType?: "transfer" | "gift" | "request";
+  transactionType?: "transfer" | "gift" | "request" | "payrequest";
 }
 
 type StepContextPatch = Partial<StepContext>;
