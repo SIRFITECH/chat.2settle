@@ -13,6 +13,7 @@ import "../../globals.css";
 import { RateBootstrapper } from "@/components/dashboard/RateBootstrapper";
 import UserBootstrap from "@/components/dashboard/checkTelUser";
 import { WalletBootstrap } from "@/components/crypto/WalletBootstrap";
+import { Toaster } from "@/components/ui/toaster";
 
 export const client = new QueryClient();
 
@@ -36,6 +37,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                   <UserBootstrap />
                   <WalletBootstrap />
                   <Component {...pageProps} />
+                  <Toaster />
                   <ReactQueryDevtools />
                 </ErrorBoundary>
               </SharedStateProvider>

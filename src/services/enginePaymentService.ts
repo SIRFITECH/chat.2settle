@@ -92,6 +92,39 @@ export async function verifyReceiver(input: ClaimGiftInput): Promise<void> {
   });
 }
 
+export interface ManualPaymentInput {
+  fiatAmount: number;
+  crypto: string;
+  network: string;
+  cryptoAmount: number;
+  depositAddress: string;
+  payer: { phone: string };
+  receiver: { bankCode: string; accountNumber: string };
+  transactionDate?: string;
+}
+
+export async function createManualPayment(input: ManualPaymentInput): Promise<EnginePayment> {
+  const response = await api.post<{ success: boolean; payment: EnginePayment }>(
+    "/api/payments",
+    {
+      type: "transfer",
+      status: "settled",
+      fiatAmount: input.fiatAmount,
+      fiatCurrency: "NGN",
+      crypto: input.crypto,
+      network: input.network,
+      cryptoAmount: input.cryptoAmount,
+      depositAddress: input.depositAddress,
+      payer: { chatId: input.payer.phone, phone: input.payer.phone },
+      receiver: input.receiver,
+      chargeFrom: "fiat",
+      ...(input.transactionDate ? { transactionDate: input.transactionDate } : {}),
+    }
+  );
+
+  return response.data.payment;
+}
+
 export async function claimGift(
   reference: string,
   input: ClaimGiftInput
