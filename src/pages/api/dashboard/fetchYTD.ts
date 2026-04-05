@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { google } from "googleapis";
 import connection from "@/lib/mysql";
-import { RowDataPacket } from "mysql2";
 
 const getGoogleCredentials = () => {
   const base64 = process.env.GOOGLE_CREDENTIALS_BASE64;
@@ -37,25 +36,24 @@ export default async function handler(
       range: range,
     });
 
-    const value = response.data.values ? response.data.values[0][0] : null;
+    const rawSheetValue: string = response.data.values?.[0]?.[0] ?? "0";
+    const sheetVolume = parseFloat(rawSheetValue.replace(/[,$]/g, "")) || 0;
 
-    // fetch and sum all the successful dollar amounts from the database
+    // historical volume from legacy summaries table (pre-payment-engine era), frozen at migration
+    const LEGACY_SUMMARIES_VOLUME = 20845.73;
+
+    // fetch total settled volume from the payment engine
     const [rows]: any = await connection.execute(
-      `SELECT total_dollar  FROM summaries WHERE status = 'Successful'`
+      `SELECT COALESCE(SUM(transaction_usd), 0) AS total FROM payment_sessions WHERE status = 'settled'`
     );
 
-    const dbVolume = rows.reduce((total: number, row: any) => {
-      const dollarAmount = parseFloat(row.total_dollar);
-      if (!isNaN(dollarAmount)) {
-        return total + dollarAmount;
-      }
+    const engineVolume = parseFloat(rows[0]?.total ?? 0);
 
-      return total;
-    }, 0);
+    const totalVolume = sheetVolume + LEGACY_SUMMARIES_VOLUME + engineVolume;
 
-    res.status(200).json({ ytdVolume: value, dbVolume: dbVolume.toFixed(8) });
-  } catch (e) {
+    res.status(200).json({ ytdVolume: "0", dbVolume: totalVolume.toFixed(8) });
+  } catch (e: any) {
     console.log("Error fetching Year To Date Volume", e);
-    res.status(500).send("Failed to retrieve YTD Volume");
+    res.status(500).json({ error: "Failed to retrieve YTD Volume", detail: e?.message });
   }
 }

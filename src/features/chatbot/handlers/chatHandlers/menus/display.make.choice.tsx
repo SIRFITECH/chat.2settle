@@ -1,7 +1,7 @@
 import { formatCurrency } from "@/helpers/format_currency";
 import { shortWallet } from "@/helpers/ShortenAddress";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
-import { fetchRate } from "@/services/rate/rates.service";
+import { getRate } from "@/services/rate/getRates";
 import useChatStore, { MessageType } from "stores/chatStore";
 import { useUserStore } from "stores/userStore";
 
@@ -9,7 +9,7 @@ export const displayMakeChoice = async () => {
   let rate: number | null = null;
 
   try {
-    rate = await fetchRate();
+    rate = await getRate();
   } catch (err) {
     console.error("Failed to fetch rate", err);
   }

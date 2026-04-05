@@ -1,7 +1,6 @@
 import useChatStore from "stores/chatStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
-import { displayPayIn } from "./menus/display.payment.options";
 import {
   displayEnterAccountNumber,
   displaySearchBank,
@@ -10,259 +9,49 @@ import {
 import { fetchBankNames } from "@/services/bank/bank.service";
 import { useBankStore } from "stores/bankStore";
 import { displayCharge } from "./menus/display.charge";
-import { formatCurrency } from "@/helpers/format_currency";
-import { usePaymentStore } from "stores/paymentStore";
-import { useTransactionStore } from "stores/transactionStore";
-import { isGiftValid } from "@/services/transactionService/giftService/giftService";
 
-// GET USER BANK DETAILS FROM NUBAN
+// Search banks by name keyword — handles the enterBankSearchWord step
 export const handleSearchBank = async (chatInput: string) => {
-  const { next, prev, addMessages } = useChatStore.getState();
-  const {
-    paymentAssetEstimate,
-    paymentNairaEstimate,
-    nairaCharge,
-    dollarCharge,
-    setPaymentAssetEstimate,
-    setPaymentNairaEstimate,
-    setAmountPayable,
-  } = usePaymentStore.getState();
+  const { next, prev, addMessages, setLoading } = useChatStore.getState();
+  const { setBankList, setBankNames } = useBankStore.getState();
 
-  const { setGiftId } = useTransactionStore.getState();
-  const currentStep = useChatStore.getState().currentStep;
-  const { paymentMode } = usePaymentStore.getState();
-
-  // IS USER TRYING TO CLAIM GIFT?
-  let wantsToSendGift =
-    currentStep.transactionType?.toLowerCase().trim() === "gift";
-  let wantsToClaimGift = paymentMode?.toLowerCase().trim() === "claim gift";
-  let wantsToRequestPayment =
-    currentStep.transactionType?.toLowerCase().trim() === "request";
-
-  if (wantsToClaimGift) {
-    console.log("USER WANTS TO CLAIM GIFT");
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      helloMenu(chatInput);
-    } else if (chatInput.trim() === "00") {
-      (() => {
-        helloMenu("hi");
-      })();
-    } else if (chatInput.trim() === "0") {
-      (() => {
-        prev();
-        // displayTransactIDWelcome();
-      })();
-    } else if (chatInput !== "0") {
-      let giftExists;
-      const gift_id = chatInput.trim();
-      setGiftId(gift_id);
-      try {
-        giftExists = (await isGiftValid(gift_id)).exists;
-      } catch (e) {
-        console.log("Error getting gift", e);
-      }
-      console.log("Gift is", giftExists);
-      // IF GIFT_ID EXIST IN DB,
-      if (giftExists) {
-        displaySearchBank();
-        next({ stepId: "enterBankSearchWord" });
-      } else {
-        addMessages([
-          {
-            type: "incoming",
-            content: "Invalid gift_id. Try again",
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    } else {
-      addMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. You need to choose an action from the options",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  } else if (wantsToSendGift) {
-    console.log("USER WANTS TO SEND GIFT");
-    // const chargeFixed = parseFloat(sharedCharge);
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "0") {
-      (() => {
-        prev();
-        displayPayIn();
-      })();
-    } else if (chatInput === "1") {
-      const finalAssetPayment = parseFloat(paymentAssetEstimate);
-      const chargeAmount = parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
-      const nairaAmount = parseFloat(paymentNairaEstimate);
-
-      // Validate charge is not greater than or equal to the amount
-      if (chargeAmount >= nairaAmount) {
-        addMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                The charge ({formatCurrency(chargeAmount.toString(), "NGN", "en-NG")}) is greater than or equal to your amount.
-                <br />
-                Please select option 2 to add charges to the crypto amount instead.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-
-      const finalNairaPayment = nairaAmount - chargeAmount;
-
-      setPaymentAssetEstimate(finalAssetPayment.toString());
-      setPaymentNairaEstimate(finalNairaPayment.toString());
-      // setSharedChargeForDB(
-      //   `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
-      // ),
-      displaySearchBank();
-    } else if (chatInput === "2") {
-      const finalAssetPayment = parseFloat(paymentAssetEstimate);
-      const finalNairaPayment =
-        parseFloat(paymentNairaEstimate) - parseFloat(nairaCharge);
-
-      setPaymentAssetEstimate(finalAssetPayment.toString());
-      setPaymentNairaEstimate(finalNairaPayment.toString());
-      // setSharedChargeForDB(
-      //   `${chargeFixed.toFixed(5)} ${sharedCrypto} = ${sharedNairaCharge}`
-      // );
-      displaySearchBank();
-    } else {
-      addMessages([
-        {
-          type: "incoming",
-          content:
-            "Invalid choice. Please choose with the options or say 'Hi' to start over.",
-          timestamp: new Date(),
-        },
-      ]);
-    }
-  } else if (wantsToRequestPayment) {
-    console.log("USER WANTS TO REQUEST PAYMENT");
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "0") {
-      (() => {
-        prev();
-        displayPayIn();
-      })();
-    } else {
-      chatInput = chatInput.replace(/[^0-9.]/g, "");
-      if (Number(chatInput) >= 0 && Number(chatInput) <= 2000000) {
-        const requestAmount = chatInput.trim();
-        setPaymentNairaEstimate(requestAmount);
-
-        displaySearchBank();
-        next({ stepId: "selectBank" });
-      } else {
-        addMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                You can only recieve <br />
-                <b>Min: {formatCurrency("0", "NGN", "en-NG")}</b> and <br />
-                <b>Max: {formatCurrency("2000000", "NGN", "en-NG")}</b>
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-      }
-    }
+  if (greetings.includes(chatInput.trim().toLowerCase())) {
+    helloMenu(chatInput);
+  } else if (chatInput.trim() === "00") {
+    helloMenu("hi");
+  } else if (chatInput.trim() === "0") {
+    prev();
   } else {
-    console.log("USER WANTS TO TRANSACT CRYPTO");
-    // const chargeFixed = parseFloat(sharedCharge);
-    if (greetings.includes(chatInput.trim().toLowerCase())) {
-      helloMenu(chatInput);
-    } else if (chatInput === "00") {
-      (() => {
-        helloMenu("hi");
-      })();
-    } else if (chatInput === "0") {
-      (() => {
-        prev();
-        displayPayIn();
-      })();
-    } else if (chatInput === "1") {
-      const finalAssetPayment = parseFloat(paymentAssetEstimate);
-      const chargeAmount = parseFloat(nairaCharge.replace(/[^\d.]/g, ""));
-      const nairaAmount = parseFloat(paymentNairaEstimate);
-
-      // Validate charge is not greater than or equal to the amount
-      if (chargeAmount >= nairaAmount) {
-        addMessages([
-          {
-            type: "incoming",
-            content: (
-              <span>
-                The charge ({formatCurrency(chargeAmount.toString(), "NGN", "en-NG")}) is greater than or equal to your amount.
-                <br />
-                Please select option 2 to add charges to the crypto amount instead.
-              </span>
-            ),
-            timestamp: new Date(),
-          },
-        ]);
-        return;
-      }
-
-      let finalNairaPayment = nairaAmount - chargeAmount;
-
-      console.log("Charge from the Fiat", finalAssetPayment, finalNairaPayment);
-
-      setPaymentAssetEstimate(finalAssetPayment.toFixed(8));
-      setPaymentNairaEstimate(finalNairaPayment.toFixed(8));
-      setAmountPayable(finalNairaPayment.toFixed(8));
-
-      displaySearchBank();
-      next({ stepId: "selectBank" });
-    } else if (chatInput === "2") {
-      console.log(
-        "Final asset payment is from handle.bank.steps",
-        paymentAssetEstimate,
+    let bankList: string[] = [];
+    try {
+      setLoading(true);
+      const result = await fetchBankNames(chatInput.trim());
+      bankList = result["message"] ?? [];
+      setBankList(bankList);
+      const bankNameList = bankList.map((bank: string) =>
+        bank.replace(/^\d+\.\s*/, "").replace(/\s\d+$/, ""),
       );
-
-      let finalAssetPayment = parseFloat(paymentAssetEstimate);
-      const finalNairaPayment = parseFloat(paymentNairaEstimate);
-
-      // add charge to amount
-      finalAssetPayment += parseFloat(dollarCharge);
-
-      setPaymentAssetEstimate(finalAssetPayment.toFixed(8));
-      setPaymentNairaEstimate(finalNairaPayment.toFixed(8));
-      setAmountPayable(finalNairaPayment.toFixed(8));
-
-      displaySearchBank();
-      next({ stepId: "selectBank" });
-    } else {
+      setBankNames(bankNameList);
+    } catch (error) {
+      console.error("Failed to fetch bank names:", error);
       addMessages([
         {
           type: "incoming",
-          content:
-            "Invalid choice. Please choose with the options or say 'Hi' to start over.",
+          content: (
+            <span>
+              Bank not found. Please check the name and try again.
+            </span>
+          ),
           timestamp: new Date(),
         },
       ]);
+      return;
+    } finally {
+      setLoading(false);
     }
+
+    displaySelectBank();
+    next({ stepId: "enterAccountNumber" });
   }
 };
 
@@ -284,15 +73,14 @@ export const handleSelectBank = async (chatInput: string) => {
     })();
   } else if (chatInput != "0") {
     const { setBankList, setBankNames } = useBankStore.getState();
-    const { prev } = useChatStore.getState();
+    const { setLoading } = useChatStore.getState();
     let bankList: string[] = [];
 
     try {
+      setLoading(true);
       const bankNames = await fetchBankNames(chatInput.trim());
 
-      console.log("BankNames 1", bankNames);
       if (bankNames) {
-        console.log("The bank name", bankNames["message"]);
         bankList = bankNames["message"];
         setBankList(bankList);
       }
@@ -301,8 +89,6 @@ export const handleSelectBank = async (chatInput: string) => {
         const bankNameList = bankList.map((bank: string) =>
           bank.replace(/^\d+\.\s*/, "").replace(/\s\d+$/, ""),
         );
-
-        console.log("BankNames 1", bankNameList);
         setBankNames(bankNameList);
       } else {
         bankList = [];
@@ -323,6 +109,8 @@ export const handleSelectBank = async (chatInput: string) => {
         },
       ]);
       return;
+    } finally {
+      setLoading(false);
     }
 
     displaySelectBank();

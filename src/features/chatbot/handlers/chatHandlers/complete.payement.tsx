@@ -1,13 +1,15 @@
+import { processTransaction } from "@/core/process_transaction/process_transction_helpers";
 import { fetchBankDetails } from "@/services/bank/bank.service";
 import { useBankStore } from "stores/bankStore";
 import useChatStore, { MessageType } from "stores/chatStore";
+import { usePaymentStore } from "stores/paymentStore";
 import { greetings } from "../../helpers/ChatbotConsts";
 import { helloMenu } from "./hello.menu";
 import { displaySearchBank } from "./menus/display.bank.search";
 import { displayContinueToPay } from "./menus/display.continue.pay";
 
 export const handleContinueToPay = async (chatInput: string) => {
-  const { prev, next, addMessages } = useChatStore.getState();
+  const { prev, next, addMessages, setLoading } = useChatStore.getState();
   const { selectedBankCode, selectedBankName, updateBankData } =
     useBankStore.getState();
 
@@ -31,6 +33,7 @@ export const handleContinueToPay = async (chatInput: string) => {
      let account_number = "";
 
      try {
+       setLoading(true);
        const bankData = await fetchBankDetails(
          selectedBankCode,
          chatInput.trim(),
@@ -73,9 +76,18 @@ export const handleContinueToPay = async (chatInput: string) => {
          bank_name: selectedBankName,
          receiver_name: account_name,
        });
-       displayContinueToPay();
 
-       next({ stepId: "enterPhone" });
+       const { paymentMode } = usePaymentStore.getState();
+       const isClaimGift = paymentMode?.toLowerCase().trim() === "claim gift";
+
+       if (isClaimGift) {
+         // Claim gift: skip enterPhone/ConfirmAndProceedButton, process directly
+         await processTransaction();
+       } else {
+         displayContinueToPay();
+         const { currentStep: cs } = useChatStore.getState();
+         next({ stepId: "enterPhone", transactionType: cs.transactionType });
+       }
      } catch (error) {
        console.error("Failed to fetch bank data:", error);
        const errorMessage: MessageType[] = [
@@ -83,7 +95,7 @@ export const handleContinueToPay = async (chatInput: string) => {
            type: "incoming",
            content: (
              <span>
-               Failed to fetch bank data. Please check your accouunt number and
+               Failed to fetch bank data. Please check your account number and
                try again.
              </span>
            ),
@@ -91,6 +103,8 @@ export const handleContinueToPay = async (chatInput: string) => {
          },
        ];
        addMessages(errorMessage);
+     } finally {
+       setLoading(false);
      }
  
   }

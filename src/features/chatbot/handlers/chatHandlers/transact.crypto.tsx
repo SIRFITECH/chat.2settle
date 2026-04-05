@@ -1,4 +1,3 @@
-import { fetchCoinPrice } from "@/helpers/api_calls";
 import { getBaseSymbol } from "@/utils/utilities";
 import useChatStore from "stores/chatStore";
 import { usePaymentStore } from "stores/paymentStore";
@@ -8,16 +7,12 @@ import { displayHowToEstimation } from "./menus/how.to.estimate";
 import { displayNetwork } from "./menus/display.network";
 import { displayEnterPhone } from "./menus/display.phone";
 import { getWalletType } from "@/helpers/transaction/transact_crypto";
-import { getAccount } from "wagmi/actions";
-import { config } from "@/wagmi";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const handleTransactCrypto = async (chatInput: string) => {
   const { next, addMessages } = useChatStore.getState();
   const {
-    assetPrice,
     paymentMode,
-    setAssetPrice,
     setCrypto,
     setTicker,
     setNetwork,
@@ -38,7 +33,6 @@ export const handleTransactCrypto = async (chatInput: string) => {
   } else if (chatInput === "0") {
     helloMenu("hi");
   } else if (chatInput === "1") {
-    const walletType = getWalletType(wallet);
     if (walletIsConnected && walletType !== "BTC") {
       addMessages([
         {
@@ -53,16 +47,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setCrypto("BTC");
     setTicker("BTCUSDT");
     setNetwork("BTC");
+
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
-    const asset = await fetchCoinPrice(ticker);
-    setAssetPrice(asset.toString());
 
-    console.log({ assetPrice });
-    isRequest
-      ? displayEnterPhone()
-      : displayHowToEstimation({ crypto, ticker });
-    // next({ stepId: "payOptions" });
+    isRequest ? displayEnterPhone() : displayHowToEstimation({ crypto, ticker });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "2") {
     if (walletIsConnected && walletType !== "EVM") {
@@ -79,17 +68,12 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setCrypto("ETH");
     setTicker("ETHUSDT");
     setNetwork("ETH");
+
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
-    const asset = await fetchCoinPrice(ticker);
-    setAssetPrice(asset.toString());
 
-    console.log({ assetPrice });
-    // next({ stepId: "payOptions" });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
-    isRequest
-      ? displayEnterPhone()
-      : displayHowToEstimation({ crypto, ticker });
+    isRequest ? displayEnterPhone() : displayHowToEstimation({ crypto, ticker });
   } else if (chatInput === "3") {
     if (walletIsConnected && walletType !== "EVM") {
       addMessages([
@@ -105,16 +89,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setCrypto("BNB");
     setTicker("BNBUSDT");
     setNetwork("BNB");
+
     const crypto = usePaymentStore.getState().crypto;
     const ticker = usePaymentStore.getState().ticker;
-    const asset = await fetchCoinPrice(ticker);
-    setAssetPrice(asset.toString());
 
-    console.log({ assetPrice });
-    isRequest
-      ? displayEnterPhone()
-      : displayHowToEstimation({ crypto, ticker });
-    // next({ stepId: "payOptions" });
+    isRequest ? displayEnterPhone() : displayHowToEstimation({ crypto, ticker });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "4") {
     if (walletIsConnected && walletType !== "TRX") {
@@ -131,16 +110,11 @@ export const handleTransactCrypto = async (chatInput: string) => {
     setCrypto("TRX");
     setTicker("TRXUSDT");
     setNetwork("TRX");
+
     const crypto = getBaseSymbol(usePaymentStore.getState().crypto);
     const ticker = getBaseSymbol(usePaymentStore.getState().ticker);
-    const asset = await fetchCoinPrice(ticker);
-    setAssetPrice(asset.toString());
 
-    console.log({ assetPrice });
-    isRequest
-      ? displayEnterPhone()
-      : displayHowToEstimation({ crypto, ticker });
-    // next({ stepId: "payOptions" });
+    isRequest ? displayEnterPhone() : displayHowToEstimation({ crypto, ticker });
     isRequest ? next({ stepId: "enterPhone" }) : next({ stepId: "payOptions" });
   } else if (chatInput === "5") {
     if (walletIsConnected && walletType !== "EVM" && walletType !== "TRX") {

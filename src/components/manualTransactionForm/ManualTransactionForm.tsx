@@ -14,11 +14,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { TransactionBuilder } from "@/core/builders/transaction.builder";
-import { createTransaction } from "@/helpers/api_calls";
-import { formatPhoneNumber, generateTransactionId } from "@/utils/utilities";
-import { format } from "date-fns";
-import { formatCurrency } from "@/helpers/format_currency";
+import { createManualPayment, mapNetwork } from "@/services/enginePaymentService";
 import { AssetSelector } from "./asset-selector";
 import { NetworkSelector } from "./network-selector";
 import { EstimationCurrencySelector } from "./estimation-currency-selector";
@@ -37,7 +33,7 @@ import { WalletAddress } from "@/lib/wallets/types";
 export const ASSETS = [
   { value: "BTC", label: "Bitcoin (BTC)", defaultNetwork: "BTC" },
   { value: "ETH", label: "Ethereum (ETH)", defaultNetwork: "ERC20" },
-  { value: "BNB", label: "Binance Coin (BNB)", defaultNetwork: "BEP20" },
+  { value: "BNB", label: "Binance Coin (BSC)", defaultNetwork: "BSC" },
   { value: "TRX", label: "TRON (TRX)", defaultNetwork: "TRC20" },
   { value: "USDT-ERC20", label: "USDT (ERC20)", defaultNetwork: "ERC20" },
   { value: "USDT-BEP20", label: "USDT (BEP20)", defaultNetwork: "BEP20" },
@@ -65,6 +61,7 @@ export interface FormData {
   amount: string;
   charge: string;
   bankName: string;
+  bankCode: string;
   accountNumber: string;
   accountName: string;
   customerNumber: string;
@@ -88,6 +85,7 @@ export default function CryptoTransactionForm() {
     amount: "",
     charge: "",
     bankName: "",
+    bankCode: "",
     accountNumber: "",
     accountName: "",
     customerNumber: "",
@@ -114,58 +112,6 @@ export default function CryptoTransactionForm() {
     });
   };
 
-  // Build transaction object using the builder pattern
-  const buildTransactionObject = () => {
-    // Generate unique IDs for the transaction
-    const transactionId = generateTransactionId();
-
-    // Format date as string
-    const formattedDate = format(formData.transactionDate, "h:mma dd/MM/yyyy");
-
-    const merchantRate =
-      Number.parseFloat(formData.currentRate) +
-      Number.parseFloat(formData.profitRate);
-    
-    const effortNum =  Number.parseFloat(formData.receiverAmount)
-    const effortcal = effortNum * 0.01
-
-    // Use the builder pattern to create the transaction
-    const transaction = new TransactionBuilder()
-      .setCrypto(formData.asset)
-      .setNetwork(formData.network)
-      .setEstimation(
-        formData.estimation === "crypto"
-          ? formData.asset.split("-")[0] // Use the asset value (BTC, ETH, etc.) when estimation is crypto
-          : formData.estimation.charAt(0).toUpperCase() +
-              formData.estimation.slice(1)
-      )
-      .setAmount(formData.amount)
-      .setCharges(formatCurrency(formData.charge, "NGN", "en-NG"))
-      .setModeOfPayment("transferMoney")
-      .setBankAcctNumb(formData.accountNumber)
-      .setBankName(formData.bankName)
-      .setReceiverName(formData.accountName)
-      .setReceiverAmount(
-        formatCurrency(formData.receiverAmount, "NGN", "en-NG")
-    )
-      
-      .setCryptoSent(`${formData.cryptoSent} ${formData.asset.split("-")[0]}`)
-      .setWalletAddress(formData.walletAddress?.trim())
-      .setDate(formattedDate)
-      .setStatus("Successful")
-      .setCustomerPhoneNumber(formatPhoneNumber(formData.customerNumber))
-      .setCurrentRate(formatCurrency(formData.currentRate, "NGN", "en-NG"))
-      .setMerchantRate(formatCurrency(merchantRate.toString(), "NGN", "en-NG"))
-      .setProfitRates(formatCurrency(formData.profitRate, "NGN", "en-NG"))
-      .setAssetPrice(formatCurrency(formData.currentRate, "NGN", "en-NG"))
-      .setTransacId(transactionId.toString())
-      .setSettleWalletLink("")
-      .setRefCode("").setEffort(effortcal.toString())
-      .buildTransaction();
-
-    return transaction;
-  };
-
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,6 +122,7 @@ export default function CryptoTransactionForm() {
       !formData.network ||
       !formData.amount ||
       !formData.bankName ||
+      !formData.bankCode ||
       !formData.accountNumber ||
       !formData.customerNumber ||
       !formData.receiverAmount ||
@@ -214,11 +161,16 @@ export default function CryptoTransactionForm() {
     try {
       setIsSubmitting(true);
 
-      // Build the transaction object using the builder pattern
-      const transaction = buildTransactionObject();
-
-      // Save the transaction to the database
-      await createTransaction(transaction);
+      await createManualPayment({
+        fiatAmount: parseFloat(formData.receiverAmount),
+        crypto: formData.asset.split("-")[0],
+        network: mapNetwork(formData.network),
+        cryptoAmount: parseFloat(formData.cryptoSent),
+        depositAddress: formData.walletAddress as string,
+        payer: { phone: formData.customerNumber },
+        receiver: { bankCode: formData.bankCode, accountNumber: formData.accountNumber },
+        transactionDate: formData.transactionDate.toISOString(),
+      });
 
       toast({
         title: "Success",
@@ -360,10 +312,11 @@ export default function CryptoTransactionForm() {
               {/* Bank Details */}
               <BankDetailsInputs
                 bankName={formData.bankName}
+                bankCode={formData.bankCode}
                 accountNumber={formData.accountNumber}
                 accountName={formData.accountName}
-                onBankNameChange={(value) =>
-                  setFormData({ ...formData, bankName: value })
+                onBankSelect={(name, code) =>
+                  setFormData({ ...formData, bankName: name, bankCode: code })
                 }
                 onAccountNumberChange={(value) =>
                   setFormData({ ...formData, accountNumber: value })

@@ -25,17 +25,13 @@ export const CopyableText: React.FC<{
   const [dialogMessage, setDialogMessage] = useState("");
   const [shouldShowDialog, setShouldShowDialog] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const allowedTime = 5;
-
   useEffect(() => {
     if (isWallet && lastAssignedTime) {
       const timer = setInterval(() => {
         const now = new Date().getTime();
         const distance =
           lastAssignedTime instanceof Date
-            ? new Date(
-                lastAssignedTime.getTime() + allowedTime * 60 * 1000,
-              ).getTime() - now
+            ? lastAssignedTime.getTime() - now
             : 0;
 
         if (distance < 0) {

@@ -50,7 +50,7 @@ export default function Footer() {
 
   const handleSettingsClick = () => {
     if (isAuthorized()) {
-      router.push("/newTrx");
+      router.push("/new-transaction");
     } else {
       router.push("/login");
     }

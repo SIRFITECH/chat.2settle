@@ -1,23 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import mysql, { RowDataPacket } from "mysql2/promise";
 import { formatPhoneNumber } from "@/utils/utilities";
-import connection from "@/lib/mysql";
+import { engineGet } from "@/lib/settle-client";
 
-// TODO: we need to work on this
-const db = connection;
-// mysql.createPool({
-//   host: process.env.host,
-//   user: process.env.user,
-//   password: process.env.password,
-//   database: process.env.database,
-// });
+interface HistoryData {
+  transactions: Record<string, unknown>[];
+  total: number;
+  limit: number;
+  offset: number;
+}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { query } = req;
-  const { phoneNumber, walletAddress, page = "1", limit = "10" } = query;
+  const { phoneNumber, walletAddress, page = "1", limit = "10" } = req.query;
 
   if (!phoneNumber && !walletAddress) {
     return res.status(400).json({
@@ -30,40 +26,27 @@ export default async function handler(
   const offset = (pageNumber - 1) * limitNumber;
 
   try {
-    let queryStr = `
-      SELECT SQL_CALC_FOUND_ROWS * FROM payer 
-      WHERE 1=1
-    `;
-    const queryParams: (string | number | null)[] = [];
+    const params: Record<string, string> = {
+      limit: String(limitNumber),
+      offset: String(offset),
+    };
 
     if (phoneNumber) {
-      const phoneNo = formatPhoneNumber(phoneNumber as string);
-      queryStr += " AND customer_phoneNumber = ?";
-      queryParams.push(phoneNo);
+      params.phone = formatPhoneNumber(phoneNumber as string);
+    } else {
+      params.chat_id = walletAddress as string;
     }
 
-    if (walletAddress) {
-      queryStr += " AND send_from = ?";
-      queryParams.push(walletAddress as string);
-    }
+    const data = await engineGet<HistoryData>("/history", params);
 
-    queryStr += " LIMIT ? OFFSET ?";
-    queryParams.push(limitNumber, offset);
-
-    const [rows] = await db.query<RowDataPacket[]>(queryStr, queryParams);
-    const [countResult] = await db.query<RowDataPacket[]>(
-      "SELECT FOUND_ROWS() as total"
-    );
-    const total = countResult[0].total;
-
-    if (rows.length > 0) {
+    if (data.transactions.length > 0) {
       return res.status(200).json({
         exists: true,
-        transactions: rows,
+        transactions: data.transactions,
         pagination: {
           currentPage: pageNumber,
-          totalPages: Math.ceil(total / limitNumber),
-          totalItems: total,
+          totalPages: Math.ceil(data.total / limitNumber),
+          totalItems: data.total,
         },
       });
     } else {
@@ -77,8 +60,10 @@ export default async function handler(
         },
       });
     }
-  } catch (error) {
-    console.error("Error checking user in database:", error);
-    return res.status(500).json({ error: "Internal server error" });
+  } catch (error: any) {
+    console.error("Error checking user transactions:", error?.response?.data ?? error);
+    return res.status(error?.response?.status ?? 500).json({
+      error: "Internal server error",
+    });
   }
 }

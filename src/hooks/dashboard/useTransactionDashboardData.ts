@@ -9,14 +9,10 @@ const useTransactionDashboardData = () => {
     queryFn: () =>
       axios
         .get<{ transactions: TransactionTableData[] }>(
-          `${apiURL}/api/dashboard/fetch_transactions?status=Successful`
+          `${apiURL}/api/history?status=Successful&limit=20`
         )
         .then((response) => {
-          const transactionData = response.data;
-          if (!transactionData) {
-            throw new Error("No data received");
-          }
-
+          if (!response.data) throw new Error("No data received");
           return response.data;
         }),
   });

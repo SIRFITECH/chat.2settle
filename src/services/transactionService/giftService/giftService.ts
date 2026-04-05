@@ -13,12 +13,18 @@ export const isGiftValid = async (
 
     console.log({ response });
 
-    if (response.data.exists && response.data.user) {
-      // Extract the first transaction as the userData object
-      const firstTransaction: userData = response.data.user;
+    const payment = response.data?.payment;
 
-      // Return the exists flag and the user object
-      return { exists: true, user: firstTransaction };
+    if (response.data?.success && payment && payment.type === "gift") {
+      // Map engine payment fields to the userData shape used by handleClaimGift
+      return {
+        exists: true,
+        user: {
+          status: payment.status,        // e.g. "confirmed", "settled", "pending"
+          gift_status: payment.status,   // reuse status for gift_status checks
+          ...payment,
+        } as userData,
+      };
     } else {
       return { exists: false };
     }

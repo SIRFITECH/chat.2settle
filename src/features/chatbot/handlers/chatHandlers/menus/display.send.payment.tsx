@@ -27,9 +27,8 @@ export const displaySendPayment = async () => {
     useTransactionStore.getState();
 
   const paymentTicker = getBaseSymbol(ticker);
-  const allowedTime = 5;
   const assetPayment = parseFloat(paymentAssetEstimate);
-  const paymentAsset = `${assetPayment.toFixed(8)} ${paymentTicker}`;
+  const paymentAsset = `${parseFloat(assetPayment.toFixed(8))} ${paymentTicker}`;
 
   const isGift = currentStep.transactionType?.toLowerCase() === "gift";
   const isRequest = currentStep.transactionType?.toLowerCase() === "request";
@@ -37,13 +36,12 @@ export const displaySendPayment = async () => {
   const isRequestPayment =
     currentStep.transactionType?.toLowerCase() === "payrequest";
 
-  const lastAssignedTime = walletLastAssignedTime
+  // walletLastAssignedTime stores the engine's expiresAt directly
+  const walletExpiryTime = walletLastAssignedTime
     ? new Date(walletLastAssignedTime)
-    : new Date();
-
-  const walletExpiryTime = new Date(
-    lastAssignedTime.getTime() + allowedTime * 60 * 1000,
-  );
+    : new Date(Date.now() + 30 * 60 * 1000);
+  const allowedTime = Math.ceil((walletExpiryTime.getTime() - Date.now()) / 60000);
+  const lastAssignedTime = walletExpiryTime;
 
   const messages: MessageType[] = [
     {
@@ -67,7 +65,7 @@ export const displaySendPayment = async () => {
             <br />
             Bank Name: {bank_name} <br/>
             Account Number: {acct_number} <br/>
-            Bank Name: {receiver_name}
+            Account Name: {receiver_name}
             <br />
             <b>You can copy the requestId below</b> and share with the person to
             fulfill the request
@@ -107,11 +105,19 @@ export const displaySendPayment = async () => {
     messages.push(
       {
         type: "incoming",
-        content: (
+        content: isRequestPayment ? (
+          <span>
+            You are paying{" "}
+            <b>{paymentAsset} = {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}</b>{" "}
+            to fulfill request <b>{requestId}</b>.
+            <br />
+            Send the crypto to the 2Settle wallet address below to complete the payment.
+          </span>
+        ) : (
           <span>
             Note: You are sending{" "}
             <b>
-              ${paymentAsset} = 
+              {paymentAsset} ={" "}
               {formatCurrency(paymentNairaEstimate, "NGN", "en-NG")}
             </b>{" "}
             only to 2Settle wallet address to complete your transaction

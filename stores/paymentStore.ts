@@ -14,6 +14,7 @@ interface PaymentData {
   paymentAssetEstimate: string;
   paymentNairaEstimate: string;
   walletLastAssignedTime: string;
+  chargeFrom: "fiat" | "crypto";
 
   rate: string;
   lastRateFetchedAt: number;
@@ -45,6 +46,7 @@ export type PaymentStoreType = PaymentData & {
   setAmountPayable: (val: string) => void;
   setPaymentAssetEstimate: (val: string) => void;
   setPaymentNairaEstimate: (val: string) => void;
+  setChargeFrom: (val: "fiat" | "crypto") => void;
 
   reset: () => void;
 };
@@ -64,6 +66,7 @@ const initialState: PaymentData = {
   paymentAssetEstimate: "",
   paymentNairaEstimate: "",
   walletLastAssignedTime: "",
+  chargeFrom: "crypto",
 
   lastRateFetchedAt: 0,
   profitRate: "",
@@ -93,6 +96,7 @@ export const usePaymentStore = create<PaymentStoreType>()(
       },
       setPaymentAssetEstimate: (val) => set({ paymentAssetEstimate: val }),
       setPaymentNairaEstimate: (val) => set({ paymentNairaEstimate: val }),
+      setChargeFrom: (val) => set({ chargeFrom: val }),
       setRate: (rate) => set({ rate, lastRateFetchedAt: Date.now() }),
       setProfitRate: (val: string) =>
         set({ profitRate: val, lastProfitRateFetchedAt: Date.now() }),
@@ -129,6 +133,7 @@ export const usePaymentStore = create<PaymentStoreType>()(
           setAmountPayable: get().setAmountPayable,
           setPaymentAssetEstimate: get().setPaymentAssetEstimate,
           setPaymentNairaEstimate: get().setPaymentNairaEstimate,
+          setChargeFrom: get().setChargeFrom,
           setProfitRate: get().setProfitRate,
           setMerchantRate: get().setMerchantRate,
           setTotalVolume: get().setTotalVolume,

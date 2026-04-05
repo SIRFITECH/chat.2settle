@@ -85,15 +85,8 @@ const ConfirmAndProceedButton = () => {
    * Handle manual payment - user copies wallet and sends manually
    */
   const handleManualPayment = async () => {
-    console.log("handleManualPayment: Getting wallet for manual transfer");
-    
     try {
       setLoading(true);
-      if (!network) throw new Error("Network is not set");
-
-      await getAvaialableWallet(network.toLowerCase());
-      setHasCopyButtonBeenClicked(false);
-
       await processTransaction();
     } catch (err) {
       console.error("Error in handleManualPayment:", err);
@@ -143,7 +136,7 @@ const ConfirmAndProceedButton = () => {
     }
     return (
       <span>
-        Make sure you complete the transfer within <b>5 mins</b>
+        Make sure you complete the transfer within <b>30 mins</b>
       </span>
     );
   };
@@ -191,15 +184,16 @@ const ConfirmAndProceedButton = () => {
   const showCountdown = !!activeWallet && !isExpired;
 
   const showExpired = isExpired;
-  const expiryTime = new Date(
-    new Date(walletLastAssignedTime).getTime() + 5 * 60 * 1000,
-  );
+  // walletLastAssignedTime stores the engine's expiresAt directly
+  const expiryTime = walletLastAssignedTime
+    ? new Date(walletLastAssignedTime)
+    : new Date(Date.now() + 30 * 60 * 1000);
 
   return (
     <div className="flex flex-col items-center space-y-4">
       <ConfirmDialog />
       <Button
-        disabled={!hasCopyButtonBeenClicked || !!activeWallet}
+        disabled={(!hasCopyButtonBeenClicked || !!activeWallet) && !walletFetchError}
         className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-lg transition-all duration-300 ease-in-out min-w-[200px] hover:bg-blue-700 hover:text-white"
         variant="outline"
         onClick={() => {
@@ -250,7 +244,7 @@ const ConfirmAndProceedButton = () => {
       {/* count down - only show for manual payment flow */}
       {showCountdown && !connectedWallet && (
         <p role="status" className="text-sm text-muted-foreground">
-          This wallet expires in <CountdownTimer expiryTime={expiryTime} />
+          Address expires in <CountdownTimer expiryTime={expiryTime} />
           {showExpired && "This wallet has expired"}
         </p>
       )}
